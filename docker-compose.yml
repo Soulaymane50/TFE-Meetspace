@@ -1,0 +1,61 @@
+services:
+  db:
+    image: mysql:8
+    container_name: meetspace-db
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: meetspace
+      TZ: Europe/Brussels
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--silent"]
+      interval: 3s
+      timeout: 10s
+      retries: 50
+      start_period: 30s
+
+  backend:
+    build: ./meetspace-backend
+    container_name: meetspace-backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./meetspace-backend/.env
+    environment:
+      DB_URL: jdbc:mysql://db:3306/meetspace?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Brussels
+      DB_USERNAME: root
+      DB_PASSWORD: ""
+      TZ: Europe/Brussels
+    restart: on-failure
+    depends_on:
+      db:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: rebuild
+          path: ./meetspace-backend/src
+        - action: rebuild
+          path: ./meetspace-backend/pom.xml
+
+  frontend:
+    build: ./meetspace-frontend
+    container_name: meetspace-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./meetspace-frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    develop:
+      watch:
+        - action: sync
+          path: ./meetspace-frontend/src
+          target: /app/src
+
+volumes:
+  mysql_data:
