@@ -1,0 +1,57 @@
+package be.meetspace.entity;
+
+public enum AuditAction {
+    // Authentication actions
+    LOGIN_SUCCESS,
+    LOGIN_FAILURE,
+    LOGOUT,
+    PASSWORD_CHANGE,
+    PASSWORD_RESET_REQUEST,
+    PASSWORD_RESET_COMPLETE,
+
+    // User management
+    USER_CREATE,
+    USER_UPDATE,
+    USER_DELETE,
+    USER_ROLE_CHANGE,
+    USER_STATUS_CHANGE,
+
+    // Event management
+    EVENT_CREATE,
+    EVENT_UPDATE,
+    EVENT_DELETE,
+    EVENT_APPROVE,
+    EVENT_REJECT,
+    EVENT_CANCEL,
+
+    // Reservation management
+    RESERVATION_CREATE,
+    RESERVATION_UPDATE,
+    RESERVATION_CANCEL,
+    RESERVATION_APPROVE,
+    RESERVATION_REJECT,
+
+    // Space management
+    SPACE_CREATE,
+    SPACE_UPDATE,
+    SPACE_DELETE,
+
+    // Parking management
+    PARKING_SESSION_CREATE,
+    PARKING_SESSION_UPDATE,
+    PARKING_SESSION_DELETE,
+    PARKING_RESERVATION_CREATE,
+    PARKING_RESERVATION_CANCEL,
+    PARKING_RESERVATION_APPROVE,
+    PARKING_RESERVATION_REJECT,
+
+    // Payment actions
+    PAYMENT_INITIATED,
+    PAYMENT_SUCCESS,
+    PAYMENT_FAILURE,
+
+    // Event registration
+    EVENT_REGISTRATION_CREATE,
+    EVENT_REGISTRATION_CANCEL
+}
+
