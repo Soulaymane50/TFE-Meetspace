@@ -1,0 +1,67 @@
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1.2rem;
+}
+
+.title {
+  margin-bottom: 0;
+  font-size: clamp(2.3rem, 4vw, 3.8rem);
+}
+
+.linkRow {
+  margin: 0;
+}
+
+.linkGhost {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(27, 42, 64, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--blue-dark);
+  font-weight: 700;
+}
+
+.info,
+.error {
+  padding: 1rem 1.1rem;
+  border-radius: 20px;
+}
+
+.info {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: var(--shadow-soft);
+  color: var(--blue-dark);
+}
+
+.error {
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+}
+
+.table {
+  width: 100%;
+  min-width: 860px;
+}
+
+.cancelButton {
+  min-height: 42px;
+  padding: 0.65rem 0.95rem;
+  border-radius: 999px;
+  background: rgba(220, 38, 38, 0.12);
+  color: #991b1b;
+  font-size: 0.82rem;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.disabledText {
+  color: var(--taupe-dark);
+  font-size: 0.86rem;
+}

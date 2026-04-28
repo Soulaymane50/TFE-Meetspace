@@ -1,0 +1,57 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 2rem;
+}
+
+.content {
+  text-align: center;
+  max-width: 500px;
+}
+
+.code {
+  font-family: "The Seasons", "Poppins", serif;
+  font-size: 8rem;
+  font-weight: 400;
+  color: var(--blue-dark);
+  margin: 0;
+  line-height: 1;
+  opacity: 0.15;
+}
+
+.title {
+  font-family: "The Seasons", "Poppins", serif;
+  font-size: 2rem;
+  color: var(--blue-dark);
+  margin: -2rem 0 1rem 0;
+}
+
+.description {
+  color: var(--taupe-dark);
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 2rem;
+  background: linear-gradient(135deg, var(--orange) 0%, #d4855a 100%);
+  color: #fff;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 1rem;
+  box-shadow: 0 4px 16px rgba(194, 117, 70, 0.3);
+  transition: all var(--transition-normal);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(194, 117, 70, 0.4);
+  color: #fff;
+}

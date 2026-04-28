@@ -49,9 +49,6 @@ public class ParkingSlot {
     @JoinColumn(name = "event_id", unique = true)
     private Event event;
 
-    private Integer minAge;
-    private Integer maxAge;
-
     public Long getId() { return id; }
 
     public void setId(Long id) { this.id = id; }
@@ -96,12 +93,5 @@ public class ParkingSlot {
 
     public void setEvent(Event event) { this.event = event; }
 
-    public Integer getMinAge() { return minAge; }
-
-    public void setMinAge(Integer minAge) { this.minAge = minAge; }
-
-    public Integer getMaxAge() { return maxAge; }
-
-    public void setMaxAge(Integer maxAge) { this.maxAge = maxAge; }
 }
 

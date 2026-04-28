@@ -26,6 +26,8 @@ tools/backend.err.log
 tools/frontend.out.log
 tools/frontend.err.log
 tools/mysql-server.log
+tools/*.cmd
+tools/*.ps1
 tools/mysql-data/
 tools/mysql-data-meetspace/
 tools/mysql-8.0.45-winx64/

@@ -1,0 +1,208 @@
+.form {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem;
+  border-radius: 30px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.96) 100%);
+  box-shadow: var(--shadow-strong);
+}
+
+.formHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.kicker {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--taupe-dark);
+}
+
+.title {
+  margin: 0.3rem 0 0;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 0.98;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  min-height: 40px;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(27, 42, 64, 0.08);
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  color: var(--blue-darker);
+  font-weight: 800;
+}
+
+.summary {
+  margin-bottom: 1.5rem;
+  padding: 1.15rem 1.2rem;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(11, 18, 32, 0.95) 0%, rgba(34, 52, 79, 0.95) 58%, rgba(181, 138, 76, 0.95) 160%);
+  color: #f8f5ef;
+}
+
+.description {
+  margin: 0;
+  color: rgba(248, 245, 239, 0.78);
+}
+
+.amount {
+  margin: 0.4rem 0 0;
+  font-size: clamp(1.7rem, 3vw, 2.5rem);
+  font-weight: 800;
+  color: #fff;
+}
+
+.cardContainer {
+  margin-bottom: 1.4rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.55rem;
+  color: var(--blue-darker);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.cardElement {
+  padding: 1rem 1rem;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.cardFieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+  margin-bottom: 1.4rem;
+}
+
+.cardField {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.cardField:nth-child(1),
+.cardField:nth-child(2) {
+  grid-column: 1 / -1;
+}
+
+.cardField span {
+  color: var(--blue-darker);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cardField input {
+  width: 100%;
+  min-height: 52px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--blue-darker);
+  font: inherit;
+  font-weight: 700;
+  padding: 0 1rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.error {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 0.85rem;
+}
+
+.cancelButton,
+.submitButton {
+  flex: 1;
+  min-height: 54px;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.cancelButton {
+  border: 1px solid rgba(27, 42, 64, 0.14);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--blue-dark);
+  box-shadow: none;
+}
+
+.securityBadge {
+  margin-top: 1rem;
+  text-align: center;
+  color: var(--taupe-dark);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .form {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(2, 6, 23, 0.94) 100%);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+[data-theme="dark"] .title,
+[data-theme="dark"] .label,
+[data-theme="dark"] .cardField span {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .kicker,
+[data-theme="dark"] .securityBadge {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .badge,
+[data-theme="dark"] .cancelButton {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(148, 163, 184, 0.28);
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .cardElement,
+[data-theme="dark"] .cardField input {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(148, 163, 184, 0.28);
+  color: #f8fafc;
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .form {
+    padding: 1.45rem;
+  }
+
+  .cardFieldsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+  }
+}

@@ -62,7 +62,7 @@ public class EventServiceImpl implements EventService {
         validateEventDates(request);
 
         Event e = eventRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ã‰vÃ©nement introuvable"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Événement introuvable"));
 
         planningService.applyAndValidate(e, EventPlanningService.EventData.from(request), id);
         Event saved = eventRepository.save(e);
@@ -73,7 +73,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public void deleteEvent(Long id) {
         if (!eventRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ã‰vÃ©nement introuvable");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Événement introuvable");
         }
         eventRepository.deleteById(id);
     }
@@ -95,14 +95,14 @@ public class EventServiceImpl implements EventService {
         if (request.getStartDateTime().isBefore(now)) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST, 
-                "La date de dÃ©but ne peut pas Ãªtre dans le passÃ©"
+                "La date de début ne peut pas être dans le passé"
             );
         }
 
         if (request.getEndDateTime().isBefore(now)) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST, 
-                "La date de fin ne peut pas Ãªtre dans le passÃ©"
+                "La date de fin ne peut pas être dans le passé"
             );
         }
 
@@ -110,7 +110,7 @@ public class EventServiceImpl implements EventService {
             request.getEndDateTime().isEqual(request.getStartDateTime())) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST, 
-                "La date de fin doit Ãªtre aprÃ¨s la date de dÃ©but"
+                "La date de fin doit être après la date de début"
             );
         }
     }

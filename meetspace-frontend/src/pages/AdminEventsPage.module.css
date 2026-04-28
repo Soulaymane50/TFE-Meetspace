@@ -1,0 +1,221 @@
+.container {
+  composes: container from "./AdminDashboard.module.css";
+}
+
+.header {
+  composes: header from "./AdminDashboard.module.css";
+}
+
+.kicker {
+  composes: kicker from "./AdminDashboard.module.css";
+}
+
+.title {
+  composes: title from "./AdminDashboard.module.css";
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.backLink {
+  composes: backLink from "./AdminDashboard.module.css";
+}
+
+.alertBanner {
+  composes: alertBanner from "./AdminDashboard.module.css";
+}
+
+.alertIcon {
+  composes: alertIcon from "./AdminDashboard.module.css";
+}
+
+.alertButton {
+  composes: alertButton from "./AdminDashboard.module.css";
+}
+
+.tabs {
+  composes: tabs from "./AdminDashboard.module.css";
+}
+
+.tab {
+  composes: tab from "./AdminDashboard.module.css";
+}
+
+.tabActive {
+  composes: tabActive from "./AdminDashboard.module.css";
+}
+
+.tabBadge {
+  composes: navBadge from "./AdminDashboard.module.css";
+  margin-top: 0;
+}
+
+.section {
+  composes: section from "./AdminDashboard.module.css";
+}
+
+.tableContainer {
+  composes: tableContainer from "./AdminDashboard.module.css";
+}
+
+.table {
+  composes: table from "./AdminDashboard.module.css";
+}
+
+.nameCell {
+  font-weight: 800;
+  color: var(--blue-darker);
+}
+
+.actions,
+.cardActions,
+.rejectActions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.btnPrimary,
+.btnGhost,
+.btnDanger,
+.btnSuccess {
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.btnGhost {
+  background: rgba(27, 42, 64, 0.08);
+  color: var(--blue-dark);
+}
+
+.btnDanger {
+  background: rgba(220, 38, 38, 0.12);
+  color: #991b1b;
+}
+
+.btnSuccess {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.statusBadge,
+.badgePending {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.statusPublished,
+.statusCONFIRMED {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.statusPending,
+.statusPENDING {
+  background: rgba(181, 138, 76, 0.14);
+  color: #8a5b18;
+}
+
+.statusRejected,
+.statusCANCELLED {
+  background: rgba(220, 38, 38, 0.12);
+  color: #991b1b;
+}
+
+.statusCancelled {
+  background: rgba(107, 114, 128, 0.13);
+  color: #4b5563;
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  padding: 1.25rem;
+  border-radius: 24px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(27, 42, 64, 0.035);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.8rem;
+}
+
+.cardTitle {
+  margin-bottom: 0.35rem;
+}
+
+.cardMeta,
+.cardDate,
+.cardDesc,
+.resultCount,
+.emailSmall,
+.info,
+.loading,
+.noData {
+  color: var(--taupe-dark);
+}
+
+.cardInfo {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  color: var(--blue-dark);
+  font-weight: 700;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rejectBox {
+  width: 100%;
+}
+
+.textarea {
+  min-height: 120px;
+  margin-bottom: 0.7rem;
+}
+
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 20px;
+  background: rgba(27, 42, 64, 0.045);
+}
+
+.select {
+  min-width: 180px;
+}
+
+.resultCount {
+  margin-left: auto;
+  font-weight: 700;
+}
+
+.error {
+  composes: error from "./AdminDashboard.module.css";
+}

@@ -1,0 +1,29 @@
+.toggle {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8f5ef;
+  box-shadow: none;
+}
+
+.toggle:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: none;
+  box-shadow: none;
+}
+
+.toggle:active {
+  transform: none;
+}
+
+.toggle svg {
+  transition: transform var(--transition-normal), opacity var(--transition-normal);
+}
+
+.toggle:hover svg {
+  transform: rotate(16deg) scale(1.04);
+}

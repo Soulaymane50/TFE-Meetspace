@@ -79,7 +79,7 @@ public class UserService {
         // Audit log
         String details = isSelfDelete
             ? "Suppression de compte par l'utilisateur: " + user.getEmail()
-            : "Compte supprimÃƒÂ© par un administrateur: " + user.getEmail();
+            : "Compte supprimé par un administrateur: " + user.getEmail();
         auditService.log(AuditAction.USER_DELETE, "USER", user.getId(), details,
                 oldStatus.name(), UserStatus.DELETED.name(), ipAddress);
 
@@ -119,7 +119,7 @@ public class UserService {
         User saved = userRepository.save(user);
 
         // Audit log
-        String details = "Utilisateur rÃƒÂ©activÃƒÂ©: " + user.getEmail();
+        String details = "Utilisateur réactivé: " + user.getEmail();
         auditService.log(AuditAction.USER_STATUS_CHANGE, "USER", user.getId(), details,
                 oldStatus.name(), UserStatus.ACTIVE.name(), ipAddress);
 

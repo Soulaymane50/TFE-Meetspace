@@ -1,0 +1,99 @@
+.container {
+  composes: container from "./LoginPage.module.css";
+}
+
+.ambient {
+  composes: ambient from "./LoginPage.module.css";
+}
+
+.languageSwitcherWrapper {
+  composes: languageSwitcherWrapper from "./LoginPage.module.css";
+}
+
+.shell {
+  composes: shell from "./LoginPage.module.css";
+}
+
+.introPanel {
+  composes: introPanel from "./LoginPage.module.css";
+}
+
+.eyebrow {
+  composes: eyebrow from "./LoginPage.module.css";
+}
+
+.introTitle {
+  composes: introTitle from "./LoginPage.module.css";
+}
+
+.introText {
+  composes: introText from "./LoginPage.module.css";
+}
+
+.featureList {
+  composes: featureList from "./LoginPage.module.css";
+}
+
+.featurePill {
+  composes: featurePill from "./LoginPage.module.css";
+}
+
+.card {
+  composes: card from "./LoginPage.module.css";
+}
+
+.cardEyebrow {
+  composes: cardEyebrow from "./LoginPage.module.css";
+}
+
+.title {
+  composes: title from "./LoginPage.module.css";
+}
+
+.subtitle {
+  composes: subtitle from "./LoginPage.module.css";
+}
+
+.formGroup {
+  composes: formGroup from "./LoginPage.module.css";
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.label {
+  composes: label from "./LoginPage.module.css";
+}
+
+.input {
+  composes: input from "./LoginPage.module.css";
+}
+
+.button {
+  composes: button from "./LoginPage.module.css";
+}
+
+.error {
+  composes: error from "./LoginPage.module.css";
+}
+
+.footer {
+  composes: footer from "./LoginPage.module.css";
+}
+
+.link {
+  composes: link from "./LoginPage.module.css";
+}
+
+.homeLink {
+  composes: homeLink from "./LoginPage.module.css";
+}
+
+@media (max-width: 640px) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+}

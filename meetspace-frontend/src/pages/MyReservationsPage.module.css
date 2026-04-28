@@ -1,0 +1,209 @@
+.container {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.title {
+  margin-bottom: 0;
+  font-size: clamp(2.3rem, 4vw, 3.8rem);
+}
+
+.info,
+.loadingBox,
+.error {
+  padding: 1rem 1.1rem;
+  border-radius: 20px;
+}
+
+.info,
+.loadingBox {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: var(--shadow-soft);
+  color: var(--blue-dark);
+}
+
+.error {
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0.55rem;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: var(--shadow-soft);
+}
+
+.tab {
+  min-height: 46px;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--taupe-dark);
+  font-weight: 700;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tabActive {
+  background: linear-gradient(135deg, rgba(11, 18, 32, 0.96) 0%, rgba(34, 52, 79, 0.96) 100%);
+  color: #fff;
+}
+
+.tabCount {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.tabContent {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.approvedSection,
+.paymentCard {
+  padding: 1.4rem;
+  border-radius: 26px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.96) 100%);
+  box-shadow: var(--shadow-medium);
+}
+
+.sectionTitle {
+  margin-bottom: 0.45rem;
+}
+
+.sectionDesc {
+  margin-bottom: 1rem;
+}
+
+.approvedList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.approvedCard {
+  padding: 1.2rem;
+  border-radius: 22px;
+  background: rgba(27, 42, 64, 0.045);
+  border: 1px solid rgba(27, 42, 64, 0.08);
+}
+
+.approvedHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.approvedEspace {
+  margin-bottom: 0;
+}
+
+.approvedDetails {
+  margin: 0.9rem 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.approvedDetails p {
+  margin: 0;
+}
+
+.approvedActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.table {
+  width: 100%;
+  min-width: 860px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.statusConfirmed {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.statusPending {
+  background: rgba(181, 138, 76, 0.14);
+  color: #8a5b18;
+}
+
+.statusApproved {
+  background: rgba(90, 124, 226, 0.12);
+  color: #3157b6;
+}
+
+.statusCancelled,
+.statusDefault {
+  background: rgba(107, 114, 128, 0.13);
+  color: #4b5563;
+}
+
+.statusRejected {
+  background: rgba(220, 38, 38, 0.12);
+  color: #991b1b;
+}
+
+.payButton,
+.cancelButtonSmall,
+.cancelButton {
+  min-height: 42px;
+  padding: 0.65rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.payButton {
+  background: linear-gradient(135deg, var(--blue-darker) 0%, #22344f 58%, var(--orange) 180%);
+  color: #fff;
+}
+
+.cancelButtonSmall,
+.cancelButton {
+  background: rgba(220, 38, 38, 0.12);
+  color: #991b1b;
+}
+
+.disabledText,
+.rejectionReason {
+  color: var(--taupe-dark);
+  font-size: 0.86rem;
+}
+
+@media (max-width: 760px) {
+  .approvedActions {
+    flex-direction: column;
+  }
+}

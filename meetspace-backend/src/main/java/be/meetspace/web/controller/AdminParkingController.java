@@ -1,0 +1,109 @@
+package be.meetspace.web.controller;
+
+import be.meetspace.entity.AuditAction;
+import be.meetspace.entity.ParkingSlot;
+import be.meetspace.repository.ParkingSlotRepository;
+import be.meetspace.repository.ParkingReservationRepository;
+import be.meetspace.service.AuditService;
+import be.meetspace.web.dto.ParkingSlotRequest;
+import be.meetspace.web.dto.ParkingSlotResponseDto;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/admin/parking")
+public class AdminParkingController {
+
+    private final ParkingSlotRepository sessionRepository;
+    private final ParkingReservationRepository reservationRepository;
+    private final AuditService auditService;
+
+    public AdminParkingController(ParkingSlotRepository sessionRepository,
+                                   ParkingReservationRepository reservationRepository,
+                                   AuditService auditService) {
+        this.sessionRepository = sessionRepository;
+        this.reservationRepository = reservationRepository;
+        this.auditService = auditService;
+    }
+
+    @GetMapping("/sessions")
+    public List<ParkingSlotResponseDto> listSessions() {
+        return sessionRepository.findAll()
+                .stream()
+                .map(ParkingSlotResponseDto::fromEntity)
+                .toList();
+    }
+
+    @PostMapping("/sessions")
+    public ParkingSlotResponseDto createSession(@Valid @RequestBody ParkingSlotRequest request, HttpServletRequest httpRequest) {
+        ParkingSlot s = new ParkingSlot();
+        apply(request, s);
+        ParkingSlot saved = sessionRepository.save(s);
+
+        // Audit log
+        String ipAddress = AuditService.getClientIpAddress(httpRequest);
+        auditService.log(AuditAction.PARKING_SESSION_CREATE, "ParkingSlot", saved.getId(),
+                String.format("Création créneau parking: %s", saved.getTitle()), ipAddress);
+
+        return ParkingSlotResponseDto.fromEntity(saved);
+    }
+
+    @GetMapping("/sessions/{id}")
+    public ParkingSlotResponseDto getSession(@PathVariable Long id) {
+        ParkingSlot s = sessionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Session not found"));
+        return ParkingSlotResponseDto.fromEntity(s);
+    }
+
+    @PutMapping("/sessions/{id}")
+    public ParkingSlotResponseDto updateSession(
+            @PathVariable Long id,
+            @Valid @RequestBody ParkingSlotRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        ParkingSlot s = sessionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Session not found"));
+
+        apply(request, s);
+        ParkingSlot saved = sessionRepository.save(s);
+
+        // Audit log
+        String ipAddress = AuditService.getClientIpAddress(httpRequest);
+        auditService.log(AuditAction.PARKING_SESSION_UPDATE, "ParkingSlot", saved.getId(),
+                String.format("Modification créneau parking: %s", saved.getTitle()), ipAddress);
+
+        return ParkingSlotResponseDto.fromEntity(saved);
+    }
+
+    @DeleteMapping("/sessions/{id}")
+    @Transactional
+    public void deleteSession(@PathVariable Long id, HttpServletRequest httpRequest) {
+        ParkingSlot session = sessionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Session not found"));
+        String sessionTitle = session.getTitle();
+
+        reservationRepository.deleteByParkingSlotId(id);
+        sessionRepository.deleteById(id);
+
+        // Audit log
+        String ipAddress = AuditService.getClientIpAddress(httpRequest);
+        auditService.log(AuditAction.PARKING_SESSION_DELETE, "ParkingSlot", id,
+                String.format("Suppression créneau parking: %s", sessionTitle), ipAddress);
+    }
+
+    private void apply(ParkingSlotRequest r, ParkingSlot s) {
+        s.setTitle(r.getTitle());
+        s.setDescription(r.getDescription());
+        s.setSessionDate(r.getSlotDate());
+        s.setStartTime(r.getStartTime());
+        s.setEndTime(r.getEndTime());
+        s.setCapacity(r.getParkingCapacity());
+        s.setParkingRate(r.getParkingRate());
+        s.setStatus(r.getStatus());
+    }
+}
+

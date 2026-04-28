@@ -1,0 +1,332 @@
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.info,
+.error {
+  padding: 1rem 1.1rem;
+  border-radius: 20px;
+}
+
+.info {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: var(--shadow-soft);
+  color: var(--blue-dark);
+}
+
+.error {
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 1.8rem 2rem;
+  border-radius: 30px;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(11, 18, 32, 0.96) 0%, rgba(27, 42, 64, 0.94) 55%, rgba(181, 138, 76, 0.9) 165%);
+  box-shadow: var(--shadow-strong);
+}
+
+.title {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2.2rem, 4vw, 4rem);
+}
+
+.subtitle {
+  margin: 0.35rem 0 0;
+  color: rgba(248, 245, 239, 0.76);
+}
+
+.createButton,
+.createButtonSmall {
+  min-height: 52px;
+  padding: 0.9rem 1.3rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+}
+
+.statCard {
+  padding: 1.2rem;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.96) 100%);
+  box-shadow: var(--shadow-medium);
+  cursor: pointer;
+}
+
+.statPending {
+  background: linear-gradient(180deg, rgba(181, 138, 76, 0.14) 0%, rgba(255, 255, 255, 0.96) 100%);
+}
+
+.statPublished {
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.12) 0%, rgba(255, 255, 255, 0.96) 100%);
+}
+
+.statRejected {
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.1) 0%, rgba(255, 255, 255, 0.96) 100%);
+}
+
+.statCancelled {
+  background: linear-gradient(180deg, rgba(107, 114, 128, 0.1) 0%, rgba(255, 255, 255, 0.96) 100%);
+}
+
+.statNumber {
+  display: block;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: 800;
+  color: var(--blue-darker);
+}
+
+.statLabel {
+  color: var(--taupe-dark);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.filterTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0.55rem;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: var(--shadow-soft);
+}
+
+.filterTab {
+  min-height: 46px;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--taupe-dark);
+  font-weight: 700;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filterTabActive {
+  background: linear-gradient(135deg, rgba(11, 18, 32, 0.96) 0%, rgba(34, 52, 79, 0.96) 100%);
+  color: #fff;
+}
+
+.filterCount {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.emptyState {
+  padding: 3.2rem 1.5rem;
+  border-radius: 28px;
+  border: 1px dashed var(--border);
+  background: rgba(255, 255, 255, 0.74);
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--blue-darker) 0%, #28415f 65%, var(--orange) 180%);
+  color: #fff;
+  font-weight: 800;
+}
+
+.eventsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 1rem;
+}
+
+.eventCard {
+  border-radius: 26px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.96) 100%);
+  box-shadow: var(--shadow-medium);
+  overflow: hidden;
+}
+
+.eventHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 1.3rem 1.3rem 1rem;
+  border-bottom: 1px solid rgba(27, 42, 64, 0.07);
+}
+
+.eventTitle {
+  margin: 0;
+}
+
+.rejectionBox {
+  margin: 0 1.3rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(220, 38, 38, 0.08);
+  color: #991b1b;
+}
+
+.eventDetails {
+  padding: 1.1rem 1.3rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.eventDetail {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--taupe-dark);
+}
+
+.detailIcon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: rgba(27, 42, 64, 0.08);
+  color: var(--blue-dark);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.eventActions {
+  padding: 1rem 1.3rem 1.3rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.editButton,
+.cancelButton,
+.viewButton {
+  min-height: 42px;
+  padding: 0.65rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  box-shadow: none;
+  text-decoration: none;
+}
+
+.editButton {
+  background: rgba(27, 42, 64, 0.08);
+  color: var(--blue-dark);
+}
+
+.cancelButton {
+  background: rgba(220, 38, 38, 0.12);
+  color: #991b1b;
+}
+
+.viewButton {
+  background: rgba(90, 124, 226, 0.12);
+  color: #3157b6;
+}
+
+.pendingNote {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0.65rem 0.95rem;
+  border-radius: 999px;
+  background: rgba(181, 138, 76, 0.14);
+  color: #8a5b18;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.legend {
+  padding: 1.4rem;
+  border-radius: 26px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.96) 100%);
+  box-shadow: var(--shadow-medium);
+}
+
+.legendTitle {
+  margin-bottom: 1rem;
+}
+
+.legendGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--taupe-dark);
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.statusPending {
+  background: rgba(181, 138, 76, 0.14);
+  color: #8a5b18;
+}
+
+.statusPublished {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.statusRejected {
+  background: rgba(220, 38, 38, 0.12);
+  color: #991b1b;
+}
+
+.statusCancelled {
+  background: rgba(107, 114, 128, 0.13);
+  color: #4b5563;
+}
+
+@media (max-width: 760px) {
+  .header {
+    padding: 1.5rem;
+  }
+}

@@ -1,0 +1,264 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 120;
+  padding: 0.8rem 1.4rem 0;
+}
+
+.topShell,
+.navShell {
+  max-width: 1520px;
+  margin: 0 auto;
+  border: 1px solid rgba(20, 32, 51, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.topShell {
+  display: grid;
+  grid-template-columns: minmax(240px, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  padding: 0.95rem 1.2rem;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 18px 36px rgba(11, 18, 32, 0.1);
+}
+
+.navShell {
+  margin-top: -1px;
+  padding: 0 1.2rem;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 18px 36px rgba(11, 18, 32, 0.08);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.brandMark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(11, 18, 32, 1) 0%, rgba(41, 71, 113, 1) 100%);
+  color: #f8f5ef;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.brandCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.brandName {
+  color: var(--blue-darker);
+  font-size: 1.2rem;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.brandSub {
+  color: var(--taupe-dark);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.topUtilities {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.userLabel {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-right: 0.25rem;
+}
+
+.userLabel b {
+  color: var(--blue-darker);
+}
+
+.controls,
+.authLinks {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.utilityLink,
+.logoutButton,
+.registerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 0.79rem;
+  font-weight: 700;
+}
+
+.utilityLink {
+  color: var(--blue-dark);
+  background: rgba(20, 32, 51, 0.04);
+  border: 1px solid rgba(20, 32, 51, 0.08);
+}
+
+.utilityLink:hover,
+.utilityLinkActive {
+  color: var(--blue-darker);
+  background: rgba(20, 32, 51, 0.08);
+}
+
+.logoutButton {
+  border: 1px solid rgba(20, 32, 51, 0.1);
+  background: transparent;
+  color: var(--blue-dark);
+  box-shadow: none;
+}
+
+.logoutButton:hover {
+  color: var(--blue-darker);
+  background: rgba(20, 32, 51, 0.06);
+  transform: none;
+}
+
+.registerButton {
+  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-light) 100%);
+  color: var(--blue-darker);
+}
+
+.registerButton:hover {
+  color: var(--blue-darker);
+}
+
+.notifBadge {
+  margin-left: 0.35rem;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 0.28rem;
+  border-radius: 999px;
+  background: #d13f3f;
+  color: #ffffff;
+  font-size: 0.66rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.productNav {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  min-height: 58px;
+}
+
+.productLink {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 58px;
+  padding: 0.8rem 0.95rem;
+  color: var(--blue-dark);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 800;
+  border-bottom: 2px solid transparent;
+}
+
+.productLink:hover {
+  color: var(--blue-darker);
+}
+
+.productLinkActive {
+  color: var(--blue-darker);
+  border-bottom-color: var(--orange);
+}
+
+:global([data-theme="dark"]) .topShell,
+:global([data-theme="dark"]) .navShell {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(12, 18, 27, 0.94);
+}
+
+:global([data-theme="dark"]) .brandName,
+:global([data-theme="dark"]) .userLabel b,
+:global([data-theme="dark"]) .productLink:hover,
+:global([data-theme="dark"]) .productLinkActive {
+  color: var(--text-primary);
+}
+
+:global([data-theme="dark"]) .brandSub,
+:global([data-theme="dark"]) .userLabel,
+:global([data-theme="dark"]) .productLink {
+  color: var(--text-secondary);
+}
+
+:global([data-theme="dark"]) .utilityLink {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme="dark"]) .utilityLink:hover,
+:global([data-theme="dark"]) .utilityLinkActive {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme="dark"]) .logoutButton {
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+}
+
+:global([data-theme="dark"]) .logoutButton:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 1180px) {
+  .topShell {
+    grid-template-columns: 1fr;
+  }
+
+  .topUtilities {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .header {
+    padding: 0.6rem 0.8rem 0;
+  }
+
+  .topShell,
+  .navShell {
+    padding-left: 0.95rem;
+    padding-right: 0.95rem;
+  }
+
+  .brandSub,
+  .userLabel {
+    display: none;
+  }
+
+  .productNav {
+    overflow-x: auto;
+  }
+}

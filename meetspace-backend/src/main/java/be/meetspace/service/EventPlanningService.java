@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Service
@@ -37,21 +36,10 @@ public class EventPlanningService {
         event.setStartDateTime(data.startDateTime());
         event.setEndDateTime(data.endDateTime());
         if (data.capacity() == null || data.capacity() < 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La capacitÃƒÂ© doit ÃƒÂªtre renseignÃƒÂ©e et positive");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La capacité doit être renseignée et positive");
         }
         event.setCapacity(data.capacity());
         event.setPrice(data.price());
-        event.setMinAge(data.minAge());
-        event.setMaxAge(data.maxAge());
-        if (data.minAge() != null && data.minAge() < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "L'ÃƒÂ¢ge minimum doit ÃƒÂªtre positif");
-        }
-        if (data.maxAge() != null && data.maxAge() < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "L'ÃƒÂ¢ge maximum doit ÃƒÂªtre positif");
-        }
-        if (data.minAge() != null && data.maxAge() != null && data.maxAge() < data.minAge()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "L'ÃƒÂ¢ge maximum doit ÃƒÂªtre supÃƒÂ©rieur ou ÃƒÂ©gal ÃƒÂ  l'ÃƒÂ¢ge minimum");
-        }
         if (data.status() != null) {
             event.setStatus(data.status());
         }
@@ -63,11 +51,11 @@ public class EventPlanningService {
 
         if (typeToUse == EventLocationType.EXISTING_SPACE) {
             if (data.spaceId() == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Un espace existant doit ÃƒÂªtre sÃƒÂ©lectionnÃƒÂ©");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Un espace existant doit être sélectionné");
             }
 
             Espace espace = espaceRepository.findById(data.spaceId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Espace introuvable pour l'ÃƒÂ©vÃƒÂ©nement"));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Espace introuvable pour l'événement"));
 
             if (espace.getStatus() != EspaceStatus.AVAILABLE) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Espace non disponible");
@@ -75,12 +63,12 @@ public class EventPlanningService {
 
             if (reservationRepository.existsOverlappingReservation(
                     espace.getId(), data.startDateTime(), data.endDateTime())) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "L'espace sÃƒÂ©lectionnÃƒÂ© est dÃƒÂ©jÃƒÂ  rÃƒÂ©servÃƒÂ© sur ce crÃƒÂ©neau");
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "L'espace sélectionné est déjà réservé sur ce créneau");
             }
 
             if (eventRepository.existsOverlappingEventForSpace(
                     espace.getId(), data.startDateTime(), data.endDateTime(), excludeEventId)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Un autre ÃƒÂ©vÃƒÂ©nement occupe dÃƒÂ©jÃƒÂ  cet espace sur ce crÃƒÂ©neau");
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Un autre événement occupe déjà cet espace sur ce créneau");
             }
 
             event.setSpace(espace);
@@ -108,15 +96,15 @@ public class EventPlanningService {
         LocalDateTime now = LocalDateTime.now();
 
         if (start.isBefore(now)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La date de dÃƒÂ©but ne peut pas ÃƒÂªtre dans le passÃƒÂ©");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La date de début ne peut pas être dans le passé");
         }
 
         if (end.isBefore(now)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La date de fin ne peut pas ÃƒÂªtre dans le passÃƒÂ©");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La date de fin ne peut pas être dans le passé");
         }
 
         if (!end.isAfter(start)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La date de fin doit ÃƒÂªtre aprÃƒÂ¨s la date de dÃƒÂ©but");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La date de fin doit être après la date de début");
         }
     }
 
@@ -139,16 +127,14 @@ public class EventPlanningService {
         }
 
         parkingSlot.setEvent(event);
-        parkingSlot.setTitle("Parking pour event " + event.getTitle());
-        parkingSlot.setDescription("Parking associÃƒÂ© ÃƒÂ  l'ÃƒÂ©vÃƒÂ©nement " + event.getTitle());
+        parkingSlot.setTitle("Accès parking - " + event.getTitle());
+        parkingSlot.setDescription("Parking associé à l'événement " + event.getTitle());
         parkingSlot.setSessionDate(event.getStartDateTime().toLocalDate());
         parkingSlot.setStartTime(event.getStartDateTime().toLocalTime());
         parkingSlot.setEndTime(event.getEndDateTime().toLocalTime());
         parkingSlot.setCapacity(data.parkingCapacity());
         parkingSlot.setParkingRate(data.parkingPrice());
         parkingSlot.setStatus(ParkingSlotStatus.OPEN);
-        parkingSlot.setMinAge(data.parkingMinDuration());
-        parkingSlot.setMaxAge(data.parkingMaxDuration());
 
         event.setParkingSlot(parkingSlot);
     }
@@ -160,8 +146,6 @@ public class EventPlanningService {
             LocalDateTime endDateTime,
             Integer capacity,
             Double price,
-            Integer minAge,
-            Integer maxAge,
             EventStatus status,
             EventLocationType locationType,
             Long spaceId,
@@ -169,9 +153,7 @@ public class EventPlanningService {
             String locationLabel,
             boolean parkingRequired,
             Double parkingPrice,
-            Integer parkingCapacity,
-            Integer parkingMinDuration,
-            Integer parkingMaxDuration
+            Integer parkingCapacity
     ) {
         public static EventData from(be.meetspace.web.dto.EventRequestDto dto, EventStatus status) {
             return new EventData(
@@ -181,8 +163,6 @@ public class EventPlanningService {
                     dto.getEndDateTime(),
                     dto.getCapacity(),
                     dto.getPrice(),
-                    dto.getMinAge(),
-                    dto.getMaxAge(),
                     status,
                     dto.getLocationType(),
                     dto.getSpaceId(),
@@ -190,9 +170,7 @@ public class EventPlanningService {
                     dto.getLocation(),
                     dto.getParkingRequired() != null && dto.getParkingRequired(),
                     dto.getParkingPrice(),
-                    dto.getParkingCapacity(),
-                    dto.getParkingMinDuration(),
-                    dto.getParkingMaxDuration()
+                    dto.getParkingCapacity()
             );
         }
 
@@ -204,8 +182,6 @@ public class EventPlanningService {
                     dto.getEndDateTime(),
                     dto.getCapacity(),
                     dto.getPrice(),
-                    dto.getMinAge(),
-                    dto.getMaxAge(),
                     dto.getStatus(),
                     dto.getLocationType(),
                     dto.getSpaceId(),
@@ -213,11 +189,8 @@ public class EventPlanningService {
                     dto.getLocation(),
                     dto.isParkingRequired(),
                     dto.getParkingPrice(),
-                    dto.getParkingCapacity(),
-                    dto.getParkingMinDuration(),
-                    dto.getParkingMaxDuration()
+                    dto.getParkingCapacity()
             );
         }
     }
 }
-

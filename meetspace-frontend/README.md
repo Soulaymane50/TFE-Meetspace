@@ -1,24 +1,27 @@
 # MeetSpace Frontend
 
-Frontend React/Vite de MeetSpace pour les salles, evenements professionnels et reservations de parking.
+Application React/Vite de MeetSpace.
 
 ## Prerequis
 
-- Node.js 20
-- Backend MeetSpace accessible localement
+- Node.js 20 ou plus
+- backend MeetSpace accessible sur l'URL configuree dans `VITE_API_URL`
+
+## Installation
+
+```bat
+npm install
+```
 
 ## Lancement
 
 ```bat
-cd /d c:\Users\souez\OneDrive\Bureau\TFE-main\meetspace-frontend
-set PATH=c:\Users\souez\OneDrive\Bureau\TFE-main\tools\node-v20.19.5-win-x64;%PATH%
-c:\Users\souez\OneDrive\Bureau\TFE-main\tools\node-v20.19.5-win-x64\npm.cmd run dev
+npm run dev -- --port 5174
 ```
 
-## Build
+## Verification
 
 ```bat
-cd /d c:\Users\souez\OneDrive\Bureau\TFE-main\meetspace-frontend
-set PATH=c:\Users\souez\OneDrive\Bureau\TFE-main\tools\node-v20.19.5-win-x64;%PATH%
-c:\Users\souez\OneDrive\Bureau\TFE-main\tools\node-v20.19.5-win-x64\npm.cmd run build
+npm run lint
+npm run build
 ```

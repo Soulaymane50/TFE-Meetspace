@@ -1,0 +1,153 @@
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.header {
+  composes: header from "./AdminDashboard.module.css";
+}
+
+.kicker {
+  composes: kicker from "./AdminDashboard.module.css";
+}
+
+.title {
+  composes: title from "./AdminDashboard.module.css";
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.backLink {
+  composes: backLink from "./AdminDashboard.module.css";
+}
+
+.tabs {
+  composes: tabs from "./AdminDashboard.module.css";
+}
+
+.tab {
+  composes: tab from "./AdminDashboard.module.css";
+}
+
+.tabActive {
+  composes: tabActive from "./AdminDashboard.module.css";
+}
+
+.section {
+  composes: section from "./AdminDashboard.module.css";
+}
+
+.tableContainer {
+  overflow-x: auto;
+  border-radius: 22px;
+  border: 1px solid rgba(27, 42, 64, 0.07);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.table {
+  min-width: 860px;
+}
+
+.nameCell {
+  font-weight: 800;
+  color: var(--blue-darker);
+}
+
+.capacityBadge,
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.capacityBadge {
+  background: rgba(27, 42, 64, 0.08);
+  color: var(--blue-dark);
+}
+
+.statusOPEN,
+.statusCONFIRMED {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.statusCLOSED,
+.statusCANCELLED {
+  background: rgba(107, 114, 128, 0.13);
+  color: #4b5563;
+}
+
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.btnPrimary,
+.btnGhost,
+.btnDanger {
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.btnGhost {
+  background: rgba(27, 42, 64, 0.08);
+  color: var(--blue-dark);
+}
+
+.btnDanger {
+  background: rgba(220, 38, 38, 0.12);
+  color: #991b1b;
+}
+
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 20px;
+  background: rgba(27, 42, 64, 0.045);
+}
+
+.select {
+  min-width: 180px;
+}
+
+.resultCount {
+  margin-left: auto;
+  color: var(--taupe-dark);
+  font-weight: 700;
+}
+
+.emailSmall,
+.noData,
+.loading {
+  color: var(--taupe-dark);
+}
+
+.loading,
+.error {
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+}
+
+.error {
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+}

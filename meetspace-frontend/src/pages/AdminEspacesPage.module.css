@@ -1,0 +1,245 @@
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.header {
+  composes: header from "./AdminDashboard.module.css";
+}
+
+.kicker {
+  composes: kicker from "./AdminDashboard.module.css";
+}
+
+.title {
+  composes: title from "./AdminDashboard.module.css";
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.backLink {
+  composes: backLink from "./AdminDashboard.module.css";
+}
+
+.alertBanner {
+  composes: alertBanner from "./AdminDashboard.module.css";
+}
+
+.alertIcon {
+  composes: alertIcon from "./AdminDashboard.module.css";
+}
+
+.alertButton {
+  composes: alertButton from "./AdminDashboard.module.css";
+}
+
+.tabs {
+  composes: tabs from "./AdminDashboard.module.css";
+}
+
+.tab {
+  composes: tab from "./AdminDashboard.module.css";
+}
+
+.tabActive {
+  composes: tabActive from "./AdminDashboard.module.css";
+}
+
+.tabBadge {
+  composes: navBadge from "./AdminDashboard.module.css";
+  margin-top: 0;
+}
+
+.section {
+  composes: section from "./AdminDashboard.module.css";
+}
+
+.tableContainer {
+  overflow-x: auto;
+  border-radius: 22px;
+  border: 1px solid rgba(27, 42, 64, 0.07);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.table {
+  min-width: 860px;
+}
+
+.nameCell {
+  font-weight: 800;
+  color: var(--blue-darker);
+}
+
+.typeBadge,
+.badgePending,
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.typeSalle {
+  background: rgba(90, 124, 226, 0.12);
+  color: #3157b6;
+}
+
+.typePremiumRoom {
+  background: rgba(115, 95, 220, 0.12);
+  color: #6248c9;
+}
+
+.badgePending,
+.statusPENDING {
+  background: rgba(181, 138, 76, 0.14);
+  color: #8a5b18;
+}
+
+.statusCONFIRMED {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.statusCANCELLED {
+  background: rgba(220, 38, 38, 0.12);
+  color: #991b1b;
+}
+
+.actions,
+.cardActions,
+.rejectActions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.btnPrimary,
+.btnGhost,
+.btnDanger,
+.btnSuccess {
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.btnGhost {
+  background: rgba(27, 42, 64, 0.08);
+  color: var(--blue-dark);
+}
+
+.btnDanger {
+  background: rgba(220, 38, 38, 0.12);
+  color: #991b1b;
+}
+
+.btnSuccess {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  padding: 1.25rem;
+  border-radius: 24px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(27, 42, 64, 0.035);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.8rem;
+}
+
+.cardTitle {
+  margin-bottom: 0.3rem;
+}
+
+.cardMeta,
+.cardDate,
+.emailSmall,
+.noData,
+.info,
+.loading,
+.resultCount {
+  color: var(--taupe-dark);
+}
+
+.justification {
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  margin-bottom: 1rem;
+}
+
+.price {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--blue-darker);
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.rejectBox {
+  width: 100%;
+}
+
+.textarea {
+  min-height: 120px;
+  margin-bottom: 0.7rem;
+}
+
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 20px;
+  background: rgba(27, 42, 64, 0.045);
+}
+
+.select {
+  min-width: 180px;
+}
+
+.resultCount {
+  margin-left: auto;
+  font-weight: 700;
+}
+
+.loading,
+.error {
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+}
+
+.error {
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+}

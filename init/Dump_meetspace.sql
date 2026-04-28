@@ -336,7 +336,7 @@ INSERT INTO `utilisateur` VALUES
 (1116,'Membre','Local','membre.local@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2025-12-15 14:32:47','2025-12-15 14:47:09'),
 (1117,'Organisateur','Local','organisateur.local@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','ORGANIZER','ACTIVE','2025-12-15 14:33:08','2025-12-15 14:47:02'),
 (1118,'Admin','Local','admin.local@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','ADMIN','ACTIVE','2025-12-15 14:33:27','2025-12-15 14:47:04'),
-(1119,'Client','Demo','client.demo@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-04-26 12:00:00',NULL);
+(1119,'Claire','Martin','claire.martin@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-04-26 12:00:00',NULL);
 /*!40000 ALTER TABLE `utilisateur` ENABLE KEYS */;
 UNLOCK TABLES;
 

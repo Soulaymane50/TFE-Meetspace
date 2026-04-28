@@ -1,0 +1,140 @@
+.container {
+  padding: 1.35rem;
+  border-radius: 24px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: var(--shadow-soft);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.navButton {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  background: rgba(27, 42, 64, 0.08);
+  border: 1px solid rgba(27, 42, 64, 0.1);
+  color: var(--blue-dark);
+  box-shadow: none;
+}
+
+.monthYear {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--blue-darker);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.loading {
+  padding: 1rem;
+  text-align: center;
+  color: var(--taupe-dark);
+}
+
+.weekDays,
+.daysGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.45rem;
+}
+
+.weekDays {
+  margin-bottom: 0.45rem;
+}
+
+.weekDay {
+  padding: 0.55rem 0;
+  text-align: center;
+  color: var(--taupe-dark);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.emptyDay {
+  aspect-ratio: 1;
+}
+
+.day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+  cursor: pointer;
+}
+
+.dayAvailable {
+  background: linear-gradient(135deg, #0f9f67 0%, #1db57a 100%);
+}
+
+.dayPartial {
+  background: linear-gradient(135deg, #b97718 0%, #cf8a20 100%);
+}
+
+.dayFull {
+  background: linear-gradient(135deg, #b91c1c 0%, #d53333 100%);
+}
+
+.daySelected {
+  box-shadow: 0 0 0 3px rgba(11, 18, 32, 0.22);
+}
+
+.dayToday {
+  border: 2px solid rgba(255, 255, 255, 0.82);
+}
+
+.dayPast {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--taupe-dark);
+  font-size: 0.82rem;
+}
+
+.legendColor {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.legendAvailable {
+  background: #1db57a;
+}
+
+.legendPartial {
+  background: #cf8a20;
+}
+
+.legendFull {
+  background: #d53333;
+}

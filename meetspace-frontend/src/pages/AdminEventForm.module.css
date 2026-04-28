@@ -1,0 +1,112 @@
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0;
+  display: grid;
+  gap: 1.2rem;
+}
+
+.title {
+  margin-bottom: 0;
+  font-size: clamp(2.3rem, 4vw, 3.8rem);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(27, 42, 64, 0.12);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--blue-dark);
+  font-weight: 700;
+}
+
+.error {
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+}
+
+.form {
+  padding: 1.7rem;
+  border-radius: 28px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.96) 100%);
+  box-shadow: var(--shadow-medium);
+  display: grid;
+  gap: 1rem;
+}
+
+.row,
+.parkingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  color: var(--blue-darker);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+}
+
+.textarea {
+  min-height: 140px;
+}
+
+.checkboxRow {
+  padding: 1rem;
+  border-radius: 20px;
+  background: rgba(27, 42, 64, 0.045);
+}
+
+.checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: var(--blue-darker);
+  font-weight: 700;
+}
+
+.secondary,
+.primary {
+  min-height: 54px;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.secondary {
+  border: 1px solid rgba(27, 42, 64, 0.14);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--blue-dark);
+  box-shadow: none;
+}
+
+.actions {
+  display: flex;
+  gap: 0.85rem;
+}
+
+@media (max-width: 720px) {
+  .actions {
+    flex-direction: column;
+  }
+}

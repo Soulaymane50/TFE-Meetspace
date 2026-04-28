@@ -1,0 +1,92 @@
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1.2rem;
+}
+
+.title {
+  margin-bottom: 0;
+  font-size: clamp(2.3rem, 4vw, 3.8rem);
+}
+
+.form {
+  padding: 1.7rem;
+  border-radius: 28px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.96) 100%);
+  box-shadow: var(--shadow-medium);
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.55rem;
+  color: var(--blue-darker);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+}
+
+.textarea {
+  min-height: 140px;
+}
+
+.error {
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 0.85rem;
+  margin-top: 1.2rem;
+}
+
+.cancelButton,
+.submitButton {
+  min-height: 54px;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.cancelButton {
+  border: 1px solid rgba(27, 42, 64, 0.14);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--blue-dark);
+  box-shadow: none;
+}
+
+.info {
+  padding: 1.25rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+  color: var(--blue-dark);
+}
+
+@media (max-width: 720px) {
+  .buttonGroup {
+    flex-direction: column;
+  }
+}
