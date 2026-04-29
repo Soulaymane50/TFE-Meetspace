@@ -225,6 +225,8 @@ export default function AdminDashboard() {
   const parkingRevenue = stats?.parkingRevenue ?? 0;
   const userParkingReservations = userDetails?.parkingReservations ?? [];
   const formatEuro = (value) => `${(value || 0).toFixed(2)} ${EURO}`;
+  const totalRevenue = stats?.totalRevenue || 0;
+  const getShare = (value) => (totalRevenue > 0 ? Math.max(4, Math.round(((value || 0) / totalRevenue) * 100)) : 0);
 
   const tabs = [
     { id: "overview", label: t("admin.overview") },
@@ -276,6 +278,12 @@ export default function AdminDashboard() {
     { icon: "revenue", label: t("admin.totalRevenue"), value: formatEuro(stats?.totalRevenue), tone: styles.statPurple },
   ];
 
+  const revenueBreakdown = [
+    { label: t("admin.eventRevenue"), value: stats?.eventRevenue || 0, share: getShare(stats?.eventRevenue), tone: styles.barBlue },
+    { label: t("admin.spaceRevenue"), value: stats?.spaceRevenue || 0, share: getShare(stats?.spaceRevenue), tone: styles.barGold },
+    { label: t("admin.parkingRevenue"), value: parkingRevenue, share: getShare(parkingRevenue), tone: styles.barGreen },
+  ];
+
   const dashboardSignals = [
     {
       icon: "spaces",
@@ -294,6 +302,27 @@ export default function AdminDashboard() {
       label: t("admin.parkingManagement"),
       value: totalParkingSlots,
       meta: `${confirmedParkingReservations} ${t("admin.confirmedParkingReservations").toLowerCase()}`,
+    },
+  ];
+
+  const operations = [
+    {
+      icon: "pending",
+      label: t("admin.pendingApprovals"),
+      value: totalPending,
+      meta: `${pendingEvents.length} ${t("nav.events").toLowerCase()} / ${pendingReservations.length} ${t("nav.spaces").toLowerCase()}`,
+    },
+    {
+      icon: "users",
+      label: t("admin.totalUsers"),
+      value: stats?.totalUsers ?? 0,
+      meta: t("common.status"),
+    },
+    {
+      icon: "parking",
+      label: t("admin.confirmedParkingReservations"),
+      value: confirmedParkingReservations,
+      meta: `${totalParkingSlots} ${t("admin.totalSessions").toLowerCase()}`,
     },
   ];
 
@@ -374,19 +403,55 @@ export default function AdminDashboard() {
             </span>
           </div>
 
-          <div className={styles.commandPanel}>
-            <div className={styles.commandIcon}>
-              <AdminIcon type="revenue" />
+          <div className={styles.commandGrid}>
+            <div className={styles.commandPanel}>
+              <div className={styles.commandIcon}>
+                <AdminIcon type="revenue" />
+              </div>
+              <div className={styles.commandContent}>
+                <span>{t("admin.totalRevenue")}</span>
+                <strong>{formatEuro(stats.totalRevenue)}</strong>
+              </div>
+              <div className={styles.commandChips}>
+                <span>{t("admin.confirmedEventRes")}: {stats.confirmedEventRegistrations || 0}</span>
+                <span>{t("admin.confirmedSpaceRes")}: {stats.confirmedSpaceReservations || 0}</span>
+                <span>{t("admin.confirmedParkingReservations")}: {confirmedParkingReservations}</span>
+              </div>
+              <div className={styles.revenueBreakdown}>
+                {revenueBreakdown.map((item) => (
+                  <div key={item.label} className={styles.revenueRow}>
+                    <div className={styles.revenueRowHeader}>
+                      <span>{item.label}</span>
+                      <strong>{formatEuro(item.value)}</strong>
+                    </div>
+                    <div className={styles.revenueTrack}>
+                      <span className={item.tone} style={{ width: `${item.share}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className={styles.commandContent}>
-              <span>{t("admin.totalRevenue")}</span>
-              <strong>{formatEuro(stats.totalRevenue)}</strong>
-            </div>
-            <div className={styles.commandChips}>
-              <span>{t("admin.confirmedEventRes")}: {stats.confirmedEventRegistrations || 0}</span>
-              <span>{t("admin.confirmedSpaceRes")}: {stats.confirmedSpaceReservations || 0}</span>
-              <span>{t("admin.confirmedParkingReservations")}: {confirmedParkingReservations}</span>
-            </div>
+
+            <aside className={styles.opsPanel}>
+              <div className={styles.opsHeader}>
+                <span>MeetSpace</span>
+                <strong>{t("admin.overview")}</strong>
+              </div>
+              <div className={styles.opsList}>
+                {operations.map((item) => (
+                  <div key={item.label} className={styles.opsItem}>
+                    <div className={styles.opsIcon}>
+                      <AdminIcon type={item.icon} />
+                    </div>
+                    <div>
+                      <span>{item.label}</span>
+                      <strong>{item.value}</strong>
+                      <small>{item.meta}</small>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </aside>
           </div>
 
           <div className={styles.signalGrid}>
@@ -404,29 +469,36 @@ export default function AdminDashboard() {
             ))}
           </div>
 
-          <div className={styles.statsGrid}>
-            {platformStats.map((item) => (
-              <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
-                <div className={styles.statIcon}>
-                  <AdminIcon type={item.icon} />
-                </div>
-                <p className={styles.statLabel}>{item.label}</p>
-                <p className={styles.statNumber}>{item.value}</p>
+          <div className={styles.boardGrid}>
+            <div className={styles.boardColumn}>
+              <h3 className={styles.subsectionTitle}>{t("admin.overview")}</h3>
+              <div className={styles.statsGrid}>
+                {platformStats.map((item) => (
+                  <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
+                    <div className={styles.statIcon}>
+                      <AdminIcon type={item.icon} />
+                    </div>
+                    <p className={styles.statLabel}>{item.label}</p>
+                    <p className={styles.statNumber}>{item.value}</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
 
-          <h3 className={styles.subsectionTitle}>{t("admin.reservationsOverview")}</h3>
-          <div className={styles.statsGrid}>
-            {reservationStats.map((item) => (
-              <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
-                <div className={styles.statIcon}>
-                  <AdminIcon type={item.icon} />
-                </div>
-                <p className={styles.statLabel}>{item.label}</p>
-                <p className={styles.statNumber}>{item.value}</p>
+            <div className={styles.boardColumn}>
+              <h3 className={styles.subsectionTitle}>{t("admin.reservationsOverview")}</h3>
+              <div className={styles.statsGrid}>
+                {reservationStats.map((item) => (
+                  <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
+                    <div className={styles.statIcon}>
+                      <AdminIcon type={item.icon} />
+                    </div>
+                    <p className={styles.statLabel}>{item.label}</p>
+                    <p className={styles.statNumber}>{item.value}</p>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
 
           <h3 className={styles.subsectionTitle}>{t("admin.revenue")}</h3>

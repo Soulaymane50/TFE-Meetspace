@@ -1,5 +1,5 @@
 .container {
-  max-width: 1360px;
+  max-width: 1480px;
   margin: 0 auto;
   display: grid;
   gap: 1.2rem;
@@ -55,7 +55,10 @@
 .title {
   margin: 0.3rem 0 0.45rem;
   color: var(--blue-darker);
-  font-size: clamp(2.15rem, 4vw, 3.7rem);
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: clamp(2rem, 3.4vw, 3.35rem);
+  font-weight: 900;
+  letter-spacing: -0.07em;
 }
 
 .subtitle {
@@ -264,6 +267,9 @@
 .sectionTitle {
   margin-bottom: 1rem;
   color: var(--blue-darker);
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.06em;
 }
 
 .sectionHeader {
@@ -310,6 +316,13 @@
   box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.12);
 }
 
+.commandGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(300px, 0.9fr);
+  gap: 1rem;
+  margin-bottom: 1.05rem;
+}
+
 .commandPanel {
   position: relative;
   overflow: hidden;
@@ -317,7 +330,6 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.05rem;
   padding: 1rem;
   border-radius: 24px;
   border: 1px solid rgba(27, 42, 64, 0.1);
@@ -389,6 +401,160 @@
   background: rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.86);
   font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.revenueBreakdown {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.68rem;
+  padding: 0.9rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.revenueRow {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.revenueRowHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.revenueRowHeader strong {
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.revenueTrack {
+  position: relative;
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.revenueTrack span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+}
+
+.barBlue {
+  background: linear-gradient(90deg, #91a7ff, #5a7ce2);
+}
+
+.barGold {
+  background: linear-gradient(90deg, #f4d7a8, #cfa265);
+}
+
+.barGreen {
+  background: linear-gradient(90deg, #99f6c6, #10b981);
+}
+
+.opsPanel {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border-radius: 24px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background:
+    radial-gradient(circle at 84% 12%, rgba(181, 138, 76, 0.16), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 245, 239, 0.9) 100%);
+  box-shadow: var(--shadow-soft);
+}
+
+.opsPanel::after {
+  content: "";
+  position: absolute;
+  inset: auto -28px -36px auto;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: rgba(90, 124, 226, 0.08);
+}
+
+.opsHeader {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid rgba(27, 42, 64, 0.08);
+}
+
+.opsHeader span {
+  color: var(--orange);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.opsHeader strong {
+  color: var(--blue-darker);
+}
+
+.opsList {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.opsItem {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.8rem;
+  border-radius: 18px;
+  background: rgba(27, 42, 64, 0.045);
+}
+
+.opsIcon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  background: rgba(27, 42, 64, 0.08);
+  color: var(--blue-dark);
+}
+
+.opsItem span,
+.opsItem small {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.opsItem strong {
+  display: block;
+  color: var(--blue-darker);
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.opsItem small {
+  letter-spacing: 0;
+  text-transform: none;
   font-weight: 800;
 }
 
@@ -470,8 +636,26 @@
 
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
   gap: 0.95rem;
+}
+
+.boardGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+  margin-top: 0.25rem;
+}
+
+.boardColumn {
+  padding: 1rem;
+  border-radius: 24px;
+  border: 1px solid rgba(27, 42, 64, 0.07);
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.boardColumn .subsectionTitle {
+  margin-top: 0;
 }
 
 .statCard {
@@ -818,6 +1002,27 @@
     linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(20, 31, 49, 0.98) 58%, rgba(86, 66, 38, 0.95) 100%);
 }
 
+[data-theme="dark"] .opsPanel,
+[data-theme="dark"] .boardColumn {
+  border-color: rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(207, 162, 101, 0.08), transparent 35%),
+    linear-gradient(180deg, rgba(18, 26, 37, 0.92) 0%, rgba(12, 18, 27, 0.88) 100%);
+}
+
+[data-theme="dark"] .opsHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .opsItem {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+[data-theme="dark"] .opsIcon {
+  background: rgba(207, 162, 101, 0.12);
+  color: #f4d7a8;
+}
+
 [data-theme="dark"] .signalIcon {
   background: linear-gradient(135deg, rgba(207, 162, 101, 0.92), rgba(49, 87, 132, 0.92));
   color: #111827;
@@ -851,6 +1056,8 @@
 [data-theme="dark"] .navCardContent h3,
 [data-theme="dark"] .statNumber,
 [data-theme="dark"] .signalCard strong,
+[data-theme="dark"] .opsHeader strong,
+[data-theme="dark"] .opsItem strong,
 [data-theme="dark"] .backLink,
 [data-theme="dark"] .tab:hover,
 [data-theme="dark"] .viewButton,
@@ -863,6 +1070,8 @@
 [data-theme="dark"] .statLabel,
 [data-theme="dark"] .signalCard span,
 [data-theme="dark"] .signalCard small,
+[data-theme="dark"] .opsItem span,
+[data-theme="dark"] .opsItem small,
 [data-theme="dark"] .subsectionTitle,
 [data-theme="dark"] .currentUserBadge,
 [data-theme="dark"] .noData,
@@ -937,6 +1146,8 @@
 
   .sectionHeader,
   .commandPanel,
+  .commandGrid,
+  .boardGrid,
   .signalGrid {
     grid-template-columns: 1fr;
   }
