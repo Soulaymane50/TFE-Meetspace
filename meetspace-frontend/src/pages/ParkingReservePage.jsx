@@ -4,6 +4,7 @@ import { createParkingReservation, getParkingSlot } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PaymentForm from "../components/PaymentForm";
+import PageState from "../components/PageState";
 import { PARKING_IMAGE } from "../utils/mediaAssets";
 import styles from "./ParkingReservePage.module.css";
 
@@ -60,8 +61,13 @@ export default function ParkingReservePage() {
     }
   };
 
-  if (loading) return <p className={styles.info}>{t("common.loading")}</p>;
-  if (error && !parkingSlot) return <p className={styles.error}>{error}</p>;
+  if (loading) {
+    return <PageState type="loading" title={t("common.loading")} message={t("parking.reservePlace")} />;
+  }
+
+  if (error && !parkingSlot) {
+    return <PageState type="error" title={t("common.error")} message={error} />;
+  }
 
   if (isPaymentStepVisible) {
     return (
@@ -165,7 +171,7 @@ export default function ParkingReservePage() {
 
               <div className={styles.infoBox}>
                 <span className={styles.infoIcon}>i</span>
-                <span>{t("parking.ageRequirement")}</span>
+                <span>{t("parking.capacityNotice")}</span>
               </div>
             </div>
           )}

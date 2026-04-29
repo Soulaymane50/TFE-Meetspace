@@ -1,0 +1,111 @@
+.state {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  width: min(760px, 100%);
+  margin: 2rem auto;
+  padding: 1.25rem 1.35rem;
+  border-radius: 26px;
+  border: 1px solid rgba(20, 32, 51, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(181, 138, 76, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.96) 100%);
+  box-shadow: var(--shadow-soft);
+}
+
+.marker {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--blue-darker) 0%, #243a58 100%);
+  color: #f8f5ef;
+  font-weight: 900;
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid rgba(248, 245, 239, 0.28);
+  border-top-color: #f8f5ef;
+  animation: spin 0.9s linear infinite;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.title {
+  margin: 0;
+  color: var(--blue-darker);
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+}
+
+.message {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.action {
+  margin-top: 0.5rem;
+}
+
+.error {
+  border-color: rgba(220, 38, 38, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(220, 38, 38, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 248, 248, 0.96) 100%);
+}
+
+.error .marker {
+  background: linear-gradient(135deg, #7f1d1d 0%, #b91c1c 100%);
+}
+
+.empty .marker {
+  background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+[data-theme="dark"] .state {
+  border-color: rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(207, 162, 101, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+}
+
+[data-theme="dark"] .title {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .message {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .error {
+  border-color: rgba(248, 113, 113, 0.24);
+  background:
+    radial-gradient(circle at top right, rgba(248, 113, 113, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(30, 20, 24, 0.98) 0%, rgba(16, 18, 25, 0.96) 100%);
+}
+
+@media (max-width: 640px) {
+  .state {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .marker {
+    margin: 0 auto;
+  }
+}

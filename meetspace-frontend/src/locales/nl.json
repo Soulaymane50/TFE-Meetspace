@@ -469,7 +469,7 @@
                       "addToRegistration":  "Parking toevoegen aan mijn inschrijving",
                       "perSpace":  "plaats",
                       "loginToReserve":  "Log in om te reserveren",
-                      "ageRequirement":  "Controleer capaciteit en tarief per parkingslot voor u reserveert.",
+                      "capacityNotice":  "Controleer capaciteit en tarief per parkingslot voor u reserveert.",
                       "notFound":  "Parkingslot niet gevonden",
                       "createError":  "Fout bij het aanmaken van de parkeerreservering",
                       "fetchError":  "De parkingslots kunnen momenteel niet worden geladen.",

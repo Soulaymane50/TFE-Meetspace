@@ -15,6 +15,85 @@ import { useTranslation } from "react-i18next";
 import styles from "./AdminDashboard.module.css";
 import AuditLogs from "../components/AuditLogs";
 
+function AdminIcon({ type }) {
+  const icons = {
+    spaces: (
+      <>
+        <path d="M4 20V6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5V20" />
+        <path d="M8 20v-6h8v6" />
+        <path d="M8 8h.01M12 8h.01M16 8h.01M8 11h.01M12 11h.01M16 11h.01" />
+      </>
+    ),
+    events: (
+      <>
+        <path d="M7 3v3M17 3v3" />
+        <path d="M4.5 8.5h15" />
+        <path d="M6.5 5h11A2.5 2.5 0 0 1 20 7.5v10A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5v-10A2.5 2.5 0 0 1 6.5 5Z" />
+        <path d="m8 13 2.2 2.2L16 11" />
+      </>
+    ),
+    parking: (
+      <>
+        <path d="M6 20V4h7a5 5 0 0 1 0 10H9" />
+        <path d="M9 14v6" />
+      </>
+    ),
+    users: (
+      <>
+        <path d="M16 20a4 4 0 0 0-8 0" />
+        <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+        <path d="M19 19a3.5 3.5 0 0 0-3-3.45" />
+        <path d="M16.5 4.5a3 3 0 0 1 0 5.8" />
+      </>
+    ),
+    pending: (
+      <>
+        <path d="M12 7v5l3 2" />
+        <path d="M12 21a9 9 0 1 0-9-9" />
+        <path d="M3 21v-5h5" />
+      </>
+    ),
+    reservations: (
+      <>
+        <path d="M7 4h10a2 2 0 0 1 2 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 0 1 2-2Z" />
+        <path d="M9 9h6M9 13h6" />
+      </>
+    ),
+    revenue: (
+      <>
+        <path d="M12 3v18" />
+        <path d="M17 7.5A4 4 0 0 0 13.5 6h-3A2.5 2.5 0 0 0 8 8.5v0A2.5 2.5 0 0 0 10.5 11h3A2.5 2.5 0 0 1 16 13.5v0A2.5 2.5 0 0 1 13.5 16h-3A4 4 0 0 1 7 14.5" />
+      </>
+    ),
+    view: (
+      <>
+        <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+      </>
+    ),
+    ban: (
+      <>
+        <path d="M18 6 6 18" />
+        <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" />
+      </>
+    ),
+    reactivate: (
+      <>
+        <path d="M20 6v5h-5" />
+        <path d="M4 18v-5h5" />
+        <path d="M18.5 10A7 7 0 0 0 6.2 6.2L4 8.4" />
+        <path d="M5.5 14A7 7 0 0 0 17.8 17.8L20 15.6" />
+      </>
+    ),
+  };
+
+  return (
+    <svg className={styles.iconSvg} viewBox="0 0 24 24" aria-hidden="true">
+      {icons[type] || icons.revenue}
+    </svg>
+  );
+}
+
 export default function AdminDashboard() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -145,6 +224,50 @@ export default function AdminDashboard() {
     { id: "audit", label: t("admin.auditLogs", "Logs d'audit") },
   ];
 
+  const navCards = [
+    {
+      to: "/admin/espaces",
+      icon: "spaces",
+      title: t("admin.spacesManagement"),
+      meta: `${stats?.totalEspaces || 0} ${t("nav.spaces").toLowerCase()}`,
+      badge: pendingReservations.length > 0 ? `${pendingReservations.length} ${t("admin.pending")}` : "",
+    },
+    {
+      to: "/admin/events",
+      icon: "events",
+      title: t("admin.eventsManagement"),
+      meta: `${stats?.totalEvents || 0} ${t("nav.events").toLowerCase()}`,
+      badge: pendingEvents.length > 0 ? `${pendingEvents.length} ${t("admin.pending")}` : "",
+    },
+    {
+      to: "/admin/parking",
+      icon: "parking",
+      title: t("admin.parkingManagement"),
+      meta: `${totalParkingSlots} ${t("admin.totalSessions").toLowerCase()}`,
+      badge: "",
+    },
+  ];
+
+  const platformStats = [
+    { icon: "users", label: t("admin.totalUsers"), value: stats?.totalUsers ?? 0 },
+    { icon: "spaces", label: t("admin.totalSpaces"), value: stats?.totalEspaces ?? 0, tone: styles.statBlue },
+    { icon: "events", label: t("admin.totalEvents"), value: stats?.totalEvents ?? 0, tone: styles.statGreen },
+    { icon: "pending", label: t("admin.pendingApprovals"), value: totalPending, tone: styles.statOrange },
+  ];
+
+  const reservationStats = [
+    { icon: "spaces", label: t("admin.confirmedSpaceRes"), value: stats?.confirmedSpaceReservations || 0 },
+    { icon: "events", label: t("admin.confirmedEventRes"), value: stats?.confirmedEventRegistrations || 0, tone: styles.statBlue },
+    { icon: "parking", label: t("admin.confirmedParkingReservations"), value: confirmedParkingReservations, tone: styles.statGreen },
+  ];
+
+  const revenueStats = [
+    { icon: "spaces", label: t("admin.spaceRevenue"), value: `${(stats?.spaceRevenue || 0).toFixed(2)} €` },
+    { icon: "events", label: t("admin.eventRevenue"), value: `${(stats?.eventRevenue || 0).toFixed(2)} €`, tone: styles.statBlue },
+    { icon: "parking", label: t("admin.parkingRevenue"), value: `${parkingRevenue.toFixed(2)} €`, tone: styles.statGreen },
+    { icon: "revenue", label: t("admin.totalRevenue"), value: `${(stats?.totalRevenue || 0).toFixed(2)} €`, tone: styles.statPurple },
+  ];
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -154,14 +277,13 @@ export default function AdminDashboard() {
           <p className={styles.subtitle}>{t("admin.dashboardSubtitle")}</p>
         </div>
         <Link to="/" className={styles.backLink}>
-          ← {t("common.backToSite")}
+          {t("common.backToSite")}
         </Link>
       </div>
 
-      {/* Alertes pour approbations en attente */}
       {pendingEvents.length > 0 && (
         <div className={styles.alertBanner}>
-          <span className={styles.alertIcon}>⚠️</span>
+          <span className={styles.alertIcon}>!</span>
           <span>
             {pendingEvents.length} {t("admin.eventsPendingApproval")}
           </span>
@@ -173,7 +295,7 @@ export default function AdminDashboard() {
 
       {pendingReservations.length > 0 && (
         <div className={styles.alertBanner}>
-          <span className={styles.alertIcon}>⚠️</span>
+          <span className={styles.alertIcon}>!</span>
           <span>
             {pendingReservations.length} {t("admin.premiumRoomReservationsPending")}
           </span>
@@ -183,40 +305,21 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Navigation principale vers les sections de gestion */}
       <div className={styles.navCards}>
-        <Link to="/admin/espaces" className={styles.navCard}>
-          <div className={styles.navCardIcon}>🏢</div>
-          <div className={styles.navCardContent}>
-            <h3>{t("admin.spacesManagement")}</h3>
-            <p>{stats?.totalEspaces || 0} {t("nav.spaces").toLowerCase()}</p>
-            {pendingReservations.length > 0 && (
-              <span className={styles.navBadge}>{pendingReservations.length} {t("admin.pending")}</span>
-            )}
-          </div>
-        </Link>
-
-        <Link to="/admin/events" className={styles.navCard}>
-          <div className={styles.navCardIcon}>🎉</div>
-          <div className={styles.navCardContent}>
-            <h3>{t("admin.eventsManagement")}</h3>
-            <p>{stats?.totalEvents || 0} {t("nav.events").toLowerCase()}</p>
-            {pendingEvents.length > 0 && (
-              <span className={styles.navBadge}>{pendingEvents.length} {t("admin.pending")}</span>
-            )}
-          </div>
-        </Link>
-
-        <Link to="/admin/parking" className={styles.navCard}>
-          <div className={styles.navCardIcon}>🅿️</div>
-          <div className={styles.navCardContent}>
-            <h3>{t("admin.parkingManagement")}</h3>
-            <p>{totalParkingSlots} {t("admin.totalSessions").toLowerCase()}</p>
-          </div>
-        </Link>
+        {navCards.map((card) => (
+          <Link key={card.to} to={card.to} className={styles.navCard}>
+            <div className={styles.navCardIcon}>
+              <AdminIcon type={card.icon} />
+            </div>
+            <div className={styles.navCardContent}>
+              <h3>{card.title}</h3>
+              <p>{card.meta}</p>
+              {card.badge && <span className={styles.navBadge}>{card.badge}</span>}
+            </div>
+          </Link>
+        ))}
       </div>
 
-      {/* Tabs pour Overview et Users */}
       <div className={styles.tabs}>
         {tabs.map((tab) => (
           <button
@@ -231,69 +334,68 @@ export default function AdminDashboard() {
 
       {activeTab === "overview" && stats && (
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>{t("admin.overview")}</h2>
+          <div className={styles.sectionHeader}>
+            <div>
+              <p className={styles.sectionEyebrow}>MeetSpace Admin</p>
+              <h2 className={styles.sectionTitle}>{t("admin.overview")}</h2>
+            </div>
+            <span className={styles.liveBadge}>
+              <span className={styles.liveDot} />
+              {t("admin.pendingApprovals")}: {totalPending}
+            </span>
+          </div>
+
+          <div className={styles.commandPanel}>
+            <div className={styles.commandIcon}>
+              <AdminIcon type="revenue" />
+            </div>
+            <div className={styles.commandContent}>
+              <span>{t("admin.totalRevenue")}</span>
+              <strong>{(stats.totalRevenue || 0).toFixed(2)} €</strong>
+            </div>
+            <div className={styles.commandChips}>
+              <span>{t("admin.confirmedEventRes")}: {stats.confirmedEventRegistrations || 0}</span>
+              <span>{t("admin.confirmedSpaceRes")}: {stats.confirmedSpaceReservations || 0}</span>
+              <span>{t("admin.confirmedParkingReservations")}: {confirmedParkingReservations}</span>
+            </div>
+          </div>
 
           <div className={styles.statsGrid}>
-            <div className={styles.statCard}>
-              <p className={styles.statLabel}>{t("admin.totalUsers")}</p>
-              <p className={styles.statNumber}>{stats.totalUsers}</p>
-            </div>
-            <div className={`${styles.statCard} ${styles.statBlue}`}>
-              <p className={styles.statLabel}>{t("admin.totalSpaces")}</p>
-              <p className={styles.statNumber}>{stats.totalEspaces}</p>
-            </div>
-            <div className={`${styles.statCard} ${styles.statGreen}`}>
-              <p className={styles.statLabel}>{t("admin.totalEvents")}</p>
-              <p className={styles.statNumber}>{stats.totalEvents}</p>
-            </div>
-            <div className={`${styles.statCard} ${styles.statOrange}`}>
-              <p className={styles.statLabel}>{t("admin.pendingApprovals")}</p>
-              <p className={styles.statNumber}>{totalPending}</p>
-            </div>
+            {platformStats.map((item) => (
+              <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
+                <div className={styles.statIcon}>
+                  <AdminIcon type={item.icon} />
+                </div>
+                <p className={styles.statLabel}>{item.label}</p>
+                <p className={styles.statNumber}>{item.value}</p>
+              </div>
+            ))}
           </div>
 
           <h3 className={styles.subsectionTitle}>{t("admin.reservationsOverview")}</h3>
           <div className={styles.statsGrid}>
-            <div className={styles.statCard}>
-              <p className={styles.statLabel}>{t("admin.confirmedSpaceRes")}</p>
-              <p className={styles.statNumber}>{stats.confirmedSpaceReservations || 0}</p>
-            </div>
-            <div className={`${styles.statCard} ${styles.statBlue}`}>
-              <p className={styles.statLabel}>{t("admin.confirmedEventRes")}</p>
-              <p className={styles.statNumber}>{stats.confirmedEventRegistrations || 0}</p>
-            </div>
-            <div className={`${styles.statCard} ${styles.statGreen}`}>
-              <p className={styles.statLabel}>{t("admin.confirmedParkingReservations")}</p>
-              <p className={styles.statNumber}>{confirmedParkingReservations}</p>
-            </div>
+            {reservationStats.map((item) => (
+              <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
+                <div className={styles.statIcon}>
+                  <AdminIcon type={item.icon} />
+                </div>
+                <p className={styles.statLabel}>{item.label}</p>
+                <p className={styles.statNumber}>{item.value}</p>
+              </div>
+            ))}
           </div>
 
           <h3 className={styles.subsectionTitle}>{t("admin.revenue")}</h3>
           <div className={styles.statsGrid}>
-            <div className={styles.statCard}>
-              <p className={styles.statLabel}>{t("admin.spaceRevenue")}</p>
-              <p className={styles.statNumber}>
-                {(stats.spaceRevenue || 0).toFixed(2)} €
-              </p>
-            </div>
-            <div className={`${styles.statCard} ${styles.statBlue}`}>
-              <p className={styles.statLabel}>{t("admin.eventRevenue")}</p>
-              <p className={styles.statNumber}>
-                {(stats.eventRevenue || 0).toFixed(2)} €
-              </p>
-            </div>
-            <div className={`${styles.statCard} ${styles.statGreen}`}>
-              <p className={styles.statLabel}>{t("admin.parkingRevenue")}</p>
-              <p className={styles.statNumber}>
-                {parkingRevenue.toFixed(2)} €
-              </p>
-            </div>
-            <div className={`${styles.statCard} ${styles.statPurple}`}>
-              <p className={styles.statLabel}>{t("admin.totalRevenue")}</p>
-              <p className={styles.statNumber}>
-                {(stats.totalRevenue || 0).toFixed(2)} €
-              </p>
-            </div>
+            {revenueStats.map((item) => (
+              <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
+                <div className={styles.statIcon}>
+                  <AdminIcon type={item.icon} />
+                </div>
+                <p className={styles.statLabel}>{item.label}</p>
+                <p className={styles.statNumber}>{item.value}</p>
+              </div>
+            ))}
           </div>
         </section>
       )}
@@ -341,7 +443,8 @@ export default function AdminDashboard() {
                         onClick={() => handleViewUserDetails(u.id)}
                         title={t("admin.viewDetails")}
                       >
-                        👁️
+                        <AdminIcon type="view" />
+                        <span>{t("common.view")}</span>
                       </button>
                       {u.id !== user.id && (
                         <>
@@ -351,7 +454,8 @@ export default function AdminDashboard() {
                               onClick={() => handleBanUser(u.id)}
                               title={t("admin.banUser")}
                             >
-                              🚫
+                              <AdminIcon type="ban" />
+                              <span>{t("admin.banUser")}</span>
                             </button>
                           ) : (
                             <button
@@ -359,7 +463,8 @@ export default function AdminDashboard() {
                               onClick={() => handleReactivateUser(u.id)}
                               title={t("admin.reactivateUser")}
                             >
-                              ✅
+                              <AdminIcon type="reactivate" />
+                              <span>{t("admin.reactivateUser")}</span>
                             </button>
                           )}
                         </>
@@ -371,13 +476,12 @@ export default function AdminDashboard() {
             </table>
           </div>
 
-          {/* Modal détails utilisateur */}
           {selectedUser && userDetails && (
             <div className={styles.modalOverlay} onClick={closeUserDetails}>
               <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.modalHeader}>
                   <h3>{userDetails.firstName} {userDetails.lastName}</h3>
-                  <button className={styles.closeButton} onClick={closeUserDetails}>×</button>
+                  <button className={styles.closeButton} onClick={closeUserDetails} aria-label={t("common.close", "Fermer")}>×</button>
                 </div>
                 <div className={styles.modalContent}>
                   <div className={styles.userInfo}>
@@ -401,7 +505,7 @@ export default function AdminDashboard() {
                           <span className={`${styles.statusBadge} ${r.status === "CANCELLED" ? styles.statusBanned : styles.statusActive}`}>
                             {r.status}
                           </span>
-                          <span>{r.totalPrice?.toFixed(2)}€</span>
+                          <span>{r.totalPrice?.toFixed(2)} €</span>
                         </li>
                       ))}
                     </ul>
@@ -412,12 +516,12 @@ export default function AdminDashboard() {
                     <ul className={styles.reservationList}>
                       {userDetails.eventRegistrations.map((r) => (
                         <li key={r.id} className={styles.reservationItem}>
-                          <span>{r.eventTitle || "Événement"}</span>
+                          <span>{r.eventTitle || t("nav.events")}</span>
                           <span>{r.numberOfParticipants} {t("common.participants")}</span>
                           <span className={`${styles.statusBadge} ${r.status === "CANCELLED" ? styles.statusBanned : styles.statusActive}`}>
                             {r.status}
                           </span>
-                          <span>{r.totalPrice?.toFixed(2)}€</span>
+                          <span>{r.totalPrice?.toFixed(2)} €</span>
                         </li>
                       ))}
                     </ul>
@@ -433,7 +537,7 @@ export default function AdminDashboard() {
                           <span className={`${styles.statusBadge} ${r.status === "CANCELLED" ? styles.statusBanned : styles.statusActive}`}>
                             {r.status}
                           </span>
-                          <span>{r.totalPrice?.toFixed(2)}€</span>
+                          <span>{r.totalPrice?.toFixed(2)} €</span>
                         </li>
                       ))}
                     </ul>

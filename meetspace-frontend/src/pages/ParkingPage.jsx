@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { getParkingSlots } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import PageState from "../components/PageState";
 import styles from "./ParkingPage.module.css";
 
 const getDateLocale = (lang) => {
@@ -72,8 +73,13 @@ export default function ParkingPage() {
     return groups;
   }, []);
 
-  if (loading) return <p className={styles.info}>{t("common.loading")}</p>;
-  if (error) return <p className={styles.error}>{error}</p>;
+  if (loading) {
+    return <PageState type="loading" title={t("common.loading")} message={t("parking.capacityModelText")} />;
+  }
+
+  if (error) {
+    return <PageState type="error" title={t("common.error")} message={error} />;
+  }
 
   return (
     <div className={styles.page}>
@@ -113,7 +119,7 @@ export default function ParkingPage() {
       </section>
 
       {parkingSlots.length === 0 ? (
-        <p className={styles.info}>{t("parking.noSessions")}</p>
+        <PageState type="empty" title={t("parking.noSessions")} message={t("parking.capacityModelText")} />
       ) : (
         <div className={styles.workspace}>
           <aside className={styles.sidebar}>

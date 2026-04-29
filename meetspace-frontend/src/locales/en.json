@@ -477,7 +477,7 @@
     "addToRegistration": "Add parking to my registration",
     "perSpace": "space",
     "loginToReserve": "Log in to book",
-    "ageRequirement": "Check capacity and pricing for each parking slot before booking.",
+    "capacityNotice": "Check capacity and pricing for each parking slot before booking.",
     "notFound": "Parking slot not found",
     "createError": "Error while creating the parking reservation",
     "fetchError": "Unable to load parking slots right now.",

@@ -469,7 +469,7 @@
         "addToRegistration": "Ajouter le parking à mon inscription",
         "perSpace": "place",
         "loginToReserve": "Connectez-vous pour réserver",
-        "ageRequirement": "Consultez la capacité disponible et le tarif pour chaque créneau de parking.",
+        "capacityNotice": "Consultez la capacité disponible et le tarif pour chaque créneau de parking.",
         "notFound": "Créneau de parking introuvable",
         "createError": "Erreur lors de la création de la réservation de parking",
         "fetchError": "Impossible de charger les créneaux de parking pour le moment.",

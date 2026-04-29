@@ -4,6 +4,7 @@ import { getPublicEvents, registerToEvent } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PaymentForm from "../components/PaymentForm";
+import PageState from "../components/PageState";
 import { getEventImage } from "../utils/mediaAssets";
 import styles from "./EventRegisterPage.module.css";
 
@@ -88,8 +89,13 @@ export default function EventRegisterPage() {
   };
 
   if (!user || !token) return null;
-  if (isLoading) return <p className={styles.info}>{t("common.loading")}</p>;
-  if (error && !event) return <p className={styles.error}>{error}</p>;
+  if (isLoading) {
+    return <PageState type="loading" title={t("common.loading")} message={t("events.registerFor")} />;
+  }
+
+  if (error && !event) {
+    return <PageState type="error" title={t("common.error")} message={error} />;
+  }
 
   const eventImage = event ? getEventImage(event) : "/images/room-premium-orion-500.webp";
 

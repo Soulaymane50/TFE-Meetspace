@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { getEspaces, requestPremiumRoomReservation, createReservation } from "../services/api";
 import { useTranslation } from "react-i18next";
 import PaymentForm from "../components/PaymentForm";
+import PageState from "../components/PageState";
 import ReservationCalendar from "../components/ReservationCalendar";
 import DayTimeSlots from "../components/DayTimeSlots";
 import { getSpaceImage } from "../utils/mediaAssets";
@@ -182,8 +183,13 @@ export default function CreateReservationPage() {
   };
 
   if (!user || !token) return null;
-  if (loading) return <p className={styles.info}>{t("common.loading")}</p>;
-  if (error && !espace) return <p className={styles.error}>{error}</p>;
+  if (loading) {
+    return <PageState type="loading" title={t("common.loading")} message={t("calendar.selectDate")} />;
+  }
+
+  if (error && !espace) {
+    return <PageState type="error" title={t("common.error")} message={error} />;
+  }
 
   const selectedRange = selectedDate && startTime && endTime ? `${selectedDate} · ${startTime} - ${endTime}` : t("calendar.selectTime");
   const spaceImage = espace ? getSpaceImage(espace) : "/images/room-atlas-100.webp";
