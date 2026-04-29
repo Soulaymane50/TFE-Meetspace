@@ -1,5 +1,5 @@
 .container {
-  max-width: 1240px;
+  max-width: 1360px;
   margin: 0 auto;
   display: grid;
   gap: 1.2rem;
@@ -250,6 +250,8 @@
 }
 
 .section {
+  position: relative;
+  overflow: hidden;
   padding: 1.35rem;
   border-radius: 28px;
   border: 1px solid rgba(27, 42, 64, 0.08);
@@ -309,6 +311,8 @@
 }
 
 .commandPanel {
+  position: relative;
+  overflow: hidden;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
@@ -322,6 +326,17 @@
     linear-gradient(135deg, #16243a 0%, #243858 58%, #65533b 100%);
   color: #fff;
   box-shadow: 0 22px 48px rgba(22, 36, 58, 0.18);
+}
+
+.commandPanel::after {
+  content: "";
+  position: absolute;
+  inset: auto -12% -48% auto;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(244, 215, 168, 0.22), transparent 68%);
+  pointer-events: none;
 }
 
 .commandIcon {
@@ -377,6 +392,73 @@
   font-weight: 800;
 }
 
+.signalGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1.15rem;
+}
+
+.signalCard {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.9rem;
+  align-items: center;
+  min-height: 108px;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(90, 124, 226, 0.12), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 245, 239, 0.88) 100%);
+  box-shadow: var(--shadow-soft);
+}
+
+.signalCard::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(181, 138, 76, 0.82), rgba(90, 124, 226, 0.62));
+}
+
+.signalIcon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 17px;
+  background: linear-gradient(135deg, rgba(27, 42, 64, 0.94), rgba(49, 87, 132, 0.92));
+  color: #fff;
+  box-shadow: 0 16px 30px rgba(27, 42, 64, 0.16);
+}
+
+.signalCard span,
+.signalCard small {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.signalCard strong {
+  display: block;
+  margin: 0.1rem 0;
+  color: var(--blue-darker);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.signalCard small {
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 800;
+}
+
 .subsectionTitle {
   margin: 1.35rem 0 0.8rem;
   color: var(--text-secondary);
@@ -400,6 +482,16 @@
   border-radius: 22px;
   border: 1px solid rgba(27, 42, 64, 0.08);
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(241, 237, 229, 0.86));
+  transition: transform var(--transition-normal), border-color var(--transition-fast), box-shadow var(--transition-normal);
+}
+
+.statCard::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, rgba(181, 138, 76, 0.9), rgba(90, 124, 226, 0.55));
+  opacity: 0.68;
 }
 
 .statCard::after {
@@ -411,6 +503,29 @@
   height: 104px;
   border-radius: 50%;
   background: rgba(27, 42, 64, 0.05);
+}
+
+.statCard:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-medium);
+}
+
+.section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(27, 42, 64, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(27, 42, 64, 0.035) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.32), transparent 72%);
+  pointer-events: none;
+}
+
+.section > * {
+  position: relative;
+  z-index: 1;
 }
 
 .statIcon {
@@ -676,11 +791,18 @@
 }
 
 [data-theme="dark"] .navCard,
-[data-theme="dark"] .statCard {
+[data-theme="dark"] .statCard,
+[data-theme="dark"] .signalCard {
   border-color: rgba(255, 255, 255, 0.08);
   background:
     radial-gradient(circle at top right, rgba(207, 162, 101, 0.08), transparent 35%),
     linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+}
+
+[data-theme="dark"] .section::before {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
 }
 
 [data-theme="dark"] .navCard::before {
@@ -694,6 +816,11 @@
   background:
     radial-gradient(circle at 12% 20%, rgba(137, 163, 255, 0.14), transparent 28%),
     linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(20, 31, 49, 0.98) 58%, rgba(86, 66, 38, 0.95) 100%);
+}
+
+[data-theme="dark"] .signalIcon {
+  background: linear-gradient(135deg, rgba(207, 162, 101, 0.92), rgba(49, 87, 132, 0.92));
+  color: #111827;
 }
 
 [data-theme="dark"] .statIcon {
@@ -723,6 +850,7 @@
 [data-theme="dark"] .sectionEyebrow,
 [data-theme="dark"] .navCardContent h3,
 [data-theme="dark"] .statNumber,
+[data-theme="dark"] .signalCard strong,
 [data-theme="dark"] .backLink,
 [data-theme="dark"] .tab:hover,
 [data-theme="dark"] .viewButton,
@@ -733,6 +861,8 @@
 [data-theme="dark"] .subtitle,
 [data-theme="dark"] .navCardContent p,
 [data-theme="dark"] .statLabel,
+[data-theme="dark"] .signalCard span,
+[data-theme="dark"] .signalCard small,
 [data-theme="dark"] .subsectionTitle,
 [data-theme="dark"] .currentUserBadge,
 [data-theme="dark"] .noData,
@@ -806,7 +936,8 @@
   }
 
   .sectionHeader,
-  .commandPanel {
+  .commandPanel,
+  .signalGrid {
     grid-template-columns: 1fr;
   }
 

@@ -85,6 +85,31 @@
   color: var(--blue-dark);
 }
 
+[data-theme="dark"] .form,
+[data-theme="dark"] .info,
+[data-theme="dark"] .cancelButton {
+  border-color: rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(207, 162, 101, 0.06), transparent 34%),
+    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .title,
+[data-theme="dark"] .label {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .info {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .error {
+  border-color: rgba(248, 113, 113, 0.24);
+  background: rgba(127, 29, 29, 0.24);
+  color: #fecaca;
+}
+
 @media (max-width: 720px) {
   .buttonGroup {
     flex-direction: column;

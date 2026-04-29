@@ -202,6 +202,69 @@
   opacity: 0.65;
 }
 
+[data-theme="dark"] .loading,
+[data-theme="dark"] .breadcrumbLink,
+[data-theme="dark"] .formContainer,
+[data-theme="dark"] .checkboxRow,
+[data-theme="dark"] .cancelBtn {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(18, 26, 37, 0.94);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .formContainer {
+  background:
+    radial-gradient(circle at top right, rgba(207, 162, 101, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+}
+
+[data-theme="dark"] .header,
+[data-theme="dark"] .actions {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .title,
+[data-theme="dark"] .label,
+[data-theme="dark"] .checkboxLabel {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .subtitle,
+[data-theme="dark"] .hint,
+[data-theme="dark"] .infoText,
+[data-theme="dark"] .rejectionHint,
+[data-theme="dark"] .loading {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .infoBox {
+  background: rgba(207, 162, 101, 0.14);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .infoIcon,
+[data-theme="dark"] .rejectionIcon {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f4d7a8;
+}
+
+[data-theme="dark"] .divider {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .success {
+  border-color: rgba(16, 185, 129, 0.22);
+  background: rgba(16, 185, 129, 0.12);
+  color: #bbf7d0;
+}
+
+[data-theme="dark"] .error,
+[data-theme="dark"] .rejectionBox {
+  border-color: rgba(248, 113, 113, 0.24);
+  background: rgba(127, 29, 29, 0.24);
+  color: #fecaca;
+}
+
 @media (max-width: 760px) {
   .header,
   .form {

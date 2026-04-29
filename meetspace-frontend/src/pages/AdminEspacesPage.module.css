@@ -243,3 +243,69 @@
   background: rgba(220, 38, 38, 0.08);
   color: #b91c1c;
 }
+
+[data-theme="dark"] .tableContainer,
+[data-theme="dark"] .card,
+[data-theme="dark"] .filterBar,
+[data-theme="dark"] .justification {
+  border-color: rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(207, 162, 101, 0.06), transparent 34%),
+    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .nameCell,
+[data-theme="dark"] .cardTitle,
+[data-theme="dark"] .price {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .cardMeta,
+[data-theme="dark"] .cardDate,
+[data-theme="dark"] .emailSmall,
+[data-theme="dark"] .noData,
+[data-theme="dark"] .info,
+[data-theme="dark"] .loading,
+[data-theme="dark"] .resultCount {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .btnGhost {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .btnDanger,
+[data-theme="dark"] .statusCANCELLED {
+  background: rgba(248, 113, 113, 0.16);
+  color: #fecaca;
+}
+
+[data-theme="dark"] .btnSuccess,
+[data-theme="dark"] .statusCONFIRMED {
+  background: rgba(16, 185, 129, 0.16);
+  color: #bbf7d0;
+}
+
+[data-theme="dark"] .badgePending,
+[data-theme="dark"] .statusPENDING {
+  background: rgba(207, 162, 101, 0.18);
+  color: #f4d7a8;
+}
+
+[data-theme="dark"] .typeSalle {
+  background: rgba(137, 163, 255, 0.16);
+  color: #dbe5ff;
+}
+
+[data-theme="dark"] .typePremiumRoom {
+  background: rgba(168, 145, 255, 0.16);
+  color: #e4ddff;
+}
+
+[data-theme="dark"] .error {
+  border-color: rgba(248, 113, 113, 0.24);
+  background: rgba(127, 29, 29, 0.24);
+  color: #fecaca;
+}

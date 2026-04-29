@@ -1,8 +1,18 @@
 .container {
-  max-width: 1240px;
+  max-width: 1320px;
   margin: 0 auto;
   display: grid;
   gap: 1.25rem;
+}
+
+.iconSvg {
+  width: 1.08rem;
+  height: 1.08rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .info,
@@ -25,6 +35,8 @@
 }
 
 .header {
+  position: relative;
+  overflow: hidden;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -34,6 +46,18 @@
   border: 1px solid var(--border);
   background: linear-gradient(135deg, rgba(11, 18, 32, 0.96) 0%, rgba(27, 42, 64, 0.94) 55%, rgba(181, 138, 76, 0.9) 165%);
   box-shadow: var(--shadow-strong);
+}
+
+.header::after {
+  content: "";
+  position: absolute;
+  right: 2rem;
+  bottom: 0;
+  width: 230px;
+  height: 5px;
+  border-radius: 999px 999px 0 0;
+  background: linear-gradient(90deg, var(--orange), var(--blue-light));
+  opacity: 0.82;
 }
 
 .title {
@@ -66,12 +90,44 @@
 }
 
 .statCard {
+  position: relative;
+  overflow: hidden;
   padding: 1.2rem;
   border-radius: 24px;
   border: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.96) 100%);
   box-shadow: var(--shadow-medium);
   cursor: pointer;
+  transition: transform var(--transition-normal), border-color var(--transition-fast), box-shadow var(--transition-normal);
+}
+
+.statIcon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 0.85rem;
+  border-radius: 15px;
+  background: linear-gradient(135deg, rgba(27, 42, 64, 0.95), rgba(49, 87, 132, 0.92));
+  color: #fff;
+  box-shadow: 0 14px 28px rgba(27, 42, 64, 0.14);
+}
+
+.statCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 88% 12%, rgba(181, 138, 76, 0.18), transparent 36%);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.statCard:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-strong);
 }
 
 .statPending {
@@ -91,6 +147,8 @@
 }
 
 .statNumber {
+  position: relative;
+  z-index: 1;
   display: block;
   font-size: clamp(1.8rem, 3vw, 2.5rem);
   font-weight: 800;
@@ -98,6 +156,8 @@
 }
 
 .statLabel {
+  position: relative;
+  z-index: 1;
   color: var(--taupe-dark);
   font-size: 0.84rem;
   font-weight: 700;
@@ -170,11 +230,19 @@
 }
 
 .eventCard {
+  position: relative;
   border-radius: 26px;
   border: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.96) 100%);
   box-shadow: var(--shadow-medium);
   overflow: hidden;
+  transition: transform var(--transition-normal), border-color var(--transition-fast), box-shadow var(--transition-normal);
+}
+
+.eventCard:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-strong);
 }
 
 .eventHeader {
@@ -214,14 +282,12 @@
 .detailIcon {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  min-width: 38px;
+  width: 38px;
+  height: 38px;
   border-radius: 12px;
   background: rgba(27, 42, 64, 0.08);
   color: var(--blue-dark);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
 }
 
 .eventActions {
@@ -325,8 +391,111 @@
   color: #4b5563;
 }
 
+[data-theme="dark"] .info,
+[data-theme="dark"] .statCard,
+[data-theme="dark"] .filterTabs,
+[data-theme="dark"] .emptyState,
+[data-theme="dark"] .eventCard,
+[data-theme="dark"] .legend {
+  border-color: rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(207, 162, 101, 0.08), transparent 35%),
+    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .statCard::before {
+  background: radial-gradient(circle at 88% 12%, rgba(207, 162, 101, 0.12), transparent 36%);
+}
+
+[data-theme="dark"] .statNumber,
+[data-theme="dark"] .eventTitle,
+[data-theme="dark"] .legendTitle {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .subtitle,
+[data-theme="dark"] .statLabel,
+[data-theme="dark"] .eventDetail,
+[data-theme="dark"] .legendItem,
+[data-theme="dark"] .info {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .eventHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .detailIcon {
+  background: rgba(207, 162, 101, 0.12);
+  color: #f4d7a8;
+}
+
+[data-theme="dark"] .statIcon {
+  background: linear-gradient(135deg, rgba(207, 162, 101, 0.92), rgba(49, 87, 132, 0.92));
+  color: #111827;
+}
+
+[data-theme="dark"] .filterTab {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .filterTab:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .filterTabActive,
+[data-theme="dark"] .filterTabActive:hover {
+  background: linear-gradient(135deg, rgba(207, 162, 101, 0.95), rgba(138, 91, 24, 0.95));
+  color: #111827;
+}
+
+[data-theme="dark"] .editButton {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .viewButton {
+  background: rgba(137, 163, 255, 0.16);
+  color: #dbe5ff;
+}
+
+[data-theme="dark"] .pendingNote {
+  background: rgba(207, 162, 101, 0.16);
+  color: #f4d7a8;
+}
+
+[data-theme="dark"] .emptyIcon {
+  background: linear-gradient(135deg, rgba(207, 162, 101, 0.95), rgba(49, 87, 132, 0.95));
+  color: #111827;
+}
+
+[data-theme="dark"] .statusPending {
+  background: rgba(207, 162, 101, 0.18);
+  color: #f4d7a8;
+}
+
+[data-theme="dark"] .statusPublished {
+  background: rgba(16, 185, 129, 0.16);
+  color: #bbf7d0;
+}
+
+[data-theme="dark"] .statusRejected,
+[data-theme="dark"] .cancelButton {
+  background: rgba(248, 113, 113, 0.16);
+  color: #fecaca;
+}
+
+[data-theme="dark"] .statusCancelled {
+  background: rgba(148, 163, 184, 0.16);
+  color: #dbe5f2;
+}
+
 @media (max-width: 760px) {
   .header {
     padding: 1.5rem;
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

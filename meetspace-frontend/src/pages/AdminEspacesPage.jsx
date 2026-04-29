@@ -134,7 +134,7 @@ export default function AdminEspacesPage() {
 
       {pendingReservations.length > 0 && activeTab !== "pending" && (
         <div className={styles.alertBanner}>
-          <span className={styles.alertIcon}>⚠️</span>
+          <span className={styles.alertIcon}>!</span>
           <span>{pendingReservations.length} {t("admin.premiumRoomReservationsPending")}</span>
           <button className={styles.alertButton} onClick={() => setActiveTab("pending")}>
             {t("common.view")}

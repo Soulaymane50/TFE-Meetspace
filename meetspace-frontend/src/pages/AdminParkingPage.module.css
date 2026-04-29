@@ -151,3 +151,52 @@
   background: rgba(220, 38, 38, 0.08);
   color: #b91c1c;
 }
+
+[data-theme="dark"] .tableContainer,
+[data-theme="dark"] .filterBar {
+  border-color: rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(207, 162, 101, 0.06), transparent 34%),
+    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .nameCell {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .resultCount,
+[data-theme="dark"] .emailSmall,
+[data-theme="dark"] .noData,
+[data-theme="dark"] .loading {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .btnGhost,
+[data-theme="dark"] .capacityBadge {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .btnDanger {
+  background: rgba(248, 113, 113, 0.16);
+  color: #fecaca;
+}
+
+[data-theme="dark"] .statusOPEN,
+[data-theme="dark"] .statusCONFIRMED {
+  background: rgba(16, 185, 129, 0.16);
+  color: #bbf7d0;
+}
+
+[data-theme="dark"] .statusCLOSED,
+[data-theme="dark"] .statusCANCELLED {
+  background: rgba(148, 163, 184, 0.16);
+  color: #dbe5f2;
+}
+
+[data-theme="dark"] .error {
+  border-color: rgba(248, 113, 113, 0.24);
+  background: rgba(127, 29, 29, 0.24);
+  color: #fecaca;
+}

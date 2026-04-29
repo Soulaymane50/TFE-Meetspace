@@ -143,7 +143,7 @@ export default function AdminEventsPage() {
 
       {pendingEvents.length > 0 && activeTab !== "pending" && (
         <div className={styles.alertBanner}>
-          <span className={styles.alertIcon}>⚠️</span>
+          <span className={styles.alertIcon}>!</span>
           <span>{pendingEvents.length} {t("admin.eventsPendingApproval")}</span>
           <button className={styles.alertButton} onClick={() => setActiveTab("pending")}>
             {t("common.view")}

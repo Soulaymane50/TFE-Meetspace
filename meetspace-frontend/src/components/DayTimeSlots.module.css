@@ -113,3 +113,62 @@
 .legendSelected {
   background: #3157b6;
 }
+
+[data-theme="dark"] .container {
+  border-color: rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(207, 162, 101, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+  box-shadow: 0 22px 44px rgba(0, 0, 0, 0.28);
+}
+
+[data-theme="dark"] .title,
+[data-theme="dark"] .hourLabel {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .placeholder,
+[data-theme="dark"] .loading,
+[data-theme="dark"] .openingHours,
+[data-theme="dark"] .legendItem {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .slot {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .available {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+[data-theme="dark"] .reserved {
+  background: rgba(248, 113, 113, 0.14);
+  border-color: rgba(248, 113, 113, 0.24);
+  color: #fecaca;
+}
+
+[data-theme="dark"] .past {
+  background: rgba(148, 163, 184, 0.08);
+  color: rgba(203, 213, 225, 0.58);
+}
+
+[data-theme="dark"] .selected {
+  background: rgba(137, 163, 255, 0.18);
+  border-color: rgba(137, 163, 255, 0.38);
+}
+
+[data-theme="dark"] .inRange {
+  box-shadow: 0 0 0 2px rgba(137, 163, 255, 0.16);
+}
+
+[data-theme="dark"] .reservedLabel {
+  color: #fecaca;
+}
+
+[data-theme="dark"] .selectionLabel {
+  color: #dbe5ff;
+}

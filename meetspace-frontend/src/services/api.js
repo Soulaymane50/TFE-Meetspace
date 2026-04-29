@@ -4,6 +4,24 @@ export function authHeaders(token) {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+async function throwApiError(res, fallbackMessage) {
+  const text = await res.text().catch(() => "");
+  let message = fallbackMessage;
+
+  if (text) {
+    try {
+      const data = JSON.parse(text);
+      message = data.message || data.error || data.reason || fallbackMessage;
+    } catch {
+      message = text;
+    }
+  }
+
+  const error = new Error(message);
+  error.status = res.status;
+  throw error;
+}
+
 function normalizeParkingSlot(slot) {
   if (!slot) return null;
 
@@ -619,7 +637,7 @@ export async function adminGetStats(token) {
   const res = await fetch(`${API_URL}/api/admin/stats`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération statistiques");
+  if (!res.ok) await throwApiError(res, "Erreur récupération statistiques");
   const stats = await res.json();
   return normalizeAdminStats(stats);
 }
@@ -628,7 +646,7 @@ export async function adminGetPendingReservations(token) {
   const res = await fetch(`${API_URL}/api/admin/reservations/pending`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération réservations en attente");
+  if (!res.ok) await throwApiError(res, "Erreur récupération réservations en attente");
   return res.json();
 }
 
@@ -710,7 +728,7 @@ export async function adminGetPendingEvents(token) {
   const res = await fetch(`${API_URL}/api/admin/events/pending`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération événements en attente");
+  if (!res.ok) await throwApiError(res, "Erreur récupération événements en attente");
   return res.json();
 }
 
@@ -731,7 +749,7 @@ export async function adminGetUsers(token) {
   const res = await fetch(`${API_URL}/api/admin/users`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération utilisateurs");
+  if (!res.ok) await throwApiError(res, "Erreur récupération utilisateurs");
   return res.json();
 }
 

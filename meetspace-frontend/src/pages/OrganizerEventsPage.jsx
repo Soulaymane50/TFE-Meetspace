@@ -5,6 +5,69 @@ import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import styles from "./OrganizerEventsPage.module.css";
 
+function OrganizerIcon({ type }) {
+  const icons = {
+    events: (
+      <>
+        <path d="M7 3v3M17 3v3" />
+        <path d="M4.5 8.5h15" />
+        <path d="M6.5 5h11A2.5 2.5 0 0 1 20 7.5v10A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5v-10A2.5 2.5 0 0 1 6.5 5Z" />
+      </>
+    ),
+    pending: (
+      <>
+        <path d="M12 7v5l3 2" />
+        <path d="M12 21a9 9 0 1 0-9-9" />
+      </>
+    ),
+    published: (
+      <>
+        <path d="m5 12 4 4L19 6" />
+        <path d="M20 12a8 8 0 1 1-4.5-7.2" />
+      </>
+    ),
+    rejected: (
+      <>
+        <path d="M18 6 6 18" />
+        <path d="m6 6 12 12" />
+      </>
+    ),
+    cancelled: (
+      <>
+        <path d="M18 6 6 18" />
+        <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" />
+      </>
+    ),
+    location: (
+      <>
+        <path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z" />
+        <path d="M12 10.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+      </>
+    ),
+    capacity: (
+      <>
+        <path d="M16 20a4 4 0 0 0-8 0" />
+        <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+        <path d="M20 19a3.5 3.5 0 0 0-3-3.4" />
+      </>
+    ),
+    price: (
+      <>
+        <path d="M12 3v18" />
+        <path d="M17 7.5A4 4 0 0 0 13.5 6h-3A2.5 2.5 0 0 0 8 8.5c0 1.4 1.1 2.5 2.5 2.5h3a2.5 2.5 0 0 1 0 5h-3A4 4 0 0 1 7 14.5" />
+      </>
+    ),
+  };
+
+  return (
+    <svg className={styles.iconSvg} viewBox="0 0 24 24" aria-hidden="true">
+      {icons[type] || icons.events}
+    </svg>
+  );
+}
+
+const EURO = "\u20ac";
+
 export default function OrganizerEventsPage() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -66,6 +129,7 @@ export default function OrganizerEventsPage() {
   };
 
   const filteredEvents = filter === "ALL" ? events : events.filter((e) => e.status === filter);
+  const formatEuro = (value) => `${(value || 0).toFixed(2)} ${EURO}`;
 
   const stats = {
     total: events.length,
@@ -94,22 +158,27 @@ export default function OrganizerEventsPage() {
 
       <div className={styles.statsGrid}>
         <div className={styles.statCard} onClick={() => setFilter("ALL")}>
+          <span className={styles.statIcon}><OrganizerIcon type="events" /></span>
           <span className={styles.statNumber}>{stats.total}</span>
           <span className={styles.statLabel}>{t("organizer.totalEvents")}</span>
         </div>
         <div className={`${styles.statCard} ${styles.statPending}`} onClick={() => setFilter("PENDING_APPROVAL")}>
+          <span className={styles.statIcon}><OrganizerIcon type="pending" /></span>
           <span className={styles.statNumber}>{stats.pending}</span>
           <span className={styles.statLabel}>{t("organizer.pendingApproval")}</span>
         </div>
         <div className={`${styles.statCard} ${styles.statPublished}`} onClick={() => setFilter("PUBLISHED")}>
+          <span className={styles.statIcon}><OrganizerIcon type="published" /></span>
           <span className={styles.statNumber}>{stats.published}</span>
           <span className={styles.statLabel}>{t("organizer.publishedEvents")}</span>
         </div>
         <div className={`${styles.statCard} ${styles.statRejected}`} onClick={() => setFilter("REJECTED")}>
+          <span className={styles.statIcon}><OrganizerIcon type="rejected" /></span>
           <span className={styles.statNumber}>{stats.rejected}</span>
           <span className={styles.statLabel}>{t("organizer.rejectedEvents")}</span>
         </div>
         <div className={`${styles.statCard} ${styles.statCancelled}`} onClick={() => setFilter("CANCELLED")}>
+          <span className={styles.statIcon}><OrganizerIcon type="cancelled" /></span>
           <span className={styles.statNumber}>{stats.cancelled}</span>
           <span className={styles.statLabel}>{t("status.cancelled")}</span>
         </div>
@@ -132,7 +201,7 @@ export default function OrganizerEventsPage() {
 
       {filteredEvents.length === 0 ? (
         <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>•</div>
+          <div className={styles.emptyIcon}><OrganizerIcon type="events" /></div>
           <p>{t("organizer.noEventsFound")}</p>
           <Link to="/organizer/events/new" className={styles.createButtonSmall}>
             {t("organizer.createEvent")}
@@ -155,20 +224,20 @@ export default function OrganizerEventsPage() {
 
               <div className={styles.eventDetails}>
                 <div className={styles.eventDetail}>
-                  <span className={styles.detailIcon}>📅</span>
-                  {new Date(e.startDateTime).toLocaleString(getDateLocale())} — {new Date(e.endDateTime).toLocaleTimeString(getDateLocale())}
+                  <span className={styles.detailIcon}><OrganizerIcon type="events" /></span>
+                  {new Date(e.startDateTime).toLocaleString(getDateLocale())} - {new Date(e.endDateTime).toLocaleTimeString(getDateLocale())}
                 </div>
                 <div className={styles.eventDetail}>
-                  <span className={styles.detailIcon}>📍</span>
+                  <span className={styles.detailIcon}><OrganizerIcon type="location" /></span>
                   {e.location || "-"}
                 </div>
                 <div className={styles.eventDetail}>
-                  <span className={styles.detailIcon}>👥</span>
+                  <span className={styles.detailIcon}><OrganizerIcon type="capacity" /></span>
                   {e.capacity} {t("common.persons")}
                 </div>
                 <div className={styles.eventDetail}>
-                  <span className={styles.detailIcon}>💶</span>
-                  {e.price > 0 ? `${e.price} €` : t("events.free")}
+                  <span className={styles.detailIcon}><OrganizerIcon type="price" /></span>
+                  {e.price > 0 ? formatEuro(e.price) : t("events.free")}
                 </div>
               </div>
 

@@ -94,8 +94,10 @@ function AdminIcon({ type }) {
   );
 }
 
+const EURO = "\u20ac";
+
 export default function AdminDashboard() {
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -131,11 +133,16 @@ export default function AdminDashboard() {
       setPendingReservations(pendingResData);
       setUsers(usersData);
     } catch (err) {
+      if (err.status === 401 || err.status === 403) {
+        await logout();
+        navigate("/login", { replace: true });
+        return;
+      }
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [logout, navigate, token]);
 
   useEffect(() => {
     if (!user || user.role !== "ADMIN") {
@@ -217,6 +224,7 @@ export default function AdminDashboard() {
   const confirmedParkingReservations = stats?.confirmedParkingReservations ?? 0;
   const parkingRevenue = stats?.parkingRevenue ?? 0;
   const userParkingReservations = userDetails?.parkingReservations ?? [];
+  const formatEuro = (value) => `${(value || 0).toFixed(2)} ${EURO}`;
 
   const tabs = [
     { id: "overview", label: t("admin.overview") },
@@ -262,10 +270,31 @@ export default function AdminDashboard() {
   ];
 
   const revenueStats = [
-    { icon: "spaces", label: t("admin.spaceRevenue"), value: `${(stats?.spaceRevenue || 0).toFixed(2)} €` },
-    { icon: "events", label: t("admin.eventRevenue"), value: `${(stats?.eventRevenue || 0).toFixed(2)} €`, tone: styles.statBlue },
-    { icon: "parking", label: t("admin.parkingRevenue"), value: `${parkingRevenue.toFixed(2)} €`, tone: styles.statGreen },
-    { icon: "revenue", label: t("admin.totalRevenue"), value: `${(stats?.totalRevenue || 0).toFixed(2)} €`, tone: styles.statPurple },
+    { icon: "spaces", label: t("admin.spaceRevenue"), value: formatEuro(stats?.spaceRevenue) },
+    { icon: "events", label: t("admin.eventRevenue"), value: formatEuro(stats?.eventRevenue), tone: styles.statBlue },
+    { icon: "parking", label: t("admin.parkingRevenue"), value: formatEuro(parkingRevenue), tone: styles.statGreen },
+    { icon: "revenue", label: t("admin.totalRevenue"), value: formatEuro(stats?.totalRevenue), tone: styles.statPurple },
+  ];
+
+  const dashboardSignals = [
+    {
+      icon: "spaces",
+      label: t("admin.spacesManagement"),
+      value: stats?.totalEspaces ?? 0,
+      meta: pendingReservations.length > 0 ? `${pendingReservations.length} ${t("admin.pending")}` : t("common.status"),
+    },
+    {
+      icon: "events",
+      label: t("admin.eventsManagement"),
+      value: stats?.totalEvents ?? 0,
+      meta: pendingEvents.length > 0 ? `${pendingEvents.length} ${t("admin.pending")}` : t("status.published"),
+    },
+    {
+      icon: "parking",
+      label: t("admin.parkingManagement"),
+      value: totalParkingSlots,
+      meta: `${confirmedParkingReservations} ${t("admin.confirmedParkingReservations").toLowerCase()}`,
+    },
   ];
 
   return (
@@ -351,13 +380,28 @@ export default function AdminDashboard() {
             </div>
             <div className={styles.commandContent}>
               <span>{t("admin.totalRevenue")}</span>
-              <strong>{(stats.totalRevenue || 0).toFixed(2)} €</strong>
+              <strong>{formatEuro(stats.totalRevenue)}</strong>
             </div>
             <div className={styles.commandChips}>
               <span>{t("admin.confirmedEventRes")}: {stats.confirmedEventRegistrations || 0}</span>
               <span>{t("admin.confirmedSpaceRes")}: {stats.confirmedSpaceReservations || 0}</span>
               <span>{t("admin.confirmedParkingReservations")}: {confirmedParkingReservations}</span>
             </div>
+          </div>
+
+          <div className={styles.signalGrid}>
+            {dashboardSignals.map((signal) => (
+              <div key={signal.label} className={styles.signalCard}>
+                <div className={styles.signalIcon}>
+                  <AdminIcon type={signal.icon} />
+                </div>
+                <div>
+                  <span>{signal.label}</span>
+                  <strong>{signal.value}</strong>
+                  <small>{signal.meta}</small>
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className={styles.statsGrid}>
@@ -481,7 +525,7 @@ export default function AdminDashboard() {
               <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.modalHeader}>
                   <h3>{userDetails.firstName} {userDetails.lastName}</h3>
-                  <button className={styles.closeButton} onClick={closeUserDetails} aria-label={t("common.close", "Fermer")}>×</button>
+                  <button className={styles.closeButton} onClick={closeUserDetails} aria-label={t("common.close", "Fermer")}>{"\u00d7"}</button>
                 </div>
                 <div className={styles.modalContent}>
                   <div className={styles.userInfo}>
@@ -505,7 +549,7 @@ export default function AdminDashboard() {
                           <span className={`${styles.statusBadge} ${r.status === "CANCELLED" ? styles.statusBanned : styles.statusActive}`}>
                             {r.status}
                           </span>
-                          <span>{r.totalPrice?.toFixed(2)} €</span>
+                          <span>{formatEuro(r.totalPrice)}</span>
                         </li>
                       ))}
                     </ul>
@@ -521,7 +565,7 @@ export default function AdminDashboard() {
                           <span className={`${styles.statusBadge} ${r.status === "CANCELLED" ? styles.statusBanned : styles.statusActive}`}>
                             {r.status}
                           </span>
-                          <span>{r.totalPrice?.toFixed(2)} €</span>
+                          <span>{formatEuro(r.totalPrice)}</span>
                         </li>
                       ))}
                     </ul>
@@ -537,7 +581,7 @@ export default function AdminDashboard() {
                           <span className={`${styles.statusBadge} ${r.status === "CANCELLED" ? styles.statusBanned : styles.statusActive}`}>
                             {r.status}
                           </span>
-                          <span>{r.totalPrice?.toFixed(2)} €</span>
+                          <span>{formatEuro(r.totalPrice)}</span>
                         </li>
                       ))}
                     </ul>
