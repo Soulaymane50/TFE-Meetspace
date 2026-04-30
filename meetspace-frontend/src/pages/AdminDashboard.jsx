@@ -234,30 +234,6 @@ export default function AdminDashboard() {
     { id: "audit", label: t("admin.auditLogs", "Logs d'audit") },
   ];
 
-  const navCards = [
-    {
-      to: "/admin/espaces",
-      icon: "spaces",
-      title: t("admin.spacesManagement"),
-      meta: `${stats?.totalEspaces || 0} ${t("nav.spaces").toLowerCase()}`,
-      badge: pendingReservations.length > 0 ? `${pendingReservations.length} ${t("admin.pending")}` : "",
-    },
-    {
-      to: "/admin/events",
-      icon: "events",
-      title: t("admin.eventsManagement"),
-      meta: `${stats?.totalEvents || 0} ${t("nav.events").toLowerCase()}`,
-      badge: pendingEvents.length > 0 ? `${pendingEvents.length} ${t("admin.pending")}` : "",
-    },
-    {
-      to: "/admin/parking",
-      icon: "parking",
-      title: t("admin.parkingManagement"),
-      meta: `${totalParkingSlots} ${t("admin.totalSessions").toLowerCase()}`,
-      badge: "",
-    },
-  ];
-
   const platformStats = [
     { icon: "users", label: t("admin.totalUsers"), value: stats?.totalUsers ?? 0 },
     { icon: "spaces", label: t("admin.totalSpaces"), value: stats?.totalEspaces ?? 0, tone: styles.statBlue },
@@ -271,38 +247,15 @@ export default function AdminDashboard() {
     { icon: "parking", label: t("admin.confirmedParkingReservations"), value: confirmedParkingReservations, tone: styles.statGreen },
   ];
 
-  const revenueStats = [
-    { icon: "spaces", label: t("admin.spaceRevenue"), value: formatEuro(stats?.spaceRevenue) },
-    { icon: "events", label: t("admin.eventRevenue"), value: formatEuro(stats?.eventRevenue), tone: styles.statBlue },
-    { icon: "parking", label: t("admin.parkingRevenue"), value: formatEuro(parkingRevenue), tone: styles.statGreen },
-    { icon: "revenue", label: t("admin.totalRevenue"), value: formatEuro(stats?.totalRevenue), tone: styles.statPurple },
-  ];
+  const totalReservations =
+    (stats?.confirmedSpaceReservations || 0) +
+    (stats?.confirmedEventRegistrations || 0) +
+    confirmedParkingReservations;
 
   const revenueBreakdown = [
     { label: t("admin.eventRevenue"), value: stats?.eventRevenue || 0, share: getShare(stats?.eventRevenue), tone: styles.barBlue },
     { label: t("admin.spaceRevenue"), value: stats?.spaceRevenue || 0, share: getShare(stats?.spaceRevenue), tone: styles.barGold },
     { label: t("admin.parkingRevenue"), value: parkingRevenue, share: getShare(parkingRevenue), tone: styles.barGreen },
-  ];
-
-  const dashboardSignals = [
-    {
-      icon: "spaces",
-      label: t("admin.spacesManagement"),
-      value: stats?.totalEspaces ?? 0,
-      meta: pendingReservations.length > 0 ? `${pendingReservations.length} ${t("admin.pending")}` : t("common.status"),
-    },
-    {
-      icon: "events",
-      label: t("admin.eventsManagement"),
-      value: stats?.totalEvents ?? 0,
-      meta: pendingEvents.length > 0 ? `${pendingEvents.length} ${t("admin.pending")}` : t("status.published"),
-    },
-    {
-      icon: "parking",
-      label: t("admin.parkingManagement"),
-      value: totalParkingSlots,
-      meta: `${confirmedParkingReservations} ${t("admin.confirmedParkingReservations").toLowerCase()}`,
-    },
   ];
 
   const operations = [
@@ -324,6 +277,59 @@ export default function AdminDashboard() {
       value: confirmedParkingReservations,
       meta: `${totalParkingSlots} ${t("admin.totalSessions").toLowerCase()}`,
     },
+  ];
+
+  const cockpitStats = [
+    {
+      icon: "reservations",
+      label: t("admin.totalReservations"),
+      value: totalReservations,
+      meta: `${stats?.confirmedEventRegistrations || 0} ${t("nav.events").toLowerCase()}`,
+    },
+    {
+      icon: "users",
+      label: t("admin.totalUsers"),
+      value: stats?.totalUsers ?? 0,
+      meta: t("common.status"),
+    },
+    {
+      icon: "pending",
+      label: t("admin.pendingApprovals"),
+      value: totalPending,
+      meta: `${pendingEvents.length} ${t("nav.events").toLowerCase()} / ${pendingReservations.length} ${t("nav.spaces").toLowerCase()}`,
+    },
+  ];
+
+  const moduleCards = [
+    {
+      to: "/admin/espaces",
+      icon: "spaces",
+      label: t("admin.spacesManagement"),
+      value: stats?.totalEspaces ?? 0,
+      meta: pendingReservations.length > 0 ? `${pendingReservations.length} ${t("admin.pending")}` : t("admin.totalSpaces"),
+      tone: styles.moduleBlue,
+    },
+    {
+      to: "/admin/events",
+      icon: "events",
+      label: t("admin.eventsManagement"),
+      value: stats?.totalEvents ?? 0,
+      meta: pendingEvents.length > 0 ? `${pendingEvents.length} ${t("admin.pending")}` : t("status.published"),
+      tone: styles.moduleGreen,
+    },
+    {
+      to: "/admin/parking",
+      icon: "parking",
+      label: t("admin.parkingManagement"),
+      value: totalParkingSlots,
+      meta: `${confirmedParkingReservations} ${t("admin.confirmedParkingReservations").toLowerCase()}`,
+      tone: styles.moduleGold,
+    },
+  ];
+
+  const snapshotStats = [
+    ...platformStats,
+    ...reservationStats,
   ];
 
   return (
@@ -363,21 +369,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div className={styles.navCards}>
-        {navCards.map((card) => (
-          <Link key={card.to} to={card.to} className={styles.navCard}>
-            <div className={styles.navCardIcon}>
-              <AdminIcon type={card.icon} />
-            </div>
-            <div className={styles.navCardContent}>
-              <h3>{card.title}</h3>
-              <p>{card.meta}</p>
-              {card.badge && <span className={styles.navBadge}>{card.badge}</span>}
-            </div>
-          </Link>
-        ))}
-      </div>
-
       <div className={styles.tabs}>
         {tabs.map((tab) => (
           <button
@@ -403,20 +394,33 @@ export default function AdminDashboard() {
             </span>
           </div>
 
-          <div className={styles.commandGrid}>
-            <div className={styles.commandPanel}>
-              <div className={styles.commandIcon}>
-                <AdminIcon type="revenue" />
+          <div className={styles.dashboardConsole}>
+            <div className={styles.heroPanel}>
+              <div className={styles.heroMeta}>
+                <span className={styles.consoleBadge}>{t("admin.totalRevenue")}</span>
+                <span className={styles.consoleStatus}>
+                  <span className={styles.liveDot} />
+                  {t("admin.pendingApprovals")}: {totalPending}
+                </span>
               </div>
-              <div className={styles.commandContent}>
-                <span>{t("admin.totalRevenue")}</span>
-                <strong>{formatEuro(stats.totalRevenue)}</strong>
+
+              <div className={styles.heroBody}>
+                <div>
+                  <strong>{formatEuro(totalRevenue)}</strong>
+                  <p>{t("admin.allReservationsDesc")}</p>
+                </div>
+
+                <div className={styles.heroMetrics}>
+                  {cockpitStats.map((item) => (
+                    <div key={item.label} className={styles.heroMetric}>
+                      <span>{item.label}</span>
+                      <strong>{item.value}</strong>
+                      <small>{item.meta}</small>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className={styles.commandChips}>
-                <span>{t("admin.confirmedEventRes")}: {stats.confirmedEventRegistrations || 0}</span>
-                <span>{t("admin.confirmedSpaceRes")}: {stats.confirmedSpaceReservations || 0}</span>
-                <span>{t("admin.confirmedParkingReservations")}: {confirmedParkingReservations}</span>
-              </div>
+
               <div className={styles.revenueBreakdown}>
                 {revenueBreakdown.map((item) => (
                   <div key={item.label} className={styles.revenueRow}>
@@ -432,48 +436,59 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <aside className={styles.opsPanel}>
-              <div className={styles.opsHeader}>
-                <span>MeetSpace</span>
-                <strong>{t("admin.overview")}</strong>
+            <aside className={styles.actionPanel}>
+              <div className={styles.panelHeader}>
+                <span>{t("admin.modules")}</span>
+                <strong>{t("admin.quickActions")}</strong>
               </div>
-              <div className={styles.opsList}>
-                {operations.map((item) => (
-                  <div key={item.label} className={styles.opsItem}>
-                    <div className={styles.opsIcon}>
-                      <AdminIcon type={item.icon} />
+
+              <div className={styles.actionStack}>
+                {moduleCards.map((module) => (
+                  <Link key={module.to} to={module.to} className={`${styles.actionCard} ${module.tone}`}>
+                    <div className={styles.moduleIcon}>
+                      <AdminIcon type={module.icon} />
                     </div>
                     <div>
-                      <span>{item.label}</span>
-                      <strong>{item.value}</strong>
-                      <small>{item.meta}</small>
+                      <span>{module.label}</span>
+                      <strong>{module.value}</strong>
+                      <small>{module.meta}</small>
                     </div>
-                  </div>
+                    <span className={styles.moduleArrow}>{"\u2192"}</span>
+                  </Link>
                 ))}
               </div>
             </aside>
           </div>
 
-          <div className={styles.signalGrid}>
-            {dashboardSignals.map((signal) => (
-              <div key={signal.label} className={styles.signalCard}>
-                <div className={styles.signalIcon}>
-                  <AdminIcon type={signal.icon} />
-                </div>
-                <div>
-                  <span>{signal.label}</span>
-                  <strong>{signal.value}</strong>
-                  <small>{signal.meta}</small>
-                </div>
+          <div className={styles.focusGrid}>
+            <div className={styles.reviewPanel}>
+              <div className={styles.panelHeader}>
+                <span>{t("admin.priorities")}</span>
+                <strong>{t("admin.pendingApprovals")}</strong>
               </div>
-            ))}
-          </div>
+              <div className={styles.operationsList}>
+                {operations.map((item) => (
+                  <div key={item.label} className={styles.operationRow}>
+                    <div className={styles.operationIcon}>
+                      <AdminIcon type={item.icon} />
+                    </div>
+                    <div>
+                      <span>{item.label}</span>
+                      <strong>{item.value}</strong>
+                    </div>
+                    <small>{item.meta}</small>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-          <div className={styles.boardGrid}>
-            <div className={styles.boardColumn}>
-              <h3 className={styles.subsectionTitle}>{t("admin.overview")}</h3>
-              <div className={styles.statsGrid}>
-                {platformStats.map((item) => (
+            <div className={styles.snapshotPanel}>
+              <div className={styles.panelHeader}>
+                <span>{t("admin.snapshot")}</span>
+                <strong>{t("admin.statistics")}</strong>
+              </div>
+              <div className={styles.snapshotGrid}>
+                {snapshotStats.map((item) => (
                   <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
                     <div className={styles.statIcon}>
                       <AdminIcon type={item.icon} />
@@ -484,34 +499,6 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </div>
-
-            <div className={styles.boardColumn}>
-              <h3 className={styles.subsectionTitle}>{t("admin.reservationsOverview")}</h3>
-              <div className={styles.statsGrid}>
-                {reservationStats.map((item) => (
-                  <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
-                    <div className={styles.statIcon}>
-                      <AdminIcon type={item.icon} />
-                    </div>
-                    <p className={styles.statLabel}>{item.label}</p>
-                    <p className={styles.statNumber}>{item.value}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <h3 className={styles.subsectionTitle}>{t("admin.revenue")}</h3>
-          <div className={styles.statsGrid}>
-            {revenueStats.map((item) => (
-              <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
-                <div className={styles.statIcon}>
-                  <AdminIcon type={item.icon} />
-                </div>
-                <p className={styles.statLabel}>{item.label}</p>
-                <p className={styles.statNumber}>{item.value}</p>
-              </div>
-            ))}
           </div>
         </section>
       )}
