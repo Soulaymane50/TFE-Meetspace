@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { organizerGetMyEvents, organizerCancelMyEvent } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import PageState from "../components/PageState";
 import styles from "./OrganizerEventsPage.module.css";
 
 function OrganizerIcon({ type }) {
@@ -138,9 +139,28 @@ export default function OrganizerEventsPage() {
     rejected: events.filter((e) => e.status === "REJECTED").length,
     cancelled: events.filter((e) => e.status === "CANCELLED").length,
   };
+  const statusFilters = ["ALL", "PENDING_APPROVAL", "PUBLISHED", "REJECTED", "CANCELLED"];
+  const sortedEvents = [...events].sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime));
+  const upcomingEvents = sortedEvents.filter((event) => new Date(event.endDateTime) >= new Date());
+  const nextEvent = upcomingEvents[0] || sortedEvents[0];
+  const publicationRate = stats.total > 0 ? Math.round((stats.published / stats.total) * 100) : 0;
+  const activeEvents = stats.published + stats.pending;
+  const filteredCount = filteredEvents.length;
+  const getStatusCount = (status) => (status === "ALL" ? stats.total : events.filter((e) => e.status === status).length);
+  const formatDateTime = (value) => new Date(value).toLocaleString(getDateLocale(), {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const signalCards = [
+    { icon: "published", label: t("organizer.publishedEvents"), value: stats.published, meta: `${publicationRate}%` },
+    { icon: "pending", label: t("organizer.pendingApproval"), value: stats.pending, meta: t("organizer.approvalFlow") },
+    { icon: "events", label: t("organizer.portfolio"), value: activeEvents, meta: t("organizer.eventsVisible") },
+  ];
 
   if (!user || (user.role !== "ORGANIZER" && user.role !== "ADMIN")) return null;
-  if (loading) return <div className={styles.info}>{t("common.loading")}</div>;
+  if (loading) return <PageState type="loading" title={t("common.loading")} message={t("organizer.manageYourEvents")} />;
 
   return (
     <div className={styles.container}>
@@ -156,36 +176,79 @@ export default function OrganizerEventsPage() {
 
       {error && <div className={styles.error}>{error}</div>}
 
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard} onClick={() => setFilter("ALL")}>
-          <span className={styles.statIcon}><OrganizerIcon type="events" /></span>
-          <span className={styles.statNumber}>{stats.total}</span>
-          <span className={styles.statLabel}>{t("organizer.totalEvents")}</span>
-        </div>
-        <div className={`${styles.statCard} ${styles.statPending}`} onClick={() => setFilter("PENDING_APPROVAL")}>
-          <span className={styles.statIcon}><OrganizerIcon type="pending" /></span>
-          <span className={styles.statNumber}>{stats.pending}</span>
-          <span className={styles.statLabel}>{t("organizer.pendingApproval")}</span>
-        </div>
-        <div className={`${styles.statCard} ${styles.statPublished}`} onClick={() => setFilter("PUBLISHED")}>
-          <span className={styles.statIcon}><OrganizerIcon type="published" /></span>
-          <span className={styles.statNumber}>{stats.published}</span>
-          <span className={styles.statLabel}>{t("organizer.publishedEvents")}</span>
-        </div>
-        <div className={`${styles.statCard} ${styles.statRejected}`} onClick={() => setFilter("REJECTED")}>
-          <span className={styles.statIcon}><OrganizerIcon type="rejected" /></span>
-          <span className={styles.statNumber}>{stats.rejected}</span>
-          <span className={styles.statLabel}>{t("organizer.rejectedEvents")}</span>
-        </div>
-        <div className={`${styles.statCard} ${styles.statCancelled}`} onClick={() => setFilter("CANCELLED")}>
-          <span className={styles.statIcon}><OrganizerIcon type="cancelled" /></span>
-          <span className={styles.statNumber}>{stats.cancelled}</span>
-          <span className={styles.statLabel}>{t("status.cancelled")}</span>
-        </div>
+      <div className={styles.commandDeck}>
+        <section className={styles.mainConsole}>
+          <div className={styles.consoleHeader}>
+            <div>
+              <p className={styles.consoleEyebrow}>{t("organizer.consoleLabel")}</p>
+              <h2>{t("organizer.eventPipeline")}</h2>
+            </div>
+            <span className={styles.livePill}>
+              <span className={styles.liveDot} />
+              {publicationRate}%
+            </span>
+          </div>
+
+          <div className={styles.consoleBody}>
+            <div className={styles.consoleMetric}>
+              <span>{t("organizer.totalEvents")}</span>
+              <strong>{stats.total}</strong>
+              <small>{filteredCount} {t("organizer.eventsShown")}</small>
+            </div>
+
+            <div className={styles.nextEventPanel}>
+              <span className={styles.nextLabel}>{t("organizer.nextEvent")}</span>
+              {nextEvent ? (
+                <>
+                  <strong>{nextEvent.title}</strong>
+                  <small>{formatDateTime(nextEvent.startDateTime)} · {nextEvent.location || t("common.toBeAnnounced")}</small>
+                </>
+              ) : (
+                <>
+                  <strong>{t("organizer.noUpcomingEvent")}</strong>
+                  <small>{t("organizer.createFirstEvent")}</small>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.signalGrid}>
+            {signalCards.map((item) => (
+              <button key={item.label} type="button" className={styles.signalCard} onClick={() => setFilter(item.icon === "pending" ? "PENDING_APPROVAL" : item.icon === "published" ? "PUBLISHED" : "ALL")}>
+                <span className={styles.signalIcon}><OrganizerIcon type={item.icon} /></span>
+                <span>
+                  <small>{item.label}</small>
+                  <strong>{item.value}</strong>
+                  <em>{item.meta}</em>
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <aside className={styles.statusPanel}>
+          <div className={styles.statusPanelHeader}>
+            <span>{t("organizer.quickReview")}</span>
+            <strong>{stats.pending}</strong>
+          </div>
+          <div className={styles.statusStack}>
+            {statusFilters.slice(1).map((status) => (
+              <button
+                key={status}
+                type="button"
+                className={`${styles.statusRow} ${filter === status ? styles.statusRowActive : ""}`}
+                onClick={() => setFilter(status)}
+              >
+                <span className={statusClass(status)}>{t(`status.${status.toLowerCase()}`)}</span>
+                <strong>{getStatusCount(status)}</strong>
+              </button>
+            ))}
+          </div>
+        </aside>
       </div>
 
       <div className={styles.filterTabs}>
-        {["ALL", "PENDING_APPROVAL", "PUBLISHED", "REJECTED", "CANCELLED"].map((status) => (
+        {statusFilters.map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
@@ -193,7 +256,7 @@ export default function OrganizerEventsPage() {
           >
             {t(status === "ALL" ? "common.all" : `status.${status.toLowerCase()}`)}
             <span className={styles.filterCount}>
-              {status === "ALL" ? stats.total : events.filter((e) => e.status === status).length}
+              {getStatusCount(status)}
             </span>
           </button>
         ))}

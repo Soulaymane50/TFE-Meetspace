@@ -14,6 +14,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import styles from "./AdminDashboard.module.css";
 import AuditLogs from "../components/AuditLogs";
+import PageState from "../components/PageState";
 
 function AdminIcon({ type }) {
   const icons = {
@@ -115,23 +116,41 @@ export default function AdminDashboard() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
       const [
-        statsData,
-        pendingData,
-        pendingResData,
-        usersData,
-      ] = await Promise.all([
+        statsResult,
+        pendingEventsResult,
+        pendingReservationsResult,
+        usersResult,
+      ] = await Promise.allSettled([
         adminGetStats(token),
         adminGetPendingEvents(token),
         adminGetPendingReservations(token),
         adminGetUsers(token),
       ]);
 
-      setStats(statsData);
-      setPendingEvents(pendingData);
-      setPendingReservations(pendingResData);
-      setUsers(usersData);
+      const criticalError =
+        statsResult.status === "rejected"
+          ? statsResult.reason
+          : usersResult.status === "rejected"
+            ? usersResult.reason
+            : null;
+
+      if (criticalError) {
+        if (criticalError.status === 401 || criticalError.status === 403) {
+          await logout();
+          navigate("/login", { replace: true });
+          return;
+        }
+        setError(criticalError.message);
+        return;
+      }
+
+      setStats(statsResult.value);
+      setUsers(usersResult.value);
+      setPendingEvents(pendingEventsResult.status === "fulfilled" ? pendingEventsResult.value : []);
+      setPendingReservations(pendingReservationsResult.status === "fulfilled" ? pendingReservationsResult.value : []);
     } catch (err) {
       if (err.status === 401 || err.status === 403) {
         await logout();
@@ -216,8 +235,8 @@ export default function AdminDashboard() {
   };
 
   if (!user || user.role !== "ADMIN") return null;
-  if (loading) return <div className={styles.loading}>{t("common.loading")}</div>;
-  if (error) return <div className={styles.error}>{error}</div>;
+  if (loading) return <PageState type="loading" title={t("common.loading")} message={t("admin.dashboardSubtitle")} />;
+  if (error) return <PageState type="error" title={t("common.error")} message={error} />;
 
   const totalPending = pendingEvents.length + pendingReservations.length;
   const totalParkingSlots = stats?.totalParkingSlots ?? 0;
@@ -279,27 +298,6 @@ export default function AdminDashboard() {
     },
   ];
 
-  const cockpitStats = [
-    {
-      icon: "reservations",
-      label: t("admin.totalReservations"),
-      value: totalReservations,
-      meta: `${stats?.confirmedEventRegistrations || 0} ${t("nav.events").toLowerCase()}`,
-    },
-    {
-      icon: "users",
-      label: t("admin.totalUsers"),
-      value: stats?.totalUsers ?? 0,
-      meta: t("common.status"),
-    },
-    {
-      icon: "pending",
-      label: t("admin.pendingApprovals"),
-      value: totalPending,
-      meta: `${pendingEvents.length} ${t("nav.events").toLowerCase()} / ${pendingReservations.length} ${t("nav.spaces").toLowerCase()}`,
-    },
-  ];
-
   const moduleCards = [
     {
       to: "/admin/espaces",
@@ -325,11 +323,6 @@ export default function AdminDashboard() {
       meta: `${confirmedParkingReservations} ${t("admin.confirmedParkingReservations").toLowerCase()}`,
       tone: styles.moduleGold,
     },
-  ];
-
-  const snapshotStats = [
-    ...platformStats,
-    ...reservationStats,
   ];
 
   return (
@@ -394,9 +387,9 @@ export default function AdminDashboard() {
             </span>
           </div>
 
-          <div className={styles.dashboardConsole}>
-            <div className={styles.heroPanel}>
-              <div className={styles.heroMeta}>
+          <div className={styles.controlCenter}>
+            <div className={styles.revenueConsole}>
+              <div className={styles.revenueTopline}>
                 <span className={styles.consoleBadge}>{t("admin.totalRevenue")}</span>
                 <span className={styles.consoleStatus}>
                   <span className={styles.liveDot} />
@@ -404,20 +397,29 @@ export default function AdminDashboard() {
                 </span>
               </div>
 
-              <div className={styles.heroBody}>
+              <div className={styles.revenueHero}>
                 <div>
                   <strong>{formatEuro(totalRevenue)}</strong>
                   <p>{t("admin.allReservationsDesc")}</p>
                 </div>
 
-                <div className={styles.heroMetrics}>
-                  {cockpitStats.map((item) => (
-                    <div key={item.label} className={styles.heroMetric}>
-                      <span>{item.label}</span>
-                      <strong>{item.value}</strong>
-                      <small>{item.meta}</small>
-                    </div>
-                  ))}
+                <div className={styles.revenueChips}>
+                  <span>
+                    {t("admin.totalReservations")}
+                    <strong>{totalReservations}</strong>
+                  </span>
+                  <span>
+                    {t("admin.confirmedEventRes")}
+                    <strong>{stats?.confirmedEventRegistrations || 0}</strong>
+                  </span>
+                  <span>
+                    {t("admin.confirmedSpaceRes")}
+                    <strong>{stats?.confirmedSpaceReservations || 0}</strong>
+                  </span>
+                  <span>
+                    {t("admin.confirmedParkingReservations")}
+                    <strong>{confirmedParkingReservations}</strong>
+                  </span>
                 </div>
               </div>
 
@@ -436,59 +438,90 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <aside className={styles.actionPanel}>
-              <div className={styles.panelHeader}>
-                <span>{t("admin.modules")}</span>
-                <strong>{t("admin.quickActions")}</strong>
-              </div>
-
-              <div className={styles.actionStack}>
-                {moduleCards.map((module) => (
-                  <Link key={module.to} to={module.to} className={`${styles.actionCard} ${module.tone}`}>
-                    <div className={styles.moduleIcon}>
-                      <AdminIcon type={module.icon} />
-                    </div>
-                    <div>
-                      <span>{module.label}</span>
-                      <strong>{module.value}</strong>
-                      <small>{module.meta}</small>
-                    </div>
-                    <span className={styles.moduleArrow}>{"\u2192"}</span>
-                  </Link>
-                ))}
-              </div>
-            </aside>
-          </div>
-
-          <div className={styles.focusGrid}>
-            <div className={styles.reviewPanel}>
-              <div className={styles.panelHeader}>
+            <aside className={styles.statusConsole}>
+              <div className={styles.statusHeader}>
                 <span>{t("admin.priorities")}</span>
                 <strong>{t("admin.pendingApprovals")}</strong>
               </div>
-              <div className={styles.operationsList}>
+
+              <div className={styles.cockpitStack}>
                 {operations.map((item) => (
-                  <div key={item.label} className={styles.operationRow}>
-                    <div className={styles.operationIcon}>
+                  <div key={item.label} className={styles.cockpitItem}>
+                    <div className={styles.cockpitIcon}>
                       <AdminIcon type={item.icon} />
                     </div>
                     <div>
                       <span>{item.label}</span>
                       <strong>{item.value}</strong>
+                      <small>{item.meta}</small>
                     </div>
-                    <small>{item.meta}</small>
                   </div>
+                ))}
+              </div>
+            </aside>
+          </div>
+
+          <div className={styles.moduleGrid}>
+            {moduleCards.map((module) => (
+              <Link key={module.to} to={module.to} className={`${styles.moduleCard} ${module.tone}`}>
+                <div className={styles.moduleIcon}>
+                  <AdminIcon type={module.icon} />
+                </div>
+                <div>
+                  <span>{module.label}</span>
+                  <strong>{module.value}</strong>
+                  <small>{module.meta}</small>
+                </div>
+                <span className={styles.moduleArrow}>{"\u2192"}</span>
+              </Link>
+            ))}
+          </div>
+
+          <div className={styles.insightGrid}>
+            <div className={styles.operationsPanel}>
+              <div className={styles.panelHeader}>
+                <span>{t("admin.modules")}</span>
+                <strong>{t("admin.quickActions")}</strong>
+              </div>
+              <div className={styles.operationsList}>
+                {moduleCards.map((module) => (
+                  <Link key={module.to} to={module.to} className={styles.operationRow}>
+                    <div className={styles.operationIcon}>
+                      <AdminIcon type={module.icon} />
+                    </div>
+                    <div>
+                      <span>{module.label}</span>
+                      <strong>{module.value}</strong>
+                    </div>
+                    <small>{module.meta}</small>
+                  </Link>
                 ))}
               </div>
             </div>
 
-            <div className={styles.snapshotPanel}>
-              <div className={styles.panelHeader}>
-                <span>{t("admin.snapshot")}</span>
-                <strong>{t("admin.statistics")}</strong>
+            <div className={styles.analyticsPanel}>
+              <div className={styles.analyticsGroup}>
+                <div className={styles.panelHeader}>
+                  <span>{t("admin.snapshot")}</span>
+                  <strong>{t("admin.statistics")}</strong>
+                </div>
+                <div className={styles.compactGrid}>
+                  {platformStats.map((item) => (
+                    <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
+                      <div className={styles.statIcon}>
+                        <AdminIcon type={item.icon} />
+                      </div>
+                      <p className={styles.statLabel}>{item.label}</p>
+                      <p className={styles.statNumber}>{item.value}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className={styles.snapshotGrid}>
-                {snapshotStats.map((item) => (
+
+              <div className={styles.analyticsGroup}>
+                <h3 className={styles.subsectionTitle}>{t("admin.totalReservations")}</h3>
+                <div className={styles.compactGrid}>
+                  {reservationStats.map((item) => (
                   <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
                     <div className={styles.statIcon}>
                       <AdminIcon type={item.icon} />
@@ -496,7 +529,8 @@ export default function AdminDashboard() {
                     <p className={styles.statLabel}>{item.label}</p>
                     <p className={styles.statNumber}>{item.value}</p>
                   </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>

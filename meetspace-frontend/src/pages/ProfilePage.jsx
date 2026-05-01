@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { getMyProfile, updateMyProfile, changeMyPassword, deleteMyAccount } from "../services/api";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import PageState from "../components/PageState";
 import styles from "./ProfilePage.module.css";
 
 export default function ProfilePage() {
@@ -104,7 +105,7 @@ export default function ProfilePage() {
   };
 
   if (!user) {
-    return <p className={styles.notice}>{t("profile.notLoggedIn")}</p>;
+    return <PageState type="empty" title={t("profile.title")} message={t("profile.notLoggedIn")} />;
   }
 
   return (

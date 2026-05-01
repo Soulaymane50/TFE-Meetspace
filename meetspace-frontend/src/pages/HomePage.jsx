@@ -64,42 +64,96 @@ export default function HomePage() {
     .sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime))
     .slice(0, 3);
 
+  const averageFillRate =
+    events.length > 0
+      ? Math.round(
+          events.reduce((sum, event) => {
+            const capacity = Math.max(event.capacity ?? 1, 1);
+            return sum + ((event.registeredCount ?? 0) / capacity) * 100;
+          }, 0) / events.length,
+        )
+      : 0;
+
+  const spotlightEvent = upcomingEvents[0];
+
   const uses = [
     {
       to: "/espace",
       title: t("home.useSpacesTitle"),
       text: t("home.useSpacesText"),
       cta: t("home.useSpacesCta"),
+      signal: "01",
     },
     {
       to: "/events",
       title: t("home.useEventsTitle"),
       text: t("home.useEventsText"),
       cta: t("home.useEventsCta"),
+      signal: "02",
     },
     {
       to: "/parking",
       title: t("home.useParkingTitle"),
       text: t("home.useParkingText"),
       cta: t("home.useParkingCta"),
+      signal: "03",
     },
   ];
 
   return (
     <div className={styles.page}>
-      <section className={styles.introSection}>
-        <p className={styles.eyebrow}>{t("home.eyebrow")}</p>
-        <h1 className={styles.title}>{t("home.heroTitle")}</h1>
-        <p className={styles.subtitle}>{t("home.heroText")}</p>
+      <section className={styles.heroSection}>
+        <div className={styles.heroCopy}>
+          <p className={styles.eyebrow}>{t("home.eyebrow")}</p>
+          <h1 className={styles.title}>{t("home.heroTitle")}</h1>
+          <p className={styles.subtitle}>{t("home.heroText")}</p>
 
-        <div className={styles.heroActions}>
-          <Link to="/events" className={styles.primaryCta}>
-            {t("home.primaryCta")}
-          </Link>
-          <Link to="/espace" className={styles.secondaryCta}>
-            {t("home.secondaryCta")}
-          </Link>
+          <div className={styles.heroActions}>
+            <Link to="/events" className={styles.primaryCta}>
+              {t("home.primaryCta")}
+            </Link>
+            <Link to="/espace" className={styles.secondaryCta}>
+              {t("home.secondaryCta")}
+            </Link>
+          </div>
         </div>
+
+        <aside className={styles.heroBoard} aria-label={t("home.platformStatusLabel")}>
+          <div className={styles.boardHeader}>
+            <span>{t("home.platformStatusLabel")}</span>
+            <strong>{t("home.platformStatusReady")}</strong>
+          </div>
+
+          {spotlightEvent ? (
+            <div className={styles.spotlightCard}>
+              <span className={styles.spotlightDate}>
+                {dateFormatter.format(new Date(spotlightEvent.startDateTime))}
+              </span>
+              <strong>{spotlightEvent.title}</strong>
+              <small>
+                {timeFormatter.format(new Date(spotlightEvent.startDateTime))} -{" "}
+                {timeFormatter.format(new Date(spotlightEvent.endDateTime))}
+              </small>
+            </div>
+          ) : (
+            <div className={styles.spotlightCard}>
+              <span className={styles.spotlightDate}>{t("home.previewLabel")}</span>
+              <strong>{loading ? t("common.loading") : t("home.noUpcomingEventsTitle")}</strong>
+              <small>{loading ? t("home.platformStatusText") : t("home.noUpcomingEventsText")}</small>
+            </div>
+          )}
+
+          <div className={styles.boardMetrics}>
+            <div>
+              <strong>{events.length}</strong>
+              <span>{t("home.kpiUpcomingEvents")}</span>
+            </div>
+            <div>
+              <strong>{averageFillRate}%</strong>
+              <span>{t("home.kpiOccupancy")}</span>
+            </div>
+          </div>
+        </aside>
       </section>
 
       <section className={styles.usesSection}>
@@ -111,6 +165,7 @@ export default function HomePage() {
         <div className={styles.usesGrid}>
           {uses.map((use) => (
             <article key={use.title} className={styles.useCard}>
+              <span className={styles.useSignal}>{use.signal}</span>
               <h3 className={styles.useTitle}>{use.title}</h3>
               <p className={styles.useText}>{use.text}</p>
               <Link to={use.to} className={styles.useLink}>

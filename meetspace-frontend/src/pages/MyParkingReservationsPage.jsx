@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { cancelParkingReservation, getMyParkingReservations } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import PageState from "../components/PageState";
 import styles from "./MyParkingReservationsPage.module.css";
 
 export default function MyParkingReservationsPage() {
@@ -14,6 +15,8 @@ export default function MyParkingReservationsPage() {
 
   const loadParkingReservations = useCallback(async () => {
     setLoading(true);
+    setError("");
+
     try {
       const data = await getMyParkingReservations(token);
       setParkingReservations(data);
@@ -42,8 +45,13 @@ export default function MyParkingReservationsPage() {
     }
   };
 
-  if (loading) return <p className={styles.info}>{t("common.loading")}</p>;
-  if (error) return <p className={styles.error}>{error}</p>;
+  if (loading) {
+    return <PageState type="loading" title={t("common.loading")} message={t("parking.myReservations")} />;
+  }
+
+  if (error) {
+    return <PageState type="error" title={t("common.error")} message={error} />;
+  }
 
   return (
     <div className={styles.container}>
@@ -51,7 +59,7 @@ export default function MyParkingReservationsPage() {
 
       <p className={styles.linkRow}>
         <Link to="/parking" className={styles.linkGhost}>
-          ← {t("parking.backToSessions")}
+          {"\u2190"} {t("parking.backToSessions")}
         </Link>
       </p>
 
@@ -83,7 +91,7 @@ export default function MyParkingReservationsPage() {
                     {parkingReservation.startTime} - {parkingReservation.endTime}
                   </td>
                   <td>{parkingReservation.reservedSpaces}</td>
-                  <td>{parkingReservation.totalPrice} €</td>
+                  <td>{parkingReservation.totalPrice} {"\u20ac"}</td>
                   <td>{t(`status.${parkingReservation.status.toLowerCase()}`)}</td>
                   <td>
                     {canCancel ? (

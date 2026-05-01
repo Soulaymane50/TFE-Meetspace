@@ -9,6 +9,7 @@ import {
   adminGetPendingReservations,
   adminApproveReservation,
 } from "../services/api";
+import PageState from "../components/PageState";
 import styles from "./AdminEspacesPage.module.css";
 
 export default function AdminEspacesPage() {
@@ -36,6 +37,7 @@ export default function AdminEspacesPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
       const [espacesData, reservationsData, pendingData] = await Promise.all([
         adminGetEspaces(token),
@@ -106,8 +108,8 @@ export default function AdminEspacesPage() {
   });
 
   if (!user || user.role !== "ADMIN") return null;
-  if (loading) return <div className={styles.loading}>{t("common.loading")}</div>;
-  if (error) return <div className={styles.error}>{error}</div>;
+  if (loading) return <PageState type="loading" title={t("common.loading")} message={t("admin.spacesManagement")} />;
+  if (error) return <PageState type="error" title={t("common.error")} message={error} />;
 
   const tabs = [
     { id: "spaces", label: t("admin.spacesManagement") },

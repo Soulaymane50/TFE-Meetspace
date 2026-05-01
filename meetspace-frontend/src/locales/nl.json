@@ -123,6 +123,7 @@
     "common":  {
                    "loading":  "Laden...",
                    "error":  "Er is een fout opgetreden",
+                   "retry":  "Opnieuw proberen",
                    "save":  "Opslaan",
                    "cancel":  "Annuleren",
                    "delete":  "Verwijderen",
@@ -180,6 +181,29 @@
                 "logout":  "Uitloggen",
                 "hello":  "Hallo"
             },
+    "command":  {
+                    "open":  "Commando",
+                    "eyebrow":  "Snelle navigatie",
+                    "title":  "Open een actie",
+                    "shortcut":  "Ctrl K",
+                    "placeholder":  "Zoek een pagina, module of actie...",
+                    "noResults":  "Geen resultaten",
+                    "groups":  {
+                                   "explore":  "Verkennen",
+                                   "account":  "Account",
+                                   "manage":  "Beheer"
+                               },
+                    "homeDesc":  "Terug naar de MeetSpace-homepagina.",
+                    "eventsDesc":  "Bekijk beschikbare professionele evenementen.",
+                    "spacesDesc":  "Vergelijk en reserveer een zaal.",
+                    "parkingDesc":  "Bekijk beschikbare parkeersessies.",
+                    "loginDesc":  "Open uw MeetSpace-account.",
+                    "registerDesc":  "Maak een nieuwe gebruikerstoegang aan.",
+                    "reservationsDesc":  "Volg uw zaalreservaties.",
+                    "profileDesc":  "Werk uw persoonlijke gegevens bij.",
+                    "organizerDesc":  "Beheer uw professionele evenementen.",
+                    "adminDesc":  "Open de adminconsole."
+                },
     "auth":  {
                  "login":  "Inloggen",
                  "register":  "Account aanmaken",
@@ -660,6 +684,15 @@
     "organizer":  {
                       "myEvents":  "Mijn professionele evenementen",
                       "manageYourEvents":  "Beheer uw conferenties, seminaries, workshops en opleidingen en volg hun status.",
+                      "consoleLabel":  "Organisatorconsole",
+                      "eventPipeline":  "Evenementensturing",
+                      "nextEvent":  "Volgend evenement",
+                      "noUpcomingEvent":  "Geen aankomend evenement",
+                      "portfolio":  "Portfolio",
+                      "eventsVisible":  "zichtbare evenementen",
+                      "approvalFlow":  "Admin-goedkeuring",
+                      "quickReview":  "Operationele opvolging",
+                      "eventsShown":  "evenementen getoond",
                       "createEvent":  "Professioneel evenement aanmaken",
                       "editEvent":  "Professioneel evenement bewerken",
                       "createEventDesc":  "Vul de kerngegevens van uw conferentie, seminarie, workshop of bedrijfssessie in.",

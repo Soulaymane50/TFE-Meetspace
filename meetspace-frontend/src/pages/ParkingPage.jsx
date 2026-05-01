@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getParkingSlots } from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -19,7 +19,7 @@ export default function ParkingPage() {
   const { t, i18n } = useTranslation();
   const locale = getDateLocale(i18n.language);
 
-  useEffect(() => {
+  const fetchParkingSlots = useCallback(() => {
     getParkingSlots()
       .then(setParkingSlots)
       .catch((err) => {
@@ -31,6 +31,16 @@ export default function ParkingPage() {
       })
       .finally(() => setLoading(false));
   }, [t]);
+
+  useEffect(() => {
+    fetchParkingSlots();
+  }, [fetchParkingSlots]);
+
+  const retryParkingSlots = () => {
+    setLoading(true);
+    setError("");
+    fetchParkingSlots();
+  };
 
   const openSlotsCount = parkingSlots.filter((slot) => (slot.availableSpaces ?? 0) > 0).length;
   const totalAvailableSpaces = parkingSlots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0);
@@ -78,7 +88,18 @@ export default function ParkingPage() {
   }
 
   if (error) {
-    return <PageState type="error" title={t("common.error")} message={error} />;
+    return (
+      <PageState
+        type="error"
+        title={t("common.error")}
+        message={error}
+        action={
+          <button type="button" onClick={retryParkingSlots}>
+            {t("common.retry")}
+          </button>
+        }
+      />
+    );
   }
 
   return (

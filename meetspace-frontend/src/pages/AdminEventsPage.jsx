@@ -9,6 +9,7 @@ import {
   adminApproveEvent,
   adminGetAllEventRegistrations,
 } from "../services/api";
+import PageState from "../components/PageState";
 import styles from "./AdminEventsPage.module.css";
 
 export default function AdminEventsPage() {
@@ -34,6 +35,7 @@ export default function AdminEventsPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
       const [eventsData, pendingData, registrationsData] = await Promise.all([
         adminGetEvents(token),
@@ -115,8 +117,8 @@ export default function AdminEventsPage() {
   };
 
   if (!user || user.role !== "ADMIN") return null;
-  if (loading) return <div className={styles.loading}>{t("common.loading")}</div>;
-  if (error) return <div className={styles.error}>{error}</div>;
+  if (loading) return <PageState type="loading" title={t("common.loading")} message={t("admin.eventsManagement")} />;
+  if (error) return <PageState type="error" title={t("common.error")} message={error} />;
 
   const tabs = [
     { id: "events", label: t("admin.eventsManagement") },

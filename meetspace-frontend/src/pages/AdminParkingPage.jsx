@@ -7,6 +7,7 @@ import {
   adminGetAllParkingReservations,
   adminGetParkingSlots,
 } from "../services/api";
+import PageState from "../components/PageState";
 import styles from "./AdminParkingPage.module.css";
 
 export default function AdminParkingPage() {
@@ -23,6 +24,7 @@ export default function AdminParkingPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
       const [parkingSlotsData, parkingReservationsData] = await Promise.all([
         adminGetParkingSlots(token),
@@ -66,8 +68,8 @@ export default function AdminParkingPage() {
   });
 
   if (!user || user.role !== "ADMIN") return null;
-  if (loading) return <div className={styles.loading}>{t("common.loading")}</div>;
-  if (error) return <div className={styles.error}>{error}</div>;
+  if (loading) return <PageState type="loading" title={t("common.loading")} message={t("admin.parkingManagement")} />;
+  if (error) return <PageState type="error" title={t("common.error")} message={error} />;
 
   const tabs = [
     { id: "parkingSlots", label: t("admin.parkingManagement") },

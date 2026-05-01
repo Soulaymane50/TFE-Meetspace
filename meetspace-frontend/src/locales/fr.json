@@ -123,6 +123,7 @@
     "common": {
         "loading": "Chargement...",
         "error": "Une erreur est survenue",
+        "retry": "Réessayer",
         "save": "Enregistrer",
         "cancel": "Annuler",
         "delete": "Supprimer",
@@ -179,6 +180,29 @@
         "register": "Inscription",
         "logout": "Déconnexion",
         "hello": "Bonjour"
+    },
+    "command": {
+        "open": "Commander",
+        "eyebrow": "Navigation rapide",
+        "title": "Ouvrir une action",
+        "shortcut": "Ctrl K",
+        "placeholder": "Rechercher une page, un module ou une action...",
+        "noResults": "Aucun résultat",
+        "groups": {
+            "explore": "Explorer",
+            "account": "Compte",
+            "manage": "Gestion"
+        },
+        "homeDesc": "Retourner à l'accueil MeetSpace.",
+        "eventsDesc": "Voir les événements professionnels disponibles.",
+        "spacesDesc": "Comparer et réserver une salle.",
+        "parkingDesc": "Consulter les créneaux parking disponibles.",
+        "loginDesc": "Accéder à votre compte MeetSpace.",
+        "registerDesc": "Créer un nouvel accès utilisateur.",
+        "reservationsDesc": "Suivre vos réservations de salles.",
+        "profileDesc": "Modifier vos informations personnelles.",
+        "organizerDesc": "Gérer vos événements professionnels.",
+        "adminDesc": "Ouvrir la console administrateur."
     },
     "auth": {
         "login": "Connexion",
@@ -660,6 +684,15 @@
     "organizer": {
         "myEvents": "Mes événements professionnels",
         "manageYourEvents": "Gérez vos conférences, séminaires, workshops et formations, puis suivez leur statut.",
+        "consoleLabel": "Console organisateur",
+        "eventPipeline": "Pilotage des événements",
+        "nextEvent": "Prochain événement",
+        "noUpcomingEvent": "Aucun événement à venir",
+        "portfolio": "Portefeuille",
+        "eventsVisible": "événements visibles",
+        "approvalFlow": "Validation admin",
+        "quickReview": "Suivi opérationnel",
+        "eventsShown": "événements affichés",
         "createEvent": "Créer un événement professionnel",
         "editEvent": "Modifier l'événement professionnel",
         "createEventDesc": "Renseignez les informations clés de votre conférence, séminaire, workshop ou formation.",

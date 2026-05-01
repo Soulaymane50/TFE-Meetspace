@@ -123,6 +123,7 @@
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
+    "retry": "Try again",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -180,6 +181,29 @@
     "register": "Register",
     "logout": "Logout",
     "hello": "Hello"
+  },
+  "command": {
+    "open": "Command",
+    "eyebrow": "Quick navigation",
+    "title": "Open an action",
+    "shortcut": "Ctrl K",
+    "placeholder": "Search a page, module or action...",
+    "noResults": "No results",
+    "groups": {
+      "explore": "Explore",
+      "account": "Account",
+      "manage": "Manage"
+    },
+    "homeDesc": "Return to the MeetSpace home page.",
+    "eventsDesc": "View available professional events.",
+    "spacesDesc": "Compare and book a room.",
+    "parkingDesc": "Check available parking sessions.",
+    "loginDesc": "Access your MeetSpace account.",
+    "registerDesc": "Create a new user access.",
+    "reservationsDesc": "Track your room reservations.",
+    "profileDesc": "Update your personal information.",
+    "organizerDesc": "Manage your professional events.",
+    "adminDesc": "Open the admin console."
   },
 
   "auth": {
@@ -681,6 +705,15 @@
   "organizer": {
     "myEvents": "My professional events",
     "manageYourEvents": "Manage your conferences, seminars, workshops and training sessions, and track their status.",
+    "consoleLabel": "Organizer console",
+    "eventPipeline": "Event control",
+    "nextEvent": "Next event",
+    "noUpcomingEvent": "No upcoming event",
+    "portfolio": "Portfolio",
+    "eventsVisible": "visible events",
+    "approvalFlow": "Admin approval",
+    "quickReview": "Operational review",
+    "eventsShown": "events shown",
     "createEvent": "Create professional event",
     "editEvent": "Edit professional event",
     "createEventDesc": "Enter the key details for your conference, seminar, workshop or corporate session.",

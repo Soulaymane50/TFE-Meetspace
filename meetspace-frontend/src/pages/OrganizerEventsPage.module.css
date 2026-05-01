@@ -83,6 +83,301 @@
   text-decoration: none;
 }
 
+:global([data-theme="light"]) .header {
+  border-color: rgba(27, 42, 64, 0.08);
+  background:
+    radial-gradient(circle at 86% 10%, rgba(90, 124, 226, 0.14), transparent 28%),
+    radial-gradient(circle at 12% 100%, rgba(181, 138, 76, 0.12), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 250, 253, 0.92) 100%);
+  box-shadow: 0 26px 62px rgba(11, 18, 32, 0.11);
+}
+
+:global([data-theme="light"]) .title {
+  color: var(--blue-darker);
+}
+
+:global([data-theme="light"]) .subtitle {
+  color: var(--text-secondary);
+}
+
+:global([data-theme="light"]) .createButton,
+:global([data-theme="light"]) .createButtonSmall {
+  color: var(--blue-darker);
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(27, 42, 64, 0.12);
+}
+
+.commandDeck {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.65fr);
+  gap: 1rem;
+}
+
+.mainConsole,
+.statusPanel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 30px;
+  border: 1px solid rgba(27, 42, 64, 0.09);
+  background:
+    radial-gradient(circle at top right, rgba(90, 124, 226, 0.14), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 245, 239, 0.94));
+  box-shadow: var(--shadow-medium);
+}
+
+.mainConsole {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.mainConsole::before {
+  content: "";
+  position: absolute;
+  right: -80px;
+  top: -80px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(90, 124, 226, 0.16), rgba(181, 138, 76, 0.12));
+  pointer-events: none;
+}
+
+.mainConsole::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--orange), var(--blue-light), rgba(16, 185, 129, 0.7));
+}
+
+.consoleHeader,
+.consoleBody,
+.signalGrid {
+  position: relative;
+  z-index: 1;
+}
+
+.consoleHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.consoleEyebrow,
+.nextLabel {
+  margin: 0;
+  color: var(--orange);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.consoleHeader h2 {
+  margin: 0.2rem 0 0;
+  color: var(--blue-darker);
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: clamp(1.55rem, 3vw, 2.4rem);
+  font-weight: 900;
+  letter-spacing: -0.06em;
+}
+
+.livePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 38px;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  background: rgba(16, 185, 129, 0.08);
+  color: #047857;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.liveDot {
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 999px;
+  background: #10b981;
+  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.12);
+}
+
+.consoleBody {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.45fr) minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.consoleMetric,
+.nextEventPanel {
+  padding: 1rem;
+  border-radius: 24px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(14px);
+}
+
+.consoleMetric span,
+.consoleMetric small,
+.nextEventPanel small {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.consoleMetric span {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.consoleMetric strong {
+  display: block;
+  margin: 0.2rem 0;
+  color: var(--blue-darker);
+  font-size: clamp(3rem, 7vw, 5.6rem);
+  line-height: 0.9;
+  letter-spacing: -0.08em;
+}
+
+.nextEventPanel {
+  display: grid;
+  align-content: center;
+  gap: 0.35rem;
+}
+
+.nextEventPanel strong {
+  color: var(--blue-darker);
+  font-size: clamp(1.15rem, 2.6vw, 1.8rem);
+  line-height: 1.15;
+}
+
+.signalGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.signalCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 104px;
+  padding: 0.85rem;
+  border-radius: 22px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--blue-darker);
+  box-shadow: none;
+  text-align: left;
+}
+
+.signalCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow-soft);
+  filter: none;
+}
+
+.signalIcon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #16243a, #315784);
+  color: #ffffff;
+}
+
+.signalCard small,
+.signalCard em {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.signalCard small {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.signalCard strong {
+  display: block;
+  color: var(--blue-darker);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.statusPanel {
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+  padding: 1.05rem;
+}
+
+.statusPanelHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.2rem 0.25rem 0.7rem;
+  border-bottom: 1px solid rgba(27, 42, 64, 0.08);
+}
+
+.statusPanelHeader span {
+  color: var(--orange);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.statusPanelHeader strong {
+  color: var(--blue-darker);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.statusStack {
+  display: grid;
+  gap: 0.58rem;
+}
+
+.statusRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 56px;
+  padding: 0.55rem;
+  border-radius: 18px;
+  border: 1px solid rgba(27, 42, 64, 0.06);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: none;
+}
+
+.statusRow:hover,
+.statusRowActive {
+  transform: none;
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow-soft);
+  filter: none;
+}
+
+.statusRow strong {
+  color: var(--blue-darker);
+  font-size: 1.15rem;
+}
+
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -392,6 +687,12 @@
 }
 
 [data-theme="dark"] .info,
+[data-theme="dark"] .mainConsole,
+[data-theme="dark"] .statusPanel,
+[data-theme="dark"] .consoleMetric,
+[data-theme="dark"] .nextEventPanel,
+[data-theme="dark"] .signalCard,
+[data-theme="dark"] .statusRow,
 [data-theme="dark"] .statCard,
 [data-theme="dark"] .filterTabs,
 [data-theme="dark"] .emptyState,
@@ -404,22 +705,59 @@
   color: var(--text-primary);
 }
 
+[data-theme="dark"] .mainConsole::before {
+  background: linear-gradient(135deg, rgba(137, 163, 255, 0.12), rgba(207, 162, 101, 0.1));
+}
+
 [data-theme="dark"] .statCard::before {
   background: radial-gradient(circle at 88% 12%, rgba(207, 162, 101, 0.12), transparent 36%);
 }
 
 [data-theme="dark"] .statNumber,
+[data-theme="dark"] .consoleHeader h2,
+[data-theme="dark"] .consoleMetric strong,
+[data-theme="dark"] .nextEventPanel strong,
+[data-theme="dark"] .signalCard strong,
+[data-theme="dark"] .statusPanelHeader strong,
+[data-theme="dark"] .statusRow strong,
 [data-theme="dark"] .eventTitle,
 [data-theme="dark"] .legendTitle {
   color: var(--text-primary);
 }
 
 [data-theme="dark"] .subtitle,
+[data-theme="dark"] .consoleMetric span,
+[data-theme="dark"] .consoleMetric small,
+[data-theme="dark"] .nextEventPanel small,
+[data-theme="dark"] .signalCard small,
+[data-theme="dark"] .signalCard em,
 [data-theme="dark"] .statLabel,
 [data-theme="dark"] .eventDetail,
 [data-theme="dark"] .legendItem,
 [data-theme="dark"] .info {
   color: var(--text-secondary);
+}
+
+[data-theme="dark"] .signalCard:hover,
+[data-theme="dark"] .statusRow:hover,
+[data-theme="dark"] .statusRowActive {
+  border-color: rgba(207, 162, 101, 0.28);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+[data-theme="dark"] .signalIcon {
+  background: linear-gradient(135deg, rgba(207, 162, 101, 0.92), rgba(49, 87, 132, 0.92));
+  color: #111827;
+}
+
+[data-theme="dark"] .livePill {
+  border-color: rgba(16, 185, 129, 0.24);
+  background: rgba(16, 185, 129, 0.12);
+  color: #bbf7d0;
+}
+
+[data-theme="dark"] .statusPanelHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
 }
 
 [data-theme="dark"] .eventHeader {
@@ -497,5 +835,11 @@
     padding: 1.5rem;
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .commandDeck,
+  .consoleBody,
+  .signalGrid {
+    grid-template-columns: 1fr;
   }
 }

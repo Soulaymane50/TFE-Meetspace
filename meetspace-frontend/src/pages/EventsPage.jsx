@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getPublicEvents } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import SelectDropdown from "../components/SelectDropdown";
+import PageState from "../components/PageState";
 import { getEventImage } from "../utils/mediaAssets";
 import styles from "./EventsPage.module.css";
 
@@ -43,6 +44,8 @@ const getDayKey = (isoDate) => {
 
 export default function EventsPage() {
   const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [priceFilter, setPriceFilter] = useState("all");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [parkingFilter, setParkingFilter] = useState("all");
@@ -61,11 +64,26 @@ export default function EventsPage() {
     { value: "capacityDesc", label: t("events.sortByCapacityDesc") },
   ];
 
-  useEffect(() => {
+  const fetchEvents = useCallback(() => {
     getPublicEvents()
       .then(setEvents)
-      .catch(console.error);
+      .catch((error) => {
+        console.error(error);
+        setEvents([]);
+        setLoadError(true);
+      })
+      .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  const retryEvents = () => {
+    setLoading(true);
+    setLoadError(false);
+    fetchEvents();
+  };
 
   const availableEventsCount = events.filter((ev) => (ev.availablePlaces ?? 0) > 0).length;
   const paidEventsCount = events.filter((ev) => (ev.price || 0) > 0).length;
@@ -191,6 +209,25 @@ export default function EventsPage() {
       </Link>
     );
   };
+
+  if (loading) {
+    return <PageState type="loading" title={t("common.loading")} message={t("events.workspaceLead")} />;
+  }
+
+  if (loadError) {
+    return (
+      <PageState
+        type="error"
+        title={t("common.error")}
+        message={t("events.resultsHint")}
+        action={
+          <button type="button" onClick={retryEvents}>
+            {t("common.retry")}
+          </button>
+        }
+      />
+    );
+  }
 
   return (
     <div className={styles.page}>

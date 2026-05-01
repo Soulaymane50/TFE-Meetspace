@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { organizerCreateEvent, organizerGetMyEvent, organizerUpdateMyEvent } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import PageState from "../components/PageState";
 import styles from "./OrganizerEventForm.module.css";
 
 export default function OrganizerEventForm() {
@@ -127,7 +128,9 @@ export default function OrganizerEventForm() {
   };
 
   if (!user || (user.role !== "ORGANIZER" && user.role !== "ADMIN")) return null;
-  if (loadingEvent) return <div className={styles.loading}>{t("common.loading")}</div>;
+  if (loadingEvent) {
+    return <PageState type="loading" title={t("common.loading")} message={t("organizer.manageYourEvents")} />;
+  }
 
   return (
     <div className={styles.container}>

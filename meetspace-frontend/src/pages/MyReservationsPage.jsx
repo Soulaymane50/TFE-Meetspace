@@ -12,6 +12,7 @@ import {
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import PaymentForm from "../components/PaymentForm";
+import PageState from "../components/PageState";
 import styles from "./MyReservationsPage.module.css";
 
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
@@ -125,8 +126,8 @@ export default function MyReservationsPage() {
     return map[status] || styles.statusDefault;
   };
 
-  if (loading) return <p className={styles.info}>{t("common.loading")}</p>;
-  if (error) return <p className={styles.error}>{error}</p>;
+  if (loading) return <PageState type="loading" title={t("common.loading")} message={t("nav.myReservations")} />;
+  if (error) return <PageState type="error" title={t("common.error")} message={error} />;
 
   if (payingReservation) {
     return (

@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getEspaces } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import PageState from "../components/PageState";
 import { getSpaceImage } from "../utils/mediaAssets";
 import styles from "./EspacesPage.module.css";
 
@@ -37,12 +38,31 @@ const getSpaceDisplayType = (space, t) => t(`spaces.profiles.${getSpaceProfileKe
 export default function EspacesPage() {
   const { user } = useAuth();
   const [espaces, setEspaces] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const { t } = useTranslation();
   const getSpaceTypeLabel = (type) => t(`spaceType.${type}`, { defaultValue: type });
 
-  useEffect(() => {
-    getEspaces().then(setEspaces);
+  const fetchSpaces = useCallback(() => {
+    getEspaces()
+      .then(setEspaces)
+      .catch((error) => {
+        console.error(error);
+        setEspaces([]);
+        setLoadError(true);
+      })
+      .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchSpaces();
+  }, [fetchSpaces]);
+
+  const retrySpaces = () => {
+    setLoading(true);
+    setLoadError(false);
+    fetchSpaces();
+  };
 
   const premiumRooms = espaces.filter((space) => space.type === "PREMIUM_ROOM");
   const standardRooms = espaces.filter((space) => space.type !== "PREMIUM_ROOM");
@@ -61,6 +81,25 @@ export default function EspacesPage() {
         {t("spaces.loginToReserve")}
       </Link>
     );
+
+  if (loading) {
+    return <PageState type="loading" title={t("common.loading")} message={t("spaces.catalogText")} />;
+  }
+
+  if (loadError) {
+    return (
+      <PageState
+        type="error"
+        title={t("common.error")}
+        message={t("spaces.noSpaces")}
+        action={
+          <button type="button" onClick={retrySpaces}>
+            {t("common.retry")}
+          </button>
+        }
+      />
+    );
+  }
 
   return (
     <div className={styles.page}>
