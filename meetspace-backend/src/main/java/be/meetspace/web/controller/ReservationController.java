@@ -3,6 +3,7 @@ package be.meetspace.web.controller;
 import be.meetspace.config.PaymentVerifier;
 import be.meetspace.entity.*;
 import be.meetspace.repository.EspaceRepository;
+import be.meetspace.repository.EventRepository;
 import be.meetspace.repository.ReservationRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
@@ -30,19 +31,54 @@ public class ReservationController {
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
     private final EspaceRepository espaceRepository;
+    private final EventRepository eventRepository;
     private final PaymentVerifier paymentVerifier;
     private final AuditService auditService;
 
     public ReservationController(ReservationRepository reservationRepository,
                                  UserRepository userRepository,
                                  EspaceRepository espaceRepository,
+                                 EventRepository eventRepository,
                                  PaymentVerifier paymentVerifier,
                                  AuditService auditService) {
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
         this.espaceRepository = espaceRepository;
+        this.eventRepository = eventRepository;
         this.paymentVerifier = paymentVerifier;
         this.auditService = auditService;
+    }
+
+    private void validateRoomWindow(Long espaceId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        if (startDateTime == null || endDateTime == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Les horaires sont requis");
+        }
+
+        if (startDateTime.isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La date de debut ne peut pas etre dans le passe");
+        }
+
+        if (!endDateTime.isAfter(startDateTime)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La date de fin doit etre apres la date de debut");
+        }
+
+        boolean hasReservationOverlap = reservationRepository.existsOverlappingReservation(
+                espaceId,
+                startDateTime,
+                endDateTime
+        );
+
+        boolean hasEventOverlap = eventRepository.existsOverlappingEventForSpace(
+                espaceId,
+                startDateTime,
+                endDateTime,
+                null
+        );
+
+        if (hasReservationOverlap || hasEventOverlap) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Cet espace est deja occupe sur ce creneau. Merci de choisir un autre horaire.");
+        }
     }
 
     @PostMapping
@@ -73,16 +109,7 @@ public class ReservationController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Espace non disponible");
         }
 
-        boolean hasOverlap = reservationRepository.existsOverlappingReservation(
-                request.getEspaceId(),
-                request.getStartDateTime(),
-                request.getEndDateTime()
-        );
-
-        if (hasOverlap) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                "Cet espace est deja reserve pour cette periode. Veuillez choisir un autre creneau.");
-        }
+        validateRoomWindow(request.getEspaceId(), request.getStartDateTime(), request.getEndDateTime());
 
         Reservation reservation = new Reservation();
         reservation.setUser(user);
@@ -130,16 +157,7 @@ public class ReservationController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Espace non disponible");
         }
 
-        boolean hasOverlap = reservationRepository.existsOverlappingReservation(
-                request.getEspaceId(),
-                request.getStartDateTime(),
-                request.getEndDateTime()
-        );
-
-        if (hasOverlap) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                "Cet espace est deja reserve pour cette periode. Veuillez choisir un autre creneau.");
-        }
+        validateRoomWindow(request.getEspaceId(), request.getStartDateTime(), request.getEndDateTime());
 
         Reservation reservation = new Reservation();
         reservation.setUser(user);
@@ -249,11 +267,10 @@ public class ReservationController {
             @RequestParam String startDateTime,
             @RequestParam String endDateTime
     ) {
-        return !reservationRepository.existsOverlappingReservation(
-                espaceId,
-                LocalDateTime.parse(startDateTime),
-                LocalDateTime.parse(endDateTime)
-        );
+        LocalDateTime start = LocalDateTime.parse(startDateTime);
+        LocalDateTime end = LocalDateTime.parse(endDateTime);
+        return !reservationRepository.existsOverlappingReservation(espaceId, start, end)
+                && !eventRepository.existsOverlappingEventForSpace(espaceId, start, end, null);
     }
 
     @GetMapping("/espace/{espaceId}/calendar")
@@ -273,9 +290,17 @@ public class ReservationController {
                 espaceId, startOfMonth, endOfMonth
         );
 
-        return reservations.stream()
+        List<CalendarReservationDto> blockedSlots = reservations.stream()
                 .map(CalendarReservationDto::fromEntity)
                 .collect(Collectors.toList());
+
+        eventRepository.findBySpaceId(espaceId).stream()
+                .filter(event -> event.getStatus() != EventStatus.CANCELLED && event.getStatus() != EventStatus.REJECTED)
+                .filter(event -> event.getStartDateTime().isBefore(endOfMonth) && event.getEndDateTime().isAfter(startOfMonth))
+                .map(CalendarReservationDto::fromEvent)
+                .forEach(blockedSlots::add);
+
+        return blockedSlots;
     }
 
     @DeleteMapping("/{id}/cancel")

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { organizerCreateEvent, organizerGetMyEvent, organizerUpdateMyEvent } from "../services/api";
+import { getEspaces, organizerCreateEvent, organizerGetMyEvent, organizerUpdateMyEvent } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
+import RoomSchedulePicker from "../components/RoomSchedulePicker";
 import styles from "./OrganizerEventForm.module.css";
 
 export default function OrganizerEventForm() {
@@ -19,6 +20,7 @@ export default function OrganizerEventForm() {
     description: "",
     startDateTime: "",
     endDateTime: "",
+    spaceId: "",
     location: "",
     capacity: "",
     price: "",
@@ -27,16 +29,41 @@ export default function OrganizerEventForm() {
     parkingCapacity: "",
   });
   const [originalEvent, setOriginalEvent] = useState(null);
+  const [spaces, setSpaces] = useState([]);
+  const [loadingSpaces, setLoadingSpaces] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingEvent, setLoadingEvent] = useState(isEdit);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const availableSpaces = spaces
+    .filter((space) => space.status !== "UNAVAILABLE")
+    .sort((a, b) => (a.capacity || 0) - (b.capacity || 0));
+
+  const selectedSpace = availableSpaces.find(
+    (space) => String(space.id) === String(eventForm.spaceId) || space.name === eventForm.location,
+  );
+  const selectedCapacity = Number(selectedSpace?.capacity) || 0;
+  const recommendedCapacity = selectedCapacity
+    ? Math.min(selectedCapacity, Math.max(12, Math.round(selectedCapacity * 0.75)))
+    : 0;
+  const recommendedPrice = selectedCapacity >= 300 ? 120 : selectedCapacity >= 100 ? 80 : selectedCapacity >= 50 ? 45 : 25;
+  const recommendedParkingCapacity = recommendedCapacity
+    ? Math.min(50, Math.max(6, Math.round(recommendedCapacity * 0.3)))
+    : 0;
+  const recommendedParkingPrice = selectedCapacity >= 100 ? 10 : 8;
 
   useEffect(() => {
     if (!user || (user.role !== "ORGANIZER" && user.role !== "ADMIN")) {
       navigate("/login");
       return;
     }
+
+    setLoadingSpaces(true);
+    getEspaces()
+      .then((data) => setSpaces(Array.isArray(data) ? data : []))
+      .catch(() => setSpaces([]))
+      .finally(() => setLoadingSpaces(false));
 
     if (isEdit) {
       setLoadingEvent(true);
@@ -48,6 +75,7 @@ export default function OrganizerEventForm() {
             description: event.description || "",
             startDateTime: event.startDateTime.slice(0, 16),
             endDateTime: event.endDateTime.slice(0, 16),
+            spaceId: event.spaceId ?? "",
             location: event.location || "",
             capacity: event.capacity,
             price: event.price || "",
@@ -61,9 +89,99 @@ export default function OrganizerEventForm() {
     }
   }, [id, isEdit, user, token, navigate]);
 
+  useEffect(() => {
+    if (eventForm.spaceId || !eventForm.location || spaces.length === 0) return;
+
+    const room = spaces.find((space) => space.status !== "UNAVAILABLE" && space.name === eventForm.location);
+    if (room) {
+      setEventForm((prev) => ({ ...prev, spaceId: String(room.id) }));
+    }
+  }, [spaces, eventForm.location, eventForm.spaceId]);
+
+  const clampNumber = (value, min, max) => {
+    if (value === "") return "";
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "";
+    return String(Math.min(Math.max(number, min), max));
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setEventForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setEventForm((prev) => {
+      const next = { ...prev, [name]: type === "checkbox" ? checked : value };
+
+      if (name === "capacity") {
+        const maxCapacity = selectedSpace?.capacity ? Number(selectedSpace.capacity) : Number.MAX_SAFE_INTEGER;
+        next.capacity = clampNumber(value, 1, maxCapacity);
+        if (next.parkingCapacity && Number(next.parkingCapacity) > Number(next.capacity)) {
+          next.parkingCapacity = next.capacity;
+        }
+      }
+
+      if (name === "parkingCapacity") {
+        const maxParking = prev.capacity ? Number(prev.capacity) : Number.MAX_SAFE_INTEGER;
+        next.parkingCapacity = clampNumber(value, 1, maxParking);
+      }
+
+      return next;
+    });
+    setError("");
+  };
+
+  const handleLocationChange = (e) => {
+    const value = e.target.value;
+    const room = availableSpaces.find((space) => String(space.id) === String(value));
+
+    setEventForm((prev) => ({
+      ...prev,
+      spaceId: value,
+      location: room?.name || "",
+      capacity:
+        room && (!prev.capacity || Number(prev.capacity) > Number(room.capacity))
+          ? String(room.capacity)
+          : prev.capacity,
+      parkingCapacity:
+        room && prev.parkingCapacity && Number(prev.parkingCapacity) > Number(room.capacity)
+          ? String(room.capacity)
+          : prev.parkingCapacity,
+      startDateTime: "",
+      endDateTime: "",
+    }));
+    setError("");
+  };
+
+  const handleScheduleChange = ({ startDateTime, endDateTime }) => {
+    setEventForm((prev) => ({
+      ...prev,
+      startDateTime,
+      endDateTime,
+    }));
+    setError("");
+  };
+
+  const applyRoomCapacity = () => {
+    if (!selectedSpace) return;
+    setEventForm((prev) => ({
+      ...prev,
+      capacity: String(selectedSpace.capacity),
+      parkingCapacity:
+        prev.parkingCapacity && Number(prev.parkingCapacity) > Number(selectedSpace.capacity)
+          ? String(selectedSpace.capacity)
+          : prev.parkingCapacity,
+    }));
+    setError("");
+  };
+
+  const applySmartRecommendation = () => {
+    if (!selectedSpace) return;
+    setEventForm((prev) => ({
+      ...prev,
+      capacity: String(recommendedCapacity),
+      price: String(recommendedPrice),
+      parkingRequired: true,
+      parkingPrice: String(recommendedParkingPrice),
+      parkingCapacity: String(Math.min(recommendedParkingCapacity, recommendedCapacity)),
+    }));
     setError("");
   };
 
@@ -88,9 +206,28 @@ export default function OrganizerEventForm() {
       setError(t("validation.endBeforeStart"));
       return false;
     }
+    if (!selectedSpace) {
+      setError(t("organizer.locationRequired"));
+      return false;
+    }
     if (!eventForm.capacity || parseInt(eventForm.capacity) < 1) {
       setError(t("validation.capacityRequired"));
       return false;
+    }
+    if (selectedSpace && parseInt(eventForm.capacity) > Number(selectedSpace.capacity)) {
+      setError(t("organizer.capacityExceedsRoom", { capacity: selectedSpace.capacity }));
+      return false;
+    }
+    if (eventForm.parkingRequired) {
+      const parkingCapacity = parseInt(eventForm.parkingCapacity, 10);
+      if (!parkingCapacity || parkingCapacity < 1) {
+        setError(t("organizer.parkingCapacityRequired"));
+        return false;
+      }
+      if (parkingCapacity > parseInt(eventForm.capacity, 10)) {
+        setError(t("organizer.parkingCapacityExceedsEvent", { capacity: eventForm.capacity }));
+        return false;
+      }
     }
     return true;
   };
@@ -105,6 +242,10 @@ export default function OrganizerEventForm() {
 
     const payload = {
       ...eventForm,
+      locationType: "EXISTING_SPACE",
+      spaceId: Number(selectedSpace.id),
+      externalAddress: null,
+      location: selectedSpace.name,
       capacity: parseInt(eventForm.capacity),
       price: eventForm.price ? parseFloat(eventForm.price) : 0,
       parkingPrice: eventForm.parkingPrice !== "" ? parseFloat(eventForm.parkingPrice) : null,
@@ -148,7 +289,7 @@ export default function OrganizerEventForm() {
 
         {!isEdit && (
           <div className={styles.infoBox}>
-            <div className={styles.infoIcon}>ℹ</div>
+            <div className={styles.infoIcon}>i</div>
             <div>
               <strong>{t("organizer.note")}:</strong>
               <p className={styles.infoText}>{t("organizer.pendingApprovalNote")}</p>
@@ -198,47 +339,77 @@ export default function OrganizerEventForm() {
             />
           </div>
 
-          <div className={styles.row}>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                {t("events.startDate")} <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="datetime-local"
-                name="startDateTime"
-                value={eventForm.startDateTime}
-                onChange={handleChange}
-                className={styles.input}
-                required
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                {t("events.endDate")} <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="datetime-local"
-                name="endDateTime"
-                value={eventForm.endDateTime}
-                onChange={handleChange}
-                className={styles.input}
-                required
-              />
-            </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
+              {t("events.location")} <span className={styles.required}>*</span>
+            </label>
+            <select
+              name="spaceId"
+              value={eventForm.spaceId}
+              onChange={handleLocationChange}
+              className={styles.select}
+              required
+            >
+              <option value="">
+                {loadingSpaces ? t("common.loading") : t("organizer.selectLocation")}
+              </option>
+              {availableSpaces.map((space) => (
+                <option key={space.id} value={space.id}>
+                  {space.name} - {space.capacity} {t("common.persons")} - {space.basePrice} €{t("common.perHour")}
+                </option>
+              ))}
+            </select>
+            <span className={styles.hint}>
+              {selectedSpace
+                ? t("organizer.roomCapacityHint", {
+                    capacity: selectedSpace.capacity,
+                    price: selectedSpace.basePrice,
+                  })
+                : t("organizer.locationHint")}
+            </span>
           </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.label}>{t("events.location")}</label>
-            <input
-              type="text"
-              name="location"
-              value={eventForm.location}
-              onChange={handleChange}
-              placeholder={t("organizer.locationPlaceholder")}
-              className={styles.input}
-            />
-            <span className={styles.hint}>{t("organizer.locationHint")}</span>
-          </div>
+          {selectedSpace && (
+            <div className={styles.advisorCard}>
+              <div>
+                <p className={styles.advisorKicker}>{t("organizer.advisorKicker")}</p>
+                <h3>{t("organizer.advisorTitle")}</h3>
+                <p>{t("organizer.advisorText")}</p>
+              </div>
+              <div className={styles.advisorMetrics}>
+                <span>
+                  <strong>{recommendedCapacity}</strong>
+                  {t("organizer.advisorCapacity")}
+                </span>
+                <span>
+                  <strong>{recommendedPrice} €</strong>
+                  {t("organizer.advisorPrice")}
+                </span>
+                <span>
+                  <strong>{recommendedParkingCapacity}</strong>
+                  {t("organizer.advisorParking")}
+                </span>
+              </div>
+              <div className={styles.advisorActions}>
+                <button type="button" onClick={applyRoomCapacity} className={styles.advisorGhost}>
+                  {t("organizer.applyCapacity")}
+                </button>
+                <button type="button" onClick={applySmartRecommendation} className={styles.advisorPrimary}>
+                  {t("organizer.applyRecommendation")}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <RoomSchedulePicker
+            key={eventForm.spaceId || "organizer-room-schedule"}
+            spaceId={eventForm.spaceId}
+            spaceName={selectedSpace?.name}
+            startDateTime={eventForm.startDateTime}
+            endDateTime={eventForm.endDateTime}
+            onChange={handleScheduleChange}
+            ignoreBlockId={isEdit ? id : undefined}
+          />
 
           <div className={styles.row}>
             <div className={styles.formGroup}>
@@ -251,6 +422,7 @@ export default function OrganizerEventForm() {
                 value={eventForm.capacity}
                 onChange={handleChange}
                 min="1"
+                max={selectedSpace?.capacity || undefined}
                 className={styles.input}
                 required
               />
@@ -306,6 +478,7 @@ export default function OrganizerEventForm() {
                   value={eventForm.parkingCapacity}
                   onChange={handleChange}
                   min="1"
+                  max={eventForm.capacity || undefined}
                   className={styles.input}
                 />
               </div>

@@ -5,8 +5,7 @@ import { getEspaces, requestPremiumRoomReservation, createReservation } from "..
 import { useTranslation } from "react-i18next";
 import PaymentForm from "../components/PaymentForm";
 import PageState from "../components/PageState";
-import ReservationCalendar from "../components/ReservationCalendar";
-import DayTimeSlots from "../components/DayTimeSlots";
+import RoomSchedulePicker from "../components/RoomSchedulePicker";
 import { getSpaceImage } from "../utils/mediaAssets";
 import styles from "./CreateReservationPage.module.css";
 
@@ -27,6 +26,7 @@ export default function CreateReservationPage() {
   const [showPayment, setShowPayment] = useState(false);
   const [creatingReservation, setCreatingReservation] = useState(false);
   const [justification, setJustification] = useState("");
+  const [currentStep, setCurrentStep] = useState(1);
 
   const getSpaceTypeLabel = (type) => t(`spaceType.${type}`, { defaultValue: type });
   const isPremiumRoom = espace?.type === "PREMIUM_ROOM";
@@ -56,34 +56,31 @@ export default function CreateReservationPage() {
 
   const durationHours = calculateHours();
   const totalPrice = espace ? espace.basePrice * durationHours : 0;
+  const startDateTime = selectedDate && startTime ? `${selectedDate}T${startTime}` : "";
+  const endDateTime = selectedDate && endTime ? `${selectedDate}T${endTime}` : "";
+  const canReview = Boolean(selectedDate && startTime && endTime);
+  const bookingStep = showPayment ? 3 : canReview ? currentStep : 1;
 
-  const handleDateSelect = (date) => {
-    setSelectedDate(date);
-    setStartTime("");
-    setEndTime("");
+  const handleScheduleChange = ({ startDateTime: nextStartDateTime, endDateTime: nextEndDateTime }) => {
+    setSelectedDate(nextStartDateTime?.slice(0, 10) || "");
+    setStartTime(nextStartDateTime?.slice(11, 16) || "");
+    setEndTime(nextEndDateTime?.slice(11, 16) || "");
+    setError("");
   };
 
-  const handleTimeSlotClick = (time) => {
-    if (!startTime) {
-      setStartTime(time);
-      setEndTime("");
+  const handleContinueToReview = () => {
+    setError("");
+    if (!selectedDate) {
+      setError(t("calendar.selectDayFirst"));
       return;
     }
 
-    if (!endTime) {
-      const startHour = parseInt(startTime.split(":")[0], 10);
-      const clickedHour = parseInt(time.split(":")[0], 10);
-      if (clickedHour > startHour) {
-        setEndTime(time);
-      } else {
-        setStartTime(time);
-        setEndTime("");
-      }
+    if (!startTime || !endTime) {
+      setError(t("calendar.selectTimeSlots"));
       return;
     }
 
-    setStartTime(time);
-    setEndTime("");
+    setCurrentStep(2);
   };
 
   const handleSubmit = async (e) => {
@@ -178,8 +175,10 @@ export default function CreateReservationPage() {
   };
 
   const handleReset = () => {
+    setSelectedDate("");
     setStartTime("");
     setEndTime("");
+    setCurrentStep(1);
   };
 
   if (!user || !token) return null;
@@ -303,29 +302,62 @@ export default function CreateReservationPage() {
         </aside>
 
         <section className={styles.mainColumn}>
-          <div className={styles.flowPanel}>
-            <div className={styles.sectionHeader}>
-              <h3 className={styles.sectionTitle}>{t("calendar.selectDate")}</h3>
-            </div>
-            <ReservationCalendar espaceId={Number(espaceId)} onSelectDate={handleDateSelect} selectedDate={selectedDate} />
+          <div className={styles.progressStrip} aria-label={t("calendar.reservationSummary")}>
+            <button
+              type="button"
+              className={`${styles.progressStep} ${bookingStep >= 1 ? styles.progressStepActive : ""}`}
+              onClick={() => setCurrentStep(1)}
+            >
+              <strong>1</strong>
+              {t("calendar.selectedSlot")}
+            </button>
+            <button
+              type="button"
+              className={`${styles.progressStep} ${bookingStep >= 2 ? styles.progressStepActive : ""}`}
+              onClick={() => canReview && setCurrentStep(2)}
+              disabled={!canReview}
+            >
+              <strong>2</strong>
+              {t("calendar.reservationSummary")}
+            </button>
+            <button
+              type="button"
+              className={`${styles.progressStep} ${bookingStep >= 3 ? styles.progressStepActive : ""}`}
+              disabled
+            >
+              <strong>3</strong>
+              {isPremiumRoom ? t("reservation.submitRequest") : t("payment.title")}
+            </button>
           </div>
 
-          {selectedDate && (
-            <div className={styles.flowPanel}>
-              <div className={styles.sectionHeader}>
-                <h3 className={styles.sectionTitle}>{t("calendar.selectTime")}</h3>
-              </div>
-              <DayTimeSlots
-                espaceId={Number(espaceId)}
-                selectedDate={selectedDate}
-                onSelectTimeSlot={handleTimeSlotClick}
-                selectedStartTime={startTime}
-                selectedEndTime={endTime}
-              />
+          {currentStep === 1 && (
+          <div className={styles.flowPanel}>
+            <div className={styles.sectionHeader}>
+              <h3 className={styles.sectionTitle}>{t("calendar.scheduleTitle")}</h3>
             </div>
+            <RoomSchedulePicker
+              spaceId={Number(espaceId)}
+              spaceName={espace?.name}
+              startDateTime={startDateTime}
+              endDateTime={endDateTime}
+              onChange={handleScheduleChange}
+            />
+
+            <div className={styles.stepActions}>
+              <div>
+                <span className={styles.stepHint}>
+                  {t("reservation.stepScheduleHint", { defaultValue: "Choisissez un créneau libre" })}
+                </span>
+                <strong>{selectedRange}</strong>
+              </div>
+              <button type="button" className={styles.primaryAction} onClick={handleContinueToReview}>
+                {t("reservation.continueToSummary", { defaultValue: "Continuer vers le récapitulatif" })}
+              </button>
+            </div>
+          </div>
           )}
 
-          {startTime && endTime && (
+          {currentStep === 2 && startTime && endTime && (
             <form onSubmit={handleSubmit} className={styles.flowPanel}>
               <div className={styles.sectionHeader}>
                 <h3 className={styles.sectionTitle}>{t("calendar.reservationSummary")}</h3>
@@ -372,6 +404,9 @@ export default function CreateReservationPage() {
               {error && <p className={styles.error}>{error}</p>}
 
               <div className={styles.buttonGroup}>
+                <button type="button" onClick={() => setCurrentStep(1)} className={styles.secondaryAction} disabled={creatingReservation}>
+                  {t("reservation.editSlot", { defaultValue: "Modifier le créneau" })}
+                </button>
                 <button type="button" onClick={handleReset} className={styles.secondaryAction} disabled={creatingReservation}>
                   {t("calendar.resetSelection")}
                 </button>

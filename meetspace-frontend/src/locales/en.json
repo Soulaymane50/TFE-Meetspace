@@ -120,6 +120,24 @@
     "spaceMetricCapacity": "Combined capacity",
     "spaceMetricCapacityText": "Total usable seats across visible rooms"
   },
+  "availabilityFinder": {
+    "kicker": "Availability",
+    "title": "Find a free room quickly",
+    "text": "Choose a date, duration and capacity to spot available rooms before starting a booking.",
+    "date": "Date",
+    "capacity": "Participants",
+    "duration": "Duration",
+    "availableRooms": "available rooms",
+    "firstSlot": "First slot: {{time}}",
+    "full": "Full for this duration",
+    "checking": "Checking...",
+    "free": "free",
+    "blocks": "occupied block(s)",
+    "reserve": "Book this slot",
+    "loginToReserve": "Sign in to book",
+    "error": "Unable to check availability right now.",
+    "noCapacityMatch": "No room matches this capacity."
+  },
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
@@ -162,7 +180,8 @@
     "location": "Location",
     "toBeAnnounced": "To be announced",
     "placesAvailable": "{{count}} available",
-    "full": "Full"
+    "full": "Full",
+    "select": "Select"
   },
 
   "nav": {
@@ -204,6 +223,25 @@
     "profileDesc": "Update your personal information.",
     "organizerDesc": "Manage your professional events.",
     "adminDesc": "Open the admin console."
+  },
+  "planning": {
+    "kicker": "Operational planning",
+    "title": "Planning view",
+    "subtitle": "Quick readout of events by day, occupied rooms and possible overlaps.",
+    "adminTitle": "Venue planning",
+    "adminSubtitle": "Track published events and spot room conflicts immediately.",
+    "organizerTitle": "My event planning",
+    "organizerSubtitle": "Review your sessions by day before adjusting the schedule.",
+    "empty": "No event to display in the planning view.",
+    "events": "event(s)",
+    "days": "day(s)",
+    "rooms": "room(s)",
+    "day": "Day",
+    "conflict": "{{count}} conflict(s)",
+    "noConflict": "No conflict",
+    "conflictDetected": "Time conflict",
+    "occupancy": "occupancy",
+    "unscheduled": "Unscheduled"
   },
 
   "auth": {
@@ -294,6 +332,15 @@
     "bestForLabel": "Best for",
     "bestForPremium": "Boards, premium conferences, executive committees",
     "bestForStandard": "Workshops, team meetings, client sessions",
+    "availabilityLabel": "Availability",
+    "availabilityTitle": "Find an available room",
+    "availabilityText": "Choose a date and duration to quickly identify free rooms before starting a booking.",
+    "availabilityDate": "Preferred date",
+    "availabilityDuration": "Duration",
+    "availabilityAvailable": "Available",
+    "availabilityFull": "Full for this duration",
+    "availabilityFirstSlot": "First slot: {{time}}",
+    "availabilityChecking": "Checking...",
     "profiles": {
       "orion": {
         "label": "Premium auditorium",
@@ -359,7 +406,10 @@
     "awaitingPaymentDesc": "These room reservations have been approved and are awaiting payment to be confirmed.",
     "payNow": "Pay now",
     "payReservation": "Pay reservation",
-    "allReservations": "All reservations"
+    "allReservations": "All reservations",
+    "stepScheduleHint": "Step 1: choose a free slot",
+    "continueToSummary": "Continue to summary",
+    "editSlot": "Edit slot"
   },
 
   "calendar": {
@@ -395,7 +445,20 @@
     "resetSelection": "Reset",
     "openingHours": "Opening hours: 7am - 10pm",
     "start": "Start",
-    "end": "End"
+    "end": "End",
+    "roomSchedule": "Room schedule",
+    "scheduleTitle": "Room availability",
+    "scheduleSubtitle": "Choose a room to view open slots before defining the event.",
+    "scheduleSubtitleWithRoom": "Available slots for {{room}}. Existing reservations and events are blocked automatically.",
+    "roomFirstTitle": "Select a room first",
+    "roomFirstText": "The schedule will then show open days, occupied blocks and available hours.",
+    "selectedDay": "Selected day",
+    "chooseDay": "Choose a day",
+    "availableHours": "available hours",
+    "occupiedBlocks": "occupied blocks",
+    "duration": "Duration",
+    "selectedSlot": "Selected slot",
+    "noSlotSelected": "No slot selected"
   },
 
   "events": {
@@ -423,6 +486,8 @@
     "free": "Free",
     "paid": "Paid",
     "placesAvailable": "places available",
+    "remainingPlacesCount": "{{count}} places still available",
+    "capacityExceeded": "You cannot book more than {{count}} places for this event.",
     "notFound": "Event not found",
     "parkingAvailable": "Parking option available",
     "searchPlaceholder": "Search for a conference, workshop or seminar...",
@@ -490,6 +555,8 @@
     "rateLabel": "Rate",
     "places": "Parking spaces",
     "placesAvailable": "Available parking spaces",
+    "remainingPlacesCount": "{{count}} parking spaces still available",
+    "capacityExceeded": "You cannot book more than {{count}} parking spaces.",
     "session": "Parking slot",
     "noSessions": "No parking slots available at the moment",
     "noReservations": "You have no parking reservations",
@@ -502,6 +569,11 @@
     "perSpace": "space",
     "loginToReserve": "Log in to book",
     "capacityNotice": "Check capacity and pricing for each parking slot before booking.",
+    "capacityStatus": "Parking capacity",
+    "remainingAfterSelection": "{{count}} space(s) will remain available after your booking",
+    "quickSelection": "Quick selection",
+    "decreaseSpaces": "Decrease number of spaces",
+    "increaseSpaces": "Increase number of spaces",
     "notFound": "Parking slot not found",
     "createError": "Error while creating the parking reservation",
     "fetchError": "Unable to load parking slots right now.",
@@ -520,7 +592,12 @@
     "almostFull": "Almost full",
     "reservedLabel": "Reserved",
     "remainingLabel": "Remaining",
-    "occupancyLabel": "Occupancy"
+    "occupancyLabel": "Occupancy",
+    "selectDay": "Choose a day",
+    "selectedDay": "Selected day",
+    "allDays": "All days",
+    "availableOnDay": "spaces available out of {{count}} allocated that day",
+    "availableAcrossDays": "spaces available out of {{count}} total spaces"
   },
 
   "payment": {
@@ -684,7 +761,8 @@
     "invalidEmail": "Invalid email",
     "startDatePast": "Start date cannot be in the past",
     "endDatePast": "End date cannot be in the past",
-    "endBeforeStart": "End date must be after start date"
+    "endBeforeStart": "End date must be after start date",
+    "pricePositive": "Price must be positive"
   },
 
   "status": {
@@ -743,13 +821,27 @@
     "titlePlaceholder": "Ex: Leadership strategy seminar",
     "descriptionPlaceholder": "Describe the agenda, objectives and target audience of your professional event...",
     "locationPlaceholder": "Ex: Conference room, Brussels",
-    "locationHint": "Leave empty if the professional venue is not yet confirmed",
+    "locationHint": "Choose an existing room to keep the schedule consistent.",
+    "selectLocation": "Choose a MeetSpace room",
+    "locationRequired": "Please select a room for this professional event.",
+    "roomCapacityHint": "Room capacity: {{capacity}} people · Rate: {{price}} €/hour",
+    "capacityExceedsRoom": "Capacity cannot exceed {{capacity}} participants for this room.",
+    "parkingCapacityRequired": "Please enter the number of parking spaces.",
+    "parkingCapacityExceedsEvent": "Parking cannot exceed {{capacity}} spaces for this event.",
     "capacityHint": "Maximum expected number of attendees",
     "priceHint": "Leave empty or 0 if attendance is free",
     "eventRejected": "This professional event was rejected",
     "modifyAndResubmit": "Modify it and resubmit for approval",
     "cancelEvent": "Cancel professional event",
     "awaitingApproval": "Awaiting approval",
+    "advisorKicker": "Configuration assistant",
+    "advisorTitle": "MeetSpace recommendation",
+    "advisorText": "The suggestion uses the room capacity, a realistic attendance level and a cautious parking allocation.",
+    "advisorCapacity": "recommended capacity",
+    "advisorPrice": "recommended price",
+    "advisorParking": "recommended parking spaces",
+    "applyCapacity": "Use room capacity",
+    "applyRecommendation": "Apply recommendation",
     "parkingRequired": "Parking required",
     "parkingRate": "Parking rate",
     "parkingCapacity": "Parking spaces"

@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
-import { getEspaces } from "../services/api";
-import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../context/AuthContext";
+import { getEspaces } from "../services/api";
+import AvailabilityFinder from "../components/AvailabilityFinder";
 import PageState from "../components/PageState";
 import { getSpaceImage } from "../utils/mediaAssets";
 import styles from "./EspacesPage.module.css";
 
 const EURO = "€";
 
-const getCapacityClass = (space) => {
+function getCapacityClass(space) {
   const capacity = Number(space?.capacity) || 0;
 
   if (capacity >= 500) return styles.capacityHuge;
@@ -17,9 +18,9 @@ const getCapacityClass = (space) => {
   if (capacity >= 80) return styles.capacityMedium;
   if (capacity >= 40) return styles.capacitySmall;
   return styles.capacityBoardroom;
-};
+}
 
-const getSpaceProfileKey = (space) => {
+function getSpaceProfileKey(space) {
   const name = `${space?.name || ""}`.toLowerCase();
   const capacity = Number(space?.capacity) || 0;
 
@@ -29,18 +30,27 @@ const getSpaceProfileKey = (space) => {
   if (name.includes("horizon")) return "horizon";
   if (name.includes("conseil")) return "boardroom";
   return capacity >= 250 ? "executive" : capacity >= 80 ? "atlas" : capacity >= 40 ? "horizon" : "boardroom";
-};
+}
 
-const getSpaceDescription = (space, t) => t(`spaces.profiles.${getSpaceProfileKey(space)}.description`);
-const getSpaceBestFor = (space, t) => t(`spaces.profiles.${getSpaceProfileKey(space)}.bestFor`);
-const getSpaceDisplayType = (space, t) => t(`spaces.profiles.${getSpaceProfileKey(space)}.label`);
+function getSpaceDescription(space, t) {
+  return t(`spaces.profiles.${getSpaceProfileKey(space)}.description`);
+}
+
+function getSpaceBestFor(space, t) {
+  return t(`spaces.profiles.${getSpaceProfileKey(space)}.bestFor`);
+}
+
+function getSpaceDisplayType(space, t) {
+  return t(`spaces.profiles.${getSpaceProfileKey(space)}.label`);
+}
 
 export default function EspacesPage() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [espaces, setEspaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const { t } = useTranslation();
+
   const getSpaceTypeLabel = (type) => t(`spaceType.${type}`, { defaultValue: type });
 
   const fetchSpaces = useCallback(() => {
@@ -134,11 +144,13 @@ export default function EspacesPage() {
             <span className={styles.summaryLabel}>{getSpaceTypeLabel("SALLE")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{fromPrice} €</span>
+            <span className={styles.summaryValue}>{fromPrice} {EURO}</span>
             <span className={styles.summaryLabel}>{t("common.perHour")}</span>
           </div>
         </div>
       </section>
+
+      {espaces.length > 0 && <AvailabilityFinder spaces={espaces} />}
 
       {espaces.length === 0 ? (
         <div className={styles.emptyState}>

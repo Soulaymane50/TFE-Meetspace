@@ -1,5 +1,6 @@
 package be.meetspace.web.dto;
 
+import be.meetspace.entity.Event;
 import be.meetspace.entity.Reservation;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,14 @@ public class CalendarReservationDto {
         dto.id = reservation.getId();
         dto.startDateTime = reservation.getStartDateTime();
         dto.endDateTime = reservation.getEndDateTime();
+        return dto;
+    }
+
+    public static CalendarReservationDto fromEvent(Event event) {
+        CalendarReservationDto dto = new CalendarReservationDto();
+        dto.id = event.getId();
+        dto.startDateTime = event.getStartDateTime();
+        dto.endDateTime = event.getEndDateTime();
         return dto;
     }
 

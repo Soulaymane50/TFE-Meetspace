@@ -10,6 +10,7 @@ import {
   adminGetAllEventRegistrations,
 } from "../services/api";
 import PageState from "../components/PageState";
+import EventPlanningTimeline from "../components/EventPlanningTimeline";
 import styles from "./AdminEventsPage.module.css";
 
 export default function AdminEventsPage() {
@@ -169,6 +170,12 @@ export default function AdminEventsPage() {
       {/* Onglet: Liste des événements */}
       {activeTab === "events" && (
         <section className={styles.section}>
+          <EventPlanningTimeline
+            events={events}
+            title={t("planning.adminTitle")}
+            subtitle={t("planning.adminSubtitle")}
+          />
+
           <div className={styles.tableContainer}>
             <table className={styles.table}>
               <thead>

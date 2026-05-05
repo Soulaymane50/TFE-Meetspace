@@ -47,10 +47,27 @@ export default function EventRegisterPage() {
   const hasParking = !!event?.parkingSlotId;
   const eventPrice = event?.price || 0;
   const parkingUnit = event?.parkingPrice || 0;
+  const availableParticipantPlaces = Math.max(0, event?.availablePlaces ?? event?.capacity ?? 0);
+  const maxParticipants = event ? Math.max(0, Math.min(event.capacity ?? availableParticipantPlaces, availableParticipantPlaces)) : 1;
+  const maxParkingSpaces = Math.max(0, event?.parkingAvailableSpaces ?? event?.parkingCapacity ?? 0);
   const eventTotal = eventPrice * numberOfParticipants;
   const parkingTotal = hasParking && addParking ? parkingUnit * reservedSpaces : 0;
   const totalAmount = eventTotal + parkingTotal;
   const requiresPayment = totalAmount > 0;
+
+  const clampNumber = (value, min, max) => {
+    const number = parseInt(value, 10);
+    if (!Number.isFinite(number)) return min;
+    return Math.min(Math.max(number, min), Math.max(min, max));
+  };
+
+  const handleParticipantsChange = (value) => {
+    setNumberOfParticipants(clampNumber(value, 1, maxParticipants || 1));
+  };
+
+  const handleParkingSpacesChange = (value) => {
+    setReservedSpaces(clampNumber(value, 1, maxParkingSpaces || 1));
+  };
 
   const completeRegistration = async (paymentIntentId) => {
     setIsRegistering(true);
@@ -81,6 +98,22 @@ export default function EventRegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (maxParticipants <= 0) {
+      setError(t("events.full"));
+      return;
+    }
+    if (numberOfParticipants > maxParticipants) {
+      setError(t("events.capacityExceeded", { count: maxParticipants }));
+      return;
+    }
+    if (hasParking && addParking && maxParkingSpaces <= 0) {
+      setError(t("parking.full"));
+      return;
+    }
+    if (hasParking && addParking && reservedSpaces > maxParkingSpaces) {
+      setError(t("parking.capacityExceeded", { count: maxParkingSpaces }));
+      return;
+    }
     if (requiresPayment) {
       setIsPaymentStepVisible(true);
       return;
@@ -216,11 +249,17 @@ export default function EventRegisterPage() {
               <input
                 type="number"
                 min="1"
-                max={event?.capacity || 100}
+                max={maxParticipants || 1}
                 value={numberOfParticipants}
-                onChange={(e) => setNumberOfParticipants(parseInt(e.target.value, 10) || 1)}
+                onChange={(e) => handleParticipantsChange(e.target.value)}
+                disabled={maxParticipants <= 0}
                 className={styles.input}
               />
+              <span className={styles.helperText}>
+                {maxParticipants > 0
+                  ? t("events.remainingPlacesCount", { count: maxParticipants })
+                  : t("events.full")}
+              </span>
             </div>
           </div>
 
@@ -235,7 +274,13 @@ export default function EventRegisterPage() {
               </div>
 
               <label className={`${styles.serviceToggle} ${addParking ? styles.serviceToggleActive : ""}`}>
-                <input type="checkbox" checked={addParking} onChange={(e) => setAddParking(e.target.checked)} className={styles.serviceCheckbox} />
+                <input
+                  type="checkbox"
+                  checked={addParking}
+                  onChange={(e) => setAddParking(maxParkingSpaces > 0 && e.target.checked)}
+                  disabled={maxParkingSpaces <= 0}
+                  className={styles.serviceCheckbox}
+                />
                 <div className={styles.serviceCopy}>
                   <span className={styles.serviceLabel}>{t("parking.addToRegistration")}</span>
                   <span className={styles.servicePrice}>
@@ -250,10 +295,17 @@ export default function EventRegisterPage() {
                   <input
                     type="number"
                     min="1"
+                    max={maxParkingSpaces || 1}
                     value={reservedSpaces}
-                    onChange={(e) => setReservedSpaces(parseInt(e.target.value, 10) || 1)}
+                    onChange={(e) => handleParkingSpacesChange(e.target.value)}
+                    disabled={maxParkingSpaces <= 0}
                     className={styles.input}
                   />
+                  <span className={styles.helperText}>
+                    {maxParkingSpaces > 0
+                      ? t("parking.remainingPlacesCount", { count: maxParkingSpaces })
+                      : t("parking.full")}
+                  </span>
                 </div>
               )}
             </div>

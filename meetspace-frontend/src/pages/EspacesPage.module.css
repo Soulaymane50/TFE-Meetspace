@@ -476,6 +476,160 @@
   text-align: center;
 }
 
+.availabilityPanel {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.75fr) minmax(320px, 1.25fr);
+  gap: 1rem;
+  padding: 1.4rem;
+  border-radius: 30px;
+  border: 1px solid rgba(20, 32, 51, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.1), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 247, 241, 0.95));
+  box-shadow: var(--shadow-soft);
+}
+
+.availabilityIntro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.availabilityIntro h2,
+.availabilityIntro p {
+  margin: 0;
+}
+
+.availabilityIntro h2 {
+  color: var(--blue-darker);
+}
+
+.availabilityIntro p {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.availabilityControls {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.55fr) minmax(260px, 1fr);
+  gap: 0.8rem;
+  align-items: end;
+}
+
+.availabilityControls label,
+.durationSwitch {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--taupe-dark);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.availabilityControls input {
+  width: 100%;
+}
+
+.durationSwitch div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.durationSwitch button {
+  min-height: 42px;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(27, 42, 64, 0.1);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--blue-dark);
+  box-shadow: none;
+  font-weight: 800;
+}
+
+.durationActive {
+  background: var(--blue-darker) !important;
+  color: #f8f5ef !important;
+}
+
+.availabilityGrid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.availabilityCard {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.95rem;
+  border-radius: 20px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(27, 42, 64, 0.035);
+}
+
+.availableCard {
+  border-color: rgba(16, 185, 129, 0.22);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.availabilityCard strong {
+  display: block;
+  color: var(--blue-darker);
+}
+
+.availabilityCard span {
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+}
+
+.availabilityStatus {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  color: var(--blue-dark);
+  font-weight: 800;
+}
+
+.availabilityStatus small {
+  width: 100%;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.availableDot,
+.fullDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.availableDot {
+  background: #10b981;
+}
+
+.fullDot {
+  background: #ef4444;
+}
+
+.availabilityCta {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 40px;
+  border-radius: 999px;
+  background: rgba(27, 42, 64, 0.92);
+  color: #f8f5ef;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.availabilityCta:hover {
+  color: #f8f5ef;
+}
+
 :global([data-theme="light"]) .heroPanel {
   border: 1px solid rgba(20, 32, 51, 0.075);
   background:
@@ -521,7 +675,9 @@
 [data-theme="dark"] .sidebar,
 [data-theme="dark"] .content,
 [data-theme="dark"] .premiumPanel,
-[data-theme="dark"] .emptyState {
+[data-theme="dark"] .emptyState,
+[data-theme="dark"] .availabilityPanel,
+[data-theme="dark"] .availabilityCard {
   border-color: rgba(255, 255, 255, 0.08);
   background: linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
 }
@@ -530,6 +686,9 @@
 [data-theme="dark"] .sectionTitle,
 [data-theme="dark"] .panelTitle,
 [data-theme="dark"] .studioTitle,
+[data-theme="dark"] .availabilityIntro h2,
+[data-theme="dark"] .availabilityCard strong,
+[data-theme="dark"] .availabilityStatus,
 [data-theme="dark"] .sidebarStatValue,
 [data-theme="dark"] .catalogItemTitle,
 [data-theme="dark"] .catalogItemPrice,
@@ -548,6 +707,11 @@
 [data-theme="dark"] .sectionKicker,
 [data-theme="dark"] .sectionText,
 [data-theme="dark"] .panelDescription,
+[data-theme="dark"] .availabilityIntro p,
+[data-theme="dark"] .availabilityCard span,
+[data-theme="dark"] .availabilityStatus small,
+[data-theme="dark"] .availabilityControls label,
+[data-theme="dark"] .durationSwitch,
 [data-theme="dark"] .metricLabel,
 [data-theme="dark"] .studioType,
 [data-theme="dark"] .panelPriceUnit {
@@ -558,9 +722,14 @@
 [data-theme="dark"] .catalogItem,
 [data-theme="dark"] .metricCard,
 [data-theme="dark"] .studioCard,
-[data-theme="dark"] .studioMetaBlock {
+[data-theme="dark"] .studioMetaBlock,
+[data-theme="dark"] .durationSwitch button {
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .durationSwitch button {
+  color: var(--text-primary);
 }
 
 [data-theme="dark"] .panelBadge {
@@ -592,7 +761,9 @@
   .summaryGrid,
   .panelMetrics,
   .studioMeta,
-  .sidebarStats {
+  .sidebarStats,
+  .availabilityPanel,
+  .availabilityControls {
     grid-template-columns: 1fr;
   }
 

@@ -4,6 +4,7 @@ import { organizerGetMyEvents, organizerCancelMyEvent } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
+import EventPlanningTimeline from "../components/EventPlanningTimeline";
 import styles from "./OrganizerEventsPage.module.css";
 
 function OrganizerIcon({ type }) {
@@ -261,6 +262,12 @@ export default function OrganizerEventsPage() {
           </button>
         ))}
       </div>
+
+      <EventPlanningTimeline
+        events={filteredEvents}
+        title={t("planning.organizerTitle")}
+        subtitle={t("planning.organizerSubtitle")}
+      />
 
       {filteredEvents.length === 0 ? (
         <div className={styles.emptyState}>

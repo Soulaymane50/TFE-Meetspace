@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getParkingSlots } from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -15,6 +15,7 @@ export default function ParkingPage() {
   const [parkingSlots, setParkingSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedDate, setSelectedDate] = useState("ALL");
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const locale = getDateLocale(i18n.language);
@@ -62,26 +63,43 @@ export default function ParkingPage() {
     return { label: t("status.available"), className: styles.statusAvailable };
   };
 
-  const groupedSlots = parkingSlots.reduce((groups, slot) => {
-    const key = slot.slotDate;
-    const existing = groups.find((group) => group.key === key);
-    if (existing) {
-      existing.slots.push(slot);
-      return groups;
-    }
+  const groupedSlots = useMemo(() => {
+    const groups = parkingSlots.reduce((acc, slot) => {
+      const key = slot.slotDate;
+      const existing = acc.find((group) => group.key === key);
+      if (existing) {
+        existing.slots.push(slot);
+        return acc;
+      }
 
-    groups.push({
-      key,
-      label: new Date(`${slot.slotDate}T00:00:00`).toLocaleDateString(locale, {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }),
-      slots: [slot],
-    });
-    return groups;
-  }, []);
+      acc.push({
+        key,
+        label: new Date(`${slot.slotDate}T00:00:00`).toLocaleDateString(locale, {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }),
+        compactLabel: new Date(`${slot.slotDate}T00:00:00`).toLocaleDateString(locale, {
+          day: "2-digit",
+          month: "short",
+        }),
+        slots: [slot],
+      });
+      return acc;
+    }, []);
+
+    return groups.sort((a, b) => new Date(a.key) - new Date(b.key));
+  }, [parkingSlots, locale]);
+
+  const visibleGroups = selectedDate === "ALL" ? groupedSlots : groupedSlots.filter((group) => group.key === selectedDate);
+  const selectedGroup = groupedSlots.find((group) => group.key === selectedDate);
+  const selectedDayAvailable = selectedGroup
+    ? selectedGroup.slots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0)
+    : totalAvailableSpaces;
+  const selectedDayCapacity = selectedGroup
+    ? selectedGroup.slots.reduce((sum, slot) => sum + (slot.parkingCapacity || 0), 0)
+    : totalCapacity;
 
   if (loading) {
     return <PageState type="loading" title={t("common.loading")} message={t("parking.capacityModelText")} />;
@@ -162,6 +180,52 @@ export default function ParkingPage() {
             </div>
 
             <div className={styles.sidebarSection}>
+              <p className={styles.sidebarListLabel}>{t("parking.selectDay")}</p>
+              <div className={styles.dateSelector}>
+                <button
+                  type="button"
+                  className={`${styles.dateChip} ${selectedDate === "ALL" ? styles.dateChipActive : ""}`}
+                  onClick={() => setSelectedDate("ALL")}
+                >
+                  <strong>{t("parking.allDays")}</strong>
+                  <span>{totalAvailableSpaces} {t("parking.remainingLabel")}</span>
+                </button>
+                {groupedSlots.map((group) => {
+                  const available = group.slots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0);
+                  const capacity = group.slots.reduce((sum, slot) => sum + (slot.parkingCapacity || 0), 0);
+                  const isFull = available <= 0;
+                  return (
+                    <button
+                      type="button"
+                      key={group.key}
+                      className={[
+                        styles.dateChip,
+                        selectedDate === group.key ? styles.dateChipActive : "",
+                        isFull ? styles.dateChipFull : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      onClick={() => setSelectedDate(group.key)}
+                    >
+                      <strong>{group.compactLabel}</strong>
+                      <span>{available}/{capacity} {t("parking.places")}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className={styles.selectedDayCard}>
+              <span>{selectedDate === "ALL" ? t("parking.allDays") : t("parking.selectedDay")}</span>
+              <strong>{selectedDayAvailable}</strong>
+              <p>
+                {selectedDate === "ALL"
+                  ? t("parking.availableAcrossDays", { count: selectedDayCapacity })
+                  : t("parking.availableOnDay", { count: selectedDayCapacity })}
+              </p>
+            </div>
+
+            <div className={styles.sidebarSection}>
               <p className={styles.sidebarListLabel}>{t("parking.capacityModelLabel")}</p>
               <div className={styles.sidebarNote}>
                 <strong>{t("parking.capacityModelTitle")}</strong>
@@ -171,7 +235,7 @@ export default function ParkingPage() {
           </aside>
 
           <section className={styles.dayBoard}>
-            {groupedSlots.map((group) => (
+            {visibleGroups.map((group) => (
               <section key={group.key} className={styles.daySection}>
                 <div className={styles.dayHeader}>
                   <div>

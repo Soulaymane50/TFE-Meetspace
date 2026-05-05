@@ -28,6 +28,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
               AND e.space.id = :spaceId
               AND e.startDateTime < :endDateTime
               AND e.endDateTime > :startDateTime
+              AND e.status <> be.meetspace.entity.EventStatus.CANCELLED
+              AND e.status <> be.meetspace.entity.EventStatus.REJECTED
               AND (:excludeId IS NULL OR e.id <> :excludeId)
             """)
     boolean existsOverlappingEventForSpace(@Param("spaceId") Long spaceId,

@@ -162,6 +162,90 @@
   gap: 1rem;
 }
 
+.progressStrip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  padding: 0.65rem;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--shadow-soft);
+}
+
+.progressStep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 48px;
+  padding: 0.7rem 0.9rem;
+  border-radius: 18px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.progressStep:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.progressStep strong {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(27, 42, 64, 0.08);
+  color: var(--blue-dark);
+  font-size: 0.78rem;
+}
+
+.progressStepActive {
+  background: linear-gradient(135deg, rgba(27, 42, 64, 0.96), rgba(47, 74, 112, 0.92));
+  color: #fff;
+  box-shadow: 0 14px 32px rgba(27, 42, 64, 0.18);
+}
+
+.progressStepActive strong {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.stepActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.stepActions > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.stepActions strong {
+  color: var(--blue-darker);
+}
+
+.stepHint {
+  color: var(--taupe-dark);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
 .flowPanel {
   display: flex;
   flex-direction: column;
@@ -279,6 +363,7 @@
 
 [data-theme="dark"] .summaryPanel,
 [data-theme="dark"] .flowPanel,
+[data-theme="dark"] .progressStrip,
 [data-theme="dark"] .info,
 [data-theme="dark"] .loadingBox {
   border-color: rgba(255, 255, 255, 0.08);
@@ -294,15 +379,39 @@
 }
 
 [data-theme="dark"] .metricCard,
-[data-theme="dark"] .warningBox {
+[data-theme="dark"] .warningBox,
+[data-theme="dark"] .stepActions {
   background: rgba(255, 255, 255, 0.04);
 }
 
 [data-theme="dark"] .metricLabel,
 [data-theme="dark"] .justificationLabel,
 [data-theme="dark"] .info,
-[data-theme="dark"] .loadingBox {
+[data-theme="dark"] .loadingBox,
+[data-theme="dark"] .stepHint {
   color: var(--text-secondary);
+}
+
+[data-theme="dark"] .stepActions {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .stepActions strong {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .progressStep {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .progressStep strong {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .progressStepActive {
+  background: linear-gradient(135deg, rgba(47, 74, 112, 0.98), rgba(181, 138, 76, 0.9));
+  color: #fff;
 }
 
 [data-theme="dark"] .spaceBadge {
@@ -327,8 +436,13 @@
     padding: 1.2rem;
   }
 
+  .progressStrip {
+    grid-template-columns: 1fr;
+  }
+
   .buttonGroup,
-  .totalPanel {
+  .totalPanel,
+  .stepActions {
     flex-direction: column;
     align-items: stretch;
   }

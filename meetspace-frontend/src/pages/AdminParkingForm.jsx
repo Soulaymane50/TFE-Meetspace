@@ -85,10 +85,35 @@ export default function AdminParkingForm() {
       return;
     }
 
+    const selectedDate = new Date(`${parkingSlotForm.slotDate}T00:00:00`);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (selectedDate < today) {
+      setError(t("validation.startDatePast"));
+      return;
+    }
+
+    if (!parkingSlotForm.startTime || !parkingSlotForm.endTime || parkingSlotForm.endTime <= parkingSlotForm.startTime) {
+      setError(t("validation.endBeforeStart"));
+      return;
+    }
+
+    const capacity = Number(parkingSlotForm.parkingCapacity);
+    if (!capacity || capacity < 1 || capacity > 150) {
+      setError(t("parking.capacityExceeded", { count: 150 }));
+      return;
+    }
+
+    const rate = Number(parkingSlotForm.parkingRate);
+    if (!Number.isFinite(rate) || rate < 0) {
+      setError(t("validation.pricePositive"));
+      return;
+    }
+
     const parkingSlotPayload = {
       ...parkingSlotForm,
-      parkingCapacity: Number(parkingSlotForm.parkingCapacity),
-      parkingRate: Number(parkingSlotForm.parkingRate),
+      parkingCapacity: capacity,
+      parkingRate: rate,
     };
 
     try {
@@ -192,6 +217,7 @@ export default function AdminParkingForm() {
               onChange={handleChange}
               required
               min="1"
+              max="150"
               className={styles.input}
             />
           </div>

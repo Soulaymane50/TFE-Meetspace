@@ -83,6 +83,7 @@ function normalizeEvent(event) {
     parkingSlotId: event.parkingSlotId ?? null,
     parkingPrice: event.parkingPrice ?? null,
     parkingCapacity: event.parkingCapacity ?? null,
+    parkingAvailableSpaces: event.parkingAvailableSpaces ?? event.parkingCapacity ?? null,
   };
 }
 

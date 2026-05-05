@@ -272,15 +272,16 @@ textarea:disabled {
 }
 
 select {
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231b2a40' d='M6 8.5 1.5 3.5h9z'/%3E%3C/svg%3E");
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
   cursor: pointer;
   background-color: rgba(255, 255, 255, 0.94);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231b2a40' d='M6 8.5 1.5 3.5h9z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 0.8rem;
+  background-image: var(--select-arrow);
+  background-repeat: no-repeat !important;
+  background-position: right 1rem center !important;
+  background-size: 0.8rem !important;
   background-clip: padding-box;
   padding-right: 2.5rem;
   color-scheme: light;
@@ -288,11 +289,31 @@ select {
 }
 
 [data-theme="dark"] select {
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23eef1f6' d='M6 8.5 1.5 3.5h9z'/%3E%3C/svg%3E");
   background-color: rgba(18, 26, 37, 0.96);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23eef1f6' d='M6 8.5 1.5 3.5h9z'/%3E%3C/svg%3E");
+  background-image: var(--select-arrow);
   border-color: rgba(255, 255, 255, 0.12);
   color: var(--text-primary);
   color-scheme: dark;
+}
+
+select:hover,
+select:focus {
+  background-color: rgba(255, 255, 255, 0.96);
+  background-image: var(--select-arrow);
+  background-repeat: no-repeat !important;
+  background-position: right 1rem center !important;
+  background-size: 0.8rem !important;
+}
+
+[data-theme="dark"] select:hover,
+[data-theme="dark"] select:focus {
+  background-color: rgba(22, 32, 46, 0.98);
+  background-image: var(--select-arrow);
+}
+
+select:disabled {
+  background-image: var(--select-arrow);
 }
 
 select::-ms-expand {

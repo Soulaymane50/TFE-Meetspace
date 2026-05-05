@@ -198,6 +198,76 @@
   font-size: 0.9rem;
 }
 
+.dateSelector {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.dateChip {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 48px;
+  padding: 0.75rem 0.85rem;
+  border-radius: 17px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--blue-dark);
+  box-shadow: none;
+  text-align: left;
+}
+
+.dateChip strong {
+  color: var(--blue-darker);
+}
+
+.dateChip span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.dateChipActive {
+  border-color: rgba(90, 124, 226, 0.36);
+  background: rgba(90, 124, 226, 0.12);
+}
+
+.dateChipFull {
+  opacity: 0.68;
+}
+
+.selectedDayCard {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.14), transparent 34%),
+    linear-gradient(135deg, rgba(27, 42, 64, 0.92), rgba(46, 61, 83, 0.9));
+  color: #f8f5ef;
+}
+
+.selectedDayCard span {
+  color: rgba(248, 245, 239, 0.72);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.selectedDayCard strong {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.selectedDayCard p {
+  margin: 0;
+  color: rgba(248, 245, 239, 0.72);
+  font-size: 0.85rem;
+}
+
 .dayBoard {
   display: flex;
   flex-direction: column;
@@ -479,6 +549,38 @@
   color: var(--text-secondary);
 }
 
+:global([data-theme="light"]) .progressCard {
+  border: 1px solid rgba(20, 32, 51, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(90, 124, 226, 0.12), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(245, 250, 248, 0.96) 100%);
+  color: var(--blue-darker);
+  box-shadow: 0 18px 34px rgba(11, 18, 32, 0.08);
+}
+
+:global([data-theme="light"]) .progressLabel,
+:global([data-theme="light"]) .progressCaption {
+  color: var(--text-secondary);
+}
+
+:global([data-theme="light"]) .progressValue {
+  color: var(--blue-darker);
+}
+
+:global([data-theme="light"]) .progressTrack {
+  background: rgba(27, 42, 64, 0.1);
+}
+
+:global([data-theme="light"]) .progressFill {
+  background: linear-gradient(90deg, #1b2a40 0%, #5a7ce2 52%, #10b981 100%);
+}
+
+:global([data-theme="light"]) .buttonDisabled {
+  color: var(--blue-dark);
+  background: rgba(27, 42, 64, 0.08);
+  border: 1px solid rgba(27, 42, 64, 0.1);
+}
+
 [data-theme="dark"] .sidebar,
 [data-theme="dark"] .daySection,
 [data-theme="dark"] .slotCard,
@@ -512,8 +614,27 @@
 [data-theme="dark"] .sidebarStat,
 [data-theme="dark"] .sidebarNote,
 [data-theme="dark"] .dayStat,
-[data-theme="dark"] .metricCard {
+[data-theme="dark"] .metricCard,
+[data-theme="dark"] .dateChip {
   background: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="dark"] .dateChip {
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .dateChip strong {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .dateChip span {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .dateChipActive {
+  border-color: rgba(137, 163, 255, 0.4);
+  background: rgba(90, 124, 226, 0.18);
 }
 
 [data-theme="dark"] .statusAvailable {

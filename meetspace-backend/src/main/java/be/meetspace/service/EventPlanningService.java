@@ -2,7 +2,9 @@ package be.meetspace.service;
 
 import be.meetspace.entity.*;
 import be.meetspace.repository.EspaceRepository;
+import be.meetspace.repository.EventRegistrationRepository;
 import be.meetspace.repository.EventRepository;
+import be.meetspace.repository.ParkingReservationRepository;
 import be.meetspace.repository.ReservationRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,13 +21,19 @@ public class EventPlanningService {
     private final EspaceRepository espaceRepository;
     private final ReservationRepository reservationRepository;
     private final EventRepository eventRepository;
+    private final EventRegistrationRepository eventRegistrationRepository;
+    private final ParkingReservationRepository parkingReservationRepository;
 
     public EventPlanningService(EspaceRepository espaceRepository,
                                 ReservationRepository reservationRepository,
-                                EventRepository eventRepository) {
+                                EventRepository eventRepository,
+                                EventRegistrationRepository eventRegistrationRepository,
+                                ParkingReservationRepository parkingReservationRepository) {
         this.espaceRepository = espaceRepository;
         this.reservationRepository = reservationRepository;
         this.eventRepository = eventRepository;
+        this.eventRegistrationRepository = eventRegistrationRepository;
+        this.parkingReservationRepository = parkingReservationRepository;
     }
 
     public void applyAndValidate(Event event, EventData data, Long excludeEventId) {
@@ -37,6 +45,15 @@ public class EventPlanningService {
         event.setEndDateTime(data.endDateTime());
         if (data.capacity() == null || data.capacity() < 1) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La capacité doit être renseignée et positive");
+        }
+        if (event.getId() != null) {
+            int registeredParticipants = eventRegistrationRepository.countTotalParticipantsByEventId(event.getId());
+            if (data.capacity() < registeredParticipants) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "La capacité de l'événement ne peut pas être inférieure aux participants déjà inscrits (" + registeredParticipants + ")"
+                );
+            }
         }
         event.setCapacity(data.capacity());
         event.setPrice(data.price());
@@ -59,6 +76,13 @@ public class EventPlanningService {
 
             if (espace.getStatus() != EspaceStatus.AVAILABLE) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Espace non disponible");
+            }
+
+            if (data.capacity() > espace.getCapacity()) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "La capacité de l'événement ne peut pas dépasser la capacité de la salle (" + espace.getCapacity() + " personnes)"
+                );
             }
 
             if (reservationRepository.existsOverlappingReservation(
@@ -117,6 +141,12 @@ public class EventPlanningService {
         if (data.parkingCapacity() == null || data.parkingCapacity() < 1) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le nombre de places de parking est requis");
         }
+        if (data.parkingCapacity() > data.capacity()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Le nombre de places de parking ne peut pas dépasser la capacité de l'événement"
+            );
+        }
         if (data.parkingPrice() == null || data.parkingPrice() < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le tarif du parking est requis");
         }
@@ -124,6 +154,14 @@ public class EventPlanningService {
         ParkingSlot parkingSlot = event.getParkingSlot();
         if (parkingSlot == null) {
             parkingSlot = new ParkingSlot();
+        } else if (parkingSlot.getId() != null) {
+            int reservedSpaces = parkingReservationRepository.countReservedSpacesByParkingSlotId(parkingSlot.getId());
+            if (data.parkingCapacity() < reservedSpaces) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "La capacité parking ne peut pas être inférieure aux places déjà réservées (" + reservedSpaces + ")"
+                );
+            }
         }
 
         parkingSlot.setEvent(event);

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getPublicEvents } from "../services/api";
+import AvailabilityFinder from "../components/AvailabilityFinder";
 import styles from "./HomePage.module.css";
 
 function getLocale(language) {
@@ -155,6 +156,8 @@ export default function HomePage() {
           </div>
         </aside>
       </section>
+
+      <AvailabilityFinder compact />
 
       <section className={styles.usesSection}>
         <div className={styles.sectionHeader}>

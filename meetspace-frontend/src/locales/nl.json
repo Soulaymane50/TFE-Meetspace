@@ -120,6 +120,24 @@
     "spaceMetricCapacity": "Totale capaciteit",
     "spaceMetricCapacityText": "Totaal aantal bruikbare plaatsen over alle zichtbare zalen"
   },
+  "availabilityFinder": {
+    "kicker": "Beschikbaarheid",
+    "title": "Vind snel een vrije zaal",
+    "text": "Kies een datum, duur en capaciteit om beschikbare zalen te vinden voordat u reserveert.",
+    "date": "Datum",
+    "capacity": "Deelnemers",
+    "duration": "Duur",
+    "availableRooms": "beschikbare zalen",
+    "firstSlot": "Eerste tijdslot: {{time}}",
+    "full": "Vol voor deze duur",
+    "checking": "Controleren...",
+    "free": "vrij",
+    "blocks": "bezette blok(ken)",
+    "reserve": "Reserveer dit slot",
+    "loginToReserve": "Inloggen om te reserveren",
+    "error": "Beschikbaarheid kan momenteel niet worden gecontroleerd.",
+    "noCapacityMatch": "Geen zaal past bij deze capaciteit."
+  },
     "common":  {
                    "loading":  "Laden...",
                    "error":  "Er is een fout opgetreden",
@@ -162,7 +180,8 @@
                    "location":  "Locatie",
                    "toBeAnnounced":  "Nog aan te kondigen",
                    "placesAvailable": "{{count}} beschikbaar",
-                   "full": "Volzet"
+                   "full": "Volzet",
+                   "select": "Selecteren"
                },
     "nav":  {
                 "home":  "Home",
@@ -204,6 +223,25 @@
                     "organizerDesc":  "Beheer uw professionele evenementen.",
                     "adminDesc":  "Open de adminconsole."
                 },
+    "planning":  {
+                     "kicker":  "Operationele planning",
+                     "title":  "Planningweergave",
+                     "subtitle":  "Snelle lezing van evenementen per dag, bezette zalen en mogelijke overlappingen.",
+                     "adminTitle":  "Planning van het centrum",
+                     "adminSubtitle":  "Volg gepubliceerde evenementen en zie zaalconflicten meteen.",
+                     "organizerTitle":  "Planning van mijn evenementen",
+                     "organizerSubtitle":  "Bekijk uw sessies per dag voordat u de planning aanpast.",
+                     "empty":  "Geen evenement om in de planning te tonen.",
+                     "events":  "event(s)",
+                     "days":  "dag(en)",
+                     "rooms":  "zaal/zalen",
+                     "day":  "Dag",
+                     "conflict":  "{{count}} conflict(en)",
+                     "noConflict":  "Geen conflict",
+                     "conflictDetected":  "Tijdconflict",
+                     "occupancy":  "bezetting",
+                     "unscheduled":  "Niet gepland"
+                 },
     "auth":  {
                  "login":  "Inloggen",
                  "register":  "Account aanmaken",
@@ -291,6 +329,15 @@
                    "bestForLabel":  "Ideaal voor",
                    "bestForPremium":  "Boards, premium conferenties, directiecomités",
                    "bestForStandard":  "Workshops, teammeetings, klantensessies",
+                   "availabilityLabel":  "Beschikbaarheid",
+                   "availabilityTitle":  "Vind een beschikbare zaal",
+                   "availabilityText":  "Kies een datum en duur om snel vrije zalen te zien voordat u reserveert.",
+                   "availabilityDate":  "Gewenste datum",
+                   "availabilityDuration":  "Duur",
+                   "availabilityAvailable":  "Beschikbaar",
+                   "availabilityFull":  "Volzet voor deze duur",
+                   "availabilityFirstSlot":  "Eerste slot: {{time}}",
+                   "availabilityChecking":  "Controleren...",
                    "profiles":  {
                                       "orion":  {
                                                     "label":  "Premium auditorium",
@@ -354,7 +401,10 @@
                         "awaitingPaymentDesc":  "Deze zaalreserveringen zijn goedgekeurd en wachten op uw betaling om te worden bevestigd.",
                         "payNow":  "Nu betalen",
                         "payReservation":  "Reservering betalen",
-                        "allReservations":  "Alle reserveringen"
+                        "allReservations":  "Alle reserveringen",
+                        "stepScheduleHint": "Stap 1: kies een vrij tijdslot",
+                        "continueToSummary": "Verder naar samenvatting",
+                        "editSlot": "Tijdslot wijzigen"
                     },
     "calendar":  {
                      "mon":  "Ma",
@@ -389,7 +439,20 @@
                      "resetSelection":  "Resetten",
                      "openingHours":  "Openingstijden: 7u - 22u",
                      "start":  "Start",
-                     "end":  "Einde"
+                     "end":  "Einde",
+                     "roomSchedule": "Zaalplanning",
+                     "scheduleTitle": "Beschikbaarheid van de zaal",
+                     "scheduleSubtitle": "Kies een zaal om vrije tijdsloten te bekijken voordat u het evenement vastlegt.",
+                     "scheduleSubtitleWithRoom": "Beschikbare tijdsloten voor {{room}}. Bestaande reserveringen en evenementen worden automatisch geblokkeerd.",
+                     "roomFirstTitle": "Selecteer eerst een zaal",
+                     "roomFirstText": "Daarna toont de planning vrije dagen, bezette blokken en beschikbare uren.",
+                     "selectedDay": "Geselecteerde dag",
+                     "chooseDay": "Kies een dag",
+                     "availableHours": "vrije uren",
+                     "occupiedBlocks": "bezette blokken",
+                     "duration": "Duur",
+                     "selectedSlot": "Gekozen tijdslot",
+                     "noSlotSelected": "Geen tijdslot geselecteerd"
                  },
     "events":  {
                    "kicker": "MeetSpace • Reservatieplatform",
@@ -416,6 +479,8 @@
         "free": "Gratis",
         "paid": "Betalend",
         "placesAvailable": "plaatsen beschikbaar",
+        "remainingPlacesCount": "{{count}} plaatsen nog beschikbaar",
+        "capacityExceeded": "U kunt niet meer dan {{count}} plaatsen voor dit evenement reserveren.",
         "notFound": "Evenement niet gevonden",
         "parkingAvailable": "Parkingoptie beschikbaar",
         "searchPlaceholder": "Zoek een conferentie, workshop of seminarie...",
@@ -482,6 +547,8 @@
                       "rateLabel":  "Tarief",
                       "places":  "Parkeerplaatsen",
                       "placesAvailable": "Beschikbare parkeerplaatsen",
+                      "remainingPlacesCount": "{{count}} parkeerplaatsen nog beschikbaar",
+                      "capacityExceeded": "U kunt niet meer dan {{count}} parkeerplaatsen reserveren.",
                       "session":  "Parkingslot",
                       "noSessions":  "Geen parkingslots beschikbaar op dit moment",
                       "noReservations":  "U heeft geen parkeerreserveringen",
@@ -494,6 +561,11 @@
                       "perSpace":  "plaats",
                       "loginToReserve":  "Log in om te reserveren",
                       "capacityNotice":  "Controleer capaciteit en tarief per parkingslot voor u reserveert.",
+                      "capacityStatus": "Parkingcapaciteit",
+                      "remainingAfterSelection": "{{count}} plaats(en) blijven beschikbaar na uw reservering",
+                      "quickSelection": "Snelle selectie",
+                      "decreaseSpaces": "Aantal plaatsen verlagen",
+                      "increaseSpaces": "Aantal plaatsen verhogen",
                       "notFound":  "Parkingslot niet gevonden",
                       "createError":  "Fout bij het aanmaken van de parkeerreservering",
                       "fetchError":  "De parkingslots kunnen momenteel niet worden geladen.",
@@ -512,7 +584,12 @@
                       "almostFull":  "Bijna volzet",
                       "reservedLabel":  "Gereserveerd",
                       "remainingLabel":  "Resterend",
-                      "occupancyLabel":  "Bezetting"
+                      "occupancyLabel":  "Bezetting",
+                      "selectDay": "Kies een dag",
+                      "selectedDay": "Geselecteerde dag",
+                      "allDays": "Alle dagen",
+                      "availableOnDay": "plaatsen beschikbaar op {{count}} toegewezen plaatsen die dag",
+                      "availableAcrossDays": "plaatsen beschikbaar op {{count}} plaatsen totaal"
                   },
     "payment":  {
                     "title":  "Betaling",
@@ -665,7 +742,8 @@
                        "invalidEmail":  "Ongeldig e-mailadres",
                        "startDatePast":  "Startdatum kan niet in het verleden liggen",
                        "endDatePast":  "Einddatum kan niet in het verleden liggen",
-                       "endBeforeStart":  "Einddatum moet na de begindatum liggen"
+                       "endBeforeStart":  "Einddatum moet na de begindatum liggen",
+                       "pricePositive":  "De prijs moet positief zijn"
                    },
     "status":  {
                    "available":  "Beschikbaar",
@@ -722,13 +800,27 @@
                       "titlePlaceholder":  "Bijv: Seminarie digitale transformatie",
                       "descriptionPlaceholder":  "Beschrijf de inhoud, doelstellingen en doelgroep van uw professionele evenement...",
                       "locationPlaceholder":  "Bijv: Conferentiezaal, Brussel",
-                      "locationHint":  "Laat leeg als de professionele locatie nog niet bevestigd is",
+                      "locationHint":  "Kies een bestaande zaal om de planning coherent te houden.",
+                      "selectLocation":  "Kies een MeetSpace-zaal",
+                      "locationRequired":  "Selecteer een zaal voor dit professionele evenement.",
+                      "roomCapacityHint":  "Zaalcapaciteit: {{capacity}} personen · Tarief: {{price}} €/uur",
+                      "capacityExceedsRoom":  "De capaciteit mag niet hoger zijn dan {{capacity}} deelnemers voor deze zaal.",
+                      "parkingCapacityRequired":  "Vul het aantal parkeerplaatsen in.",
+                      "parkingCapacityExceedsEvent":  "Parking mag niet hoger zijn dan {{capacity}} plaatsen voor dit evenement.",
                       "capacityHint":  "Maximaal verwacht aantal deelnemers",
                       "priceHint":  "Laat leeg of 0 als deelname gratis is",
                       "eventRejected":  "Dit professionele evenement is geweigerd",
                       "modifyAndResubmit":  "Pas het aan en dien het opnieuw in ter goedkeuring",
                       "cancelEvent":  "Professioneel evenement annuleren",
                       "awaitingApproval":  "Wacht op goedkeuring",
+                      "advisorKicker": "Configuratie-assistent",
+                      "advisorTitle": "MeetSpace-aanbeveling",
+                      "advisorText": "De suggestie houdt rekening met de zaalcapaciteit, een realistische bezetting en een voorzichtige parkingallocatie.",
+                      "advisorCapacity": "aanbevolen capaciteit",
+                      "advisorPrice": "aanbevolen prijs",
+                      "advisorParking": "aanbevolen parkeerplaatsen",
+                      "applyCapacity": "Gebruik zaalcapaciteit",
+                      "applyRecommendation": "Aanbeveling toepassen",
                       "parkingRequired":  "Parking vereist",
                       "parkingRate":  "Parkeertarief",
                       "parkingCapacity":  "Parkeerplaatsen"
