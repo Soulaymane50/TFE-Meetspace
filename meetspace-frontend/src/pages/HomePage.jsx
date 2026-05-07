@@ -117,13 +117,16 @@ export default function HomePage() {
               {t("home.secondaryCta")}
             </Link>
           </div>
+
+          <div className={styles.heroSignals}>
+            <span>{t("home.useSpacesTitle")}</span>
+            <span>{t("home.useEventsTitle")}</span>
+            <span>{t("home.useParkingTitle")}</span>
+          </div>
         </div>
 
         <aside className={styles.heroBoard} aria-label={t("home.platformStatusLabel")}>
-          <div className={styles.boardHeader}>
-            <span>{t("home.platformStatusLabel")}</span>
-            <strong>{t("home.platformStatusReady")}</strong>
-          </div>
+          <div className={styles.boardMedia} aria-hidden="true" />
 
           {spotlightEvent ? (
             <div className={styles.spotlightCard}>
@@ -154,10 +157,17 @@ export default function HomePage() {
               <span>{t("home.kpiOccupancy")}</span>
             </div>
           </div>
+
+          <div className={styles.boardHeader}>
+            <span>{t("home.platformStatusLabel")}</span>
+            <strong>{t("home.platformStatusReady")}</strong>
+          </div>
         </aside>
       </section>
 
-      <AvailabilityFinder compact />
+      <div className={styles.finderBlock}>
+        <AvailabilityFinder compact />
+      </div>
 
       <section className={styles.usesSection}>
         <div className={styles.sectionHeader}>

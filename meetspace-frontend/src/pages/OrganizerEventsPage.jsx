@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
 import EventPlanningTimeline from "../components/EventPlanningTimeline";
+import { useFeedback } from "../context/FeedbackContext";
 import styles from "./OrganizerEventsPage.module.css";
 
 function OrganizerIcon({ type }) {
@@ -74,6 +75,7 @@ export default function OrganizerEventsPage() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { confirm, notify } = useFeedback();
 
   const getDateLocale = () => {
     const locales = { fr: "fr-BE", nl: "nl-BE", en: "en-GB" };
@@ -110,13 +112,20 @@ export default function OrganizerEventsPage() {
   }, [fetchEvents, navigate, user]);
 
   const handleCancel = async (id, title) => {
-    if (!window.confirm(t("organizer.confirmCancelEvent", { title }))) return;
+    const confirmed = await confirm({
+      title: t("organizer.confirmCancelEvent", { title }),
+      confirmLabel: t("organizer.cancelEvent"),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
+    if (!confirmed) return;
 
     try {
       await organizerCancelMyEvent(id, token);
+      notify({ type: "success", title: t("organizer.cancelEvent"), message: t("organizer.eventCancelled", "Événement annulé.") });
       fetchEvents();
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
@@ -267,6 +276,8 @@ export default function OrganizerEventsPage() {
         events={filteredEvents}
         title={t("planning.organizerTitle")}
         subtitle={t("planning.organizerSubtitle")}
+        getEventHref={(event) => `/organizer/events/edit/${event.id}`}
+        maxDays={4}
       />
 
       {filteredEvents.length === 0 ? (

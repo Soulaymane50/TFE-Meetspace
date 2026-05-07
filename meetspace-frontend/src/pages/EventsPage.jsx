@@ -426,7 +426,22 @@ export default function EventsPage() {
             <span className={styles.resultsHint}>{t("events.resultsHint")}</span>
           </div>
 
-          {filteredAndSortedEvents.length === 0 && <p className={styles.empty}>{t("events.noEvents")}</p>}
+          {filteredAndSortedEvents.length === 0 && (
+            <PageState
+              type="empty"
+              title={t("events.noEvents")}
+              message={hasActiveFilters ? t("events.resultsHint") : t("events.workspaceLead")}
+              action={
+                hasActiveFilters ? (
+                  <button type="button" onClick={resetFilters}>
+                    {t("events.resetFilters")}
+                  </button>
+                ) : (
+                  <Link to="/espace">{t("home.roomsCta", { defaultValue: "Réserver une salle" })}</Link>
+                )
+              }
+            />
+          )}
 
           {filteredAndSortedEvents.length > 0 && viewMode === "cards" && (
             <div className={styles.eventStream}>

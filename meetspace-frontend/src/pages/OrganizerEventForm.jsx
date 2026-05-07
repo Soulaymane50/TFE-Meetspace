@@ -52,6 +52,16 @@ export default function OrganizerEventForm() {
     ? Math.min(50, Math.max(6, Math.round(recommendedCapacity * 0.3)))
     : 0;
   const recommendedParkingPrice = selectedCapacity >= 100 ? 10 : 8;
+  const previewStart = eventForm.startDateTime ? new Date(eventForm.startDateTime) : null;
+  const previewEnd = eventForm.endDateTime ? new Date(eventForm.endDateTime) : null;
+  const previewDate =
+    previewStart && !Number.isNaN(previewStart.getTime())
+      ? previewStart.toLocaleDateString("fr-BE", { weekday: "long", day: "2-digit", month: "long" })
+      : "Date à définir";
+  const previewTime =
+    previewStart && previewEnd && !Number.isNaN(previewStart.getTime()) && !Number.isNaN(previewEnd.getTime())
+      ? `${previewStart.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })} - ${previewEnd.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}`
+      : "Horaire à définir";
 
   useEffect(() => {
     if (!user || (user.role !== "ORGANIZER" && user.role !== "ADMIN")) {
@@ -484,6 +494,42 @@ export default function OrganizerEventForm() {
               </div>
             </div>
           )}
+
+          <section className={styles.previewPanel} aria-label={t("organizer.previewAria")}>
+            <div className={styles.previewIntro}>
+              <p className={styles.previewKicker}>{t("organizer.previewKicker")}</p>
+              <h2>{t("organizer.previewTitle")}</h2>
+              <span>{t("organizer.previewIntro")}</span>
+            </div>
+
+            <article className={styles.previewCard}>
+              <div className={styles.previewTopline}>
+                <span>{previewDate}</span>
+                <strong>{previewTime}</strong>
+              </div>
+              <h3>{eventForm.title || t("organizer.previewTitleFallback")}</h3>
+              <p>
+                {eventForm.description ||
+                  t("organizer.previewDescriptionFallback")}
+              </p>
+              <div className={styles.previewTags}>
+                <span>{selectedSpace?.name || t("organizer.previewRoomFallback")}</span>
+                <span>{eventForm.capacity || 0} {t("common.persons")}</span>
+                <span>{eventForm.price ? `${eventForm.price} €` : t("events.free")}</span>
+                <span>{eventForm.parkingRequired ? t("organizer.previewParkingIncluded") : t("organizer.previewParkingExcluded")}</span>
+              </div>
+              <div className={styles.previewFooter}>
+                <span>{t("organizer.previewStatus")}</span>
+                <strong>
+                  {eventForm.capacity && selectedSpace
+                    ? t("organizer.previewRoomUsage", {
+                        usage: Math.min(100, Math.round((Number(eventForm.capacity) / Number(selectedSpace.capacity)) * 100)),
+                      })
+                    : t("organizer.previewCapacityFallback")}
+                </strong>
+              </div>
+            </article>
+          </section>
 
           <div className={styles.actions}>
             <button type="button" onClick={() => navigate("/organizer/events")} className={styles.cancelBtn}>

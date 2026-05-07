@@ -320,6 +320,14 @@
   background: linear-gradient(135deg, var(--blue-darker) 0%, #22344f 58%, var(--orange) 180%);
 }
 
+.primaryAction:disabled,
+.premiumAction:disabled,
+.secondaryAction:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  box-shadow: none;
+}
+
 .premiumAction {
   background: linear-gradient(135deg, #7a4f17 0%, #b58a4c 100%);
 }
@@ -412,6 +420,12 @@
 [data-theme="dark"] .progressStepActive {
   background: linear-gradient(135deg, rgba(47, 74, 112, 0.98), rgba(181, 138, 76, 0.9));
   color: #fff;
+}
+
+[data-theme="dark"] .primaryAction:disabled,
+[data-theme="dark"] .premiumAction:disabled {
+  background: rgba(51, 65, 85, 0.72);
+  color: rgba(226, 232, 240, 0.72);
 }
 
 [data-theme="dark"] .spaceBadge {

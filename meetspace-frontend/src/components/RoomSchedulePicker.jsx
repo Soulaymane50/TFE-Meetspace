@@ -39,7 +39,7 @@ export default function RoomSchedulePicker({
   const { t, i18n } = useTranslation();
   const initialDate = startDateTime ? new Date(startDateTime) : new Date();
   const [currentDate, setCurrentDate] = useState(new Date(initialDate.getFullYear(), initialDate.getMonth(), 1));
-  const [reservationBucket, setReservationBucket] = useState({ key: "", items: [] });
+  const [reservationBucket, setReservationBucket] = useState({ key: "", items: [], failed: false });
   const [manualSelectedDate, setManualSelectedDate] = useState("");
   const [durationOverride, setDurationOverride] = useState(null);
 
@@ -51,6 +51,9 @@ export default function RoomSchedulePicker({
   const duration = durationOverride ?? getDuration(startDateTime, endDateTime);
   const reservationKey = `${spaceId || "none"}-${year}-${month}`;
   const reservations = reservationBucket.key === reservationKey ? reservationBucket.items : [];
+  const calendarReady = Boolean(spaceId) && reservationBucket.key === reservationKey && !reservationBucket.failed;
+  const calendarLoading = Boolean(spaceId) && !calendarReady;
+  const calendarError = Boolean(spaceId) && reservationBucket.key === reservationKey && reservationBucket.failed;
 
   const locale = useMemo(() => {
     const locales = { fr: "fr-BE", nl: "nl-BE", en: "en-GB" };
@@ -64,13 +67,23 @@ export default function RoomSchedulePicker({
     getEspaceReservationsForCalendar(spaceId, year, month)
       .then((data) => {
         if (!cancelled) {
+          const items = Array.isArray(data) ? data : [];
           setReservationBucket({
             key: reservationKey,
-            items: Array.isArray(data) ? data : [],
+            items,
+            failed: false,
           });
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) {
+          setReservationBucket({
+            key: reservationKey,
+            items: [],
+            failed: true,
+          });
+        }
+      });
 
     return () => {
       cancelled = true;
@@ -112,7 +125,7 @@ export default function RoomSchedulePicker({
   };
 
   const isSlotAvailable = (dateKey, hour, slotDuration = duration) => {
-    if (!dateKey || hour < OPENING_HOUR || hour + slotDuration > CLOSING_HOUR) return false;
+    if (!calendarReady || !dateKey || hour < OPENING_HOUR || hour + slotDuration > CLOSING_HOUR) return false;
     return !isPastRange(dateKey, hour, slotDuration) && !isRangeBlocked(dateKey, hour, slotDuration);
   };
 
@@ -124,6 +137,8 @@ export default function RoomSchedulePicker({
   };
 
   const getDayStatus = (dateKey) => {
+    if (!calendarReady) return "loading";
+
     let availableHours = 0;
     let blockedHours = 0;
 
@@ -147,6 +162,7 @@ export default function RoomSchedulePicker({
     onChange({
       startDateTime: toLocalDateTime(dateKey, hour),
       endDateTime: toLocalDateTime(dateKey, hour + slotDuration),
+      available: true,
     });
   };
 
@@ -159,12 +175,18 @@ export default function RoomSchedulePicker({
     setManualSelectedDate(dateKey);
     if (preferredHour !== null) {
       applySlot(dateKey, preferredHour, duration);
+    } else {
+      onChange({
+        startDateTime: "",
+        endDateTime: "",
+        available: false,
+      });
     }
   };
 
   const handleDurationChange = (nextDuration) => {
     setDurationOverride(nextDuration);
-    if (!selectedDate) return;
+    if (!calendarReady || !selectedDate) return;
 
     const preferredHour =
       selectedStartHour !== null && isSlotAvailable(selectedDate, selectedStartHour, nextDuration)
@@ -177,6 +199,7 @@ export default function RoomSchedulePicker({
       onChange({
         startDateTime: "",
         endDateTime: "",
+        available: false,
       });
     }
   };
@@ -204,7 +227,7 @@ export default function RoomSchedulePicker({
   if (!spaceId) {
     return (
       <div className={styles.empty}>
-        <span className={styles.emptyIcon}>⌁</span>
+        <span className={styles.emptyIcon}>□</span>
         <div>
           <strong>{t("calendar.roomFirstTitle")}</strong>
           <p>{t("calendar.roomFirstText")}</p>
@@ -236,6 +259,8 @@ export default function RoomSchedulePicker({
 
       <div className={styles.contentGrid}>
         <div className={styles.calendarPanel}>
+          {calendarLoading && !calendarError && <div className={styles.loading}>{t("availabilityFinder.checking")}</div>}
+          {calendarError && <div className={styles.loadingError}>{t("availabilityFinder.error")}</div>}
           <div className={styles.weekGrid}>
             {weekDays.map((day) => (
               <span key={day}>{day}</span>
@@ -263,11 +288,11 @@ export default function RoomSchedulePicker({
                   type="button"
                   key={dateKey}
                   className={dayClass}
-                  onClick={() => status !== "full" && handleDaySelect(dateKey)}
-                  disabled={status === "full"}
+                  onClick={() => status !== "full" && status !== "loading" && handleDaySelect(dateKey)}
+                  disabled={status === "full" || status === "loading"}
                 >
                   <span>{day}</span>
-                  <small>{t(`calendar.${status}`)}</small>
+                  <small>{status === "loading" ? t("availabilityFinder.checking") : t(`calendar.${status}`)}</small>
                 </button>
               );
             })}
@@ -314,6 +339,7 @@ export default function RoomSchedulePicker({
                   type="button"
                   key={item}
                   className={item === duration ? styles.durationActive : ""}
+                  disabled={!calendarReady}
                   onClick={() => handleDurationChange(item)}
                 >
                   {item}h
@@ -335,7 +361,7 @@ export default function RoomSchedulePicker({
                 <button
                   type="button"
                   key={hour}
-                  disabled={!selectedDate || !available}
+                  disabled={!calendarReady || !selectedDate || !available}
                   className={selected ? styles.hourSelected : ""}
                   onClick={() => applySlot(selectedDate, hour, duration)}
                 >

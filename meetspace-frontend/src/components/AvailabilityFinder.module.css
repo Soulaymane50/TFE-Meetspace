@@ -276,9 +276,20 @@
 
 [data-theme="dark"] .durationGroup button,
 [data-theme="dark"] .roomMeta span {
-  border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text-primary);
+  border-color: rgba(226, 232, 240, 0.16);
+  background: rgba(15, 23, 42, 0.82);
+  color: #e5eefc;
+}
+
+[data-theme="dark"] .durationGroup button:hover {
+  border-color: rgba(244, 215, 168, 0.32);
+  background: rgba(30, 41, 59, 0.96);
+}
+
+[data-theme="dark"] .durationActive {
+  border-color: rgba(244, 215, 168, 0.5) !important;
+  background: linear-gradient(135deg, rgba(43, 61, 91, 0.98), rgba(181, 138, 76, 0.9)) !important;
+  color: #ffffff !important;
 }
 
 @media (max-width: 980px) {

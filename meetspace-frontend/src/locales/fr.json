@@ -401,7 +401,8 @@
         "awaitingPaymentDesc": "Ces réservations de salles ont été validées et attendent votre paiement pour être confirmées.",
         "payNow": "Payer maintenant",
         "payReservation": "Payer la réservation",
-        "allReservations": "Toutes les réservations"
+        "allReservations": "Toutes les réservations",
+        "slotUnavailable": "Ce créneau n'est plus disponible. Choisissez une plage libre dans le planning."
     },
     "calendar": {
         "mon": "Lun",
@@ -732,7 +733,15 @@
         "reactivateUser": "Réactiver l'utilisateur",
         "viewDetails": "Voir les détails",
         "confirmBan": "Êtes-vous sûr de vouloir bannir cet utilisateur ? Toutes ses réservations seront annulées.",
-        "confirmReactivate": "Êtes-vous sûr de vouloir réactiver cet utilisateur ?"
+        "confirmReactivate": "Êtes-vous sûr de vouloir réactiver cet utilisateur ?",
+        "roomPlanningKicker": "Planning opérationnel",
+        "roomPlanningTitle": "Planning par salle",
+        "roomPlanningSubtitle": "Visualisez les salles occupées, les horaires et les conflits potentiels.",
+        "roomAvailable": "Disponible",
+        "roomNoEvent": "Aucun événement planifié ce jour-là.",
+        "roomOccupancy": "{{occupancy}}% remplissage",
+        "roomTimeConflict": "Conflit horaire",
+        "roomPlanningEmptyMessage": "Ajoutez un premier événement pour alimenter le planning par salle."
     },
     "validation": {
         "required": "Ce champ est requis",
@@ -820,7 +829,19 @@
         "applyRecommendation": "Appliquer la recommandation",
         "parkingRequired": "Parking requis",
         "parkingRate": "Tarif parking",
-        "parkingCapacity": "Places de parking"
+        "parkingCapacity": "Places de parking",
+        "previewAria": "Aperçu public",
+        "previewKicker": "Aperçu avant soumission",
+        "previewTitle": "Rendu côté public",
+        "previewIntro": "Vérifiez la lisibilité de l’événement avant de l’envoyer à l’administration.",
+        "previewTitleFallback": "Titre de l’événement",
+        "previewDescriptionFallback": "La description apparaîtra ici pour présenter le contenu, le public visé et les objectifs de votre session.",
+        "previewRoomFallback": "Salle à choisir",
+        "previewParkingIncluded": "Parking proposé",
+        "previewParkingExcluded": "Parking non inclus",
+        "previewStatus": "Statut après soumission : en attente d’approbation",
+        "previewRoomUsage": "{{usage}}% de la salle",
+        "previewCapacityFallback": "Capacité à compléter"
     },
     "error": {
         "404": "Page non trouvée",

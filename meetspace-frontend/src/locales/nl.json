@@ -404,7 +404,8 @@
                         "allReservations":  "Alle reserveringen",
                         "stepScheduleHint": "Stap 1: kies een vrij tijdslot",
                         "continueToSummary": "Verder naar samenvatting",
-                        "editSlot": "Tijdslot wijzigen"
+                        "editSlot": "Tijdslot wijzigen",
+                        "slotUnavailable": "Dit tijdslot is niet meer beschikbaar. Kies een vrij tijdslot in de planning."
                     },
     "calendar":  {
                      "mon":  "Ma",
@@ -735,7 +736,15 @@
                   "reactivateUser":  "Gebruiker reactiveren",
                   "viewDetails":  "Details bekijken",
                   "confirmBan":  "Weet u zeker dat u deze gebruiker wilt verbannen? Al hun reserveringen worden geannuleerd.",
-                  "confirmReactivate":  "Weet u zeker dat u deze gebruiker wilt reactiveren?"
+                  "confirmReactivate":  "Weet u zeker dat u deze gebruiker wilt reactiveren?",
+                  "roomPlanningKicker":  "Operationele planning",
+                  "roomPlanningTitle":  "Planning per zaal",
+                  "roomPlanningSubtitle":  "Bekijk bezette zalen, uurroosters en mogelijke conflicten in een oogopslag.",
+                  "roomAvailable":  "Beschikbaar",
+                  "roomNoEvent":  "Geen evenement gepland op deze dag.",
+                  "roomOccupancy":  "{{occupancy}}% bezetting",
+                  "roomTimeConflict":  "Tijdconflict",
+                  "roomPlanningEmptyMessage":  "Voeg een eerste evenement toe om de zaalplanning te vullen."
               },
     "validation":  {
                        "required":  "Dit veld is verplicht",
@@ -823,7 +832,19 @@
                       "applyRecommendation": "Aanbeveling toepassen",
                       "parkingRequired":  "Parking vereist",
                       "parkingRate":  "Parkeertarief",
-                      "parkingCapacity":  "Parkeerplaatsen"
+                      "parkingCapacity":  "Parkeerplaatsen",
+                      "previewAria":  "Publieke preview",
+                      "previewKicker":  "Preview voor indiening",
+                      "previewTitle":  "Publieke weergave",
+                      "previewIntro":  "Controleer hoe leesbaar het evenement is voordat u het naar de administratie stuurt.",
+                      "previewTitleFallback":  "Evenementstitel",
+                      "previewDescriptionFallback":  "De beschrijving verschijnt hier om de inhoud, doelgroep en doelstellingen van uw sessie te tonen.",
+                      "previewRoomFallback":  "Zaal kiezen",
+                      "previewParkingIncluded":  "Parking aangeboden",
+                      "previewParkingExcluded":  "Parking niet inbegrepen",
+                      "previewStatus":  "Status na indiening: in afwachting van goedkeuring",
+                      "previewRoomUsage":  "{{usage}}% van de zaal",
+                      "previewCapacityFallback":  "Capaciteit aanvullen"
                   },
     "error":  {
                   "404":  "Pagina niet gevonden",

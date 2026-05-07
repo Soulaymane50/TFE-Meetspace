@@ -27,6 +27,7 @@ export default function CreateReservationPage() {
   const [creatingReservation, setCreatingReservation] = useState(false);
   const [justification, setJustification] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
+  const [scheduleValid, setScheduleValid] = useState(false);
 
   const getSpaceTypeLabel = (type) => t(`spaceType.${type}`, { defaultValue: type });
   const isPremiumRoom = espace?.type === "PREMIUM_ROOM";
@@ -58,28 +59,42 @@ export default function CreateReservationPage() {
   const totalPrice = espace ? espace.basePrice * durationHours : 0;
   const startDateTime = selectedDate && startTime ? `${selectedDate}T${startTime}` : "";
   const endDateTime = selectedDate && endTime ? `${selectedDate}T${endTime}` : "";
-  const canReview = Boolean(selectedDate && startTime && endTime);
+  const canReview = Boolean(selectedDate && startTime && endTime && scheduleValid);
   const bookingStep = showPayment ? 3 : canReview ? currentStep : 1;
+  const slotUnavailableMessage = t("reservation.slotUnavailable", {
+    defaultValue: "Ce créneau n'est plus disponible. Choisissez une plage libre dans le planning.",
+  });
 
-  const handleScheduleChange = ({ startDateTime: nextStartDateTime, endDateTime: nextEndDateTime }) => {
+  const handleScheduleChange = ({ startDateTime: nextStartDateTime, endDateTime: nextEndDateTime, available }) => {
     setSelectedDate(nextStartDateTime?.slice(0, 10) || "");
     setStartTime(nextStartDateTime?.slice(11, 16) || "");
     setEndTime(nextEndDateTime?.slice(11, 16) || "");
+    setScheduleValid(Boolean(nextStartDateTime && nextEndDateTime && available));
     setError("");
   };
 
-  const handleContinueToReview = () => {
-    setError("");
+  const validateSelectedSlot = () => {
     if (!selectedDate) {
       setError(t("calendar.selectDayFirst"));
-      return;
+      return false;
     }
 
     if (!startTime || !endTime) {
       setError(t("calendar.selectTimeSlots"));
-      return;
+      return false;
     }
 
+    if (!scheduleValid) {
+      setError(slotUnavailableMessage);
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleContinueToReview = () => {
+    setError("");
+    if (!validateSelectedSlot()) return;
     setCurrentStep(2);
   };
 
@@ -87,15 +102,7 @@ export default function CreateReservationPage() {
     e.preventDefault();
     setError("");
 
-    if (!selectedDate) {
-      setError(t("calendar.selectDayFirst"));
-      return;
-    }
-
-    if (!startTime || !endTime) {
-      setError(t("calendar.selectTimeSlots"));
-      return;
-    }
+    if (!validateSelectedSlot()) return;
 
     const start = new Date(`${selectedDate}T${startTime}`);
     const end = new Date(`${selectedDate}T${endTime}`);
@@ -121,15 +128,15 @@ export default function CreateReservationPage() {
     setCreatingReservation(true);
     setError("");
 
-    const startDateTime = `${selectedDate}T${startTime}:00`;
-    const endDateTime = `${selectedDate}T${endTime}:00`;
+    const requestStartDateTime = `${selectedDate}T${startTime}:00`;
+    const requestEndDateTime = `${selectedDate}T${endTime}:00`;
 
     try {
       await requestPremiumRoomReservation(
         {
           espaceId: Number(espaceId),
-          startDateTime,
-          endDateTime,
+          startDateTime: requestStartDateTime,
+          endDateTime: requestEndDateTime,
           totalPrice,
           justification,
         },
@@ -149,15 +156,15 @@ export default function CreateReservationPage() {
     setCreatingReservation(true);
     setError("");
 
-    const startDateTime = `${selectedDate}T${startTime}:00`;
-    const endDateTime = `${selectedDate}T${endTime}:00`;
+    const requestStartDateTime = `${selectedDate}T${startTime}:00`;
+    const requestEndDateTime = `${selectedDate}T${endTime}:00`;
 
     try {
       await createReservation(
         {
           espaceId: Number(espaceId),
-          startDateTime,
-          endDateTime,
+          startDateTime: requestStartDateTime,
+          endDateTime: requestEndDateTime,
           totalPrice,
           paymentIntentId,
         },
@@ -179,6 +186,7 @@ export default function CreateReservationPage() {
     setStartTime("");
     setEndTime("");
     setCurrentStep(1);
+    setScheduleValid(false);
   };
 
   if (!user || !token) return null;
@@ -331,30 +339,30 @@ export default function CreateReservationPage() {
           </div>
 
           {currentStep === 1 && (
-          <div className={styles.flowPanel}>
-            <div className={styles.sectionHeader}>
-              <h3 className={styles.sectionTitle}>{t("calendar.scheduleTitle")}</h3>
-            </div>
-            <RoomSchedulePicker
-              spaceId={Number(espaceId)}
-              spaceName={espace?.name}
-              startDateTime={startDateTime}
-              endDateTime={endDateTime}
-              onChange={handleScheduleChange}
-            />
-
-            <div className={styles.stepActions}>
-              <div>
-                <span className={styles.stepHint}>
-                  {t("reservation.stepScheduleHint", { defaultValue: "Choisissez un créneau libre" })}
-                </span>
-                <strong>{selectedRange}</strong>
+            <div className={styles.flowPanel}>
+              <div className={styles.sectionHeader}>
+                <h3 className={styles.sectionTitle}>{t("calendar.scheduleTitle")}</h3>
               </div>
-              <button type="button" className={styles.primaryAction} onClick={handleContinueToReview}>
-                {t("reservation.continueToSummary", { defaultValue: "Continuer vers le récapitulatif" })}
-              </button>
+              <RoomSchedulePicker
+                spaceId={Number(espaceId)}
+                spaceName={espace?.name}
+                startDateTime={startDateTime}
+                endDateTime={endDateTime}
+                onChange={handleScheduleChange}
+              />
+
+              <div className={styles.stepActions}>
+                <div>
+                  <span className={styles.stepHint}>
+                    {t("reservation.stepScheduleHint", { defaultValue: "Choisissez un créneau libre" })}
+                  </span>
+                  <strong>{selectedRange}</strong>
+                </div>
+                <button type="button" className={styles.primaryAction} onClick={handleContinueToReview} disabled={!canReview}>
+                  {t("reservation.continueToSummary", { defaultValue: "Continuer vers le récapitulatif" })}
+                </button>
+              </div>
             </div>
-          </div>
           )}
 
           {currentStep === 2 && startTime && endTime && (

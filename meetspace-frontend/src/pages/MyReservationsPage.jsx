@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
   getMyReservations,
@@ -9,10 +9,11 @@ import {
   getMyParkingReservations,
   cancelParkingReservation,
 } from "../services/api";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import PaymentForm from "../components/PaymentForm";
 import PageState from "../components/PageState";
+import { buildUserActivityItems, formatDate, formatTime, getDateKey, getStatusTone } from "../utils/userActivity";
 import styles from "./MyReservationsPage.module.css";
 
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
@@ -20,7 +21,7 @@ const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
 export default function MyReservationsPage() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const initialTab = searchParams.get("tab");
@@ -35,6 +36,8 @@ export default function MyReservationsPage() {
   const [eventRegistrations, setEventRegistrations] = useState([]);
 
   const [parkingReservations, setParkingReservations] = useState([]);
+  const [selectedDay, setSelectedDay] = useState("");
+  const locale = i18n.language === "en" ? "en-GB" : i18n.language === "nl" ? "nl-BE" : "fr-BE";
 
   useEffect(() => {
     setSearchParams({ tab: activeTab });
@@ -126,6 +129,38 @@ export default function MyReservationsPage() {
     return map[status] || styles.statusDefault;
   };
 
+  const dayItems = useMemo(() => {
+    const todayKey = getDateKey(new Date());
+    return buildUserActivityItems({
+      spaces: spaceReservations,
+      events: eventRegistrations,
+      parking: parkingReservations,
+    }).filter((item) => item.dateKey >= todayKey);
+  }, [eventRegistrations, parkingReservations, spaceReservations]);
+
+  const groupedDays = useMemo(() => {
+    const groups = new Map();
+    dayItems.forEach((item) => {
+      const current = groups.get(item.dateKey) || [];
+      current.push(item);
+      groups.set(item.dateKey, current);
+    });
+
+    return Array.from(groups.entries()).map(([dateKey, items]) => ({
+      dateKey,
+      date: items[0]?.start,
+      items,
+    }));
+  }, [dayItems]);
+
+  useEffect(() => {
+    if (!selectedDay && groupedDays.length > 0) {
+      setSelectedDay(groupedDays[0].dateKey);
+    }
+  }, [groupedDays, selectedDay]);
+
+  const activeDay = groupedDays.find((day) => day.dateKey === selectedDay) || groupedDays[0];
+
   if (loading) return <PageState type="loading" title={t("common.loading")} message={t("nav.myReservations")} />;
   if (error) return <PageState type="error" title={t("common.error")} message={error} />;
 
@@ -167,6 +202,7 @@ export default function MyReservationsPage() {
   const otherSpaceReservations = spaceReservations.filter((r) => r.status !== "APPROVED");
 
   const tabs = [
+    { id: "day", label: t("nav.myDay", { defaultValue: "Ma journée" }), count: dayItems.length },
     { id: "spaces", label: t("nav.spaces"), count: spaceReservations.length },
     { id: "events", label: t("nav.events"), count: eventRegistrations.length },
     { id: "parking", label: t("nav.parking"), count: parkingReservations.length },
@@ -188,6 +224,81 @@ export default function MyReservationsPage() {
           </button>
         ))}
       </div>
+
+      {activeTab === "day" && (
+        <div className={styles.tabContent}>
+          {groupedDays.length === 0 ? (
+            <PageState
+              type="empty"
+              title={t("notifications.emptyTitle", { defaultValue: "Tout est à jour" })}
+              message={t("notifications.emptyText", { defaultValue: "Aucune réservation à venir pour le moment." })}
+            />
+          ) : (
+            <section className={styles.dayShell}>
+              <div className={styles.dayHeader}>
+                <div>
+                  <p className={styles.dayKicker}>{t("notifications.myDay", { defaultValue: "Ma journée" })}</p>
+                  <h2>{activeDay ? formatDate(activeDay.date, locale) : t("common.date")}</h2>
+                  <span>
+                    {activeDay?.items.length || 0} {activeDay?.items.length > 1 ? "repères prévus" : "repère prévu"}
+                  </span>
+                </div>
+                <div className={styles.daySelector}>
+                  {groupedDays.slice(0, 5).map((day) => (
+                    <button
+                      key={day.dateKey}
+                      type="button"
+                      className={`${styles.dayButton} ${activeDay?.dateKey === day.dateKey ? styles.dayButtonActive : ""}`}
+                      onClick={() => setSelectedDay(day.dateKey)}
+                    >
+                      <strong>{formatDate(day.date, locale, { weekday: "short" })}</strong>
+                      <small>
+                        {new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit" }).format(day.date)}
+                      </small>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.dayBoard}>
+                <div className={styles.daySummary}>
+                  <span>{t("notifications.next", { defaultValue: "Prochain repère" })}</span>
+                  <strong>
+                    {activeDay?.items[0] ? `${formatTime(activeDay.items[0].start)} - ${activeDay.items[0].title}` : "-"}
+                  </strong>
+                </div>
+
+                <div className={styles.dayTimeline}>
+                  {activeDay?.items.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={styles.dayItem}
+                      onClick={() => navigate(item.to)}
+                    >
+                      <span className={styles.dayTime}>
+                        {formatTime(item.start)}
+                        {item.end && <small>{formatTime(item.end)}</small>}
+                      </span>
+                      <span className={styles.dayMarker} />
+                      <span className={styles.dayCard}>
+                        <span className={styles.dayCardHeader}>
+                          <strong>{item.title}</strong>
+                          <em className={`${styles.dayStatus} ${styles[getStatusTone(item.status)] || ""}`}>
+                            {t(`status.${String(item.status || "default").toLowerCase()}`, { defaultValue: item.status || "Planifié" })}
+                          </em>
+                        </span>
+                        <small>{item.description}</small>
+                        {Number(item.amount || 0) > 0 && <b>{Number(item.amount).toFixed(2)} €</b>}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+        </div>
+      )}
 
       {activeTab === "spaces" && (
         <div className={styles.tabContent}>
@@ -226,7 +337,12 @@ export default function MyReservationsPage() {
           )}
 
           {otherSpaceReservations.length === 0 && approvedSpaceReservations.length === 0 ? (
-            <p className={styles.info}>{t("reservation.noReservations")}</p>
+            <PageState
+              type="empty"
+              title={t("reservation.noReservations")}
+              message="Comparez les salles MeetSpace et choisissez un créneau disponible."
+              action={<Link to="/espace">{t("home.roomsCta", { defaultValue: "Réserver une salle" })}</Link>}
+            />
           ) : (
             otherSpaceReservations.length > 0 && (
               <table className={styles.table}>
@@ -277,7 +393,12 @@ export default function MyReservationsPage() {
       {activeTab === "events" && (
         <div className={styles.tabContent}>
           {eventRegistrations.length === 0 ? (
-            <p className={styles.info}>{t("events.noRegistrations")}</p>
+            <PageState
+              type="empty"
+              title={t("events.noRegistrations")}
+              message="Explorez les événements professionnels à venir et inscrivez-vous en quelques secondes."
+              action={<Link to="/events">{t("home.eventsCta", { defaultValue: "Découvrir les événements" })}</Link>}
+            />
           ) : (
             <table className={styles.table}>
               <thead>
@@ -326,7 +447,12 @@ export default function MyReservationsPage() {
       {activeTab === "parking" && (
         <div className={styles.tabContent}>
           {parkingReservations.length === 0 ? (
-            <p className={styles.info}>{t("parking.noReservations")}</p>
+            <PageState
+              type="empty"
+              title={t("parking.noReservations")}
+              message="Consultez les disponibilités parking liées aux événements et réservez votre accès."
+              action={<Link to="/parking">{t("home.parkingCta", { defaultValue: "Voir le parking" })}</Link>}
+            />
           ) : (
             <table className={styles.table}>
               <thead>

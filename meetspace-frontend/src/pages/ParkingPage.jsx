@@ -158,7 +158,12 @@ export default function ParkingPage() {
       </section>
 
       {parkingSlots.length === 0 ? (
-        <PageState type="empty" title={t("parking.noSessions")} message={t("parking.capacityModelText")} />
+        <PageState
+          type="empty"
+          title={t("parking.noSessions")}
+          message={t("parking.capacityModelText")}
+          action={<Link to="/events">{t("home.eventsCta", { defaultValue: "Découvrir les événements" })}</Link>}
+        />
       ) : (
         <div className={styles.workspace}>
           <aside className={styles.sidebar}>

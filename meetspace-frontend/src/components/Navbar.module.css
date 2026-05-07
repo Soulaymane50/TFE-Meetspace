@@ -232,13 +232,16 @@
 }
 
 :global([data-theme="dark"]) .logoutButton {
-  border-color: rgba(255, 255, 255, 0.08);
-  color: var(--text-secondary);
+  border-color: rgba(226, 232, 240, 0.2);
+  background: rgba(226, 232, 240, 0.1);
+  color: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 :global([data-theme="dark"]) .logoutButton:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(244, 215, 168, 0.24);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 @media (max-width: 1180px) {

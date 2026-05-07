@@ -143,6 +143,19 @@
   width: 100%;
 }
 
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  overflow: hidden;
+  background-image: var(--select-arrow) !important;
+  background-repeat: no-repeat !important;
+  background-position: right 1rem center !important;
+  background-size: 0.8rem !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .textarea {
   min-height: 140px;
 }
@@ -258,6 +271,96 @@
   background: linear-gradient(135deg, var(--blue-darker), #33476a);
 }
 
+.previewPanel {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.7fr) minmax(0, 1.4fr);
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border-radius: 26px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(207, 162, 101, 0.12), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(246, 249, 253, 0.82));
+}
+
+.previewIntro {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.previewKicker {
+  margin: 0 0 0.35rem;
+  color: var(--orange-dark);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.previewIntro h2 {
+  margin: 0 0 0.45rem;
+  color: var(--blue-darker);
+  font-size: clamp(1.25rem, 2.5vw, 1.8rem);
+}
+
+.previewIntro span {
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.previewCard {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border-radius: 24px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.previewTopline,
+.previewFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  color: var(--taupe-dark);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.previewCard h3 {
+  margin: 0;
+  color: var(--blue-darker);
+  font-size: clamp(1.4rem, 3vw, 2.1rem);
+}
+
+.previewCard p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.previewTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.previewTags span,
+.previewFooter strong {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(27, 42, 64, 0.07);
+  color: var(--blue-dark);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
@@ -291,7 +394,9 @@
 [data-theme="dark"] .formContainer,
 [data-theme="dark"] .checkboxRow,
 [data-theme="dark"] .cancelBtn,
-[data-theme="dark"] .advisorCard {
+[data-theme="dark"] .advisorCard,
+[data-theme="dark"] .previewPanel,
+[data-theme="dark"] .previewCard {
   border-color: rgba(255, 255, 255, 0.08);
   background: rgba(18, 26, 37, 0.94);
   color: var(--text-primary);
@@ -312,7 +417,9 @@
 [data-theme="dark"] .label,
 [data-theme="dark"] .checkboxLabel,
 [data-theme="dark"] .advisorCard h3,
-[data-theme="dark"] .advisorMetrics strong {
+[data-theme="dark"] .advisorMetrics strong,
+[data-theme="dark"] .previewIntro h2,
+[data-theme="dark"] .previewCard h3 {
   color: var(--text-primary);
 }
 
@@ -323,18 +430,34 @@
 [data-theme="dark"] .loading,
 [data-theme="dark"] .advisorCard p,
 [data-theme="dark"] .advisorKicker,
-[data-theme="dark"] .advisorMetrics span {
+[data-theme="dark"] .advisorMetrics span,
+[data-theme="dark"] .previewIntro span,
+[data-theme="dark"] .previewCard p,
+[data-theme="dark"] .previewTopline,
+[data-theme="dark"] .previewFooter {
   color: var(--text-secondary);
 }
 
 [data-theme="dark"] .advisorMetrics span,
-[data-theme="dark"] .advisorGhost {
+[data-theme="dark"] .advisorGhost,
+[data-theme="dark"] .previewTags span,
+[data-theme="dark"] .previewFooter strong {
   border-color: rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.055);
 }
 
 [data-theme="dark"] .advisorGhost {
   color: var(--text-primary);
+}
+
+[data-theme="dark"] .select {
+  background-color: rgba(18, 26, 37, 0.96) !important;
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .select option {
+  background-color: #111827;
+  color: #f9fafb;
 }
 
 [data-theme="dark"] .infoBox {
@@ -376,6 +499,10 @@
   }
 
   .advisorMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .previewPanel {
     grid-template-columns: 1fr;
   }
 }

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { getMyReservations } from "../services/api";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
+import UserNotificationCenter from "./UserNotificationCenter";
 import styles from "./Navbar.module.css";
 
 export default function Navbar() {
@@ -96,6 +97,7 @@ export default function Navbar() {
           )}
 
           <div className={styles.controls}>
+            {user && <UserNotificationCenter token={token} />}
             <LanguageSwitcher />
             <ThemeToggle />
           </div>

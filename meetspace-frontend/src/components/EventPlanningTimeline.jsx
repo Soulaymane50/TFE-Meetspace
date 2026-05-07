@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import styles from "./EventPlanningTimeline.module.css";
 
@@ -25,8 +26,9 @@ const rangesOverlap = (a, b) => {
     : false;
 };
 
-export default function EventPlanningTimeline({ events = [], title, subtitle }) {
+export default function EventPlanningTimeline({ events = [], title, subtitle, getEventHref, maxDays }) {
   const { t, i18n } = useTranslation();
+  const [showAll, setShowAll] = useState(false);
   const locale = getDateLocale(i18n.language);
 
   const groups = useMemo(() => {
@@ -71,6 +73,10 @@ export default function EventPlanningTimeline({ events = [], title, subtitle }) 
         })
       : "--:--";
 
+  const hasDayLimit = Number.isFinite(maxDays) && maxDays > 0 && groups.length > maxDays;
+  const visibleGroups = hasDayLimit && !showAll ? groups.slice(0, maxDays) : groups;
+  const hiddenDaysCount = hasDayLimit ? groups.length - maxDays : 0;
+
   if (events.length === 0) {
     return (
       <section className={styles.timeline}>
@@ -107,7 +113,7 @@ export default function EventPlanningTimeline({ events = [], title, subtitle }) 
       </div>
 
       <div className={styles.days}>
-        {groups.map((group) => (
+        {visibleGroups.map((group) => (
           <article key={group.key} className={styles.dayCard}>
             <div className={styles.dayHeader}>
               <div>
@@ -133,8 +139,16 @@ export default function EventPlanningTimeline({ events = [], title, subtitle }) 
                   ? Math.min(100, Math.round(((event.registeredCount || 0) / event.capacity) * 100))
                   : 0;
 
+                const eventHref = typeof getEventHref === "function" ? getEventHref(event) : null;
+                const RowTag = eventHref ? Link : "div";
+                const rowProps = eventHref ? { to: eventHref } : {};
+
                 return (
-                  <div key={event.id} className={`${styles.eventRow} ${hasConflict ? styles.eventConflict : ""}`}>
+                  <RowTag
+                    key={event.id}
+                    {...rowProps}
+                    className={`${styles.eventRow} ${eventHref ? styles.eventRowLink : ""} ${hasConflict ? styles.eventConflict : ""}`}
+                  >
                     <div className={styles.timeCell}>
                       <strong>{formatTime(event.startDateTime)}</strong>
                       <span>{formatTime(event.endDateTime)}</span>
@@ -151,13 +165,19 @@ export default function EventPlanningTimeline({ events = [], title, subtitle }) 
                         {event.status && <span>{t(`status.${String(event.status).toLowerCase()}`, { defaultValue: event.status })}</span>}
                       </div>
                     </div>
-                  </div>
+                  </RowTag>
                 );
               })}
             </div>
           </article>
         ))}
       </div>
+
+      {hasDayLimit && (
+        <button type="button" className={styles.expandButton} onClick={() => setShowAll((value) => !value)}>
+          {showAll ? t("planning.showLess", "Réduire le planning") : t("planning.showMore", { count: hiddenDaysCount, defaultValue: `Voir ${hiddenDaysCount} jour(s) de plus` })}
+        </button>
+      )}
     </section>
   );
 }

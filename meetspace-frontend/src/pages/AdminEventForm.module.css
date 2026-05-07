@@ -68,6 +68,19 @@
   width: 100%;
 }
 
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  overflow: hidden;
+  background-image: var(--select-arrow) !important;
+  background-repeat: no-repeat !important;
+  background-position: right 1rem center !important;
+  background-size: 0.8rem !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .textarea {
   min-height: 140px;
 }
@@ -228,6 +241,16 @@
 
 [data-theme="dark"] .advisorGhost {
   color: var(--text-primary);
+}
+
+[data-theme="dark"] .select {
+  background-color: rgba(18, 26, 37, 0.96) !important;
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .select option {
+  background-color: #111827;
+  color: #f9fafb;
 }
 
 [data-theme="dark"] .error {

@@ -86,6 +86,7 @@ export default function CommandPalette() {
 
     const account = [
       { id: "reservations", icon: "spaces", group: t("command.groups.account"), label: t("nav.myReservations"), description: t("command.reservationsDesc"), to: "/my-reservations" },
+      { id: "my-day", icon: "events", group: t("command.groups.account"), label: t("nav.myDay", { defaultValue: "Ma journée" }), description: t("command.myDayDesc", { defaultValue: "Voir votre planning personnel MeetSpace." }), to: "/my-reservations?tab=day" },
       { id: "profile", icon: "user", group: t("command.groups.account"), label: t("nav.profile"), description: t("command.profileDesc"), to: "/profile" },
     ];
 

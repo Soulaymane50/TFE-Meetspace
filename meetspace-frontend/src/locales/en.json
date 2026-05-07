@@ -409,7 +409,8 @@
     "allReservations": "All reservations",
     "stepScheduleHint": "Step 1: choose a free slot",
     "continueToSummary": "Continue to summary",
-    "editSlot": "Edit slot"
+    "editSlot": "Edit slot",
+    "slotUnavailable": "This time slot is no longer available. Choose a free slot in the schedule."
   },
 
   "calendar": {
@@ -753,7 +754,15 @@
     "reactivateUser": "Reactivate user",
     "viewDetails": "View details",
     "confirmBan": "Are you sure you want to ban this user? All their reservations will be cancelled.",
-    "confirmReactivate": "Are you sure you want to reactivate this user?"
+    "confirmReactivate": "Are you sure you want to reactivate this user?",
+    "roomPlanningKicker": "Operational planning",
+    "roomPlanningTitle": "Planning by room",
+    "roomPlanningSubtitle": "Track occupied rooms, schedules and potential conflicts at a glance.",
+    "roomAvailable": "Available",
+    "roomNoEvent": "No event planned for this day.",
+    "roomOccupancy": "{{occupancy}}% occupancy",
+    "roomTimeConflict": "Time conflict",
+    "roomPlanningEmptyMessage": "Add a first event to populate the room planning view."
   },
 
   "validation": {
@@ -844,7 +853,19 @@
     "applyRecommendation": "Apply recommendation",
     "parkingRequired": "Parking required",
     "parkingRate": "Parking rate",
-    "parkingCapacity": "Parking spaces"
+    "parkingCapacity": "Parking spaces",
+    "previewAria": "Public preview",
+    "previewKicker": "Preview before submission",
+    "previewTitle": "Public display",
+    "previewIntro": "Check how readable the event is before sending it to administration.",
+    "previewTitleFallback": "Event title",
+    "previewDescriptionFallback": "The description will appear here to present the content, audience and objectives of your session.",
+    "previewRoomFallback": "Room to choose",
+    "previewParkingIncluded": "Parking offered",
+    "previewParkingExcluded": "Parking not included",
+    "previewStatus": "Status after submission: pending approval",
+    "previewRoomUsage": "{{usage}}% of the room",
+    "previewCapacityFallback": "Capacity to complete"
   },
 
   "error": {
