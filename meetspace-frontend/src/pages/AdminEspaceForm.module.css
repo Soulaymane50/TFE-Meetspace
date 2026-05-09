@@ -44,6 +44,10 @@
   width: 100%;
 }
 
+.selectDropdown {
+  width: 100%;
+}
+
 .infoText {
   margin-top: 0.45rem;
   color: var(--taupe-dark);

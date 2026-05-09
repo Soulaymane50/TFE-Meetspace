@@ -12,6 +12,7 @@ import {
 } from "../services/api";
 import PageState from "../components/PageState";
 import EventPlanningTimeline from "../components/EventPlanningTimeline";
+import SelectDropdown from "../components/SelectDropdown";
 import { useFeedback } from "../context/FeedbackContext";
 import styles from "./AdminEventsPage.module.css";
 
@@ -242,6 +243,12 @@ export default function AdminEventsPage() {
     { id: "events", label: t("admin.eventsManagement") },
     { id: "pending", label: t("admin.pendingEvents"), badge: pendingEvents.length },
     { id: "registrations", label: t("admin.eventReservations") },
+  ];
+
+  const registrationStatusOptions = [
+    { value: "ALL", label: t("common.all") },
+    { value: "CONFIRMED", label: t("status.confirmed") },
+    { value: "CANCELLED", label: t("status.cancelled") },
   ];
 
   return (
@@ -514,15 +521,13 @@ export default function AdminEventsPage() {
         <section className={styles.section}>
           <div className={styles.filterBar}>
             <label>{t("admin.filterByStatus")}</label>
-            <select
+            <SelectDropdown
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className={styles.select}
-            >
-              <option value="ALL">{t("common.all")}</option>
-              <option value="CONFIRMED">{t("status.confirmed")}</option>
-              <option value="CANCELLED">{t("status.cancelled")}</option>
-            </select>
+              onChange={setFilterStatus}
+              options={registrationStatusOptions}
+              label={t("admin.filterByStatus")}
+              className={styles.selectDropdown}
+            />
             <span className={styles.resultCount}>
               {filteredRegistrations.length} {t("admin.reservationsShown")}
             </span>

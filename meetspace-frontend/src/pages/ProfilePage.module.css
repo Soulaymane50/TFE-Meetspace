@@ -14,9 +14,98 @@
   gap: 1.35rem;
 }
 
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.55fr);
+  gap: 1rem;
+  align-items: stretch;
+  padding: clamp(1.4rem, 3vw, 2.1rem);
+  border: 1px solid var(--border);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 88% 18%, rgba(90, 124, 226, 0.12), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(250, 246, 238, 0.94));
+  box-shadow: var(--shadow-medium);
+}
+
+.kicker {
+  margin: 0 0 0.35rem;
+  color: var(--orange-dark);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
 .title {
   margin-bottom: 0;
   font-size: clamp(2.4rem, 4vw, 4rem);
+}
+
+.subtitle {
+  max-width: 62ch;
+  margin-top: 0.7rem;
+  color: var(--taupe-dark);
+}
+
+.accountCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.9rem;
+  align-content: center;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 26px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--blue-darker), #31507c);
+  color: #fff;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.accountMeta {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.accountMeta strong,
+.accountMeta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accountMeta span {
+  color: var(--taupe-dark);
+}
+
+.roleChip {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(181, 138, 76, 0.13);
+  color: #8a5b18;
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
 }
 
 .section {
@@ -25,6 +114,21 @@
   border-radius: 28px;
   padding: 1.7rem;
   box-shadow: var(--shadow-medium);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1.1rem;
+}
+
+.sectionHeader p:last-child {
+  max-width: 260px;
+  margin: 0;
+  color: var(--taupe-dark);
+  font-size: 0.9rem;
 }
 
 .sectionTitle {
@@ -112,6 +216,8 @@
 }
 
 [data-theme="dark"] .notice,
+[data-theme="dark"] .hero,
+[data-theme="dark"] .accountCard,
 [data-theme="dark"] .section,
 [data-theme="dark"] .confirmBox {
   border-color: rgba(255, 255, 255, 0.08);
@@ -123,12 +229,21 @@
 
 [data-theme="dark"] .title,
 [data-theme="dark"] .sectionTitle,
+[data-theme="dark"] .accountMeta strong,
 [data-theme="dark"] .label {
   color: var(--text-primary);
 }
 
-[data-theme="dark"] .notice {
+[data-theme="dark"] .notice,
+[data-theme="dark"] .subtitle,
+[data-theme="dark"] .accountMeta span,
+[data-theme="dark"] .sectionHeader p:last-child {
   color: var(--text-secondary);
+}
+
+[data-theme="dark"] .roleChip {
+  background: rgba(207, 162, 101, 0.18);
+  color: #f4d7a8;
 }
 
 [data-theme="dark"] .dangerZone {
@@ -156,6 +271,15 @@
 }
 
 @media (max-width: 640px) {
+  .hero,
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionHeader {
+    display: grid;
+  }
+
   .confirmButtons {
     flex-direction: column;
   }

@@ -8,6 +8,8 @@ import {
   adminGetUsers,
 } from "../services/api";
 import { useTranslation } from "react-i18next";
+import PageState from "./PageState";
+import SelectDropdown from "./SelectDropdown";
 import styles from "./AuditLogs.module.css";
 
 const ACTION_LABELS = {
@@ -85,7 +87,7 @@ export default function AuditLogs() {
       setEntityTypes(entityTypesData);
       setUsers(usersData);
     } catch (err) {
-      console.error("Erreur chargement donnees initiales:", err);
+      console.error("Erreur chargement données initiales:", err);
     }
   }, [token]);
 
@@ -151,66 +153,77 @@ export default function AuditLogs() {
 
   const getActionInfo = (action) => ACTION_LABELS[action] || { label: action, icon: "LOG", color: "gray" };
 
-  if (error) return <div className={styles.error}>{error}</div>;
+  const userOptions = [
+    { value: "", label: t("common.all", "Tous") },
+    ...users.map((u) => ({
+      value: String(u.id),
+      label: `${u.firstName} ${u.lastName}`,
+    })),
+  ];
+
+  const actionOptions = [
+    { value: "", label: t("common.all", "Toutes") },
+    ...actions.map((action) => ({
+      value: action,
+      label: getActionInfo(action).label,
+    })),
+  ];
+
+  const entityOptions = [
+    { value: "", label: t("common.all", "Tous") },
+    ...entityTypes.map((entityType) => ({
+      value: entityType,
+      label: entityType,
+    })),
+  ];
+
+  if (error) {
+    return <PageState type="error" title={t("common.error")} message={error} />;
+  }
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h2 className={styles.title}>{t("admin.auditLogs", "Logs d'audit")}</h2>
-        <span className={styles.count}>{totalElements} {t("admin.entries", "entrees")}</span>
+        <span className={styles.count}>{totalElements} {t("admin.entries", "entrées")}</span>
       </div>
 
       <div className={styles.filters}>
         <div className={styles.filterGroup}>
           <label>{t("admin.user", "Utilisateur")}</label>
-          <select
+          <SelectDropdown
             value={filters.userId}
-            onChange={(e) => handleFilterChange("userId", e.target.value)}
-            className={styles.select}
-          >
-            <option value="">{t("common.all", "Tous")}</option>
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.firstName} {u.lastName}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => handleFilterChange("userId", value)}
+            options={userOptions}
+            label={t("admin.user", "Utilisateur")}
+            className={styles.selectDropdown}
+          />
         </div>
 
         <div className={styles.filterGroup}>
           <label>{t("admin.action", "Action")}</label>
-          <select
+          <SelectDropdown
             value={filters.action}
-            onChange={(e) => handleFilterChange("action", e.target.value)}
-            className={styles.select}
-          >
-            <option value="">{t("common.all", "Toutes")}</option>
-            {actions.map((action) => (
-              <option key={action} value={action}>
-                {getActionInfo(action).label}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => handleFilterChange("action", value)}
+            options={actionOptions}
+            label={t("admin.action", "Action")}
+            className={styles.selectDropdown}
+          />
         </div>
 
         <div className={styles.filterGroup}>
           <label>{t("admin.entityType", "Type")}</label>
-          <select
+          <SelectDropdown
             value={filters.entityType}
-            onChange={(e) => handleFilterChange("entityType", e.target.value)}
-            className={styles.select}
-          >
-            <option value="">{t("common.all", "Tous")}</option>
-            {entityTypes.map((entityType) => (
-              <option key={entityType} value={entityType}>
-                {entityType}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => handleFilterChange("entityType", value)}
+            options={entityOptions}
+            label={t("admin.entityType", "Type")}
+            className={styles.selectDropdown}
+          />
         </div>
 
         <div className={styles.filterGroup}>
-          <label>{t("admin.startDate", "Debut")}</label>
+          <label>{t("admin.startDate", "Début")}</label>
           <input
             type="datetime-local"
             value={filters.startDate}
@@ -235,7 +248,11 @@ export default function AuditLogs() {
       </div>
 
       {loading ? (
-        <div className={styles.loading}>{t("common.loading", "Chargement...")}</div>
+        <PageState
+          type="loading"
+          title={t("common.loading", "Chargement...")}
+          message={t("admin.auditLogs", "Logs d'audit")}
+        />
       ) : (
         <>
           <div className={styles.tableContainer}>
@@ -245,7 +262,7 @@ export default function AuditLogs() {
                   <th>{t("admin.date", "Date")}</th>
                   <th>{t("admin.user", "Utilisateur")}</th>
                   <th>{t("admin.action", "Action")}</th>
-                  <th>{t("admin.details", "Details")}</th>
+                  <th>{t("admin.details", "Détails")}</th>
                   <th>{t("admin.ip", "IP")}</th>
                 </tr>
               </thead>
@@ -253,7 +270,7 @@ export default function AuditLogs() {
                 {logs.length === 0 ? (
                   <tr>
                     <td colSpan="5" className={styles.noData}>
-                      {t("admin.noLogs", "Aucun log trouve")}
+                      {t("admin.noLogs", "Aucun log trouvé")}
                     </td>
                   </tr>
                 ) : (
@@ -300,7 +317,7 @@ export default function AuditLogs() {
                 disabled={page === 0}
                 className={styles.pageBtn}
               >
-                {"<"} {t("common.previous", "Precedent")}
+                {"<"} {t("common.previous", "Précédent")}
               </button>
               <span className={styles.pageInfo}>
                 {t("common.page", "Page")} {page + 1} / {totalPages}

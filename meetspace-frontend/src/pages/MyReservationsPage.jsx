@@ -28,6 +28,7 @@ export default function MyReservationsPage() {
   const [activeTab, setActiveTab] = useState(initialTab || "spaces");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [partialErrors, setPartialErrors] = useState({});
 
   const [spaceReservations, setSpaceReservations] = useState([]);
   const [payingReservation, setPayingReservation] = useState(null);
@@ -46,21 +47,53 @@ export default function MyReservationsPage() {
   const fetchAllData = useCallback(async () => {
     setLoading(true);
     setError("");
+    setPartialErrors({});
+
     try {
-      const [spaces, events, parking] = await Promise.all([
+      const [spacesResult, eventsResult, parkingResult] = await Promise.allSettled([
         getMyReservations(token),
         getMyEventRegistrations(token),
         getMyParkingReservations(token),
       ]);
-      setSpaceReservations(spaces);
-      setEventRegistrations(events);
-      setParkingReservations(parking);
-    } catch (err) {
-      setError(err.message);
+
+      const nextErrors = {};
+
+      if (spacesResult.status === "fulfilled") {
+        setSpaceReservations(spacesResult.value);
+      } else {
+        setSpaceReservations([]);
+        nextErrors.spaces =
+          spacesResult.reason?.message ||
+          t("reservation.loadSpacesError", { defaultValue: "Impossible de charger les réservations de salles." });
+      }
+
+      if (eventsResult.status === "fulfilled") {
+        setEventRegistrations(eventsResult.value);
+      } else {
+        setEventRegistrations([]);
+        nextErrors.events =
+          eventsResult.reason?.message ||
+          t("reservation.loadEventsError", { defaultValue: "Impossible de charger les inscriptions aux événements." });
+      }
+
+      if (parkingResult.status === "fulfilled") {
+        setParkingReservations(parkingResult.value);
+      } else {
+        setParkingReservations([]);
+        nextErrors.parking =
+          parkingResult.reason?.message ||
+          t("reservation.loadParkingError", { defaultValue: "Impossible de charger les réservations parking." });
+      }
+
+      setPartialErrors(nextErrors);
+
+      if ([spacesResult, eventsResult, parkingResult].every((result) => result.status === "rejected")) {
+        setError(t("reservation.loadAllError", { defaultValue: "Impossible de charger vos réservations." }));
+      }
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [t, token]);
 
   useEffect(() => {
     if (!user || !token) {
@@ -160,6 +193,11 @@ export default function MyReservationsPage() {
   }, [groupedDays, selectedDay]);
 
   const activeDay = groupedDays.find((day) => day.dateKey === selectedDay) || groupedDays[0];
+  const approvedSpaceReservations = spaceReservations.filter((r) => r.status === "APPROVED");
+  const otherSpaceReservations = spaceReservations.filter((r) => r.status !== "APPROVED");
+  const totalReservations = spaceReservations.length + eventRegistrations.length + parkingReservations.length;
+  const nextActivity = dayItems[0];
+  const activeTabError = partialErrors[activeTab];
 
   if (loading) return <PageState type="loading" title={t("common.loading")} message={t("nav.myReservations")} />;
   if (error) return <PageState type="error" title={t("common.error")} message={error} />;
@@ -175,7 +213,7 @@ export default function MyReservationsPage() {
             {payingReservation.endDateTime.split("T")[1]}
           </p>
           <p>
-            <strong>{t("reservation.totalPrice")} :</strong> {payingReservation.totalPrice.toFixed(2)} €
+            <strong>{t("reservation.totalPrice")} :</strong> {payingReservation.totalPrice.toFixed(2)} {"\u20ac"}
           </p>
         </div>
         {processingPayment ? (
@@ -198,11 +236,8 @@ export default function MyReservationsPage() {
     );
   }
 
-  const approvedSpaceReservations = spaceReservations.filter((r) => r.status === "APPROVED");
-  const otherSpaceReservations = spaceReservations.filter((r) => r.status !== "APPROVED");
-
   const tabs = [
-    { id: "day", label: t("nav.myDay", { defaultValue: "Ma journée" }), count: dayItems.length },
+    { id: "day", label: t("nav.myDay", { defaultValue: "Ma journ\u00e9e" }), count: dayItems.length },
     { id: "spaces", label: t("nav.spaces"), count: spaceReservations.length },
     { id: "events", label: t("nav.events"), count: eventRegistrations.length },
     { id: "parking", label: t("nav.parking"), count: parkingReservations.length },
@@ -210,7 +245,31 @@ export default function MyReservationsPage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>{t("nav.myReservations")}</h1>
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <p className={styles.kicker}>{t("reservation.workspaceKicker")}</p>
+          <h1 className={styles.title}>{t("nav.myReservations")}</h1>
+          <p>{t("reservation.workspaceSubtitle")}</p>
+        </div>
+        <div className={styles.heroStats}>
+          <div className={styles.heroStat}>
+            <span>{t("reservation.totalItems")}</span>
+            <strong>{totalReservations}</strong>
+          </div>
+          <div className={styles.heroStat}>
+            <span>{t("reservation.pendingPayments")}</span>
+            <strong>{approvedSpaceReservations.length}</strong>
+          </div>
+          <div className={styles.heroNext}>
+            <span>{t("reservation.nextMarker")}</span>
+            <strong>
+              {nextActivity
+                ? `${formatTime(nextActivity.start)} - ${nextActivity.title}`
+                : t("notifications.emptyTitle", { defaultValue: "Tout est à jour" })}
+            </strong>
+          </div>
+        </div>
+      </section>
 
       <div className={styles.tabs}>
         {tabs.map((tab) => (
@@ -224,6 +283,13 @@ export default function MyReservationsPage() {
           </button>
         ))}
       </div>
+
+      {activeTabError && (
+        <div className={styles.inlineWarning}>
+          <strong>{t("common.warning", { defaultValue: "Attention" })}</strong>
+          <span>{activeTabError}</span>
+        </div>
+      )}
 
       {activeTab === "day" && (
         <div className={styles.tabContent}>
@@ -240,7 +306,8 @@ export default function MyReservationsPage() {
                   <p className={styles.dayKicker}>{t("notifications.myDay", { defaultValue: "Ma journée" })}</p>
                   <h2>{activeDay ? formatDate(activeDay.date, locale) : t("common.date")}</h2>
                   <span>
-                    {activeDay?.items.length || 0} {activeDay?.items.length > 1 ? "repères prévus" : "repère prévu"}
+                    {activeDay?.items.length || 0}{" "}
+                    {activeDay?.items.length > 1 ? t("reservation.markersPlanned") : t("reservation.markerPlanned")}
                   </span>
                 </div>
                 <div className={styles.daySelector}>
@@ -289,7 +356,7 @@ export default function MyReservationsPage() {
                           </em>
                         </span>
                         <small>{item.description}</small>
-                        {Number(item.amount || 0) > 0 && <b>{Number(item.amount).toFixed(2)} €</b>}
+                        {Number(item.amount || 0) > 0 && <b>{Number(item.amount).toFixed(2)} {"\u20ac"}</b>}
                       </span>
                     </button>
                   ))}
@@ -319,7 +386,7 @@ export default function MyReservationsPage() {
                         {r.endDateTime.split("T")[1]}
                       </p>
                       <p>
-                        <strong>{t("reservation.totalPrice")} :</strong> {r.totalPrice.toFixed(2)} €
+                        <strong>{t("reservation.totalPrice")} :</strong> {r.totalPrice.toFixed(2)} {"\u20ac"}
                       </p>
                     </div>
                     <div className={styles.approvedActions}>
@@ -340,7 +407,7 @@ export default function MyReservationsPage() {
             <PageState
               type="empty"
               title={t("reservation.noReservations")}
-              message="Comparez les salles MeetSpace et choisissez un créneau disponible."
+              message={t("reservation.emptySpacesHint")}
               action={<Link to="/espace">{t("home.roomsCta", { defaultValue: "Réserver une salle" })}</Link>}
             />
           ) : (
@@ -365,7 +432,7 @@ export default function MyReservationsPage() {
                         <td>{r.espace?.name || r.espaceName}</td>
                         <td>{r.startDateTime.replace("T", " ")}</td>
                         <td>{r.endDateTime.replace("T", " ")}</td>
-                        <td>{r.totalPrice?.toFixed(2)} €</td>
+                        <td>{r.totalPrice?.toFixed(2)} {"\u20ac"}</td>
                         <td>
                           <span className={`${styles.badge} ${getStatusClass(r.status)}`}>
                             {t(`status.${r.status.toLowerCase()}`)}
@@ -396,7 +463,7 @@ export default function MyReservationsPage() {
             <PageState
               type="empty"
               title={t("events.noRegistrations")}
-              message="Explorez les événements professionnels à venir et inscrivez-vous en quelques secondes."
+              message={t("reservation.emptyEventsHint")}
               action={<Link to="/events">{t("home.eventsCta", { defaultValue: "Découvrir les événements" })}</Link>}
             />
           ) : (
@@ -420,7 +487,7 @@ export default function MyReservationsPage() {
                       <td>{r.eventTitle}</td>
                       <td>{r.eventStartDateTime.replace("T", " ")}</td>
                       <td>{r.numberOfParticipants}</td>
-                      <td>{r.totalPrice > 0 ? `${r.totalPrice} €` : t("events.free")}</td>
+                      <td>{r.totalPrice > 0 ? `${r.totalPrice} \u20ac` : t("events.free")}</td>
                       <td>
                         <span className={`${styles.badge} ${getStatusClass(r.status)}`}>
                           {t(`status.${r.status.toLowerCase()}`)}
@@ -450,7 +517,7 @@ export default function MyReservationsPage() {
             <PageState
               type="empty"
               title={t("parking.noReservations")}
-              message="Consultez les disponibilités parking liées aux événements et réservez votre accès."
+              message={t("reservation.emptyParkingHint")}
               action={<Link to="/parking">{t("home.parkingCta", { defaultValue: "Voir le parking" })}</Link>}
             />
           ) : (
@@ -478,7 +545,7 @@ export default function MyReservationsPage() {
                         {r.startTime} - {r.endTime}
                       </td>
                       <td>{r.reservedSpaces}</td>
-                      <td>{r.totalPrice} €</td>
+                      <td>{r.totalPrice} {"\u20ac"}</td>
                       <td>
                         <span className={`${styles.badge} ${getStatusClass(r.status)}`}>
                           {t(`status.${r.status.toLowerCase()}`)}

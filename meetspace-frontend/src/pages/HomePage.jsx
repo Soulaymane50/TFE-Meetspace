@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getPublicEvents } from "../services/api";
-import AvailabilityFinder from "../components/AvailabilityFinder";
+import { useAuth } from "../context/AuthContext";
 import styles from "./HomePage.module.css";
 
 function getLocale(language) {
@@ -12,13 +12,20 @@ function getLocale(language) {
 }
 
 function getAvailabilityStatus(event) {
-  if ((event?.availablePlaces ?? 0) <= 0) return "full";
-  if ((event?.registeredCount ?? 0) / Math.max(event?.capacity ?? 1, 1) >= 0.8) return "almost";
+  const capacity = Math.max(Number(event?.capacity) || 0, 1);
+  const availablePlaces =
+    typeof event?.availablePlaces === "number" ? Math.max(0, event.availablePlaces) : capacity;
+  const registeredCount =
+    typeof event?.registeredCount === "number" ? event.registeredCount : Math.max(0, capacity - availablePlaces);
+
+  if (availablePlaces <= 0) return "full";
+  if (registeredCount / capacity >= 0.8) return "almost";
   return "available";
 }
 
 export default function HomePage() {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -65,151 +72,93 @@ export default function HomePage() {
     .sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime))
     .slice(0, 3);
 
-  const averageFillRate =
-    events.length > 0
-      ? Math.round(
-          events.reduce((sum, event) => {
-            const capacity = Math.max(event.capacity ?? 1, 1);
-            return sum + ((event.registeredCount ?? 0) / capacity) * 100;
-          }, 0) / events.length,
-        )
-      : 0;
+  const organizerTarget = user?.role === "ORGANIZER" || user?.role === "ADMIN" ? "/organizer/events/new" : "/register";
 
-  const spotlightEvent = upcomingEvents[0];
-
-  const uses = [
+  const actions = [
     {
       to: "/espace",
       title: t("home.useSpacesTitle"),
       text: t("home.useSpacesText"),
       cta: t("home.useSpacesCta"),
-      signal: "01",
+      icon: "S",
     },
     {
       to: "/events",
       title: t("home.useEventsTitle"),
       text: t("home.useEventsText"),
       cta: t("home.useEventsCta"),
-      signal: "02",
+      icon: "E",
     },
     {
       to: "/parking",
       title: t("home.useParkingTitle"),
       text: t("home.useParkingText"),
       cta: t("home.useParkingCta"),
-      signal: "03",
+      icon: "P",
     },
   ];
 
   return (
     <div className={styles.page}>
-      <section className={styles.heroSection}>
-        <div className={styles.heroCopy}>
+      <section className={styles.hero}>
+        <div className={styles.heroText}>
           <p className={styles.eyebrow}>{t("home.eyebrow")}</p>
-          <h1 className={styles.title}>{t("home.heroTitle")}</h1>
-          <p className={styles.subtitle}>{t("home.heroText")}</p>
+          <h1>{t("home.heroTitle")}</h1>
+          <p>{t("home.heroText")}</p>
 
           <div className={styles.heroActions}>
-            <Link to="/events" className={styles.primaryCta}>
-              {t("home.primaryCta")}
-            </Link>
-            <Link to="/espace" className={styles.secondaryCta}>
+            <Link to="/espace" className={styles.primaryCta}>
               {t("home.secondaryCta")}
             </Link>
-          </div>
-
-          <div className={styles.heroSignals}>
-            <span>{t("home.useSpacesTitle")}</span>
-            <span>{t("home.useEventsTitle")}</span>
-            <span>{t("home.useParkingTitle")}</span>
+            <Link to="/events" className={styles.secondaryCta}>
+              {t("home.primaryCta")}
+            </Link>
           </div>
         </div>
 
-        <aside className={styles.heroBoard} aria-label={t("home.platformStatusLabel")}>
-          <div className={styles.boardMedia} aria-hidden="true" />
-
-          {spotlightEvent ? (
-            <div className={styles.spotlightCard}>
-              <span className={styles.spotlightDate}>
-                {dateFormatter.format(new Date(spotlightEvent.startDateTime))}
-              </span>
-              <strong>{spotlightEvent.title}</strong>
-              <small>
-                {timeFormatter.format(new Date(spotlightEvent.startDateTime))} -{" "}
-                {timeFormatter.format(new Date(spotlightEvent.endDateTime))}
-              </small>
-            </div>
-          ) : (
-            <div className={styles.spotlightCard}>
-              <span className={styles.spotlightDate}>{t("home.previewLabel")}</span>
-              <strong>{loading ? t("common.loading") : t("home.noUpcomingEventsTitle")}</strong>
-              <small>{loading ? t("home.platformStatusText") : t("home.noUpcomingEventsText")}</small>
-            </div>
-          )}
-
-          <div className={styles.boardMetrics}>
-            <div>
-              <strong>{events.length}</strong>
-              <span>{t("home.kpiUpcomingEvents")}</span>
-            </div>
-            <div>
-              <strong>{averageFillRate}%</strong>
-              <span>{t("home.kpiOccupancy")}</span>
-            </div>
-          </div>
-
-          <div className={styles.boardHeader}>
-            <span>{t("home.platformStatusLabel")}</span>
-            <strong>{t("home.platformStatusReady")}</strong>
+        <aside className={styles.heroImage} aria-label={t("home.heroPanelTitle")}>
+          <div className={styles.heroImageCard}>
+            <span>{t("home.heroPanelBadge")}</span>
+            <strong>{t("home.heroPanelMetric")}</strong>
           </div>
         </aside>
       </section>
 
-      <div className={styles.finderBlock}>
-        <AvailabilityFinder compact />
-      </div>
-
-      <section className={styles.usesSection}>
-        <div className={styles.sectionHeader}>
-          <p className={styles.sectionEyebrow}>{t("home.usesLabel")}</p>
-          <h2 className={styles.sectionTitle}>{t("home.usesTitle")}</h2>
+      <section className={styles.actionSection} aria-labelledby="home-actions-title">
+        <div className={styles.sectionIntro}>
+          <p className={styles.eyebrow}>{t("home.usesLabel")}</p>
+          <h2 id="home-actions-title">{t("home.usesTitle")}</h2>
         </div>
 
-        <div className={styles.usesGrid}>
-          {uses.map((use) => (
-            <article key={use.title} className={styles.useCard}>
-              <span className={styles.useSignal}>{use.signal}</span>
-              <h3 className={styles.useTitle}>{use.title}</h3>
-              <p className={styles.useText}>{use.text}</p>
-              <Link to={use.to} className={styles.useLink}>
-                {use.cta}
-              </Link>
-            </article>
+        <div className={styles.actionGrid}>
+          {actions.map((action) => (
+            <Link key={action.to} to={action.to} className={styles.actionCard}>
+              <span className={styles.actionIcon}>{action.icon}</span>
+              <strong>{action.title}</strong>
+              <p>{action.text}</p>
+              <small>{action.cta}</small>
+            </Link>
           ))}
         </div>
       </section>
 
-      <section className={styles.previewSection}>
-        <div className={styles.sectionHeader}>
-          <p className={styles.sectionEyebrow}>{t("home.previewLabel")}</p>
-          <h2 className={styles.sectionTitle}>{t("home.previewTitle")}</h2>
+      <section className={styles.eventsSection} aria-labelledby="home-events-title">
+        <div className={styles.sectionIntro}>
+          <p className={styles.eyebrow}>{t("home.previewLabel")}</p>
+          <h2 id="home-events-title">{t("home.previewTitle")}</h2>
         </div>
 
         {loading ? (
-          <div className={styles.emptyState}>
-            <span className={styles.emptyText}>{t("common.loading")}</span>
-          </div>
+          <div className={styles.simpleState}>{t("common.loading")}</div>
         ) : loadError ? (
-          <div className={styles.emptyState}>
-            <span className={styles.emptyText}>{t("common.error")}</span>
-          </div>
+          <div className={styles.simpleState}>{t("common.error")}</div>
         ) : upcomingEvents.length === 0 ? (
-          <div className={styles.emptyState}>
-            <strong className={styles.emptyTitle}>{t("home.noUpcomingEventsTitle")}</strong>
-            <span className={styles.emptyText}>{t("home.noUpcomingEventsText")}</span>
+          <div className={styles.simpleState}>
+            <strong>{t("home.noUpcomingEventsTitle")}</strong>
+            <span>{t("home.noUpcomingEventsText")}</span>
           </div>
         ) : (
-          <div className={styles.previewList}>
+          <div className={styles.eventList}>
             {upcomingEvents.map((event) => {
               const availability = getAvailabilityStatus(event);
               const availabilityLabel =
@@ -220,40 +169,31 @@ export default function HomePage() {
                     : t("events.badgeAvailable");
 
               return (
-                <article key={event.id} className={styles.eventCard}>
-                  <div className={styles.eventTopline}>
-                    <span className={styles.eventDate}>
-                      {dateFormatter.format(new Date(event.startDateTime))}
-                    </span>
-                    <span
-                      className={`${styles.eventStatus} ${
-                        availability === "full"
-                          ? styles.statusFull
-                          : availability === "almost"
-                            ? styles.statusAlmost
-                            : styles.statusAvailable
-                      }`}
-                    >
-                      {availabilityLabel}
-                    </span>
-                  </div>
-
-                  <h3 className={styles.eventTitle}>{event.title}</h3>
-                  <p className={styles.eventMeta}>
+                <Link key={event.id} to="/events" className={styles.eventCard}>
+                  <span className={styles.eventDate}>
+                    {dateFormatter.format(new Date(event.startDateTime))}
+                  </span>
+                  <strong>{event.title}</strong>
+                  <small>
                     {timeFormatter.format(new Date(event.startDateTime))} -{" "}
                     {timeFormatter.format(new Date(event.endDateTime))}
-                    {" · "}
-                    {event.location || t("common.toBeAnnounced")}
-                  </p>
-
-                  <Link to="/events" className={styles.eventLink}>
-                    {t("home.previewCta")}
-                  </Link>
-                </article>
+                  </small>
+                  <em className={styles[availability]}>{availabilityLabel}</em>
+                </Link>
               );
             })}
           </div>
         )}
+      </section>
+
+      <section className={styles.organizerStrip}>
+        <div>
+          <p className={styles.eyebrow}>{t("home.organizerTitle")}</p>
+          <h2>{t("home.organizerText")}</h2>
+        </div>
+        <Link to={organizerTarget} className={styles.organizerCta}>
+          {t("home.organizerCta")}
+        </Link>
       </section>
     </div>
   );

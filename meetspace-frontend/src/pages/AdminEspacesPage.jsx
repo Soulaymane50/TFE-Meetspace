@@ -10,6 +10,7 @@ import {
   adminApproveReservation,
 } from "../services/api";
 import PageState from "../components/PageState";
+import SelectDropdown from "../components/SelectDropdown";
 import styles from "./AdminEspacesPage.module.css";
 
 export default function AdminEspacesPage() {
@@ -115,6 +116,13 @@ export default function AdminEspacesPage() {
     { id: "spaces", label: t("admin.spacesManagement") },
     { id: "pending", label: t("admin.pendingReservations"), badge: pendingReservations.length },
     { id: "reservations", label: t("admin.spaceReservations") },
+  ];
+
+  const reservationStatusOptions = [
+    { value: "ALL", label: t("common.all") },
+    { value: "CONFIRMED", label: t("status.confirmed") },
+    { value: "PENDING_APPROVAL", label: t("status.pending_approval") },
+    { value: "CANCELLED", label: t("status.cancelled") },
   ];
 
   return (
@@ -276,16 +284,13 @@ export default function AdminEspacesPage() {
         <section className={styles.section}>
           <div className={styles.filterBar}>
             <label>{t("admin.filterByStatus")}</label>
-            <select
+            <SelectDropdown
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className={styles.select}
-            >
-              <option value="ALL">{t("common.all")}</option>
-              <option value="CONFIRMED">{t("status.confirmed")}</option>
-              <option value="PENDING_APPROVAL">{t("status.pending_approval")}</option>
-              <option value="CANCELLED">{t("status.cancelled")}</option>
-            </select>
+              onChange={setFilterStatus}
+              options={reservationStatusOptions}
+              label={t("admin.filterByStatus")}
+              className={styles.selectDropdown}
+            />
             <span className={styles.resultCount}>
               {filteredReservations.length} {t("admin.reservationsShown")}
             </span>

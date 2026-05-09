@@ -64,7 +64,12 @@ export default function MyParkingReservationsPage() {
       </p>
 
       {parkingReservations.length === 0 ? (
-        <p className={styles.info}>{t("parking.noReservations")}</p>
+        <PageState
+          type="empty"
+          title={t("parking.noReservations")}
+          message={t("reservation.emptyParkingHint")}
+          action={<Link to="/parking">{t("home.parkingCta", { defaultValue: "Voir le parking" })}</Link>}
+        />
       ) : (
         <table className={styles.table}>
           <thead>

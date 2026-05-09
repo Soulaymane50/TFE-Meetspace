@@ -85,7 +85,12 @@ export default function EventsPage() {
     fetchEvents();
   };
 
-  const availableEventsCount = events.filter((ev) => (ev.availablePlaces ?? 0) > 0).length;
+  const getAvailablePlaces = (event) =>
+    typeof event.availablePlaces === "number"
+      ? Math.max(0, event.availablePlaces)
+      : Math.max(0, Number(event.capacity) || 0);
+
+  const availableEventsCount = events.filter((ev) => getAvailablePlaces(ev) > 0).length;
   const paidEventsCount = events.filter((ev) => (ev.price || 0) > 0).length;
   const parkingEnabledEventsCount = events.filter((ev) => Boolean(ev.parkingSlotId)).length;
 
@@ -143,7 +148,7 @@ export default function EventsPage() {
     });
 
   const getRegisteredCount = (event) => {
-    const availablePlaces = typeof event.availablePlaces === "number" ? event.availablePlaces : event.capacity;
+    const availablePlaces = getAvailablePlaces(event);
     return Math.max(0, event.capacity - availablePlaces);
   };
 
@@ -494,7 +499,7 @@ export default function EventsPage() {
                           </div>
                           <div className={styles.metaCard}>
                             <span className={styles.metaLabel}>{t("events.remainingPlaces")}</span>
-                            <span className={styles.metaValue}>{Math.max(0, event.availablePlaces ?? 0)}</span>
+                            <span className={styles.metaValue}>{getAvailablePlaces(event)}</span>
                           </div>
                         </div>
                       </div>
@@ -509,7 +514,7 @@ export default function EventsPage() {
                             <span className={styles.progressFill} style={{ width: `${occupancyRate}%` }} />
                           </div>
                           <p className={styles.progressCaption}>
-                            {registeredCount} {t("events.participants")} · {Math.max(0, event.availablePlaces ?? 0)} {t("events.remainingPlaces")}
+                            {registeredCount} {t("events.participants")} · {getAvailablePlaces(event)} {t("events.remainingPlaces")}
                           </p>
                         </div>
 
@@ -566,7 +571,7 @@ export default function EventsPage() {
                                 <span className={styles.progressFill} style={{ width: `${occupancyRate}%` }} />
                               </div>
                               <p className={styles.progressCaption}>
-                                {registeredCount} / {event.capacity} {t("common.persons")} · {Math.max(0, event.availablePlaces ?? 0)} {t("events.remainingPlaces")}
+                                {registeredCount} / {event.capacity} {t("common.persons")} · {getAvailablePlaces(event)} {t("events.remainingPlaces")}
                               </p>
                             </div>
 

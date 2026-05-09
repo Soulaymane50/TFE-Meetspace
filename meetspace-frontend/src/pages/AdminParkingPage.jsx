@@ -8,6 +8,7 @@ import {
   adminGetParkingSlots,
 } from "../services/api";
 import PageState from "../components/PageState";
+import SelectDropdown from "../components/SelectDropdown";
 import styles from "./AdminParkingPage.module.css";
 
 export default function AdminParkingPage() {
@@ -74,6 +75,12 @@ export default function AdminParkingPage() {
   const tabs = [
     { id: "parkingSlots", label: t("admin.parkingManagement") },
     { id: "parkingReservations", label: t("admin.parkingReservations") },
+  ];
+
+  const parkingReservationStatusOptions = [
+    { value: "ALL", label: t("common.all") },
+    { value: "CONFIRMED", label: t("status.confirmed") },
+    { value: "CANCELLED", label: t("status.cancelled") },
   ];
 
   return (
@@ -167,15 +174,13 @@ export default function AdminParkingPage() {
         <section className={styles.section}>
           <div className={styles.filterBar}>
             <label>{t("admin.filterByStatus")}</label>
-            <select
+            <SelectDropdown
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className={styles.select}
-            >
-              <option value="ALL">{t("common.all")}</option>
-              <option value="CONFIRMED">{t("status.confirmed")}</option>
-              <option value="CANCELLED">{t("status.cancelled")}</option>
-            </select>
+              onChange={setFilterStatus}
+              options={parkingReservationStatusOptions}
+              label={t("admin.filterByStatus")}
+              className={styles.selectDropdown}
+            />
             <span className={styles.resultCount}>
               {filteredParkingReservations.length} {t("admin.reservationsShown")}
             </span>

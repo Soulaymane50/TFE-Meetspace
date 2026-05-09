@@ -9,6 +9,7 @@ import styles from "./AvailabilityFinder.module.css";
 const OPENING_HOUR = 7;
 const CLOSING_HOUR = 22;
 const DURATIONS = [2, 4, 8];
+const CAPACITY_PRESETS = [20, 50, 100, 300];
 
 function pad(value) {
   return String(value).padStart(2, "0");
@@ -76,7 +77,7 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
   const [selectedDate, setSelectedDate] = useState(getTodayKey());
   const [duration, setDuration] = useState(2);
   const [capacity, setCapacity] = useState(20);
-  const [availabilityMap, setAvailabilityMap] = useState({});
+  const [availabilityState, setAvailabilityState] = useState({ key: "", map: {} });
   const spaces = providedSpaces || fetchedSpaces;
 
   useEffect(() => {
@@ -109,12 +110,24 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
     };
   }, [providedSpaces]);
 
+  const maxCapacity = spaces.length ? Math.max(...spaces.map((space) => Number(space.capacity) || 0)) : 500;
+  const normalizedCapacity = Math.min(Math.max(Number(capacity) || 1, 1), maxCapacity);
+
   const matchingSpaces = useMemo(
     () =>
       spaces
-        .filter((space) => Number(space.capacity) >= Number(capacity || 0))
+        .filter((space) => Number(space.capacity) >= normalizedCapacity)
         .sort((a, b) => Number(a.capacity || 0) - Number(b.capacity || 0)),
-    [spaces, capacity],
+    [spaces, normalizedCapacity],
+  );
+  const matchingSpaceIds = useMemo(() => matchingSpaces.map((space) => space.id).join(","), [matchingSpaces]);
+  const availabilityKey = `${selectedDate}|${duration}|${matchingSpaceIds}`;
+  const availabilityMap = useMemo(
+    () => (availabilityState.key === availabilityKey ? availabilityState.map : {}),
+    [availabilityKey, availabilityState.key, availabilityState.map],
+  );
+  const checkingAvailability = Boolean(
+    selectedDate && matchingSpaces.length > 0 && availabilityState.key !== availabilityKey,
   );
 
   useEffect(() => {
@@ -155,14 +168,15 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
           return [space.id, { firstSlot: null, available: false, availableHours: 0, dayBlocks: 0 }];
         }
       }),
-    ).then((entries) => {
-      if (!cancelled) setAvailabilityMap(Object.fromEntries(entries));
-    });
+    )
+      .then((entries) => {
+        if (!cancelled) setAvailabilityState({ key: availabilityKey, map: Object.fromEntries(entries) });
+      });
 
     return () => {
       cancelled = true;
     };
-  }, [matchingSpaces, selectedDate, duration]);
+  }, [availabilityKey, matchingSpaces, selectedDate, duration]);
 
   const rooms = useMemo(
     () =>
@@ -178,7 +192,17 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
   );
 
   const availableCount = rooms.filter((room) => room.availability?.available).length;
-  const maxCapacity = spaces.length ? Math.max(...spaces.map((space) => Number(space.capacity) || 0)) : 500;
+
+  const handleCapacityChange = (nextCapacity) => {
+    const value = Math.min(Math.max(Number(nextCapacity) || 1, 1), maxCapacity);
+    setCapacity(value);
+  };
+
+  const resetFilters = () => {
+    setSelectedDate(getTodayKey());
+    setDuration(2);
+    setCapacity(20);
+  };
 
   return (
     <section className={`${styles.finder} ${compact ? styles.finderCompact : ""}`}>
@@ -189,7 +213,7 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
           <p>{t("availabilityFinder.text")}</p>
         </div>
         <div className={styles.signal}>
-          <strong>{availableCount}</strong>
+          <strong>{checkingAvailability ? "…" : availableCount}</strong>
           <span>{t("availabilityFinder.availableRooms")}</span>
         </div>
       </div>
@@ -212,7 +236,7 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
             min="1"
             max={maxCapacity}
             value={capacity}
-            onChange={(event) => setCapacity(event.target.value)}
+            onChange={(event) => handleCapacityChange(event.target.value)}
           />
         </label>
 
@@ -233,12 +257,32 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
         </div>
       </div>
 
+      <div className={styles.presets} aria-label={t("availabilityFinder.capacityPresets")}>
+        <span>{t("availabilityFinder.capacityPresets")}</span>
+        {CAPACITY_PRESETS.filter((preset) => preset <= maxCapacity).map((preset) => (
+          <button
+            type="button"
+            key={preset}
+            className={Number(capacity) === preset ? styles.presetActive : ""}
+            onClick={() => handleCapacityChange(preset)}
+          >
+            {preset} {t("common.persons")}
+          </button>
+        ))}
+        <button type="button" className={styles.resetButton} onClick={resetFilters}>
+          {t("availabilityFinder.reset")}
+        </button>
+      </div>
+
       {loadingSpaces ? (
         <div className={styles.state}>{t("common.loading")}</div>
       ) : loadError ? (
         <div className={styles.state}>{t("availabilityFinder.error")}</div>
       ) : matchingSpaces.length === 0 ? (
-        <div className={styles.state}>{t("availabilityFinder.noCapacityMatch")}</div>
+        <div className={styles.state}>
+          <strong>{t("availabilityFinder.noCapacityMatch")}</strong>
+          <Link to="/espace">{t("availabilityFinder.viewAllRooms")}</Link>
+        </div>
       ) : (
         <div className={styles.results}>
           {rooms.map((room) => {

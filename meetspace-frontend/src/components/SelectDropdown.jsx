@@ -7,10 +7,12 @@ export default function SelectDropdown({
   options,
   label,
   className = "",
+  disabled = false,
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
   const listboxId = useId();
+  const extraClassName = className || "";
 
   const selectedOption = options.find((option) => option.value === value) ?? options[0];
 
@@ -36,7 +38,7 @@ export default function SelectDropdown({
   }, []);
 
   return (
-    <div ref={rootRef} className={`${styles.dropdown} ${className}`.trim()}>
+    <div ref={rootRef} className={`${styles.dropdown} ${extraClassName}`.trim()}>
       <button
         type="button"
         className={`${styles.trigger} ${open ? styles.triggerOpen : ""}`.trim()}
@@ -44,6 +46,7 @@ export default function SelectDropdown({
         aria-expanded={open}
         aria-label={label}
         aria-controls={listboxId}
+        disabled={disabled}
         onClick={() => setOpen((current) => !current)}
       >
         <span className={styles.triggerText}>{selectedOption?.label}</span>
@@ -70,7 +73,7 @@ export default function SelectDropdown({
                     }}
                   >
                     <span>{option.label}</span>
-                    {isSelected && <span className={styles.optionMarker} aria-hidden="true">✓</span>}
+                    {isSelected && <span className={styles.optionMarker} aria-hidden="true">{"\u2713"}</span>}
                   </button>
                 </li>
               );

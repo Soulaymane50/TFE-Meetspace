@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getMyEventRegistrations, getMyParkingReservations, getMyReservations } from "../services/api";
@@ -24,27 +24,43 @@ export default function UserNotificationCenter({ token }) {
 
   const locale = i18n.language === "en" ? "en-GB" : i18n.language === "nl" ? "nl-BE" : "fr-BE";
 
-  const loadNotifications = useCallback(async () => {
-    if (!token) return;
-    setLoading(true);
-    setError("");
-    try {
-      const [spaces, events, parking] = await Promise.all([
+  useEffect(() => {
+    if (!token) return undefined;
+
+    let cancelled = false;
+
+    const loadNotifications = async () => {
+      setLoading(true);
+      setError("");
+
+      const [spacesResult, eventsResult, parkingResult] = await Promise.allSettled([
         getMyReservations(token),
         getMyEventRegistrations(token),
         getMyParkingReservations(token),
       ]);
-      setActivity({ spaces, events, parking });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
 
-  useEffect(() => {
-    loadNotifications();
-  }, [loadNotifications]);
+      if (cancelled) return;
+
+      setActivity({
+        spaces: spacesResult.status === "fulfilled" ? spacesResult.value : [],
+        events: eventsResult.status === "fulfilled" ? eventsResult.value : [],
+        parking: parkingResult.status === "fulfilled" ? parkingResult.value : [],
+      });
+
+      if ([spacesResult, eventsResult, parkingResult].every((result) => result.status === "rejected")) {
+        setError(t("notifications.error", { defaultValue: "Impossible de charger les notifications." }));
+      }
+
+      setLoading(false);
+    };
+
+    const timer = window.setTimeout(loadNotifications, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [t, token]);
 
   useEffect(() => {
     if (!open) return;
@@ -86,12 +102,13 @@ export default function UserNotificationCenter({ token }) {
         localStorage.setItem(READ_STORAGE_KEY, JSON.stringify(next));
         return next;
       });
-    }, 700);
+    }, 120);
 
     return () => window.clearTimeout(timer);
   }, [open, urgentUnread]);
 
-  const nextNotification = notifications[0];
+  const visibleNotifications = notifications.slice(0, 4);
+  const nextNotification = visibleNotifications[0];
 
   return (
     <div className={styles.wrapper} ref={containerRef}>
@@ -118,7 +135,7 @@ export default function UserNotificationCenter({ token }) {
               <h2>{t("notifications.title", { defaultValue: "Notifications" })}</h2>
             </div>
             <Link to="/my-reservations?tab=day" className={styles.dayLink} onClick={() => setOpen(false)}>
-              {t("notifications.myDay", { defaultValue: "Ma journée" })}
+              {t("notifications.openReservations", { defaultValue: "Voir mes réservations" })}
             </Link>
           </div>
 
@@ -135,16 +152,16 @@ export default function UserNotificationCenter({ token }) {
             </div>
           )}
 
-          {!loading && !error && notifications.length === 0 && (
+          {!loading && !error && visibleNotifications.length === 0 && (
             <div className={styles.emptyState}>
               <strong>{t("notifications.emptyTitle", { defaultValue: "Tout est à jour" })}</strong>
               <span>{t("notifications.emptyText", { defaultValue: "Aucune alerte active sur vos réservations." })}</span>
             </div>
           )}
 
-          {!loading && !error && notifications.length > 0 && (
+          {!loading && !error && visibleNotifications.length > 0 && (
             <div className={styles.list}>
-              {notifications.map((notification) => (
+              {visibleNotifications.map((notification) => (
                 <Link
                   key={notification.id}
                   to={notification.to}

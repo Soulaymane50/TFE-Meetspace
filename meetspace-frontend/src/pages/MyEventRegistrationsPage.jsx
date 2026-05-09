@@ -64,7 +64,12 @@ export default function MyEventRegistrationsPage() {
       </p>
 
       {registrations.length === 0 ? (
-        <p className={styles.info}>{t("events.noRegistrations")}</p>
+        <PageState
+          type="empty"
+          title={t("events.noRegistrations")}
+          message={t("reservation.emptyEventsHint")}
+          action={<Link to="/events">{t("home.eventsCta", { defaultValue: "Découvrir les événements" })}</Link>}
+        />
       ) : (
         <table className={styles.table}>
           <thead>

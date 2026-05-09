@@ -261,6 +261,10 @@
   min-width: 180px;
 }
 
+.selectDropdown {
+  min-width: 220px;
+}
+
 .resultCount {
   margin-left: auto;
   font-weight: 700;

@@ -8,6 +8,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
+import SelectDropdown from "../components/SelectDropdown";
 import styles from "./AdminParkingForm.module.css";
 
 export default function AdminParkingForm() {
@@ -30,6 +31,11 @@ export default function AdminParkingForm() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const statusOptions = [
+    { value: "OPEN", label: t("status.open") },
+    { value: "CLOSED", label: t("status.closed") },
+    { value: "CANCELLED", label: t("status.cancelled") },
+  ];
 
   useEffect(() => {
     if (isEditingParkingSlot) {
@@ -238,16 +244,13 @@ export default function AdminParkingForm() {
 
         <div className={styles.formGroup}>
           <label className={styles.label}>{t("common.status")} :</label>
-          <select
-            name="status"
+          <SelectDropdown
             value={parkingSlotForm.status}
-            onChange={handleChange}
-            className={styles.select}
-          >
-            <option value="OPEN">{t("status.open")}</option>
-            <option value="CLOSED">{t("status.closed")}</option>
-            <option value="CANCELLED">{t("status.cancelled")}</option>
-          </select>
+            onChange={(value) => setParkingSlotForm({ ...parkingSlotForm, status: value })}
+            options={statusOptions}
+            label={t("common.status")}
+            className={styles.selectDropdown}
+          />
         </div>
 
         <div className={styles.buttonGroup}>

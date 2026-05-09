@@ -4,6 +4,7 @@ import { adminCreateEvent, adminGetEvents, adminUpdateEvent, adminGetEspaces } f
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import RoomSchedulePicker from "../components/RoomSchedulePicker";
+import SelectDropdown from "../components/SelectDropdown";
 import styles from "./AdminEventForm.module.css";
 
 export default function AdminEventForm() {
@@ -43,6 +44,22 @@ export default function AdminEventForm() {
     ? Math.min(50, Math.max(6, Math.round(recommendedCapacity * 0.3)))
     : 0;
   const recommendedParkingPrice = selectedCapacity >= 100 ? 10 : 8;
+  const locationTypeOptions = [
+    { value: "EXISTING_SPACE", label: t("events.existingSpace") },
+    { value: "EXTERNAL", label: t("events.externalAddress") },
+  ];
+  const roomOptions = [
+    { value: "", label: t("common.select") },
+    ...espaces.map((space) => ({
+      value: String(space.id),
+      label: `${space.name} - ${space.capacity} ${t("common.persons")} - ${space.basePrice} \u20ac${t("common.perHour")}`,
+    })),
+  ];
+  const statusOptions = [
+    { value: "DRAFT", label: t("status.draft") },
+    { value: "PUBLISHED", label: t("status.published") },
+    { value: "CANCELLED", label: t("status.cancelled") },
+  ];
 
   useEffect(() => {
     if (!user || user.role !== "ADMIN") {
@@ -295,33 +312,25 @@ export default function AdminEventForm() {
         <div className={styles.row}>
           <div className={styles.field}>
             <label className={styles.label}>{t("events.locationType")} *</label>
-            <select
-              name="locationType"
+            <SelectDropdown
               value={eventForm.locationType}
-              onChange={handleChange}
-              className={styles.select}
-            >
-              <option value="EXISTING_SPACE">{t("events.existingSpace")}</option>
-              <option value="EXTERNAL">{t("events.externalAddress")}</option>
-            </select>
+              onChange={(value) => handleChange({ target: { name: "locationType", value } })}
+              options={locationTypeOptions}
+              label={t("events.locationType")}
+              className={styles.selectDropdown}
+            />
           </div>
 
           {eventForm.locationType === "EXISTING_SPACE" ? (
             <div className={styles.field}>
               <label className={styles.label}>{t("spaces.space")}</label>
-              <select
-                name="spaceId"
-                value={eventForm.spaceId}
-                onChange={handleChange}
-                className={styles.select}
-              >
-                <option value="">{t("common.select")}</option>
-                {espaces.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} - {s.capacity} {t("common.persons")} - {s.basePrice} €{t("common.perHour")}
-                  </option>
-                ))}
-              </select>
+              <SelectDropdown
+                value={String(eventForm.spaceId || "")}
+                onChange={(value) => handleChange({ target: { name: "spaceId", value } })}
+                options={roomOptions}
+                label={t("spaces.space")}
+                className={styles.selectDropdown}
+              />
               {selectedSpace && (
                 <span className={styles.hint}>
                   {t("organizer.roomCapacityHint", {
@@ -488,16 +497,13 @@ export default function AdminEventForm() {
 
         <div className={styles.field}>
           <label className={styles.label}>{t("common.status")} *</label>
-          <select
-            name="status"
+          <SelectDropdown
             value={eventForm.status}
-            onChange={handleChange}
-            className={styles.select}
-          >
-            <option value="DRAFT">{t("status.draft")}</option>
-            <option value="PUBLISHED">{t("status.published")}</option>
-            <option value="CANCELLED">{t("status.cancelled")}</option>
-          </select>
+            onChange={(value) => handleChange({ target: { name: "status", value } })}
+            options={statusOptions}
+            label={t("common.status")}
+            className={styles.selectDropdown}
+          />
         </div>
 
         <div className={styles.actions}>
