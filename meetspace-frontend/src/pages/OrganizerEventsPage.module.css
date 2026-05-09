@@ -316,6 +316,113 @@
   line-height: 1;
 }
 
+.financePanel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+  border-radius: 24px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: linear-gradient(135deg, rgba(22, 36, 58, 0.96), rgba(49, 87, 132, 0.88));
+  color: #ffffff;
+  box-shadow: 0 18px 40px rgba(27, 42, 64, 0.18);
+}
+
+.financeHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.financeHeader h3 {
+  margin: 0.18rem 0 0;
+  color: #ffffff;
+  font-size: 1.1rem;
+}
+
+.financeHeader span {
+  padding: 0.35rem 0.58rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.72rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.financeEyebrow {
+  margin: 0;
+  color: #f4d7a8;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.financeGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.financeMetric {
+  min-height: 86px;
+  padding: 0.75rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.financeMetric span {
+  display: block;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.financeMetric strong {
+  display: block;
+  margin-top: 0.3rem;
+  color: #ffffff;
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+  line-height: 1.05;
+}
+
+.financeNote {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.82rem;
+}
+
+.financeList {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.financeListItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.58rem 0.7rem;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.financeListItem span {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.financeListItem strong {
+  color: #ffffff;
+  white-space: nowrap;
+}
+
 .statusPanel {
   display: grid;
   align-content: start;
@@ -585,6 +692,30 @@
   color: var(--blue-dark);
 }
 
+.eventFinanceStrip {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 1.3rem 0.2rem;
+  padding: 0.72rem 0.85rem;
+  border-radius: 18px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(16, 185, 129, 0.08);
+  color: #047857;
+}
+
+.eventFinanceStrip span,
+.eventFinanceStrip small {
+  color: inherit;
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.eventFinanceStrip strong {
+  margin-left: auto;
+  color: #065f46;
+}
+
 .eventActions {
   padding: 1rem 1.3rem 1.3rem;
   display: flex;
@@ -703,6 +834,16 @@
     radial-gradient(circle at top right, rgba(207, 162, 101, 0.08), transparent 35%),
     linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
   color: var(--text-primary);
+}
+
+[data-theme="dark"] .eventFinanceStrip {
+  border-color: rgba(16, 185, 129, 0.18);
+  background: rgba(16, 185, 129, 0.12);
+  color: #bbf7d0;
+}
+
+[data-theme="dark"] .eventFinanceStrip strong {
+  color: #d1fae5;
 }
 
 [data-theme="dark"] .mainConsole::before {
@@ -839,7 +980,8 @@
 
   .commandDeck,
   .consoleBody,
-  .signalGrid {
+  .signalGrid,
+  .financeGrid {
     grid-template-columns: 1fr;
   }
 }

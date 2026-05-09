@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { organizerGetMyEvents, organizerCancelMyEvent } from "../services/api";
+import { organizerGetMyEvents, organizerCancelMyEvent, organizerGetFinanceSummary } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
@@ -86,12 +86,23 @@ export default function OrganizerEventsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("ALL");
+  const [financeSummary, setFinanceSummary] = useState(null);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
-      const data = await organizerGetMyEvents(token);
-      setEvents(data);
+      const [eventsResult, financeResult] = await Promise.allSettled([
+        organizerGetMyEvents(token),
+        organizerGetFinanceSummary(token),
+      ]);
+
+      if (eventsResult.status === "rejected") {
+        throw eventsResult.reason;
+      }
+
+      setEvents(eventsResult.value);
+      setFinanceSummary(financeResult.status === "fulfilled" ? financeResult.value : null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -156,6 +167,9 @@ export default function OrganizerEventsPage() {
   const publicationRate = stats.total > 0 ? Math.round((stats.published / stats.total) * 100) : 0;
   const activeEvents = stats.published + stats.pending;
   const filteredCount = filteredEvents.length;
+  const financeEvents = financeSummary?.events ?? [];
+  const financeByEventId = new Map(financeEvents.map((item) => [item.eventId, item]));
+  const topFinanceEvents = financeEvents.slice(0, 3);
   const getStatusCount = (status) => (status === "ALL" ? stats.total : events.filter((e) => e.status === status).length);
   const formatDateTime = (value) => new Date(value).toLocaleString(getDateLocale(), {
     day: "2-digit",
@@ -234,6 +248,49 @@ export default function OrganizerEventsPage() {
               </button>
             ))}
           </div>
+
+          {financeSummary && (
+            <div className={styles.financePanel}>
+              <div className={styles.financeHeader}>
+                <div>
+                  <p className={styles.financeEyebrow}>{t("finance.indicativeEstimate")}</p>
+                  <h3>{t("finance.organizerTitle")}</h3>
+                </div>
+                <span>{t("finance.commissionRate", { rate: Math.round((financeSummary.commissionRate || 0) * 100) })}</span>
+              </div>
+
+              <div className={styles.financeGrid}>
+                <div className={styles.financeMetric}>
+                  <span>{t("finance.confirmedRegistrations")}</span>
+                  <strong>{financeSummary.confirmedRegistrations || 0}</strong>
+                </div>
+                <div className={styles.financeMetric}>
+                  <span>{t("finance.grossRevenue")}</span>
+                  <strong>{formatEuro(financeSummary.eventGrossRevenue)}</strong>
+                </div>
+                <div className={styles.financeMetric}>
+                  <span>{t("finance.roomCost")}</span>
+                  <strong>{formatEuro(financeSummary.roomCostChargedToOrganizers)}</strong>
+                </div>
+                <div className={styles.financeMetric}>
+                  <span>{t("finance.organizerNetEstimate")}</span>
+                  <strong>{formatEuro(financeSummary.organizerNetEstimate)}</strong>
+                </div>
+              </div>
+              <p className={styles.financeNote}>{t("finance.organizerHint")}</p>
+
+              {topFinanceEvents.length > 0 && (
+                <div className={styles.financeList}>
+                  {topFinanceEvents.map((eventFinance) => (
+                    <div key={eventFinance.eventId} className={styles.financeListItem}>
+                      <span>{eventFinance.eventTitle}</span>
+                      <strong>{formatEuro(eventFinance.organizerNetEstimate)}</strong>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         <aside className={styles.statusPanel}>
@@ -321,6 +378,14 @@ export default function OrganizerEventsPage() {
                   {e.price > 0 ? formatEuro(e.price) : t("events.free")}
                 </div>
               </div>
+
+              {financeByEventId.has(e.id) && (
+                <div className={styles.eventFinanceStrip}>
+                  <span>{t("finance.netShort")}</span>
+                  <strong>{formatEuro(financeByEventId.get(e.id).organizerNetEstimate)}</strong>
+                  <small>{financeByEventId.get(e.id).confirmedParticipants || 0} {t("common.participants")}</small>
+                </div>
+              )}
 
               <div className={styles.eventActions}>
                 <Link to={`/organizer/events/edit/${e.id}`} className={styles.editButton}>

@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
 import RoomSchedulePicker from "../components/RoomSchedulePicker";
+import SelectDropdown from "../components/SelectDropdown";
 import styles from "./OrganizerEventForm.module.css";
 
 export default function OrganizerEventForm() {
@@ -39,6 +40,16 @@ export default function OrganizerEventForm() {
   const availableSpaces = spaces
     .filter((space) => space.status !== "UNAVAILABLE")
     .sort((a, b) => (a.capacity || 0) - (b.capacity || 0));
+  const roomOptions = [
+    {
+      value: "",
+      label: loadingSpaces ? t("common.loading") : t("organizer.selectLocation"),
+    },
+    ...availableSpaces.map((space) => ({
+      value: String(space.id),
+      label: `${space.name} - ${space.capacity} ${t("common.persons")} - ${space.basePrice} \u20ac${t("common.perHour")}`,
+    })),
+  ];
 
   const selectedSpace = availableSpaces.find(
     (space) => String(space.id) === String(eventForm.spaceId) || space.name === eventForm.location,
@@ -353,22 +364,14 @@ export default function OrganizerEventForm() {
             <label className={styles.label}>
               {t("events.location")} <span className={styles.required}>*</span>
             </label>
-            <select
-              name="spaceId"
-              value={eventForm.spaceId}
-              onChange={handleLocationChange}
-              className={styles.select}
-              required
-            >
-              <option value="">
-                {loadingSpaces ? t("common.loading") : t("organizer.selectLocation")}
-              </option>
-              {availableSpaces.map((space) => (
-                <option key={space.id} value={space.id}>
-                  {space.name} - {space.capacity} {t("common.persons")} - {space.basePrice} €{t("common.perHour")}
-                </option>
-              ))}
-            </select>
+            <SelectDropdown
+              value={String(eventForm.spaceId || "")}
+              onChange={(value) => handleLocationChange({ target: { value } })}
+              options={roomOptions}
+              label={t("events.location")}
+              className={styles.selectDropdown}
+              disabled={loadingSpaces}
+            />
             <span className={styles.hint}>
               {selectedSpace
                 ? t("organizer.roomCapacityHint", {

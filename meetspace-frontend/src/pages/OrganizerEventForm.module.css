@@ -143,6 +143,10 @@
   width: 100%;
 }
 
+.selectDropdown {
+  width: 100%;
+}
+
 .select {
   appearance: none;
   -webkit-appearance: none;

@@ -1055,6 +1055,105 @@
   background: linear-gradient(90deg, #99f6c6, #10b981);
 }
 
+.barViolet {
+  background: linear-gradient(90deg, #d8b4fe, #8b5cf6);
+}
+
+.financeOverviewPanel {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: clamp(1rem, 1.8vw, 1.35rem);
+  border-radius: 28px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background:
+    radial-gradient(circle at 98% 0%, rgba(90, 124, 226, 0.12), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.88));
+  box-shadow: var(--shadow-soft);
+}
+
+.financeOverviewHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.financeOverviewHeader h3 {
+  margin: 0.15rem 0 0.35rem;
+  color: var(--blue-darker);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  letter-spacing: -0.04em;
+}
+
+.financeOverviewHeader span,
+.financeKpi span,
+.financeTotalCard span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.financeEyebrow {
+  margin: 0;
+  color: var(--orange);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.financeTotalCard {
+  min-width: 230px;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: linear-gradient(135deg, rgba(27, 42, 64, 0.96), rgba(49, 87, 132, 0.92));
+  color: #fff;
+}
+
+.financeTotalCard span {
+  display: block;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.financeTotalCard strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: clamp(1.45rem, 3vw, 2.35rem);
+  letter-spacing: -0.06em;
+}
+
+.financeKpiGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.financeKpi {
+  padding: 0.9rem;
+  border-radius: 20px;
+  border: 1px solid rgba(27, 42, 64, 0.07);
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.financeKpi strong {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--blue-darker);
+  font-size: clamp(1.25rem, 2.6vw, 1.95rem);
+  letter-spacing: -0.04em;
+}
+
+.financeBreakdownPanel {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.9rem;
+  border-radius: 20px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(255, 255, 255, 0.62);
+}
+
 .opsPanel {
   position: relative;
   overflow: hidden;
@@ -1371,6 +1470,10 @@
   min-width: 150px;
 }
 
+.selectDropdown {
+  min-width: 170px;
+}
+
 .currentUserBadge {
   display: inline-flex;
   margin-left: 0.5rem;
@@ -1627,6 +1730,7 @@
 [data-theme="dark"] .moduleCard,
 [data-theme="dark"] .operationsPanel,
 [data-theme="dark"] .analyticsPanel,
+[data-theme="dark"] .financeOverviewPanel,
 [data-theme="dark"] .heroPanel,
 [data-theme="dark"] .actionPanel,
 [data-theme="dark"] .reviewPanel,
@@ -1705,6 +1809,26 @@
 
 [data-theme="dark"] .moduleArrow {
   background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .financeOverviewHeader h3,
+[data-theme="dark"] .financeKpi strong {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .financeOverviewHeader span,
+[data-theme="dark"] .financeKpi span {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .financeKpi,
+[data-theme="dark"] .financeBreakdownPanel {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+[data-theme="dark"] .financeBreakdownPanel .revenueTrack {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 [data-theme="dark"] .cockpitIcon,
@@ -1966,7 +2090,8 @@
 .statusConsole,
 .moduleCard,
 .operationsPanel,
-.analyticsPanel {
+.analyticsPanel,
+.financeOverviewPanel {
   border-radius: 30px;
   background:
     radial-gradient(circle at 100% 0%, rgba(90, 124, 226, 0.1), transparent 30%),
@@ -2040,7 +2165,8 @@
 [data-theme="dark"] .statusConsole,
 [data-theme="dark"] .moduleCard,
 [data-theme="dark"] .operationsPanel,
-[data-theme="dark"] .analyticsPanel {
+[data-theme="dark"] .analyticsPanel,
+[data-theme="dark"] .financeOverviewPanel {
   background:
     radial-gradient(circle at 100% 0%, rgba(137, 163, 255, 0.08), transparent 30%),
     linear-gradient(180deg, rgba(18, 26, 37, 0.94), rgba(12, 18, 27, 0.92));
@@ -2055,6 +2181,11 @@
 
 @media (max-width: 820px) {
   .moduleGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .financeOverviewHeader,
+  .financeKpiGrid {
     grid-template-columns: 1fr;
   }
 
