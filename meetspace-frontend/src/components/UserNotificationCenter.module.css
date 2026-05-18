@@ -1,5 +1,6 @@
 .wrapper {
   position: relative;
+  z-index: 80;
 }
 
 .trigger {
@@ -8,6 +9,7 @@
   place-items: center;
   width: 40px;
   height: 40px;
+  padding: 0;
   border: 1px solid rgba(20, 32, 51, 0.1);
   border-radius: 14px;
   background:
@@ -15,6 +17,7 @@
     rgba(255, 255, 255, 0.74);
   color: var(--blue-darker);
   box-shadow: 0 14px 30px rgba(11, 18, 32, 0.08);
+  line-height: 1;
 }
 
 .trigger:hover,
@@ -28,6 +31,12 @@
 .bellIcon svg {
   width: 18px;
   height: 18px;
+}
+
+.bellIcon {
+  display: inline-grid;
+  place-items: center;
+  line-height: 0;
 }
 
 .bellIcon svg {
@@ -50,14 +59,16 @@
   color: #fff;
   font-size: 0.66rem;
   font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
   box-shadow: 0 8px 18px rgba(209, 63, 63, 0.25);
 }
 
 .panel {
-  position: absolute;
-  top: calc(100% + 0.75rem);
-  right: 0;
-  z-index: 60;
+  position: fixed;
+  top: 8.4rem;
+  right: max(1.4rem, calc((100vw - 1520px) / 2 + 1.4rem));
+  z-index: 1400;
   width: min(420px, calc(100vw - 2rem));
   padding: 1rem;
   border: 1px solid rgba(20, 32, 51, 0.1);
@@ -95,12 +106,17 @@
 
 .dayLink {
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.55rem 0.72rem;
   border-radius: 999px;
   background: var(--blue-darker);
   color: #fff;
   font-size: 0.72rem;
   font-weight: 900;
+  line-height: 1;
+  text-align: center;
   text-decoration: none;
 }
 
@@ -296,6 +312,7 @@
   .panel {
     position: fixed;
     inset: 5.5rem 1rem auto 1rem;
+    z-index: 1400;
     width: auto;
   }
 }

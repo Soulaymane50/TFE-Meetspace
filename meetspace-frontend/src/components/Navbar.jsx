@@ -97,7 +97,7 @@ export default function Navbar() {
           )}
 
           <div className={styles.controls}>
-            {user && <UserNotificationCenter token={token} />}
+            {user && <UserNotificationCenter token={token} user={user} />}
             <LanguageSwitcher />
             <ThemeToggle />
           </div>
