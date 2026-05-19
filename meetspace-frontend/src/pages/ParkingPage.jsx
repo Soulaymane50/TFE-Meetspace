@@ -4,6 +4,7 @@ import { getParkingSlots } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
+import { formatMoney, formatNumber } from "../utils/formatters";
 import styles from "./ParkingPage.module.css";
 
 const getDateLocale = (lang) => {
@@ -139,19 +140,19 @@ export default function ParkingPage() {
 
         <div className={styles.summaryGrid}>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{parkingSlots.length}</span>
+            <span className={styles.summaryValue}>{formatNumber(parkingSlots.length, locale)}</span>
             <span className={styles.summaryLabel}>{t("nav.parking")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{openSlotsCount}</span>
+            <span className={styles.summaryValue}>{formatNumber(openSlotsCount, locale)}</span>
             <span className={styles.summaryLabel}>{t("parking.operationsOpenSlots")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{totalAvailableSpaces}</span>
+            <span className={styles.summaryValue}>{formatNumber(totalAvailableSpaces, locale)}</span>
             <span className={styles.summaryLabel}>{t("parking.placesAvailable")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{averageRate} €</span>
+            <span className={styles.summaryValue}>{formatMoney(averageRate, locale)}</span>
             <span className={styles.summaryLabel}>{t("parking.rateLabel")}</span>
           </div>
         </div>
@@ -175,11 +176,11 @@ export default function ParkingPage() {
 
             <div className={styles.sidebarStats}>
               <div className={styles.sidebarStat}>
-                <span className={styles.sidebarStatValue}>{groupedSlots.length}</span>
+                <span className={styles.sidebarStatValue}>{formatNumber(groupedSlots.length, locale)}</span>
                 <span className={styles.sidebarStatLabel}>{t("parking.daysCovered")}</span>
               </div>
               <div className={styles.sidebarStat}>
-                <span className={styles.sidebarStatValue}>{totalCapacity}</span>
+                <span className={styles.sidebarStatValue}>{formatNumber(totalCapacity, locale)}</span>
                 <span className={styles.sidebarStatLabel}>{t("parking.totalCapacityLabel")}</span>
               </div>
             </div>
@@ -193,7 +194,7 @@ export default function ParkingPage() {
                   onClick={() => setSelectedDate("ALL")}
                 >
                   <strong>{t("parking.allDays")}</strong>
-                  <span>{totalAvailableSpaces} {t("parking.remainingLabel")}</span>
+                  <span>{formatNumber(totalAvailableSpaces, locale)} {t("parking.remainingLabel")}</span>
                 </button>
                 {groupedSlots.map((group) => {
                   const available = group.slots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0);
@@ -213,7 +214,7 @@ export default function ParkingPage() {
                       onClick={() => setSelectedDate(group.key)}
                     >
                       <strong>{group.compactLabel}</strong>
-                      <span>{available}/{capacity} {t("parking.places")}</span>
+                      <span>{formatNumber(available, locale)}/{formatNumber(capacity, locale)} {t("parking.places")}</span>
                     </button>
                   );
                 })}
@@ -222,7 +223,7 @@ export default function ParkingPage() {
 
             <div className={styles.selectedDayCard}>
               <span>{selectedDate === "ALL" ? t("parking.allDays") : t("parking.selectedDay")}</span>
-              <strong>{selectedDayAvailable}</strong>
+              <strong>{formatNumber(selectedDayAvailable, locale)}</strong>
               <p>
                 {selectedDate === "ALL"
                   ? t("parking.availableAcrossDays", { count: selectedDayCapacity })
@@ -249,10 +250,10 @@ export default function ParkingPage() {
                   </div>
                   <div className={styles.dayStats}>
                     <span className={styles.dayStat}>
-                      {group.slots.length} {group.slots.length > 1 ? t("parking.sessionPlural") : t("parking.session")}
+                      {formatNumber(group.slots.length, locale)} {group.slots.length > 1 ? t("parking.sessionPlural") : t("parking.session")}
                     </span>
                     <span className={styles.dayStat}>
-                      {group.slots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0)} {t("parking.placesAvailable")}
+                      {formatNumber(group.slots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0), locale)} {t("parking.placesAvailable")}
                     </span>
                   </div>
                 </div>
@@ -280,28 +281,28 @@ export default function ParkingPage() {
                         <div className={styles.slotMetrics}>
                           <div className={styles.metricCard}>
                             <span className={styles.metricLabel}>{t("parking.reservedLabel")}</span>
-                            <span className={styles.metricValue}>{reserved}</span>
+                            <span className={styles.metricValue}>{formatNumber(reserved, locale)}</span>
                           </div>
                           <div className={styles.metricCard}>
                             <span className={styles.metricLabel}>{t("parking.remainingLabel")}</span>
-                            <span className={styles.metricValue}>{slot.availableSpaces}</span>
+                            <span className={styles.metricValue}>{formatNumber(slot.availableSpaces, locale)}</span>
                           </div>
                           <div className={styles.metricCard}>
                             <span className={styles.metricLabel}>{t("parking.rateLabel")}</span>
-                            <span className={styles.metricValue}>{slot.parkingRate} €</span>
+                            <span className={styles.metricValue}>{formatMoney(slot.parkingRate, locale)}</span>
                           </div>
                         </div>
 
                         <div className={styles.progressCard}>
                           <div className={styles.progressHeader}>
                             <span className={styles.progressLabel}>{t("parking.occupancyLabel")}</span>
-                            <span className={styles.progressValue}>{occupancy}%</span>
+                            <span className={styles.progressValue}>{formatNumber(occupancy, locale)}%</span>
                           </div>
                           <div className={styles.progressTrack} aria-hidden="true">
                             <span className={styles.progressFill} style={{ width: `${occupancy}%` }} />
                           </div>
                           <p className={styles.progressCaption}>
-                            {reserved} / {slot.parkingCapacity} {t("parking.places")}
+                            {formatNumber(reserved, locale)} / {formatNumber(slot.parkingCapacity, locale)} {t("parking.places")}
                           </p>
                         </div>
 

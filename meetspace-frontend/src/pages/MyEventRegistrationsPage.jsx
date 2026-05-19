@@ -4,6 +4,7 @@ import { cancelEventRegistration, getMyEventRegistrations } from "../services/ap
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
+import { useFeedback } from "../context/FeedbackContext";
 import styles from "./MyEventRegistrationsPage.module.css";
 
 export default function MyEventRegistrationsPage() {
@@ -12,6 +13,7 @@ export default function MyEventRegistrationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { t } = useTranslation();
+  const { confirm, notify } = useFeedback();
 
   const fetchRegistrations = useCallback(async () => {
     setLoading(true);
@@ -35,13 +37,24 @@ export default function MyEventRegistrationsPage() {
   }, [fetchRegistrations]);
 
   const handleCancel = async (id) => {
-    if (!window.confirm(t("events.confirmCancel"))) return;
+    const accepted = await confirm({
+      title: t("events.confirmCancel"),
+      confirmLabel: t("common.confirm", { defaultValue: "Confirmer" }),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
+    if (!accepted) return;
 
     try {
       await cancelEventRegistration(id, token);
       fetchRegistrations();
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("events.registrationCancelled", { defaultValue: "Inscription annulée." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 

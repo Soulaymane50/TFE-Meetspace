@@ -6,6 +6,7 @@ import { getMyReservations } from "../services/api";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import UserNotificationCenter from "./UserNotificationCenter";
+import { formatNumber } from "../utils/formatters";
 import styles from "./Navbar.module.css";
 
 export default function Navbar() {
@@ -65,7 +66,7 @@ export default function Navbar() {
               className={({ isActive }) => `${styles.utilityLink} ${isActive ? styles.utilityLinkActive : ""}`}
             >
               {t("nav.myReservations")}
-              {approvedCount > 0 && <span className={styles.notifBadge}>{approvedCount}</span>}
+              {approvedCount > 0 && <span className={styles.notifBadge}>{formatNumber(approvedCount)}</span>}
             </NavLink>
           )}
 

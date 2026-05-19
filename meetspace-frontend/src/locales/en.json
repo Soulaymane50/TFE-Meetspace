@@ -649,7 +649,11 @@
     "error": "An error occurred. Please try again.",
     "unavailableTitle": "Payment unavailable",
     "unavailableMessage": "Payment is not configured for this environment. Please try again later or contact the MeetSpace team.",
-    "securedBy": "Secured by Stripe"
+        "securedBy": "Secured by Stripe",
+    "successTitle": "Payment confirmed",
+    "spaceSuccessMessage": "Your room reservation is confirmed.",
+    "eventSuccessMessage": "Your event registration is confirmed.",
+    "parkingSuccessMessage": "Your parking reservation is confirmed."
   },
 
   "profile": {

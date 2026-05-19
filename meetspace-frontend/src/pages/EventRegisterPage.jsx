@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getPublicEvents, registerToEvent } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { useFeedback } from "../context/FeedbackContext";
 import { useTranslation } from "react-i18next";
 import PaymentForm from "../components/PaymentForm";
 import PageState from "../components/PageState";
 import { getEventImage } from "../utils/mediaAssets";
+import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./EventRegisterPage.module.css";
 
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
@@ -14,7 +16,8 @@ export default function EventRegisterPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, token } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { notify } = useFeedback();
 
   const [event, setEvent] = useState(null);
   const [numberOfParticipants, setNumberOfParticipants] = useState(1);
@@ -54,6 +57,8 @@ export default function EventRegisterPage() {
   const parkingTotal = hasParking && addParking ? parkingUnit * reservedSpaces : 0;
   const totalAmount = eventTotal + parkingTotal;
   const requiresPayment = totalAmount > 0;
+  const locale = normalizeLocale(i18n.language);
+  const formattedTotalAmount = formatMoney(totalAmount, locale);
 
   const clampNumber = (value, min, max) => {
     const number = parseInt(value, 10);
@@ -85,7 +90,15 @@ export default function EventRegisterPage() {
         token,
       );
 
-      alert(requiresPayment ? t("payment.success") : t("events.registrationSuccess"));
+      notify({
+        type: "success",
+        title: requiresPayment
+          ? t("payment.successTitle", { defaultValue: "Paiement validé" })
+          : t("events.registrationSuccess"),
+        message: requiresPayment
+          ? t("payment.eventSuccessMessage", { defaultValue: "Votre inscription est confirmée." })
+          : t("events.registrationSuccessMessage", { defaultValue: "Votre participation est confirmée." }),
+      });
       navigate("/my-reservations?tab=events");
     } catch (err) {
       setError(err.message);
@@ -151,7 +164,7 @@ export default function EventRegisterPage() {
               <div className={styles.metricGrid}>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("events.numberOfParticipants")}</span>
-                  <span className={styles.metricValue}>{numberOfParticipants}</span>
+                  <span className={styles.metricValue}>{formatNumber(numberOfParticipants, locale)}</span>
                 </div>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("events.parkingOption")}</span>
@@ -160,7 +173,7 @@ export default function EventRegisterPage() {
               </div>
               <div className={styles.totalPanel}>
                 <span>{t("reservation.totalPrice")}</span>
-                <strong>{totalAmount.toFixed(2)} €</strong>
+                <strong>{formattedTotalAmount}</strong>
               </div>
             </div>
           </aside>
@@ -219,20 +232,20 @@ export default function EventRegisterPage() {
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("common.capacity")}</span>
                   <span className={styles.metricValue}>
-                    {event.capacity} {t("common.persons")}
+                    {formatNumber(event.capacity, locale)} {t("common.persons")}
                   </span>
                 </div>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("common.price")}</span>
                   <span className={styles.metricValue}>
-                    {eventPrice > 0 ? `${eventPrice} € / ${t("events.participant", { count: 1 })}` : t("events.free")}
+                    {eventPrice > 0 ? `${formatMoney(eventPrice, locale)} / ${t("events.participant", { count: 1 })}` : t("events.free")}
                   </span>
                 </div>
                 {hasParking && (
                   <div className={styles.metricCard}>
                     <span className={styles.metricLabel}>{t("events.parkingOption")}</span>
                     <span className={styles.metricValue}>
-                      {parkingUnit > 0 ? `${parkingUnit} € / ${t("parking.perSpace")}` : t("events.free")}
+                      {parkingUnit > 0 ? `${formatMoney(parkingUnit, locale)} / ${t("parking.perSpace")}` : t("events.free")}
                     </span>
                   </div>
                 )}
@@ -284,7 +297,7 @@ export default function EventRegisterPage() {
                 <div className={styles.serviceCopy}>
                   <span className={styles.serviceLabel}>{t("parking.addToRegistration")}</span>
                   <span className={styles.servicePrice}>
-                    {parkingUnit > 0 ? `${parkingUnit} € / ${t("parking.perSpace")}` : t("events.free")}
+                    {parkingUnit > 0 ? `${formatMoney(parkingUnit, locale)} / ${t("parking.perSpace")}` : t("events.free")}
                   </span>
                 </div>
               </label>
@@ -316,18 +329,20 @@ export default function EventRegisterPage() {
             <div className={styles.metricGrid}>
               <div className={styles.metricCard}>
                 <span className={styles.metricLabel}>{t("events.numberOfParticipants")}</span>
-                <span className={styles.metricValue}>{numberOfParticipants}</span>
+                <span className={styles.metricValue}>{formatNumber(numberOfParticipants, locale)}</span>
               </div>
               <div className={styles.metricCard}>
                 <span className={styles.metricLabel}>{t("events.parkingOption")}</span>
-                <span className={styles.metricValue}>{hasParking && addParking ? `${reservedSpaces}` : t("events.withoutParking")}</span>
+                <span className={styles.metricValue}>
+                  {hasParking && addParking ? formatNumber(reservedSpaces, locale) : t("events.withoutParking")}
+                </span>
               </div>
             </div>
 
             {requiresPayment && (
               <div className={styles.totalPanel}>
                 <span>{t("reservation.totalPrice")}</span>
-                <strong>{totalAmount.toFixed(2)} €</strong>
+                <strong>{formattedTotalAmount}</strong>
               </div>
             )}
 

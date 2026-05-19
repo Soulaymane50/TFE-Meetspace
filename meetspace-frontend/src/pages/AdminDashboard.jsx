@@ -17,6 +17,8 @@ import styles from "./AdminDashboard.module.css";
 import AuditLogs from "../components/AuditLogs";
 import PageState from "../components/PageState";
 import SelectDropdown from "../components/SelectDropdown";
+import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
+import { useFeedback } from "../context/FeedbackContext";
 
 function AdminIcon({ type }) {
   const icons = {
@@ -97,12 +99,11 @@ function AdminIcon({ type }) {
   );
 }
 
-const EURO = "\u20ac";
-
 export default function AdminDashboard() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { confirm, notify } = useFeedback();
 
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
@@ -183,32 +184,63 @@ export default function AdminDashboard() {
   }, [loadData, navigate, user]);
 
   const handleUpdateUserRole = async (userId, newRole) => {
-    if (!window.confirm(t("admin.confirmRoleChange"))) return;
+    const accepted = await confirm({
+      title: t("admin.confirmRoleChange"),
+      confirmLabel: t("common.confirm", { defaultValue: "Confirmer" }),
+      cancelLabel: t("common.cancel"),
+    });
+    if (!accepted) return;
     try {
       await adminUpdateUserRole(userId, newRole, token);
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("admin.roleUpdated", { defaultValue: "Rôle utilisateur mis à jour." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
   const handleBanUser = async (userId) => {
-    if (!window.confirm(t("admin.confirmBan"))) return;
+    const accepted = await confirm({
+      title: t("admin.confirmBan"),
+      confirmLabel: t("admin.ban", { defaultValue: "Suspendre" }),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
+    if (!accepted) return;
     try {
       const updated = await adminBanUser(userId, token);
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, status: updated.status } : u)));
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("admin.userSuspended", { defaultValue: "Utilisateur suspendu." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
   const handleReactivateUser = async (userId) => {
-    if (!window.confirm(t("admin.confirmReactivate"))) return;
+    const accepted = await confirm({
+      title: t("admin.confirmReactivate"),
+      confirmLabel: t("admin.reactivate", { defaultValue: "Réactiver" }),
+      cancelLabel: t("common.cancel"),
+    });
+    if (!accepted) return;
     try {
       const updated = await adminReactivateUser(userId, token);
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, status: updated.status } : u)));
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("admin.userReactivated", { defaultValue: "Utilisateur réactivé." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
@@ -219,7 +251,7 @@ export default function AdminDashboard() {
       setUserDetails(details);
       setSelectedUser(userId);
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     } finally {
       setLoadingDetails(false);
     }
@@ -249,7 +281,9 @@ export default function AdminDashboard() {
   const confirmedParkingReservations = stats?.confirmedParkingReservations ?? 0;
   const parkingRevenue = stats?.parkingRevenue ?? 0;
   const userParkingReservations = userDetails?.parkingReservations ?? [];
-  const formatEuro = (value) => `${(value || 0).toFixed(2)} ${EURO}`;
+  const locale = normalizeLocale(i18n.language);
+  const formatEuro = (value) => formatMoney(value, locale);
+  const formatStat = (value) => formatNumber(value, locale);
   const totalRevenue = stats?.totalRevenue || 0;
   const financeTotal = financeSummary?.meetSpaceEstimatedRevenue ?? totalRevenue;
   const eventGrossRevenue = financeSummary?.eventGrossRevenue ?? stats?.eventRevenue ?? 0;
@@ -367,7 +401,7 @@ export default function AdminDashboard() {
         <div className={styles.alertBanner}>
           <span className={styles.alertIcon}>!</span>
           <span>
-            {pendingEvents.length} {t("admin.eventsPendingApproval")}
+            {formatStat(pendingEvents.length)} {t("admin.eventsPendingApproval")}
           </span>
           <Link to="/admin/events" className={styles.alertButton}>
             {t("common.view")}
@@ -379,7 +413,7 @@ export default function AdminDashboard() {
         <div className={styles.alertBanner}>
           <span className={styles.alertIcon}>!</span>
           <span>
-            {pendingReservations.length} {t("admin.premiumRoomReservationsPending")}
+            {formatStat(pendingReservations.length)} {t("admin.premiumRoomReservationsPending")}
           </span>
           <Link to="/admin/espaces" className={styles.alertButton}>
             {t("common.view")}
@@ -408,7 +442,7 @@ export default function AdminDashboard() {
             </div>
             <span className={styles.liveBadge}>
               <span className={styles.liveDot} />
-              {t("admin.pendingApprovals")}: {totalPending}
+              {t("admin.pendingApprovals")}: {formatStat(totalPending)}
             </span>
           </div>
 
@@ -418,7 +452,7 @@ export default function AdminDashboard() {
                 <span className={styles.consoleBadge}>{t("admin.totalRevenue")}</span>
                 <span className={styles.consoleStatus}>
                   <span className={styles.liveDot} />
-                  {t("admin.pendingApprovals")}: {totalPending}
+                  {t("admin.pendingApprovals")}: {formatStat(totalPending)}
                 </span>
               </div>
 
@@ -431,19 +465,19 @@ export default function AdminDashboard() {
                 <div className={styles.revenueChips}>
                   <span>
                     {t("admin.totalReservations")}
-                    <strong>{totalReservations}</strong>
+                    <strong>{formatStat(totalReservations)}</strong>
                   </span>
                   <span>
                     {t("admin.confirmedEventRes")}
-                    <strong>{stats?.confirmedEventRegistrations || 0}</strong>
+                    <strong>{formatStat(stats?.confirmedEventRegistrations || 0)}</strong>
                   </span>
                   <span>
                     {t("admin.confirmedSpaceRes")}
-                    <strong>{stats?.confirmedSpaceReservations || 0}</strong>
+                    <strong>{formatStat(stats?.confirmedSpaceReservations || 0)}</strong>
                   </span>
                   <span>
                     {t("admin.confirmedParkingReservations")}
-                    <strong>{confirmedParkingReservations}</strong>
+                    <strong>{formatStat(confirmedParkingReservations)}</strong>
                   </span>
                 </div>
               </div>
@@ -477,7 +511,7 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <span>{item.label}</span>
-                      <strong>{item.value}</strong>
+                      <strong>{formatStat(item.value)}</strong>
                       <small>{item.meta}</small>
                     </div>
                   </div>
@@ -539,7 +573,7 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <span>{module.label}</span>
-                  <strong>{module.value}</strong>
+                  <strong>{formatStat(module.value)}</strong>
                   <small>{module.meta}</small>
                 </div>
                 <span className={styles.moduleArrow}>{"\u2192"}</span>
@@ -561,7 +595,7 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <span>{module.label}</span>
-                      <strong>{module.value}</strong>
+                      <strong>{formatStat(module.value)}</strong>
                     </div>
                     <small>{module.meta}</small>
                   </Link>
@@ -582,7 +616,7 @@ export default function AdminDashboard() {
                         <AdminIcon type={item.icon} />
                       </div>
                       <p className={styles.statLabel}>{item.label}</p>
-                      <p className={styles.statNumber}>{item.value}</p>
+                      <p className={styles.statNumber}>{formatStat(item.value)}</p>
                     </div>
                   ))}
                 </div>
@@ -597,7 +631,7 @@ export default function AdminDashboard() {
                       <AdminIcon type={item.icon} />
                     </div>
                     <p className={styles.statLabel}>{item.label}</p>
-                    <p className={styles.statNumber}>{item.value}</p>
+                    <p className={styles.statNumber}>{formatStat(item.value)}</p>
                   </div>
                   ))}
                 </div>

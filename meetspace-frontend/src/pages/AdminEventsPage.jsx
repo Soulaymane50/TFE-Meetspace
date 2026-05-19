@@ -14,6 +14,7 @@ import PageState from "../components/PageState";
 import EventPlanningTimeline from "../components/EventPlanningTimeline";
 import SelectDropdown from "../components/SelectDropdown";
 import { useFeedback } from "../context/FeedbackContext";
+import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./AdminEventsPage.module.css";
 
 const getEventStart = (event) => new Date(event.startDateTime);
@@ -44,6 +45,7 @@ export default function AdminEventsPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { confirm, notify } = useFeedback();
+  const locale = normalizeLocale(i18n.language);
 
   const getDateLocale = () => {
     const locales = { fr: "fr-BE", nl: "nl-BE", en: "en-GB" };
@@ -326,7 +328,7 @@ export default function AdminEventsPage() {
                       <div className={styles.roomColumnHeader}>
                         <div>
                           <h3>{room.name}</h3>
-                          <span>{room.capacity ? `${room.capacity} ${t("common.persons")}` : t("common.toBeAnnounced")}</span>
+                          <span>{room.capacity ? `${formatNumber(room.capacity, locale)} ${t("common.persons")}` : t("common.toBeAnnounced")}</span>
                         </div>
                         <strong>{roomEvents.length}</strong>
                       </div>
@@ -356,7 +358,7 @@ export default function AdminEventsPage() {
                                 </span>
                                 <strong>{event.title}</strong>
                                 <small>
-                                  {event.capacity || "-"} {t("common.persons")} · {t("admin.roomOccupancy", { occupancy })}
+                                  {event.capacity ? formatNumber(event.capacity, locale) : "-"} {t("common.persons")} · {t("admin.roomOccupancy", { occupancy })}
                                 </small>
                                 {conflict && <em>{t("admin.roomTimeConflict")}</em>}
                               </Link>
@@ -412,8 +414,8 @@ export default function AdminEventsPage() {
                     <tr key={e.id}>
                       <td className={styles.nameCell}>{e.title}</td>
                       <td>{new Date(e.startDateTime).toLocaleString(getDateLocale())}</td>
-                      <td>{e.capacity || "-"}</td>
-                      <td>{e.price ? `${e.price} €` : t("events.free")}</td>
+                      <td>{e.capacity ? formatNumber(e.capacity, locale) : "-"}</td>
+                      <td>{e.price ? formatMoney(e.price, locale) : t("events.free")}</td>
                       <td>
                         <span className={`${styles.statusBadge} ${getStatusClass(e.status)}`}>
                           {t(`status.${e.status.toLowerCase()}`)}
@@ -469,11 +471,11 @@ export default function AdminEventsPage() {
                     </span>
                     <span>
                       <small>{t("common.capacity")}</small>
-                      <strong>{e.capacity ? `${e.capacity} ${t("common.persons")}` : "-"}</strong>
+                      <strong>{e.capacity ? `${formatNumber(e.capacity, locale)} ${t("common.persons")}` : "-"}</strong>
                     </span>
                     <span>
                       <small>{t("common.price")}</small>
-                      <strong>{e.price ? `${e.price} €` : t("events.free")}</strong>
+                      <strong>{e.price ? formatMoney(e.price, locale) : t("events.free")}</strong>
                     </span>
                   </div>
 
@@ -560,9 +562,9 @@ export default function AdminEventsPage() {
                           {r.userFullName && <small className={styles.emailSmall}>{r.userEmail}</small>}
                         </div>
                       </td>
-                      <td>{r.numberOfParticipants || 1}</td>
+                      <td>{formatNumber(r.numberOfParticipants || 1, locale)}</td>
                       <td>{new Date(r.eventDate).toLocaleString(getDateLocale())}</td>
-                      <td>{r.totalPrice ? `${r.totalPrice} €` : t("events.free")}</td>
+                      <td>{r.totalPrice ? formatMoney(r.totalPrice, locale) : t("events.free")}</td>
                       <td>
                         <span className={`${styles.statusBadge} ${styles[`status${r.status}`]}`}>
                           {t(`status.${r.status.toLowerCase()}`)}

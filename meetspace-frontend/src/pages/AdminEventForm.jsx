@@ -5,13 +5,15 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import RoomSchedulePicker from "../components/RoomSchedulePicker";
 import SelectDropdown from "../components/SelectDropdown";
+import { formatMoney, normalizeLocale } from "../utils/formatters";
 import styles from "./AdminEventForm.module.css";
 
 export default function AdminEventForm() {
   const { user, token } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
   const parkingGridClassName = styles.parkingGrid;
 
   const isEdit = !!id;
@@ -52,7 +54,7 @@ export default function AdminEventForm() {
     { value: "", label: t("common.select") },
     ...espaces.map((space) => ({
       value: String(space.id),
-      label: `${space.name} - ${space.capacity} ${t("common.persons")} - ${space.basePrice} \u20ac${t("common.perHour")}`,
+      label: `${space.name} - ${space.capacity} ${t("common.persons")} - ${formatMoney(space.basePrice, locale)} ${t("common.perHour")}`,
     })),
   ];
   const statusOptions = [
@@ -367,7 +369,7 @@ export default function AdminEventForm() {
                 {t("organizer.advisorCapacity")}
               </span>
               <span>
-                <strong>{recommendedPrice} €</strong>
+                <strong>{formatMoney(recommendedPrice, locale)}</strong>
                 {t("organizer.advisorPrice")}
               </span>
               <span>

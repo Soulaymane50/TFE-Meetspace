@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
 import EventPlanningTimeline from "../components/EventPlanningTimeline";
 import { useFeedback } from "../context/FeedbackContext";
+import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./OrganizerEventsPage.module.css";
 
 function OrganizerIcon({ type }) {
@@ -68,8 +69,6 @@ function OrganizerIcon({ type }) {
     </svg>
   );
 }
-
-const EURO = "\u20ac";
 
 export default function OrganizerEventsPage() {
   const { user, token } = useAuth();
@@ -151,7 +150,9 @@ export default function OrganizerEventsPage() {
   };
 
   const filteredEvents = filter === "ALL" ? events : events.filter((e) => e.status === filter);
-  const formatEuro = (value) => `${(value || 0).toFixed(2)} ${EURO}`;
+  const locale = normalizeLocale(i18n.language);
+  const formatEuro = (value) => formatMoney(value, locale);
+  const formatStat = (value) => formatNumber(value, locale);
 
   const stats = {
     total: events.length,
@@ -216,8 +217,8 @@ export default function OrganizerEventsPage() {
           <div className={styles.consoleBody}>
             <div className={styles.consoleMetric}>
               <span>{t("organizer.totalEvents")}</span>
-              <strong>{stats.total}</strong>
-              <small>{filteredCount} {t("organizer.eventsShown")}</small>
+              <strong>{formatStat(stats.total)}</strong>
+              <small>{formatStat(filteredCount)} {t("organizer.eventsShown")}</small>
             </div>
 
             <div className={styles.nextEventPanel}>
@@ -242,7 +243,7 @@ export default function OrganizerEventsPage() {
                 <span className={styles.signalIcon}><OrganizerIcon type={item.icon} /></span>
                 <span>
                   <small>{item.label}</small>
-                  <strong>{item.value}</strong>
+                  <strong>{formatStat(item.value)}</strong>
                   <em>{item.meta}</em>
                 </span>
               </button>
@@ -262,7 +263,7 @@ export default function OrganizerEventsPage() {
               <div className={styles.financeGrid}>
                 <div className={styles.financeMetric}>
                   <span>{t("finance.confirmedRegistrations")}</span>
-                  <strong>{financeSummary.confirmedRegistrations || 0}</strong>
+                  <strong>{formatStat(financeSummary.confirmedRegistrations || 0)}</strong>
                 </div>
                 <div className={styles.financeMetric}>
                   <span>{t("finance.grossRevenue")}</span>
@@ -296,7 +297,7 @@ export default function OrganizerEventsPage() {
         <aside className={styles.statusPanel}>
           <div className={styles.statusPanelHeader}>
             <span>{t("organizer.quickReview")}</span>
-            <strong>{stats.pending}</strong>
+            <strong>{formatStat(stats.pending)}</strong>
           </div>
           <div className={styles.statusStack}>
             {statusFilters.slice(1).map((status) => (
@@ -307,7 +308,7 @@ export default function OrganizerEventsPage() {
                 onClick={() => setFilter(status)}
               >
                 <span className={statusClass(status)}>{t(`status.${status.toLowerCase()}`)}</span>
-                <strong>{getStatusCount(status)}</strong>
+                <strong>{formatStat(getStatusCount(status))}</strong>
               </button>
             ))}
           </div>
@@ -323,7 +324,7 @@ export default function OrganizerEventsPage() {
           >
             {t(status === "ALL" ? "common.all" : `status.${status.toLowerCase()}`)}
             <span className={styles.filterCount}>
-              {getStatusCount(status)}
+              {formatStat(getStatusCount(status))}
             </span>
           </button>
         ))}
@@ -371,7 +372,7 @@ export default function OrganizerEventsPage() {
                 </div>
                 <div className={styles.eventDetail}>
                   <span className={styles.detailIcon}><OrganizerIcon type="capacity" /></span>
-                  {e.capacity} {t("common.persons")}
+                  {formatStat(e.capacity)} {t("common.persons")}
                 </div>
                 <div className={styles.eventDetail}>
                   <span className={styles.detailIcon}><OrganizerIcon type="price" /></span>
@@ -383,7 +384,7 @@ export default function OrganizerEventsPage() {
                 <div className={styles.eventFinanceStrip}>
                   <span>{t("finance.netShort")}</span>
                   <strong>{formatEuro(financeByEventId.get(e.id).organizerNetEstimate)}</strong>
-                  <small>{financeByEventId.get(e.id).confirmedParticipants || 0} {t("common.participants")}</small>
+                  <small>{formatStat(financeByEventId.get(e.id).confirmedParticipants || 0)} {t("common.participants")}</small>
                 </div>
               )}
 

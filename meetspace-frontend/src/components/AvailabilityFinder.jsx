@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { getEspaces, getEspaceReservationsForCalendar } from "../services/api";
 import { getSpaceImage } from "../utils/mediaAssets";
+import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./AvailabilityFinder.module.css";
 
 const OPENING_HOUR = 7;
@@ -69,7 +70,8 @@ function getAvailableHours(dateKey, reservations) {
 }
 
 export default function AvailabilityFinder({ spaces: providedSpaces, compact = false }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
   const { user } = useAuth();
   const [fetchedSpaces, setFetchedSpaces] = useState([]);
   const [loadingSpaces, setLoadingSpaces] = useState(!providedSpaces);
@@ -213,7 +215,7 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
           <p>{t("availabilityFinder.text")}</p>
         </div>
         <div className={styles.signal}>
-          <strong>{checkingAvailability ? "…" : availableCount}</strong>
+          <strong>{checkingAvailability ? "..." : formatNumber(availableCount, locale)}</strong>
           <span>{t("availabilityFinder.availableRooms")}</span>
         </div>
       </div>
@@ -266,7 +268,7 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
             className={Number(capacity) === preset ? styles.presetActive : ""}
             onClick={() => handleCapacityChange(preset)}
           >
-            {preset} {t("common.persons")}
+            {formatNumber(preset, locale)} {t("common.persons")}
           </button>
         ))}
         <button type="button" className={styles.resetButton} onClick={resetFilters}>
@@ -299,10 +301,10 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
                 <div className={styles.roomBody}>
                   <div className={styles.roomTopline}>
                     <strong>{room.name}</strong>
-                    <span>{room.basePrice} € / h</span>
+                    <span>{formatMoney(room.basePrice, locale)} / h</span>
                   </div>
                   <p>
-                    {room.capacity} {t("common.persons")} ·{" "}
+                    {formatNumber(room.capacity, locale)} {t("common.persons")} ·{" "}
                     {availability
                       ? isAvailable
                         ? t("availabilityFinder.firstSlot", { time: availability.firstSlot })
@@ -310,8 +312,8 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
                       : t("availabilityFinder.checking")}
                   </p>
                   <div className={styles.roomMeta}>
-                    <span>{availability?.availableHours ?? 0}h {t("availabilityFinder.free")}</span>
-                    <span>{availability?.dayBlocks ?? 0} {t("availabilityFinder.blocks")}</span>
+                    <span>{formatNumber(availability?.availableHours ?? 0, locale)}h {t("availabilityFinder.free")}</span>
+                    <span>{formatNumber(availability?.dayBlocks ?? 0, locale)} {t("availabilityFinder.blocks")}</span>
                   </div>
                   {isAvailable && (
                     <Link to={user ? `/reservations/new/${room.id}` : "/login"} className={styles.roomCta}>

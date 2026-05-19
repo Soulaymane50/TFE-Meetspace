@@ -9,26 +9,16 @@ import {
   getMyReservations,
   organizerGetMyEvents,
 } from "../services/api";
+import { formatNumber, normalizeLocale } from "../utils/formatters";
 import { buildUserActivityItems, buildUserNotifications, formatDate, formatTime } from "../utils/userActivity";
 import styles from "./UserNotificationCenter.module.css";
 
 const READ_STORAGE_KEY = "meetspace-read-notifications";
 
-function normalizeLocale(language) {
-  const key = String(language || "fr").split("-")[0];
-  if (key === "en") return "en-GB";
-  if (key === "nl") return "nl-BE";
-  return "fr-BE";
-}
-
 function normalizeRole(role) {
   return String(role || "")
     .replace(/^ROLE_/i, "")
     .toUpperCase();
-}
-
-function formatCount(value, locale) {
-  return new Intl.NumberFormat(locale).format(Number(value) || 0);
 }
 
 function readStoredReadIds(storageKey) {
@@ -39,80 +29,70 @@ function readStoredReadIds(storageKey) {
   }
 }
 
-function getItemDate(item) {
-  return item?.startDateTime || item?.date || item?.createdAt || new Date().toISOString();
-}
-
-function buildRoleNotifications({ role, pendingEvents, pendingReservations, organizerEvents, t }) {
-  const notifications = [];
+function buildRoleNotifications({ role, pendingEvents = [], pendingReservations = [], organizerEvents = [], t }) {
+  const now = new Date();
 
   if (role === "ADMIN") {
-    if (pendingEvents.length > 0) {
-      notifications.push({
+    return [
+      pendingEvents.length > 0 && {
         id: `admin-pending-events-${pendingEvents.length}`,
-        title: t("notifications.adminPendingEventsTitle", { defaultValue: "Événements à valider" }),
-        message: t("notifications.adminPendingEventsText", {
+        tone: "warning",
+        badge: true,
+        title: t("notifications.pendingEventsTitle", { defaultValue: "Événements à valider" }),
+        message: t("notifications.pendingEventsText", {
+          defaultValue: "{{count}} événement(s) en attente de validation.",
           count: pendingEvents.length,
-          defaultValue: `${pendingEvents.length} événement(s) attendent une décision.`,
         }),
-        date: getItemDate(pendingEvents[0]),
+        date: now,
         to: "/admin/events",
+      },
+      pendingReservations.length > 0 && {
+        id: `admin-pending-spaces-${pendingReservations.length}`,
         tone: "warning",
         badge: true,
-      });
-    }
-
-    if (pendingReservations.length > 0) {
-      notifications.push({
-        id: `admin-pending-reservations-${pendingReservations.length}`,
-        title: t("notifications.adminPendingReservationsTitle", { defaultValue: "Réservations à valider" }),
-        message: t("notifications.adminPendingReservationsText", {
+        title: t("notifications.pendingSpacesTitle", { defaultValue: "Salles à valider" }),
+        message: t("notifications.pendingSpacesText", {
+          defaultValue: "{{count}} demande(s) de salle en attente.",
           count: pendingReservations.length,
-          defaultValue: `${pendingReservations.length} demande(s) de salle attendent une validation.`,
         }),
-        date: getItemDate(pendingReservations[0]),
+        date: now,
         to: "/admin/espaces",
-        tone: "warning",
-        badge: true,
-      });
-    }
+      },
+    ].filter(Boolean);
   }
 
   if (role === "ORGANIZER") {
-    const pending = organizerEvents.filter((event) => event.status === "PENDING");
-    const nextEvent = organizerEvents
-      .filter((event) => event.status !== "CANCELLED" && new Date(event.startDateTime) >= new Date())
+    const pending = organizerEvents.filter((event) => event.status === "PENDING_APPROVAL");
+    const upcoming = organizerEvents
+      .filter((event) => new Date(event.startDateTime) >= now && event.status !== "CANCELLED")
       .sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime))[0];
 
-    if (pending.length > 0) {
-      notifications.push({
-        id: `organizer-pending-events-${pending.length}`,
-        title: t("notifications.organizerPendingTitle", { defaultValue: "Validation en attente" }),
-        message: t("notifications.organizerPendingText", {
-          count: pending.length,
-          defaultValue: `${pending.length} événement(s) attendent la validation admin.`,
-        }),
-        date: getItemDate(pending[0]),
-        to: "/organizer/events",
+    return [
+      pending.length > 0 && {
+        id: `organizer-pending-${pending.length}`,
         tone: "warning",
         badge: true,
-      });
-    }
-
-    if (nextEvent) {
-      notifications.push({
-        id: `organizer-next-${nextEvent.id}`,
-        title: t("notifications.organizerNextTitle", { defaultValue: "Prochain événement" }),
-        message: nextEvent.title,
-        date: getItemDate(nextEvent),
+        title: t("notifications.organizerPendingTitle", { defaultValue: "Validation en attente" }),
+        message: t("notifications.organizerPendingText", {
+          defaultValue: "{{count}} événement(s) attendent une validation admin.",
+          count: pending.length,
+        }),
+        date: now,
         to: "/organizer/events",
+      },
+      upcoming && {
+        id: `organizer-next-${upcoming.id}`,
         tone: "info",
         badge: false,
-      });
-    }
+        title: t("notifications.organizerNextTitle", { defaultValue: "Prochain événement" }),
+        message: upcoming.title,
+        date: new Date(upcoming.startDateTime),
+        to: "/organizer/events",
+      },
+    ].filter(Boolean);
   }
 
-  return notifications;
+  return [];
 }
 
 export default function UserNotificationCenter({ token, user }) {
@@ -124,22 +104,20 @@ export default function UserNotificationCenter({ token, user }) {
   const [roleNotifications, setRoleNotifications] = useState([]);
   const [readIdsByKey, setReadIdsByKey] = useState({});
   const containerRef = useRef(null);
-
   const locale = normalizeLocale(i18n.language);
   const role = normalizeRole(user?.role);
   const storageKey = `${READ_STORAGE_KEY}:${user?.email || user?.id || role || "user"}`;
-  const readIds = useMemo(() => readIdsByKey[storageKey] || readStoredReadIds(storageKey), [readIdsByKey, storageKey]);
+  const readIds = readIdsByKey[storageKey] || readStoredReadIds(storageKey);
 
   const setReadIds = useCallback(
     (updater) => {
       setReadIdsByKey((currentByKey) => {
-        const current = currentByKey[storageKey] || readStoredReadIds(storageKey);
-        const next = typeof updater === "function" ? updater(current) : updater;
-        localStorage.setItem(storageKey, JSON.stringify(next));
-        return { ...currentByKey, [storageKey]: next };
+        const currentIds = currentByKey[storageKey] || readStoredReadIds(storageKey);
+        const nextIds = typeof updater === "function" ? updater(currentIds) : updater;
+        return { ...currentByKey, [storageKey]: nextIds };
       });
     },
-    [storageKey],
+    [storageKey]
   );
 
   useEffect(() => {
@@ -151,7 +129,6 @@ export default function UserNotificationCenter({ token, user }) {
       setLoading(true);
       setError("");
       setRoleNotifications([]);
-      setActivity({ spaces: [], events: [], parking: [] });
 
       if (role === "ADMIN") {
         const [pendingEventsResult, pendingReservationsResult] = await Promise.allSettled([
@@ -161,44 +138,32 @@ export default function UserNotificationCenter({ token, user }) {
 
         if (cancelled) return;
 
-        if (pendingEventsResult.status === "rejected" && pendingReservationsResult.status === "rejected") {
-          setError(t("notifications.error", { defaultValue: "Impossible de charger les notifications." }));
-        } else {
-          setRoleNotifications(
-            buildRoleNotifications({
-              role,
-              pendingEvents: pendingEventsResult.status === "fulfilled" ? pendingEventsResult.value : [],
-              pendingReservations:
-                pendingReservationsResult.status === "fulfilled" ? pendingReservationsResult.value : [],
-              organizerEvents: [],
-              t,
-            }),
-          );
-        }
-
+        setActivity({ spaces: [], events: [], parking: [] });
+        setRoleNotifications(
+          buildRoleNotifications({
+            role,
+            pendingEvents: pendingEventsResult.status === "fulfilled" ? pendingEventsResult.value : [],
+            pendingReservations: pendingReservationsResult.status === "fulfilled" ? pendingReservationsResult.value : [],
+            t,
+          })
+        );
         setLoading(false);
         return;
       }
 
       if (role === "ORGANIZER") {
-        const organizerResult = await Promise.allSettled([organizerGetMyEvents(token)]);
+        const [eventsResult] = await Promise.allSettled([organizerGetMyEvents(token)]);
 
         if (cancelled) return;
 
-        if (organizerResult[0].status === "rejected") {
-          setError(t("notifications.error", { defaultValue: "Impossible de charger les notifications." }));
-        } else {
-          setRoleNotifications(
-            buildRoleNotifications({
-              role,
-              pendingEvents: [],
-              pendingReservations: [],
-              organizerEvents: organizerResult[0].value,
-              t,
-            }),
-          );
-        }
-
+        setActivity({ spaces: [], events: [], parking: [] });
+        setRoleNotifications(
+          buildRoleNotifications({
+            role,
+            organizerEvents: eventsResult.status === "fulfilled" ? eventsResult.value : [],
+            t,
+          })
+        );
         setLoading(false);
         return;
       }
@@ -230,10 +195,10 @@ export default function UserNotificationCenter({ token, user }) {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [role, t, token]);
+  }, [t, token, role]);
 
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open) return;
 
     const handlePointerDown = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -253,16 +218,15 @@ export default function UserNotificationCenter({ token, user }) {
     };
   }, [open]);
 
-  const clientNotifications = useMemo(() => {
+  const notifications = useMemo(() => {
+    if (roleNotifications.length > 0) return roleNotifications;
     const items = buildUserActivityItems(activity);
     return buildUserNotifications(items);
-  }, [activity]);
-
-  const notifications = role === "CLIENT" || role === "USER" || !role ? clientNotifications : roleNotifications;
+  }, [activity, roleNotifications]);
 
   const urgentUnread = useMemo(
     () => notifications.filter((notification) => notification.badge && !readIds.includes(notification.id)),
-    [notifications, readIds],
+    [notifications, readIds]
   );
 
   useEffect(() => {
@@ -270,22 +234,23 @@ export default function UserNotificationCenter({ token, user }) {
 
     const timer = window.setTimeout(() => {
       setReadIds((current) => {
-        return Array.from(new Set([...current, ...urgentUnread.map((notification) => notification.id)])).slice(-80);
+        const next = Array.from(new Set([...current, ...urgentUnread.map((notification) => notification.id)])).slice(-80);
+        localStorage.setItem(storageKey, JSON.stringify(next));
+        return next;
       });
     }, 120);
 
     return () => window.clearTimeout(timer);
-  }, [open, setReadIds, urgentUnread]);
+  }, [open, setReadIds, storageKey, urgentUnread]);
 
   const visibleNotifications = notifications.slice(0, 4);
   const nextNotification = visibleNotifications[0];
-  const footerLink = role === "ADMIN" ? "/admin" : role === "ORGANIZER" ? "/organizer/events" : "/my-reservations?tab=day";
-  const footerLabel =
+  const footerLink =
     role === "ADMIN"
-      ? t("notifications.openAdmin", { defaultValue: "Ouvrir l'admin" })
+      ? { to: "/admin", label: t("notifications.openAdmin", { defaultValue: "Ouvrir l'admin" }) }
       : role === "ORGANIZER"
-        ? t("notifications.openOrganizer", { defaultValue: "Gérer mes événements" })
-        : t("notifications.openReservations", { defaultValue: "Voir mes réservations" });
+        ? { to: "/organizer/events", label: t("notifications.openOrganizer", { defaultValue: "Gérer mes événements" }) }
+        : { to: "/my-reservations?tab=day", label: t("notifications.openReservations", { defaultValue: "Voir mes réservations" }) };
 
   return (
     <div className={styles.wrapper} ref={containerRef}>
@@ -303,7 +268,7 @@ export default function UserNotificationCenter({ token, user }) {
           </svg>
         </span>
         {urgentUnread.length > 0 && (
-          <span className={styles.count}>{urgentUnread.length > 99 ? "99+" : formatCount(urgentUnread.length, locale)}</span>
+          <span className={styles.count}>{urgentUnread.length > 99 ? "99+" : formatNumber(urgentUnread.length, locale)}</span>
         )}
       </button>
 
@@ -314,8 +279,8 @@ export default function UserNotificationCenter({ token, user }) {
               <p>{t("notifications.kicker", { defaultValue: "Centre utilisateur" })}</p>
               <h2>{t("notifications.title", { defaultValue: "Notifications" })}</h2>
             </div>
-            <Link to={footerLink} className={styles.dayLink} onClick={() => setOpen(false)}>
-              {footerLabel}
+            <Link to={footerLink.to} className={styles.dayLink} onClick={() => setOpen(false)}>
+              {footerLink.label}
             </Link>
           </div>
 
@@ -335,9 +300,7 @@ export default function UserNotificationCenter({ token, user }) {
           {!loading && !error && visibleNotifications.length === 0 && (
             <div className={styles.emptyState}>
               <strong>{t("notifications.emptyTitle", { defaultValue: "Tout est à jour" })}</strong>
-              <span>
-                {t("notifications.emptyText", { defaultValue: "Aucune alerte active pour votre profil." })}
-              </span>
+              <span>{t("notifications.emptyText", { defaultValue: "Aucune alerte active pour votre profil." })}</span>
             </div>
           )}
 

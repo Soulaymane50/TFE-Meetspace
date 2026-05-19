@@ -27,16 +27,16 @@
   transform: translateY(-1px);
 }
 
-.bellIcon,
-.bellIcon svg {
-  width: 18px;
-  height: 18px;
-}
-
 .bellIcon {
   display: inline-grid;
   place-items: center;
   line-height: 0;
+}
+
+.bellIcon,
+.bellIcon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .bellIcon svg {
@@ -310,9 +310,8 @@
 
 @media (max-width: 760px) {
   .panel {
-    position: fixed;
-    inset: 5.5rem 1rem auto 1rem;
     z-index: 1400;
+    inset: 5.5rem 1rem auto 1rem;
     width: auto;
   }
 }

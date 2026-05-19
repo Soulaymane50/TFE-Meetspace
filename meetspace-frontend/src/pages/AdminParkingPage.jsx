@@ -9,12 +9,16 @@ import {
 } from "../services/api";
 import PageState from "../components/PageState";
 import SelectDropdown from "../components/SelectDropdown";
+import { useFeedback } from "../context/FeedbackContext";
+import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./AdminParkingPage.module.css";
 
 export default function AdminParkingPage() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { confirm, notify } = useFeedback();
+  const locale = normalizeLocale(i18n.language);
 
   const [activeTab, setActiveTab] = useState("parkingSlots");
   const [parkingSlots, setParkingSlots] = useState([]);
@@ -54,12 +58,23 @@ export default function AdminParkingPage() {
   }, [loadData, navigate, user]);
 
   const handleDeleteParkingSlot = async (id) => {
-    if (!window.confirm(t("admin.confirmDeleteSession"))) return;
+    const accepted = await confirm({
+      title: t("admin.confirmDeleteSession"),
+      confirmLabel: t("common.delete", { defaultValue: "Supprimer" }),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
+    if (!accepted) return;
     try {
       await adminDeleteParkingSlot(id, token);
       setParkingSlots((previousSlots) => previousSlots.filter((parkingSlot) => parkingSlot.id !== id));
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("admin.parkingSlotDeleted", { defaultValue: "Créneau parking supprimé." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
@@ -141,10 +156,10 @@ export default function AdminParkingPage() {
                       <td>{parkingSlot.startTime} - {parkingSlot.endTime}</td>
                       <td>
                         <span className={styles.capacityBadge}>
-                          {parkingSlot.availableSpaces} / {parkingSlot.parkingCapacity}
+                          {formatNumber(parkingSlot.availableSpaces, locale)} / {formatNumber(parkingSlot.parkingCapacity, locale)}
                         </span>
                       </td>
-                      <td>{parkingSlot.parkingRate} €</td>
+                      <td>{formatMoney(parkingSlot.parkingRate, locale)}</td>
                       <td>
                         <span className={`${styles.statusBadge} ${styles[`status${parkingSlot.status}`]}`}>
                           {t(`status.${parkingSlot.status.toLowerCase()}`)}
@@ -214,8 +229,8 @@ export default function AdminParkingPage() {
                         </div>
                       </td>
                       <td>{parkingReservation.slotDate}</td>
-                      <td>{parkingReservation.reservedSpaces}</td>
-                      <td>{parkingReservation.totalPrice} €</td>
+                      <td>{formatNumber(parkingReservation.reservedSpaces, locale)}</td>
+                      <td>{formatMoney(parkingReservation.totalPrice, locale)}</td>
                       <td>
                         <span className={`${styles.statusBadge} ${styles[`status${parkingReservation.status}`]}`}>
                           {t(`status.${parkingReservation.status.toLowerCase()}`)}

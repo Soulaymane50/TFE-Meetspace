@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
 import RoomSchedulePicker from "../components/RoomSchedulePicker";
 import SelectDropdown from "../components/SelectDropdown";
+import { formatMoney, normalizeLocale } from "../utils/formatters";
 import styles from "./OrganizerEventForm.module.css";
 
 export default function OrganizerEventForm() {
@@ -13,7 +14,8 @@ export default function OrganizerEventForm() {
   const isEdit = Boolean(id);
   const { user, token } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
   const parkingGridClassName = styles.parkingGrid;
 
   const [eventForm, setEventForm] = useState({
@@ -47,7 +49,7 @@ export default function OrganizerEventForm() {
     },
     ...availableSpaces.map((space) => ({
       value: String(space.id),
-      label: `${space.name} - ${space.capacity} ${t("common.persons")} - ${space.basePrice} \u20ac${t("common.perHour")}`,
+      label: `${space.name} - ${space.capacity} ${t("common.persons")} - ${formatMoney(space.basePrice, locale)} ${t("common.perHour")}`,
     })),
   ];
 
@@ -67,12 +69,12 @@ export default function OrganizerEventForm() {
   const previewEnd = eventForm.endDateTime ? new Date(eventForm.endDateTime) : null;
   const previewDate =
     previewStart && !Number.isNaN(previewStart.getTime())
-      ? previewStart.toLocaleDateString("fr-BE", { weekday: "long", day: "2-digit", month: "long" })
-      : "Date à définir";
+      ? previewStart.toLocaleDateString(locale, { weekday: "long", day: "2-digit", month: "long" })
+      : t("organizer.previewDateFallback", { defaultValue: "Date à définir" });
   const previewTime =
     previewStart && previewEnd && !Number.isNaN(previewStart.getTime()) && !Number.isNaN(previewEnd.getTime())
-      ? `${previewStart.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })} - ${previewEnd.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}`
-      : "Horaire à définir";
+      ? `${previewStart.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })} - ${previewEnd.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}`
+      : t("organizer.previewTimeFallback", { defaultValue: "Horaire à définir" });
 
   useEffect(() => {
     if (!user || (user.role !== "ORGANIZER" && user.role !== "ADMIN")) {
@@ -395,7 +397,7 @@ export default function OrganizerEventForm() {
                   {t("organizer.advisorCapacity")}
                 </span>
                 <span>
-                  <strong>{recommendedPrice} €</strong>
+                  <strong>{formatMoney(recommendedPrice, locale)}</strong>
                   {t("organizer.advisorPrice")}
                 </span>
                 <span>
@@ -518,7 +520,7 @@ export default function OrganizerEventForm() {
               <div className={styles.previewTags}>
                 <span>{selectedSpace?.name || t("organizer.previewRoomFallback")}</span>
                 <span>{eventForm.capacity || 0} {t("common.persons")}</span>
-                <span>{eventForm.price ? `${eventForm.price} €` : t("events.free")}</span>
+                <span>{eventForm.price ? formatMoney(eventForm.price, locale) : t("events.free")}</span>
                 <span>{eventForm.parkingRequired ? t("organizer.previewParkingIncluded") : t("organizer.previewParkingExcluded")}</span>
               </div>
               <div className={styles.previewFooter}>

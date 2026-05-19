@@ -6,9 +6,8 @@ import { getEspaces } from "../services/api";
 import AvailabilityFinder from "../components/AvailabilityFinder";
 import PageState from "../components/PageState";
 import { getSpaceImage } from "../utils/mediaAssets";
+import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./EspacesPage.module.css";
-
-const EURO = "€";
 
 function getCapacityClass(space) {
   const capacity = Number(space?.capacity) || 0;
@@ -46,7 +45,8 @@ function getSpaceDisplayType(space, t) {
 
 export default function EspacesPage() {
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
   const [espaces, setEspaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -132,19 +132,19 @@ export default function EspacesPage() {
 
         <div className={styles.summaryGrid}>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{espaces.length}</span>
+            <span className={styles.summaryValue}>{formatNumber(espaces.length, locale)}</span>
             <span className={styles.summaryLabel}>{t("nav.spaces")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{premiumRoomsCount}</span>
+            <span className={styles.summaryValue}>{formatNumber(premiumRoomsCount, locale)}</span>
             <span className={styles.summaryLabel}>{getSpaceTypeLabel("PREMIUM_ROOM")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{standardRoomsCount}</span>
+            <span className={styles.summaryValue}>{formatNumber(standardRoomsCount, locale)}</span>
             <span className={styles.summaryLabel}>{getSpaceTypeLabel("SALLE")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{fromPrice} {EURO}</span>
+            <span className={styles.summaryValue}>{formatMoney(fromPrice, locale)}</span>
             <span className={styles.summaryLabel}>{t("common.perHour")}</span>
           </div>
         </div>
@@ -167,11 +167,11 @@ export default function EspacesPage() {
 
             <div className={styles.sidebarStats}>
               <div className={styles.sidebarStat}>
-                <span className={styles.sidebarStatValue}>{maxCapacity}</span>
+                <span className={styles.sidebarStatValue}>{formatNumber(maxCapacity, locale)}</span>
                 <span className={styles.sidebarStatLabel}>{t("spaces.maxCapacityLabel")}</span>
               </div>
               <div className={styles.sidebarStat}>
-                <span className={styles.sidebarStatValue}>{premiumRoomsCount}</span>
+                <span className={styles.sidebarStatValue}>{formatNumber(premiumRoomsCount, locale)}</span>
                 <span className={styles.sidebarStatLabel}>{t("spaces.premiumClusterLabel")}</span>
               </div>
             </div>
@@ -184,11 +184,11 @@ export default function EspacesPage() {
                     <div>
                       <strong className={styles.catalogItemTitle}>{space.name}</strong>
                       <p className={styles.catalogItemMeta}>
-                        {getSpaceDisplayType(space, t)} · {space.capacity} {t("common.persons")}
+                        {getSpaceDisplayType(space, t)} · {formatNumber(space.capacity, locale)} {t("common.persons")}
                       </p>
                     </div>
                     <span className={styles.catalogItemPrice}>
-                      {space.basePrice} {EURO}
+                      {formatMoney(space.basePrice, locale)}
                     </span>
                   </div>
                 ))}
@@ -210,7 +210,7 @@ export default function EspacesPage() {
                     <div className={styles.panelTopline}>
                       <span className={styles.panelBadge}>{getSpaceDisplayType(space, t)}</span>
                       <span className={styles.panelPrice}>
-                        {space.basePrice} {EURO}
+                        {formatMoney(space.basePrice, locale)}
                         <span className={styles.panelPriceUnit}>{t("common.perHour")}</span>
                       </span>
                     </div>
@@ -231,7 +231,7 @@ export default function EspacesPage() {
                         <div className={styles.metricCard}>
                           <span className={styles.metricLabel}>{t("common.capacity")}</span>
                           <span className={styles.metricValue}>
-                            {space.capacity} {t("common.persons")}
+                            {formatNumber(space.capacity, locale)} {t("common.persons")}
                           </span>
                         </div>
                         <div className={styles.metricCard}>
@@ -263,7 +263,7 @@ export default function EspacesPage() {
                         <p className={styles.studioType}>{getSpaceDisplayType(space, t)}</p>
                       </div>
                       <span className={styles.studioPrice}>
-                        {space.basePrice} {EURO}
+                        {formatMoney(space.basePrice, locale)}
                       </span>
                     </div>
 
@@ -277,7 +277,7 @@ export default function EspacesPage() {
                       <div className={styles.studioMetaBlock}>
                         <span className={styles.metricLabel}>{t("common.capacity")}</span>
                         <span className={styles.metricValue}>
-                          {space.capacity} {t("common.persons")}
+                          {formatNumber(space.capacity, locale)} {t("common.persons")}
                         </span>
                       </div>
                       <div className={styles.studioMetaBlock}>

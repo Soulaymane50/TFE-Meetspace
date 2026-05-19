@@ -637,7 +637,11 @@
         "error": "Une erreur est survenue. Veuillez réessayer.",
         "unavailableTitle": "Paiement indisponible",
         "unavailableMessage": "La configuration de paiement n'est pas disponible pour cet environnement. Veuillez réessayer plus tard ou contacter l'équipe MeetSpace.",
-        "securedBy": "Paiement sécurisé par Stripe"
+                "securedBy": "Paiement sécurisé par Stripe",
+        "successTitle": "Paiement validé",
+        "spaceSuccessMessage": "Votre réservation de salle est confirmée.",
+        "eventSuccessMessage": "Votre inscription à l'événement est confirmée.",
+        "parkingSuccessMessage": "Votre réservation parking est confirmée."
     },
     "profile": {
         "title": "Mon profil",

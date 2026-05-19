@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useFeedback } from "../context/FeedbackContext";
 import { getEspaces, requestPremiumRoomReservation, createReservation } from "../services/api";
 import { useTranslation } from "react-i18next";
 import PaymentForm from "../components/PaymentForm";
 import PageState from "../components/PageState";
 import RoomSchedulePicker from "../components/RoomSchedulePicker";
 import { getSpaceImage } from "../utils/mediaAssets";
+import { formatMoney, normalizeLocale } from "../utils/formatters";
 import styles from "./CreateReservationPage.module.css";
 
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
@@ -15,7 +17,8 @@ export default function CreateReservationPage() {
   const { espaceId } = useParams();
   const navigate = useNavigate();
   const { user, token } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { notify } = useFeedback();
 
   const [espace, setEspace] = useState(null);
   const [selectedDate, setSelectedDate] = useState("");
@@ -57,6 +60,8 @@ export default function CreateReservationPage() {
 
   const durationHours = calculateHours();
   const totalPrice = espace ? espace.basePrice * durationHours : 0;
+  const locale = normalizeLocale(i18n.language);
+  const formattedTotalPrice = formatMoney(totalPrice, locale);
   const startDateTime = selectedDate && startTime ? `${selectedDate}T${startTime}` : "";
   const endDateTime = selectedDate && endTime ? `${selectedDate}T${endTime}` : "";
   const canReview = Boolean(selectedDate && startTime && endTime && scheduleValid);
@@ -143,7 +148,11 @@ export default function CreateReservationPage() {
         token,
       );
 
-      alert(t("reservation.pendingApprovalMessage"));
+      notify({
+        type: "success",
+        title: t("reservation.requestSentTitle", { defaultValue: "Demande envoyée" }),
+        message: t("reservation.pendingApprovalMessage"),
+      });
       navigate("/my-reservations?tab=spaces");
     } catch (err) {
       setError(err.message);
@@ -171,7 +180,13 @@ export default function CreateReservationPage() {
         token,
       );
 
-      alert(t("payment.success"));
+      notify({
+        type: "success",
+        title: t("payment.successTitle", { defaultValue: "Paiement validé" }),
+        message: t("payment.spaceSuccessMessage", {
+          defaultValue: "Votre réservation de salle est confirmée.",
+        }),
+      });
       navigate("/my-reservations?tab=spaces");
     } catch (err) {
       setError(err.message);
@@ -198,7 +213,8 @@ export default function CreateReservationPage() {
     return <PageState type="error" title={t("common.error")} message={error} />;
   }
 
-  const selectedRange = selectedDate && startTime && endTime ? `${selectedDate} · ${startTime} - ${endTime}` : t("calendar.selectTime");
+  const selectedRange = selectedDate && startTime && endTime ? `${selectedDate} - ${startTime} - ${endTime}` : t("calendar.selectTime");
+  const displaySelectedRange = selectedRange;
   const spaceImage = espace ? getSpaceImage(espace) : "/images/room-atlas-100.webp";
 
   if (showPayment) {
@@ -224,12 +240,12 @@ export default function CreateReservationPage() {
                 </div>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("calendar.reservationSummary")}</span>
-                  <span className={styles.metricValue}>{selectedRange}</span>
+                  <span className={styles.metricValue}>{displaySelectedRange}</span>
                 </div>
               </div>
               <div className={styles.totalPanel}>
                 <span>{t("reservation.totalPrice")}</span>
-                <strong>{totalPrice.toFixed(2)} €</strong>
+                <strong>{formattedTotalPrice}</strong>
               </div>
             </div>
           </aside>
@@ -292,15 +308,15 @@ export default function CreateReservationPage() {
                 </div>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("spaces.basePrice")}</span>
-                  <span className={styles.metricValue}>{espace.basePrice} €</span>
+                  <span className={styles.metricValue}>{formatMoney(espace.basePrice, locale)}</span>
                 </div>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("calendar.reservationSummary")}</span>
-                  <span className={styles.metricValue}>{selectedRange}</span>
+                  <span className={styles.metricValue}>{displaySelectedRange}</span>
                 </div>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("reservation.totalPrice")}</span>
-                  <span className={styles.metricValue}>{totalPrice.toFixed(2)} €</span>
+                  <span className={styles.metricValue}>{formattedTotalPrice}</span>
                 </div>
               </div>
 
@@ -356,7 +372,7 @@ export default function CreateReservationPage() {
                   <span className={styles.stepHint}>
                     {t("reservation.stepScheduleHint", { defaultValue: "Choisissez un créneau libre" })}
                   </span>
-                  <strong>{selectedRange}</strong>
+                  <strong>{displaySelectedRange}</strong>
                 </div>
                 <button type="button" className={styles.primaryAction} onClick={handleContinueToReview} disabled={!canReview}>
                   {t("reservation.continueToSummary", { defaultValue: "Continuer vers le récapitulatif" })}
@@ -406,7 +422,7 @@ export default function CreateReservationPage() {
 
               <div className={styles.totalPanel}>
                 <span>{t("reservation.totalPrice")}</span>
-                <strong>{totalPrice.toFixed(2)} €</strong>
+                <strong>{formattedTotalPrice}</strong>
               </div>
 
               {error && <p className={styles.error}>{error}</p>}

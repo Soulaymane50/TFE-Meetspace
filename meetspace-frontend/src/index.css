@@ -162,6 +162,12 @@ p {
 }
 
 button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  text-align: center;
+  line-height: 1.15;
   border: none;
   border-radius: 999px;
   padding: 0.78rem 1.4rem;
@@ -475,6 +481,7 @@ tr:last-child td {
 .pill {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.35rem;
   min-height: 34px;
   padding: 0.35rem 0.85rem;
@@ -493,6 +500,10 @@ tr:last-child td {
 }
 
 .btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   background: transparent;
   color: var(--blue-darker);
   border: 1px solid rgba(27, 42, 64, 0.15);
@@ -515,6 +526,10 @@ tr:last-child td {
 }
 
 .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   background: linear-gradient(135deg, rgba(181, 138, 76, 0.18) 0%, rgba(181, 138, 76, 0.08) 100%);
   color: var(--blue-darker);
   border: 1px solid rgba(181, 138, 76, 0.22);

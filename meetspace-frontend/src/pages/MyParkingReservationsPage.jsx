@@ -4,6 +4,7 @@ import { cancelParkingReservation, getMyParkingReservations } from "../services/
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
+import { useFeedback } from "../context/FeedbackContext";
 import styles from "./MyParkingReservationsPage.module.css";
 
 export default function MyParkingReservationsPage() {
@@ -12,6 +13,7 @@ export default function MyParkingReservationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { t } = useTranslation();
+  const { confirm, notify } = useFeedback();
 
   const loadParkingReservations = useCallback(async () => {
     setLoading(true);
@@ -35,13 +37,24 @@ export default function MyParkingReservationsPage() {
   }, [loadParkingReservations]);
 
   const handleCancel = async (id) => {
-    if (!window.confirm(t("parking.confirmCancel"))) return;
+    const accepted = await confirm({
+      title: t("parking.confirmCancel"),
+      confirmLabel: t("common.confirm", { defaultValue: "Confirmer" }),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
+    if (!accepted) return;
 
     try {
       await cancelParkingReservation(id, token);
       loadParkingReservations();
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("parking.reservationCancelled", { defaultValue: "Réservation parking annulée." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 

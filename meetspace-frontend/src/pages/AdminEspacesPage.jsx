@@ -11,12 +11,16 @@ import {
 } from "../services/api";
 import PageState from "../components/PageState";
 import SelectDropdown from "../components/SelectDropdown";
+import { useFeedback } from "../context/FeedbackContext";
+import { formatMoney, normalizeLocale } from "../utils/formatters";
 import styles from "./AdminEspacesPage.module.css";
 
 export default function AdminEspacesPage() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { confirm, notify } = useFeedback();
+  const locale = normalizeLocale(i18n.language);
 
   const getDateLocale = () => {
     const locales = { fr: "fr-BE", nl: "nl-BE", en: "en-GB" };
@@ -69,28 +73,49 @@ export default function AdminEspacesPage() {
   }, [loadData, navigate, user]);
 
   const handleDeleteEspace = async (id) => {
-    if (!window.confirm(t("admin.confirmDeleteSpace"))) return;
+    const accepted = await confirm({
+      title: t("admin.confirmDeleteSpace"),
+      confirmLabel: t("common.delete", { defaultValue: "Supprimer" }),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
+    if (!accepted) return;
     try {
       await adminDeleteEspace(id, token);
       setEspaces((prev) => prev.filter((e) => e.id !== id));
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("admin.spaceDeleted", { defaultValue: "Salle supprimée." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
   const handleApproveReservation = async (id) => {
-    if (!window.confirm(t("admin.confirmApproveRoomRequest"))) return;
+    const accepted = await confirm({
+      title: t("admin.confirmApproveRoomRequest"),
+      confirmLabel: t("admin.approve", { defaultValue: "Approuver" }),
+      cancelLabel: t("common.cancel"),
+    });
+    if (!accepted) return;
     try {
       await adminApproveReservation(id, true, null, token);
       loadData();
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("admin.roomRequestApproved", { defaultValue: "Demande de salle approuvée." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
   const handleRejectReservation = async (id) => {
     if (!rejectionReason.trim()) {
-      alert(t("admin.rejectionReasonRequired"));
+      notify({ type: "error", title: t("common.error"), message: t("admin.rejectionReasonRequired") });
       return;
     }
     try {
@@ -98,8 +123,13 @@ export default function AdminEspacesPage() {
       setRejectingId(null);
       setRejectionReason("");
       loadData();
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("admin.roomRequestRejected", { defaultValue: "Demande de salle refusée." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
@@ -194,7 +224,7 @@ export default function AdminEspacesPage() {
                         </span>
                       </td>
                       <td>{e.capacity} {t("common.persons")}</td>
-                      <td>{e.basePrice} € {t("common.perHour")}</td>
+                      <td>{formatMoney(e.basePrice, locale)} {t("common.perHour")}</td>
                       <td>
                         <div className={styles.actions}>
                           <Link to={`/admin/espaces/${e.id}/edit`} className={styles.btnGhost}>
@@ -242,7 +272,7 @@ export default function AdminEspacesPage() {
                   )}
 
                   <div className={styles.cardFooter}>
-                    <span className={styles.price}>{r.totalPrice} €</span>
+                    <span className={styles.price}>{formatMoney(r.totalPrice, locale)}</span>
 
                     {rejectingId === r.id ? (
                       <div className={styles.rejectBox}>
@@ -323,7 +353,7 @@ export default function AdminEspacesPage() {
                         </div>
                       </td>
                       <td>{new Date(r.startDateTime).toLocaleString(getDateLocale())}</td>
-                      <td>{r.totalPrice} €</td>
+                      <td>{formatMoney(r.totalPrice, locale)}</td>
                       <td>
                         <span className={`${styles.statusBadge} ${styles[`status${r.status}`]}`}>
                           {t(`status.${r.status.toLowerCase()}`)}
