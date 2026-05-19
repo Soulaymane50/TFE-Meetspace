@@ -7,6 +7,7 @@ import be.meetspace.entity.User;
 import be.meetspace.entity.UserStatus;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
+import be.meetspace.service.PasswordResetService;
 import be.meetspace.web.dto.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -21,6 +22,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -30,17 +33,20 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final AuditService auditService;
+    private final PasswordResetService passwordResetService;
 
     public AuthController(UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           AuthenticationManager authenticationManager,
                           JwtService jwtService,
-                          AuditService auditService) {
+                          AuditService auditService,
+                          PasswordResetService passwordResetService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.auditService = auditService;
+        this.passwordResetService = passwordResetService;
     }
 
     @PostMapping("/register")
@@ -134,6 +140,21 @@ public class AuthController {
                     "Échec de connexion - identifiants incorrects", ipAddress);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email ou mot de passe incorrect");
         }
+    }
+
+    @PostMapping("/forgot-password")
+    public Map<String, String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        passwordResetService.requestPasswordReset(request.getEmail());
+        return Map.of(
+                "message",
+                "Si un compte existe avec cette adresse, un email de réinitialisation a été envoyé."
+        );
+    }
+
+    @PostMapping("/reset-password")
+    public Map<String, String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
+        return Map.of("message", "Mot de passe réinitialisé avec succès.");
     }
 }
 

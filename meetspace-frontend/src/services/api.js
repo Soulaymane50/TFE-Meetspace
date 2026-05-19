@@ -306,8 +306,7 @@ export async function forgotPasswordRequest(email) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
   });
-  if (!res.ok) throw new Error("Erreur lors de l'envoi de l'email");
-  return res.json();
+  return handleResponse(res, "Erreur lors de l'envoi de l'email");
 }
 
 export async function resetPasswordRequest(token, newPassword) {
@@ -316,8 +315,7 @@ export async function resetPasswordRequest(token, newPassword) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token, newPassword }),
   });
-  if (!res.ok) throw new Error("Erreur lors de la réinitialisation du mot de passe");
-  return res.json();
+  return handleResponse(res, "Erreur lors de la réinitialisation du mot de passe");
 }
 
 export async function logoutRequest(token) {
