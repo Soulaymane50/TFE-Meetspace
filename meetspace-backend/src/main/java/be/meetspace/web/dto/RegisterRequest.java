@@ -18,9 +18,11 @@ public class RegisterRequest {
     @Email
     private String email;
 
-    @NotBlank
-    @Size(min = 8, max = 100)
+    @Size(max = 100)
     private String password;
+
+    @Size(max = 100)
+    private String confirmPassword;
 
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
@@ -33,5 +35,8 @@ public class RegisterRequest {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getConfirmPassword() { return confirmPassword; }
+    public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
 }
 

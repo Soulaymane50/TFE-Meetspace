@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { getMyProfile, updateMyProfile, changeMyPassword, deleteMyAccount } from "../services/api";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { isStrongPassword } from "../utils/passwordPolicy";
 import styles from "./ProfilePage.module.css";
 
 export default function ProfilePage() {
@@ -61,7 +62,11 @@ export default function ProfilePage() {
         );
       }
     } catch (err) {
-      setError(err.message);
+      if (err?.message === "EMAIL_ALREADY_EXISTS") {
+        setError(t("profile.emailAlreadyExists"));
+      } else {
+        setError(t("profile.updateFailed"));
+      }
     }
   };
 
@@ -72,6 +77,11 @@ export default function ProfilePage() {
 
     if (newPassword !== newPassword2) {
       setPwdError(t("profile.passwordMismatch"));
+      return;
+    }
+
+    if (!isStrongPassword(newPassword)) {
+      setPwdError(t("profile.passwordWeak"));
       return;
     }
 
@@ -88,7 +98,11 @@ export default function ProfilePage() {
       setNewPassword("");
       setNewPassword2("");
     } catch (err) {
-      setPwdError(err.message);
+      if (err?.message === "PASSWORD_WEAK") {
+        setPwdError(t("profile.passwordWeak"));
+      } else {
+        setPwdError(t("profile.passwordUpdateFailed"));
+      }
     }
   };
 

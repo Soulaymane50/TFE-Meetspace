@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/LanguageSwitcher";
+import { getPasswordChecks, isStrongPassword } from "../utils/passwordPolicy";
 import styles from "./RegisterPage.module.css";
 
 export default function RegisterPage() {
@@ -15,21 +16,45 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const passwordChecks = getPasswordChecks(password);
 
   const submit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    if (!isStrongPassword(password)) {
+      setError(t("auth.passwordRequirementsError"));
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError(t("auth.passwordMismatch"));
+      return;
+    }
+
     try {
       const data = await registerRequest({
-        firstName,
-        lastName,
-        email,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim().toLowerCase(),
         password,
+        confirmPassword,
       });
       login(data.user, data.token);
       navigate("/espace");
-    } catch {
-      setError(t("auth.registerError"));
+    } catch (err) {
+      const message = err?.message;
+      if (message === "EMAIL_ALREADY_EXISTS") {
+        setError(t("auth.emailAlreadyExists"));
+      } else if (message === "PASSWORD_WEAK") {
+        setError(t("auth.passwordRequirementsError"));
+      } else if (message === "PASSWORD_CONFIRMATION_MISMATCH") {
+        setError(t("auth.passwordMismatch"));
+      } else {
+        setError(t("auth.registerError"));
+      }
     }
   };
 
@@ -98,6 +123,31 @@ export default function RegisterPage() {
                 placeholder={t("auth.password")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className={styles.input}
+                required
+              />
+            </div>
+            <div className={styles.passwordRules} aria-live="polite">
+              <p className={styles.passwordRulesTitle}>{t("auth.passwordRulesTitle")}</p>
+              <ul>
+                {passwordChecks.map((check) => (
+                  <li
+                    key={check.key}
+                    className={check.isValid ? styles.passwordRuleValid : styles.passwordRule}
+                  >
+                    <span className={styles.passwordRuleDot} />
+                    {t(`auth.passwordRule${check.key.charAt(0).toUpperCase()}${check.key.slice(1)}`)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>{t("auth.confirmPassword")}</label>
+              <input
+                type="password"
+                placeholder={t("auth.confirmPassword")}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 className={styles.input}
                 required
               />

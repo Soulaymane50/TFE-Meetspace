@@ -7,6 +7,7 @@ import be.meetspace.entity.User;
 import be.meetspace.entity.UserStatus;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
+import be.meetspace.service.PasswordPolicyService;
 import be.meetspace.web.dto.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -21,6 +22,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Locale;
+import java.util.Objects;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -30,38 +34,47 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final AuditService auditService;
+    private final PasswordPolicyService passwordPolicyService;
 
     public AuthController(UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           AuthenticationManager authenticationManager,
                           JwtService jwtService,
-                          AuditService auditService) {
+                          AuditService auditService,
+                          PasswordPolicyService passwordPolicyService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.auditService = auditService;
+        this.passwordPolicyService = passwordPolicyService;
     }
 
     @PostMapping("/register")
     public AuthResponseDto register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
+        String normalizedEmail = normalizeEmail(request.getEmail());
 
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email déjà utilisé");
+        if (!Objects.equals(request.getPassword(), request.getConfirmPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "PASSWORD_CONFIRMATION_MISMATCH");
+        }
+
+        passwordPolicyService.validateOrThrow(request.getPassword());
+
+        if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "EMAIL_ALREADY_EXISTS");
         }
 
         User user = new User();
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setEmail(request.getEmail());
+        user.setFirstName(request.getFirstName().trim());
+        user.setLastName(request.getLastName().trim());
+        user.setEmail(normalizedEmail);
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setRole(Role.MEMBER);
         user.setStatus(UserStatus.ACTIVE);
 
         User saved = userRepository.save(user);
 
-        // Audit log for user registration
         auditService.logSecurityEvent(AuditAction.USER_CREATE, saved.getEmail(),
                 "Nouvel utilisateur inscrit: " + saved.getFirstName() + " " + saved.getLastName(), ipAddress);
 
@@ -82,16 +95,16 @@ public class AuthController {
 
         if (authentication != null && authentication.getName() != null) {
             auditService.logSecurityEvent(AuditAction.LOGOUT, authentication.getName(),
-                    "Déconnexion utilisateur", ipAddress);
+                    "Deconnexion utilisateur", ipAddress);
         }
     }
 
     @PostMapping("/login")
     public AuthResponseDto login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
+        String normalizedEmail = normalizeEmail(request.getEmail());
 
-        // Check user status before attempting authentication
-        User existingUser = userRepository.findByEmail(request.getEmail()).orElse(null);
+        User existingUser = userRepository.findByEmailIgnoreCase(normalizedEmail).orElse(null);
         if (existingUser != null && existingUser.getStatus() != UserStatus.ACTIVE) {
             String statusMessage = switch (existingUser.getStatus()) {
                 case BANNED -> "BANNED";
@@ -99,7 +112,7 @@ public class AuthController {
                 case INACTIVE -> "INACTIVE";
                 default -> "SUSPENDED";
             };
-            auditService.logSecurityEvent(AuditAction.LOGIN_FAILURE, request.getEmail(),
+            auditService.logSecurityEvent(AuditAction.LOGIN_FAILURE, normalizedEmail,
                     "Tentative de connexion avec compte " + statusMessage.toLowerCase(), ipAddress);
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, statusMessage);
         }
@@ -107,33 +120,33 @@ public class AuthController {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.getEmail(),
+                            normalizedEmail,
                             request.getPassword()
                     )
             );
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            User user = userRepository.findByEmail(userDetails.getUsername())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
+            User user = userRepository.findByEmailIgnoreCase(userDetails.getUsername())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "USER_NOT_FOUND"));
 
             String token = jwtService.generateToken(userDetails);
 
-            // Audit log for successful login
             auditService.logSecurityEvent(AuditAction.LOGIN_SUCCESS, user.getEmail(),
-                    "Connexion réussie", ipAddress);
+                    "Connexion reussie", ipAddress);
 
             return new AuthResponseDto(token, UserResponseDto.fromEntity(user));
         } catch (LockedException e) {
-            // This shouldn't happen anymore since we check status above, but handle just in case
-            auditService.logSecurityEvent(AuditAction.LOGIN_FAILURE, request.getEmail(),
-                    "Tentative de connexion avec compte verrouillé", ipAddress);
+            auditService.logSecurityEvent(AuditAction.LOGIN_FAILURE, normalizedEmail,
+                    "Tentative de connexion avec compte verrouille", ipAddress);
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "SUSPENDED");
         } catch (BadCredentialsException e) {
-            // Audit log for failed login
-            auditService.logSecurityEvent(AuditAction.LOGIN_FAILURE, request.getEmail(),
-                    "Échec de connexion - identifiants incorrects", ipAddress);
+            auditService.logSecurityEvent(AuditAction.LOGIN_FAILURE, normalizedEmail,
+                    "Echec de connexion - identifiants incorrects", ipAddress);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email ou mot de passe incorrect");
         }
     }
-}
 
+    private String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+    }
+}

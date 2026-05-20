@@ -22,6 +22,38 @@ async function throwApiError(res, fallbackMessage) {
   throw error;
 }
 
+async function readApiErrorCode(res, fallbackMessage) {
+  const text = await res.text().catch(() => "");
+  if (!text) return fallbackMessage;
+
+  try {
+    const payload = JSON.parse(text);
+    return payload?.message || payload?.error || payload?.reason || fallbackMessage;
+  } catch {
+    return text;
+  }
+}
+
+async function throwAccountApiError(res, fallbackMessage) {
+  const message = await readApiErrorCode(res, fallbackMessage);
+
+  if (res.status === 409 || message.includes("EMAIL_ALREADY_EXISTS")) {
+    throw new Error("EMAIL_ALREADY_EXISTS");
+  }
+
+  if (message.includes("PASSWORD_WEAK")) {
+    throw new Error("PASSWORD_WEAK");
+  }
+
+  if (message.includes("PASSWORD_CONFIRMATION_MISMATCH")) {
+    throw new Error("PASSWORD_CONFIRMATION_MISMATCH");
+  }
+
+  const error = new Error(message || fallbackMessage);
+  error.status = res.status;
+  throw error;
+}
+
 function normalizeParkingSlot(slot) {
   if (!slot) return null;
 
@@ -295,7 +327,9 @@ export async function registerRequest(data) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Erreur d'inscription");
+  if (!res.ok) {
+    await throwAccountApiError(res, "REGISTER_FAILED");
+  }
   return res.json();
 }
 
@@ -473,7 +507,7 @@ export async function updateMyProfile(data, token) {
     },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Erreur mise à jour profil");
+  if (!res.ok) await throwAccountApiError(res, "PROFILE_UPDATE_FAILED");
   return res.json();
 }
 
@@ -486,7 +520,7 @@ export async function changeMyPassword(data, token) {
     },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Erreur changement mot de passe");
+  if (!res.ok) await throwAccountApiError(res, "PASSWORD_CHANGE_FAILED");
 }
 
 export async function adminGetEspaces(token) {
