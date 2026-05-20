@@ -68,8 +68,31 @@
   width: 100%;
 }
 
+.selectDropdown {
+  width: 100%;
+}
+
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  overflow: hidden;
+  background-image: var(--select-arrow) !important;
+  background-repeat: no-repeat !important;
+  background-position: right 1rem center !important;
+  background-size: 0.8rem !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .textarea {
   min-height: 140px;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
 }
 
 .checkboxRow {
@@ -84,6 +107,88 @@
   gap: 0.8rem;
   color: var(--blue-darker);
   font-weight: 700;
+}
+
+.advisorCard {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(90, 124, 226, 0.1), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(246, 249, 253, 0.78));
+}
+
+.advisorKicker {
+  margin: 0 0 0.25rem;
+  color: var(--taupe-dark);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.advisorCard h3,
+.advisorCard p {
+  margin: 0;
+}
+
+.advisorCard h3 {
+  color: var(--blue-darker);
+}
+
+.advisorCard p {
+  color: var(--text-secondary);
+}
+
+.advisorMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.advisorMetrics span {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.8rem;
+  border-radius: 18px;
+  background: rgba(27, 42, 64, 0.055);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.advisorMetrics strong {
+  color: var(--blue-darker);
+  font-size: 1.1rem;
+}
+
+.advisorActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.advisorGhost,
+.advisorPrimary {
+  min-height: 42px;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.advisorGhost {
+  color: var(--blue-dark);
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(27, 42, 64, 0.12);
+  box-shadow: none;
+}
+
+.advisorPrimary {
+  color: #f8f5ef;
+  background: linear-gradient(135deg, var(--blue-darker), #33476a);
 }
 
 .secondary,
@@ -108,7 +213,8 @@
 [data-theme="dark"] .backLink,
 [data-theme="dark"] .form,
 [data-theme="dark"] .checkboxRow,
-[data-theme="dark"] .secondary {
+[data-theme="dark"] .secondary,
+[data-theme="dark"] .advisorCard {
   border-color: rgba(255, 255, 255, 0.08);
   background:
     radial-gradient(circle at top right, rgba(207, 162, 101, 0.06), transparent 34%),
@@ -118,8 +224,37 @@
 
 [data-theme="dark"] .title,
 [data-theme="dark"] .label,
-[data-theme="dark"] .checkboxLabel {
+[data-theme="dark"] .checkboxLabel,
+[data-theme="dark"] .advisorCard h3,
+[data-theme="dark"] .advisorMetrics strong {
   color: var(--text-primary);
+}
+
+[data-theme="dark"] .hint,
+[data-theme="dark"] .advisorCard p,
+[data-theme="dark"] .advisorKicker,
+[data-theme="dark"] .advisorMetrics span {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .advisorMetrics span,
+[data-theme="dark"] .advisorGhost {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+[data-theme="dark"] .advisorGhost {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .select {
+  background-color: rgba(18, 26, 37, 0.96) !important;
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .select option {
+  background-color: #111827;
+  color: #f9fafb;
 }
 
 [data-theme="dark"] .error {
@@ -131,5 +266,9 @@
 @media (max-width: 720px) {
   .actions {
     flex-direction: column;
+  }
+
+  .advisorMetrics {
+    grid-template-columns: 1fr;
   }
 }

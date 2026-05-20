@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
-import { getEspaces } from "../services/api";
-import { useAuth } from "../context/AuthContext";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../context/AuthContext";
+import { getEspaces } from "../services/api";
+import AvailabilityFinder from "../components/AvailabilityFinder";
+import PageState from "../components/PageState";
 import { getSpaceImage } from "../utils/mediaAssets";
+import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./EspacesPage.module.css";
 
-const EURO = "€";
-
-const getCapacityClass = (space) => {
+function getCapacityClass(space) {
   const capacity = Number(space?.capacity) || 0;
 
   if (capacity >= 500) return styles.capacityHuge;
@@ -16,9 +17,9 @@ const getCapacityClass = (space) => {
   if (capacity >= 80) return styles.capacityMedium;
   if (capacity >= 40) return styles.capacitySmall;
   return styles.capacityBoardroom;
-};
+}
 
-const getSpaceProfileKey = (space) => {
+function getSpaceProfileKey(space) {
   const name = `${space?.name || ""}`.toLowerCase();
   const capacity = Number(space?.capacity) || 0;
 
@@ -28,21 +29,50 @@ const getSpaceProfileKey = (space) => {
   if (name.includes("horizon")) return "horizon";
   if (name.includes("conseil")) return "boardroom";
   return capacity >= 250 ? "executive" : capacity >= 80 ? "atlas" : capacity >= 40 ? "horizon" : "boardroom";
-};
+}
 
-const getSpaceDescription = (space, t) => t(`spaces.profiles.${getSpaceProfileKey(space)}.description`);
-const getSpaceBestFor = (space, t) => t(`spaces.profiles.${getSpaceProfileKey(space)}.bestFor`);
-const getSpaceDisplayType = (space, t) => t(`spaces.profiles.${getSpaceProfileKey(space)}.label`);
+function getSpaceDescription(space, t) {
+  return t(`spaces.profiles.${getSpaceProfileKey(space)}.description`);
+}
+
+function getSpaceBestFor(space, t) {
+  return t(`spaces.profiles.${getSpaceProfileKey(space)}.bestFor`);
+}
+
+function getSpaceDisplayType(space, t) {
+  return t(`spaces.profiles.${getSpaceProfileKey(space)}.label`);
+}
 
 export default function EspacesPage() {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
   const [espaces, setEspaces] = useState([]);
-  const { t } = useTranslation();
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+
   const getSpaceTypeLabel = (type) => t(`spaceType.${type}`, { defaultValue: type });
 
-  useEffect(() => {
-    getEspaces().then(setEspaces);
+  const fetchSpaces = useCallback(() => {
+    getEspaces()
+      .then(setEspaces)
+      .catch((error) => {
+        console.error(error);
+        setEspaces([]);
+        setLoadError(true);
+      })
+      .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchSpaces();
+  }, [fetchSpaces]);
+
+  const retrySpaces = () => {
+    setLoading(true);
+    setLoadError(false);
+    fetchSpaces();
+  };
 
   const premiumRooms = espaces.filter((space) => space.type === "PREMIUM_ROOM");
   const standardRooms = espaces.filter((space) => space.type !== "PREMIUM_ROOM");
@@ -61,6 +91,25 @@ export default function EspacesPage() {
         {t("spaces.loginToReserve")}
       </Link>
     );
+
+  if (loading) {
+    return <PageState type="loading" title={t("common.loading")} message={t("spaces.catalogText")} />;
+  }
+
+  if (loadError) {
+    return (
+      <PageState
+        type="error"
+        title={t("common.error")}
+        message={t("spaces.noSpaces")}
+        action={
+          <button type="button" onClick={retrySpaces}>
+            {t("common.retry")}
+          </button>
+        }
+      />
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -83,23 +132,25 @@ export default function EspacesPage() {
 
         <div className={styles.summaryGrid}>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{espaces.length}</span>
+            <span className={styles.summaryValue}>{formatNumber(espaces.length, locale)}</span>
             <span className={styles.summaryLabel}>{t("nav.spaces")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{premiumRoomsCount}</span>
+            <span className={styles.summaryValue}>{formatNumber(premiumRoomsCount, locale)}</span>
             <span className={styles.summaryLabel}>{getSpaceTypeLabel("PREMIUM_ROOM")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{standardRoomsCount}</span>
+            <span className={styles.summaryValue}>{formatNumber(standardRoomsCount, locale)}</span>
             <span className={styles.summaryLabel}>{getSpaceTypeLabel("SALLE")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{fromPrice} €</span>
+            <span className={styles.summaryValue}>{formatMoney(fromPrice, locale)}</span>
             <span className={styles.summaryLabel}>{t("common.perHour")}</span>
           </div>
         </div>
       </section>
+
+      {espaces.length > 0 && <AvailabilityFinder spaces={espaces} />}
 
       {espaces.length === 0 ? (
         <div className={styles.emptyState}>
@@ -116,11 +167,11 @@ export default function EspacesPage() {
 
             <div className={styles.sidebarStats}>
               <div className={styles.sidebarStat}>
-                <span className={styles.sidebarStatValue}>{maxCapacity}</span>
+                <span className={styles.sidebarStatValue}>{formatNumber(maxCapacity, locale)}</span>
                 <span className={styles.sidebarStatLabel}>{t("spaces.maxCapacityLabel")}</span>
               </div>
               <div className={styles.sidebarStat}>
-                <span className={styles.sidebarStatValue}>{premiumRoomsCount}</span>
+                <span className={styles.sidebarStatValue}>{formatNumber(premiumRoomsCount, locale)}</span>
                 <span className={styles.sidebarStatLabel}>{t("spaces.premiumClusterLabel")}</span>
               </div>
             </div>
@@ -133,11 +184,11 @@ export default function EspacesPage() {
                     <div>
                       <strong className={styles.catalogItemTitle}>{space.name}</strong>
                       <p className={styles.catalogItemMeta}>
-                        {getSpaceDisplayType(space, t)} · {space.capacity} {t("common.persons")}
+                        {getSpaceDisplayType(space, t)} · {formatNumber(space.capacity, locale)} {t("common.persons")}
                       </p>
                     </div>
                     <span className={styles.catalogItemPrice}>
-                      {space.basePrice} {EURO}
+                      {formatMoney(space.basePrice, locale)}
                     </span>
                   </div>
                 ))}
@@ -159,7 +210,7 @@ export default function EspacesPage() {
                     <div className={styles.panelTopline}>
                       <span className={styles.panelBadge}>{getSpaceDisplayType(space, t)}</span>
                       <span className={styles.panelPrice}>
-                        {space.basePrice} {EURO}
+                        {formatMoney(space.basePrice, locale)}
                         <span className={styles.panelPriceUnit}>{t("common.perHour")}</span>
                       </span>
                     </div>
@@ -180,7 +231,7 @@ export default function EspacesPage() {
                         <div className={styles.metricCard}>
                           <span className={styles.metricLabel}>{t("common.capacity")}</span>
                           <span className={styles.metricValue}>
-                            {space.capacity} {t("common.persons")}
+                            {formatNumber(space.capacity, locale)} {t("common.persons")}
                           </span>
                         </div>
                         <div className={styles.metricCard}>
@@ -212,7 +263,7 @@ export default function EspacesPage() {
                         <p className={styles.studioType}>{getSpaceDisplayType(space, t)}</p>
                       </div>
                       <span className={styles.studioPrice}>
-                        {space.basePrice} {EURO}
+                        {formatMoney(space.basePrice, locale)}
                       </span>
                     </div>
 
@@ -226,7 +277,7 @@ export default function EspacesPage() {
                       <div className={styles.studioMetaBlock}>
                         <span className={styles.metricLabel}>{t("common.capacity")}</span>
                         <span className={styles.metricValue}>
-                          {space.capacity} {t("common.persons")}
+                          {formatNumber(space.capacity, locale)} {t("common.persons")}
                         </span>
                       </div>
                       <div className={styles.studioMetaBlock}>

@@ -9,8 +9,10 @@ import be.meetspace.web.dto.ParkingSlotRequest;
 import be.meetspace.web.dto.ParkingSlotResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -96,6 +98,20 @@ public class AdminParkingController {
     }
 
     private void apply(ParkingSlotRequest r, ParkingSlot s) {
+        if (!r.getEndTime().isAfter(r.getStartTime())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "L'heure de fin doit être après l'heure de début");
+        }
+
+        if (s.getId() != null) {
+            Integer reservedSpaces = reservationRepository.countReservedSpacesByParkingSlotId(s.getId());
+            if (reservedSpaces != null && reservedSpaces > r.getParkingCapacity()) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "La capacité parking ne peut pas être inférieure aux places déjà réservées (" + reservedSpaces + ")"
+                );
+            }
+        }
+
         s.setTitle(r.getTitle());
         s.setDescription(r.getDescription());
         s.setSessionDate(r.getSlotDate());
@@ -106,4 +122,3 @@ public class AdminParkingController {
         s.setStatus(r.getStatus());
     }
 }
-

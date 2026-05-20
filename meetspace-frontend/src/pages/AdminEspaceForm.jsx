@@ -7,6 +7,7 @@ import {
 } from "../services/api";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import SelectDropdown from "../components/SelectDropdown";
 import styles from "./AdminEspaceForm.module.css";
 
 export default function AdminEspaceForm() {
@@ -25,6 +26,14 @@ export default function AdminEspaceForm() {
     status: "AVAILABLE",
   });
   const [error, setError] = useState("");
+  const typeOptions = [
+    { value: "SALLE", label: t("spaceType.salle") },
+    { value: "PREMIUM_ROOM", label: t("spaceType.premiumRoom") },
+  ];
+  const statusOptions = [
+    { value: "AVAILABLE", label: t("status.available") },
+    { value: "UNAVAILABLE", label: t("status.unavailable") },
+  ];
 
   useEffect(() => {
     if (!user || user.role !== "ADMIN") {
@@ -82,7 +91,7 @@ export default function AdminEspaceForm() {
         {isEditMode ? t('admin.editSpace') : t('admin.createSpace')}
       </h1>
 
-      <p><Link to="/admin">← {t('admin.backToDashboard')}</Link></p>
+      <p><Link to="/admin">{"\u2190"} {t('admin.backToDashboard')}</Link></p>
 
       {error && <p className={styles.error}>{error}</p>}
 
@@ -100,16 +109,13 @@ export default function AdminEspaceForm() {
 
         <div className={styles.formGroup}>
           <label className={styles.label}>{t('common.type')} :</label>
-          <select
-            name="type"
+          <SelectDropdown
             value={form.type}
-            onChange={handleChange}
-            className={styles.select}
-            required
-          >
-            <option value="SALLE">{t('spaceType.salle')}</option>
-            <option value="PREMIUM_ROOM">{t('spaceType.premiumRoom')}</option>
-          </select>
+            onChange={(value) => handleChange({ target: { name: "type", value } })}
+            options={typeOptions}
+            label={t('common.type')}
+            className={styles.selectDropdown}
+          />
           {form.type === "PREMIUM_ROOM" && (
             <p className={styles.infoText}>
               {t('spaces.premiumRoomRequiresApproval')}
@@ -131,7 +137,7 @@ export default function AdminEspaceForm() {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t('admin.basePrice')} (€) :</label>
+            <label className={styles.label}>{t('admin.basePrice')} ({"\u20ac"}) :</label>
             <input
               name="basePrice"
               type="number"
@@ -146,15 +152,13 @@ export default function AdminEspaceForm() {
 
         <div className={styles.formGroup}>
           <label className={styles.label}>{t('common.status')} :</label>
-          <select
-            name="status"
+          <SelectDropdown
             value={form.status}
-            onChange={handleChange}
-            className={styles.select}
-          >
-            <option value="AVAILABLE">{t('status.available')}</option>
-            <option value="UNAVAILABLE">{t('status.unavailable')}</option>
-          </select>
+            onChange={(value) => handleChange({ target: { name: "status", value } })}
+            options={statusOptions}
+            label={t('common.status')}
+            className={styles.selectDropdown}
+          />
         </div>
 
         <div className={styles.buttonGroup}>

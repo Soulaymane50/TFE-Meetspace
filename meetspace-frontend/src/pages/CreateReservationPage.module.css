@@ -162,6 +162,90 @@
   gap: 1rem;
 }
 
+.progressStrip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  padding: 0.65rem;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--shadow-soft);
+}
+
+.progressStep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 48px;
+  padding: 0.7rem 0.9rem;
+  border-radius: 18px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.progressStep:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.progressStep strong {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(27, 42, 64, 0.08);
+  color: var(--blue-dark);
+  font-size: 0.78rem;
+}
+
+.progressStepActive {
+  background: linear-gradient(135deg, rgba(27, 42, 64, 0.96), rgba(47, 74, 112, 0.92));
+  color: #fff;
+  box-shadow: 0 14px 32px rgba(27, 42, 64, 0.18);
+}
+
+.progressStepActive strong {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.stepActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.stepActions > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.stepActions strong {
+  color: var(--blue-darker);
+}
+
+.stepHint {
+  color: var(--taupe-dark);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
 .flowPanel {
   display: flex;
   flex-direction: column;
@@ -236,6 +320,14 @@
   background: linear-gradient(135deg, var(--blue-darker) 0%, #22344f 58%, var(--orange) 180%);
 }
 
+.primaryAction:disabled,
+.premiumAction:disabled,
+.secondaryAction:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  box-shadow: none;
+}
+
 .premiumAction {
   background: linear-gradient(135deg, #7a4f17 0%, #b58a4c 100%);
 }
@@ -254,8 +346,32 @@
   color: var(--blue-dark);
 }
 
+:global([data-theme="light"]) .heroPanel {
+  border: 1px solid rgba(20, 32, 51, 0.075);
+  background:
+    radial-gradient(circle at 78% 18%, rgba(181, 138, 76, 0.18), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 249, 253, 0.84) 58%, rgba(244, 235, 222, 0.78) 100%),
+    var(--hero-image);
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 30px 70px rgba(11, 18, 32, 0.12);
+}
+
+:global([data-theme="light"]) .kicker {
+  color: rgba(181, 138, 76, 0.88);
+}
+
+:global([data-theme="light"]) .title {
+  color: var(--blue-darker);
+}
+
+:global([data-theme="light"]) .subtitle {
+  color: var(--text-secondary);
+}
+
 [data-theme="dark"] .summaryPanel,
 [data-theme="dark"] .flowPanel,
+[data-theme="dark"] .progressStrip,
 [data-theme="dark"] .info,
 [data-theme="dark"] .loadingBox {
   border-color: rgba(255, 255, 255, 0.08);
@@ -271,15 +387,45 @@
 }
 
 [data-theme="dark"] .metricCard,
-[data-theme="dark"] .warningBox {
+[data-theme="dark"] .warningBox,
+[data-theme="dark"] .stepActions {
   background: rgba(255, 255, 255, 0.04);
 }
 
 [data-theme="dark"] .metricLabel,
 [data-theme="dark"] .justificationLabel,
 [data-theme="dark"] .info,
-[data-theme="dark"] .loadingBox {
+[data-theme="dark"] .loadingBox,
+[data-theme="dark"] .stepHint {
   color: var(--text-secondary);
+}
+
+[data-theme="dark"] .stepActions {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .stepActions strong {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .progressStep {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .progressStep strong {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .progressStepActive {
+  background: linear-gradient(135deg, rgba(47, 74, 112, 0.98), rgba(181, 138, 76, 0.9));
+  color: #fff;
+}
+
+[data-theme="dark"] .primaryAction:disabled,
+[data-theme="dark"] .premiumAction:disabled {
+  background: rgba(51, 65, 85, 0.72);
+  color: rgba(226, 232, 240, 0.72);
 }
 
 [data-theme="dark"] .spaceBadge {
@@ -304,8 +450,13 @@
     padding: 1.2rem;
   }
 
+  .progressStrip {
+    grid-template-columns: 1fr;
+  }
+
   .buttonGroup,
-  .totalPanel {
+  .totalPanel,
+  .stepActions {
     flex-direction: column;
     align-items: stretch;
   }

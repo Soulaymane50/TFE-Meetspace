@@ -9,12 +9,18 @@ import {
   adminGetPendingReservations,
   adminApproveReservation,
 } from "../services/api";
+import PageState from "../components/PageState";
+import SelectDropdown from "../components/SelectDropdown";
+import { useFeedback } from "../context/FeedbackContext";
+import { formatMoney, normalizeLocale } from "../utils/formatters";
 import styles from "./AdminEspacesPage.module.css";
 
 export default function AdminEspacesPage() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { confirm, notify } = useFeedback();
+  const locale = normalizeLocale(i18n.language);
 
   const getDateLocale = () => {
     const locales = { fr: "fr-BE", nl: "nl-BE", en: "en-GB" };
@@ -36,6 +42,7 @@ export default function AdminEspacesPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
       const [espacesData, reservationsData, pendingData] = await Promise.all([
         adminGetEspaces(token),
@@ -66,28 +73,49 @@ export default function AdminEspacesPage() {
   }, [loadData, navigate, user]);
 
   const handleDeleteEspace = async (id) => {
-    if (!window.confirm(t("admin.confirmDeleteSpace"))) return;
+    const accepted = await confirm({
+      title: t("admin.confirmDeleteSpace"),
+      confirmLabel: t("common.delete", { defaultValue: "Supprimer" }),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
+    if (!accepted) return;
     try {
       await adminDeleteEspace(id, token);
       setEspaces((prev) => prev.filter((e) => e.id !== id));
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("admin.spaceDeleted", { defaultValue: "Salle supprimée." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
   const handleApproveReservation = async (id) => {
-    if (!window.confirm(t("admin.confirmApproveRoomRequest"))) return;
+    const accepted = await confirm({
+      title: t("admin.confirmApproveRoomRequest"),
+      confirmLabel: t("admin.approve", { defaultValue: "Approuver" }),
+      cancelLabel: t("common.cancel"),
+    });
+    if (!accepted) return;
     try {
       await adminApproveReservation(id, true, null, token);
       loadData();
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("admin.roomRequestApproved", { defaultValue: "Demande de salle approuvée." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
   const handleRejectReservation = async (id) => {
     if (!rejectionReason.trim()) {
-      alert(t("admin.rejectionReasonRequired"));
+      notify({ type: "error", title: t("common.error"), message: t("admin.rejectionReasonRequired") });
       return;
     }
     try {
@@ -95,8 +123,13 @@ export default function AdminEspacesPage() {
       setRejectingId(null);
       setRejectionReason("");
       loadData();
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("admin.roomRequestRejected", { defaultValue: "Demande de salle refusée." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
@@ -106,13 +139,20 @@ export default function AdminEspacesPage() {
   });
 
   if (!user || user.role !== "ADMIN") return null;
-  if (loading) return <div className={styles.loading}>{t("common.loading")}</div>;
-  if (error) return <div className={styles.error}>{error}</div>;
+  if (loading) return <PageState type="loading" title={t("common.loading")} message={t("admin.spacesManagement")} />;
+  if (error) return <PageState type="error" title={t("common.error")} message={error} />;
 
   const tabs = [
     { id: "spaces", label: t("admin.spacesManagement") },
     { id: "pending", label: t("admin.pendingReservations"), badge: pendingReservations.length },
     { id: "reservations", label: t("admin.spaceReservations") },
+  ];
+
+  const reservationStatusOptions = [
+    { value: "ALL", label: t("common.all") },
+    { value: "CONFIRMED", label: t("status.confirmed") },
+    { value: "PENDING_APPROVAL", label: t("status.pending_approval") },
+    { value: "CANCELLED", label: t("status.cancelled") },
   ];
 
   return (
@@ -184,7 +224,7 @@ export default function AdminEspacesPage() {
                         </span>
                       </td>
                       <td>{e.capacity} {t("common.persons")}</td>
-                      <td>{e.basePrice} € {t("common.perHour")}</td>
+                      <td>{formatMoney(e.basePrice, locale)} {t("common.perHour")}</td>
                       <td>
                         <div className={styles.actions}>
                           <Link to={`/admin/espaces/${e.id}/edit`} className={styles.btnGhost}>
@@ -232,7 +272,7 @@ export default function AdminEspacesPage() {
                   )}
 
                   <div className={styles.cardFooter}>
-                    <span className={styles.price}>{r.totalPrice} €</span>
+                    <span className={styles.price}>{formatMoney(r.totalPrice, locale)}</span>
 
                     {rejectingId === r.id ? (
                       <div className={styles.rejectBox}>
@@ -274,16 +314,13 @@ export default function AdminEspacesPage() {
         <section className={styles.section}>
           <div className={styles.filterBar}>
             <label>{t("admin.filterByStatus")}</label>
-            <select
+            <SelectDropdown
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className={styles.select}
-            >
-              <option value="ALL">{t("common.all")}</option>
-              <option value="CONFIRMED">{t("status.confirmed")}</option>
-              <option value="PENDING_APPROVAL">{t("status.pending_approval")}</option>
-              <option value="CANCELLED">{t("status.cancelled")}</option>
-            </select>
+              onChange={setFilterStatus}
+              options={reservationStatusOptions}
+              label={t("admin.filterByStatus")}
+              className={styles.selectDropdown}
+            />
             <span className={styles.resultCount}>
               {filteredReservations.length} {t("admin.reservationsShown")}
             </span>
@@ -316,7 +353,7 @@ export default function AdminEspacesPage() {
                         </div>
                       </td>
                       <td>{new Date(r.startDateTime).toLocaleString(getDateLocale())}</td>
-                      <td>{r.totalPrice} €</td>
+                      <td>{formatMoney(r.totalPrice, locale)}</td>
                       <td>
                         <span className={`${styles.statusBadge} ${styles[`status${r.status}`]}`}>
                           {t(`status.${r.status.toLowerCase()}`)}

@@ -8,46 +8,48 @@ import {
   adminGetUsers,
 } from "../services/api";
 import { useTranslation } from "react-i18next";
+import PageState from "./PageState";
+import SelectDropdown from "./SelectDropdown";
 import styles from "./AuditLogs.module.css";
 
 const ACTION_LABELS = {
-  LOGIN_SUCCESS: { label: "Connexion reussie", icon: "OK", color: "green" },
-  LOGIN_FAILURE: { label: "Echec de connexion", icon: "KO", color: "red" },
-  LOGOUT: { label: "Deconnexion", icon: "OUT", color: "gray" },
+  LOGIN_SUCCESS: { label: "Connexion réussie", icon: "OK", color: "green" },
+  LOGIN_FAILURE: { label: "Échec de connexion", icon: "KO", color: "red" },
+  LOGOUT: { label: "Déconnexion", icon: "OUT", color: "gray" },
   PASSWORD_CHANGE: { label: "Changement de mot de passe", icon: "PWD", color: "orange" },
-  PASSWORD_RESET_REQUEST: { label: "Demande de reinitialisation", icon: "REQ", color: "blue" },
-  PASSWORD_RESET_COMPLETE: { label: "Reinitialisation terminee", icon: "RST", color: "green" },
-  USER_CREATE: { label: "Utilisateur cree", icon: "USR", color: "green" },
-  USER_UPDATE: { label: "Utilisateur modifie", icon: "USR", color: "blue" },
-  USER_DELETE: { label: "Utilisateur supprime", icon: "USR", color: "red" },
-  USER_ROLE_CHANGE: { label: "Changement de role", icon: "ROL", color: "purple" },
+  PASSWORD_RESET_REQUEST: { label: "Demande de réinitialisation", icon: "REQ", color: "blue" },
+  PASSWORD_RESET_COMPLETE: { label: "Réinitialisation terminée", icon: "RST", color: "green" },
+  USER_CREATE: { label: "Utilisateur créé", icon: "USR", color: "green" },
+  USER_UPDATE: { label: "Utilisateur modifié", icon: "USR", color: "blue" },
+  USER_DELETE: { label: "Utilisateur supprimé", icon: "USR", color: "red" },
+  USER_ROLE_CHANGE: { label: "Changement de rôle", icon: "ROL", color: "purple" },
   USER_STATUS_CHANGE: { label: "Changement de statut", icon: "STA", color: "orange" },
-  EVENT_CREATE: { label: "Evenement cree", icon: "EV", color: "green" },
-  EVENT_UPDATE: { label: "Evenement modifie", icon: "EV", color: "blue" },
-  EVENT_DELETE: { label: "Evenement supprime", icon: "EV", color: "red" },
-  EVENT_APPROVE: { label: "Evenement approuve", icon: "EV", color: "green" },
-  EVENT_REJECT: { label: "Evenement rejete", icon: "EV", color: "red" },
-  EVENT_CANCEL: { label: "Evenement annule", icon: "EV", color: "orange" },
-  RESERVATION_CREATE: { label: "Reservation creee", icon: "RS", color: "green" },
-  RESERVATION_UPDATE: { label: "Reservation modifiee", icon: "RS", color: "blue" },
-  RESERVATION_CANCEL: { label: "Reservation annulee", icon: "RS", color: "orange" },
-  RESERVATION_APPROVE: { label: "Reservation approuvee", icon: "RS", color: "green" },
-  RESERVATION_REJECT: { label: "Reservation rejetee", icon: "RS", color: "red" },
-  SPACE_CREATE: { label: "Salle creee", icon: "SP", color: "green" },
-  SPACE_UPDATE: { label: "Salle modifiee", icon: "SP", color: "blue" },
-  SPACE_DELETE: { label: "Salle supprimee", icon: "SP", color: "red" },
-  PARKING_SESSION_CREATE: { label: "Creneau parking cree", icon: "PK", color: "green" },
-  PARKING_SESSION_UPDATE: { label: "Creneau parking modifie", icon: "PK", color: "blue" },
-  PARKING_SESSION_DELETE: { label: "Creneau parking supprime", icon: "PK", color: "red" },
-  PARKING_RESERVATION_CREATE: { label: "Reservation parking creee", icon: "PK", color: "green" },
-  PARKING_RESERVATION_CANCEL: { label: "Reservation parking annulee", icon: "PK", color: "orange" },
-  PARKING_RESERVATION_APPROVE: { label: "Reservation parking approuvee", icon: "PK", color: "green" },
-  PARKING_RESERVATION_REJECT: { label: "Reservation parking rejetee", icon: "PK", color: "red" },
-  PAYMENT_INITIATED: { label: "Paiement initie", icon: "PM", color: "blue" },
-  PAYMENT_SUCCESS: { label: "Paiement reussi", icon: "PM", color: "green" },
-  PAYMENT_FAILURE: { label: "Paiement echoue", icon: "PM", color: "red" },
-  EVENT_REGISTRATION_CREATE: { label: "Inscription evenement", icon: "EV", color: "green" },
-  EVENT_REGISTRATION_CANCEL: { label: "Desinscription evenement", icon: "EV", color: "orange" },
+  EVENT_CREATE: { label: "Événement créé", icon: "EV", color: "green" },
+  EVENT_UPDATE: { label: "Événement modifié", icon: "EV", color: "blue" },
+  EVENT_DELETE: { label: "Événement supprimé", icon: "EV", color: "red" },
+  EVENT_APPROVE: { label: "Événement approuvé", icon: "EV", color: "green" },
+  EVENT_REJECT: { label: "Événement rejeté", icon: "EV", color: "red" },
+  EVENT_CANCEL: { label: "Événement annulé", icon: "EV", color: "orange" },
+  RESERVATION_CREATE: { label: "Réservation créée", icon: "RS", color: "green" },
+  RESERVATION_UPDATE: { label: "Réservation modifiée", icon: "RS", color: "blue" },
+  RESERVATION_CANCEL: { label: "Réservation annulée", icon: "RS", color: "orange" },
+  RESERVATION_APPROVE: { label: "Réservation approuvée", icon: "RS", color: "green" },
+  RESERVATION_REJECT: { label: "Réservation rejetée", icon: "RS", color: "red" },
+  SPACE_CREATE: { label: "Salle créée", icon: "SP", color: "green" },
+  SPACE_UPDATE: { label: "Salle modifiée", icon: "SP", color: "blue" },
+  SPACE_DELETE: { label: "Salle supprimée", icon: "SP", color: "red" },
+  PARKING_SESSION_CREATE: { label: "Créneau parking créé", icon: "PK", color: "green" },
+  PARKING_SESSION_UPDATE: { label: "Créneau parking modifié", icon: "PK", color: "blue" },
+  PARKING_SESSION_DELETE: { label: "Créneau parking supprimé", icon: "PK", color: "red" },
+  PARKING_RESERVATION_CREATE: { label: "Réservation parking créée", icon: "PK", color: "green" },
+  PARKING_RESERVATION_CANCEL: { label: "Réservation parking annulée", icon: "PK", color: "orange" },
+  PARKING_RESERVATION_APPROVE: { label: "Réservation parking approuvée", icon: "PK", color: "green" },
+  PARKING_RESERVATION_REJECT: { label: "Réservation parking rejetée", icon: "PK", color: "red" },
+  PAYMENT_INITIATED: { label: "Paiement initié", icon: "PM", color: "blue" },
+  PAYMENT_SUCCESS: { label: "Paiement réussi", icon: "PM", color: "green" },
+  PAYMENT_FAILURE: { label: "Paiement échoué", icon: "PM", color: "red" },
+  EVENT_REGISTRATION_CREATE: { label: "Inscription événement", icon: "EV", color: "green" },
+  EVENT_REGISTRATION_CANCEL: { label: "Désinscription événement", icon: "EV", color: "orange" },
 };
 
 export default function AuditLogs() {
@@ -85,7 +87,7 @@ export default function AuditLogs() {
       setEntityTypes(entityTypesData);
       setUsers(usersData);
     } catch (err) {
-      console.error("Erreur chargement donnees initiales:", err);
+      console.error("Erreur chargement données initiales:", err);
     }
   }, [token]);
 
@@ -151,66 +153,77 @@ export default function AuditLogs() {
 
   const getActionInfo = (action) => ACTION_LABELS[action] || { label: action, icon: "LOG", color: "gray" };
 
-  if (error) return <div className={styles.error}>{error}</div>;
+  const userOptions = [
+    { value: "", label: t("common.all", "Tous") },
+    ...users.map((u) => ({
+      value: String(u.id),
+      label: `${u.firstName} ${u.lastName}`,
+    })),
+  ];
+
+  const actionOptions = [
+    { value: "", label: t("common.all", "Toutes") },
+    ...actions.map((action) => ({
+      value: action,
+      label: getActionInfo(action).label,
+    })),
+  ];
+
+  const entityOptions = [
+    { value: "", label: t("common.all", "Tous") },
+    ...entityTypes.map((entityType) => ({
+      value: entityType,
+      label: entityType,
+    })),
+  ];
+
+  if (error) {
+    return <PageState type="error" title={t("common.error")} message={error} />;
+  }
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h2 className={styles.title}>{t("admin.auditLogs", "Logs d'audit")}</h2>
-        <span className={styles.count}>{totalElements} {t("admin.entries", "entrees")}</span>
+        <span className={styles.count}>{totalElements} {t("admin.entries", "entrées")}</span>
       </div>
 
       <div className={styles.filters}>
         <div className={styles.filterGroup}>
           <label>{t("admin.user", "Utilisateur")}</label>
-          <select
+          <SelectDropdown
             value={filters.userId}
-            onChange={(e) => handleFilterChange("userId", e.target.value)}
-            className={styles.select}
-          >
-            <option value="">{t("common.all", "Tous")}</option>
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.firstName} {u.lastName}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => handleFilterChange("userId", value)}
+            options={userOptions}
+            label={t("admin.user", "Utilisateur")}
+            className={styles.selectDropdown}
+          />
         </div>
 
         <div className={styles.filterGroup}>
           <label>{t("admin.action", "Action")}</label>
-          <select
+          <SelectDropdown
             value={filters.action}
-            onChange={(e) => handleFilterChange("action", e.target.value)}
-            className={styles.select}
-          >
-            <option value="">{t("common.all", "Toutes")}</option>
-            {actions.map((action) => (
-              <option key={action} value={action}>
-                {getActionInfo(action).label}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => handleFilterChange("action", value)}
+            options={actionOptions}
+            label={t("admin.action", "Action")}
+            className={styles.selectDropdown}
+          />
         </div>
 
         <div className={styles.filterGroup}>
           <label>{t("admin.entityType", "Type")}</label>
-          <select
+          <SelectDropdown
             value={filters.entityType}
-            onChange={(e) => handleFilterChange("entityType", e.target.value)}
-            className={styles.select}
-          >
-            <option value="">{t("common.all", "Tous")}</option>
-            {entityTypes.map((entityType) => (
-              <option key={entityType} value={entityType}>
-                {entityType}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => handleFilterChange("entityType", value)}
+            options={entityOptions}
+            label={t("admin.entityType", "Type")}
+            className={styles.selectDropdown}
+          />
         </div>
 
         <div className={styles.filterGroup}>
-          <label>{t("admin.startDate", "Debut")}</label>
+          <label>{t("admin.startDate", "Début")}</label>
           <input
             type="datetime-local"
             value={filters.startDate}
@@ -235,7 +248,11 @@ export default function AuditLogs() {
       </div>
 
       {loading ? (
-        <div className={styles.loading}>{t("common.loading", "Chargement...")}</div>
+        <PageState
+          type="loading"
+          title={t("common.loading", "Chargement...")}
+          message={t("admin.auditLogs", "Logs d'audit")}
+        />
       ) : (
         <>
           <div className={styles.tableContainer}>
@@ -245,7 +262,7 @@ export default function AuditLogs() {
                   <th>{t("admin.date", "Date")}</th>
                   <th>{t("admin.user", "Utilisateur")}</th>
                   <th>{t("admin.action", "Action")}</th>
-                  <th>{t("admin.details", "Details")}</th>
+                  <th>{t("admin.details", "Détails")}</th>
                   <th>{t("admin.ip", "IP")}</th>
                 </tr>
               </thead>
@@ -253,7 +270,7 @@ export default function AuditLogs() {
                 {logs.length === 0 ? (
                   <tr>
                     <td colSpan="5" className={styles.noData}>
-                      {t("admin.noLogs", "Aucun log trouve")}
+                      {t("admin.noLogs", "Aucun log trouvé")}
                     </td>
                   </tr>
                 ) : (
@@ -300,7 +317,7 @@ export default function AuditLogs() {
                 disabled={page === 0}
                 className={styles.pageBtn}
               >
-                {"<"} {t("common.previous", "Precedent")}
+                {"<"} {t("common.previous", "Précédent")}
               </button>
               <span className={styles.pageInfo}>
                 {t("common.page", "Page")} {page + 1} / {totalPages}

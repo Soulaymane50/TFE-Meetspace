@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { organizerGetMyEvents, organizerCancelMyEvent } from "../services/api";
+import { organizerGetMyEvents, organizerCancelMyEvent, organizerGetFinanceSummary } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import PageState from "../components/PageState";
+import EventPlanningTimeline from "../components/EventPlanningTimeline";
+import { useFeedback } from "../context/FeedbackContext";
+import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./OrganizerEventsPage.module.css";
 
 function OrganizerIcon({ type }) {
@@ -66,12 +70,11 @@ function OrganizerIcon({ type }) {
   );
 }
 
-const EURO = "\u20ac";
-
 export default function OrganizerEventsPage() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { confirm, notify } = useFeedback();
 
   const getDateLocale = () => {
     const locales = { fr: "fr-BE", nl: "nl-BE", en: "en-GB" };
@@ -82,12 +85,23 @@ export default function OrganizerEventsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("ALL");
+  const [financeSummary, setFinanceSummary] = useState(null);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
-      const data = await organizerGetMyEvents(token);
-      setEvents(data);
+      const [eventsResult, financeResult] = await Promise.allSettled([
+        organizerGetMyEvents(token),
+        organizerGetFinanceSummary(token),
+      ]);
+
+      if (eventsResult.status === "rejected") {
+        throw eventsResult.reason;
+      }
+
+      setEvents(eventsResult.value);
+      setFinanceSummary(financeResult.status === "fulfilled" ? financeResult.value : null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -108,13 +122,20 @@ export default function OrganizerEventsPage() {
   }, [fetchEvents, navigate, user]);
 
   const handleCancel = async (id, title) => {
-    if (!window.confirm(t("organizer.confirmCancelEvent", { title }))) return;
+    const confirmed = await confirm({
+      title: t("organizer.confirmCancelEvent", { title }),
+      confirmLabel: t("organizer.cancelEvent"),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
+    if (!confirmed) return;
 
     try {
       await organizerCancelMyEvent(id, token);
+      notify({ type: "success", title: t("organizer.cancelEvent"), message: t("organizer.eventCancelled", "Événement annulé.") });
       fetchEvents();
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
@@ -129,7 +150,9 @@ export default function OrganizerEventsPage() {
   };
 
   const filteredEvents = filter === "ALL" ? events : events.filter((e) => e.status === filter);
-  const formatEuro = (value) => `${(value || 0).toFixed(2)} ${EURO}`;
+  const locale = normalizeLocale(i18n.language);
+  const formatEuro = (value) => formatMoney(value, locale);
+  const formatStat = (value) => formatNumber(value, locale);
 
   const stats = {
     total: events.length,
@@ -138,9 +161,31 @@ export default function OrganizerEventsPage() {
     rejected: events.filter((e) => e.status === "REJECTED").length,
     cancelled: events.filter((e) => e.status === "CANCELLED").length,
   };
+  const statusFilters = ["ALL", "PENDING_APPROVAL", "PUBLISHED", "REJECTED", "CANCELLED"];
+  const sortedEvents = [...events].sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime));
+  const upcomingEvents = sortedEvents.filter((event) => new Date(event.endDateTime) >= new Date());
+  const nextEvent = upcomingEvents[0] || sortedEvents[0];
+  const publicationRate = stats.total > 0 ? Math.round((stats.published / stats.total) * 100) : 0;
+  const activeEvents = stats.published + stats.pending;
+  const filteredCount = filteredEvents.length;
+  const financeEvents = financeSummary?.events ?? [];
+  const financeByEventId = new Map(financeEvents.map((item) => [item.eventId, item]));
+  const topFinanceEvents = financeEvents.slice(0, 3);
+  const getStatusCount = (status) => (status === "ALL" ? stats.total : events.filter((e) => e.status === status).length);
+  const formatDateTime = (value) => new Date(value).toLocaleString(getDateLocale(), {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const signalCards = [
+    { icon: "published", label: t("organizer.publishedEvents"), value: stats.published, meta: `${publicationRate}%` },
+    { icon: "pending", label: t("organizer.pendingApproval"), value: stats.pending, meta: t("organizer.approvalFlow") },
+    { icon: "events", label: t("organizer.portfolio"), value: activeEvents, meta: t("organizer.eventsVisible") },
+  ];
 
   if (!user || (user.role !== "ORGANIZER" && user.role !== "ADMIN")) return null;
-  if (loading) return <div className={styles.info}>{t("common.loading")}</div>;
+  if (loading) return <PageState type="loading" title={t("common.loading")} message={t("organizer.manageYourEvents")} />;
 
   return (
     <div className={styles.container}>
@@ -156,36 +201,122 @@ export default function OrganizerEventsPage() {
 
       {error && <div className={styles.error}>{error}</div>}
 
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard} onClick={() => setFilter("ALL")}>
-          <span className={styles.statIcon}><OrganizerIcon type="events" /></span>
-          <span className={styles.statNumber}>{stats.total}</span>
-          <span className={styles.statLabel}>{t("organizer.totalEvents")}</span>
-        </div>
-        <div className={`${styles.statCard} ${styles.statPending}`} onClick={() => setFilter("PENDING_APPROVAL")}>
-          <span className={styles.statIcon}><OrganizerIcon type="pending" /></span>
-          <span className={styles.statNumber}>{stats.pending}</span>
-          <span className={styles.statLabel}>{t("organizer.pendingApproval")}</span>
-        </div>
-        <div className={`${styles.statCard} ${styles.statPublished}`} onClick={() => setFilter("PUBLISHED")}>
-          <span className={styles.statIcon}><OrganizerIcon type="published" /></span>
-          <span className={styles.statNumber}>{stats.published}</span>
-          <span className={styles.statLabel}>{t("organizer.publishedEvents")}</span>
-        </div>
-        <div className={`${styles.statCard} ${styles.statRejected}`} onClick={() => setFilter("REJECTED")}>
-          <span className={styles.statIcon}><OrganizerIcon type="rejected" /></span>
-          <span className={styles.statNumber}>{stats.rejected}</span>
-          <span className={styles.statLabel}>{t("organizer.rejectedEvents")}</span>
-        </div>
-        <div className={`${styles.statCard} ${styles.statCancelled}`} onClick={() => setFilter("CANCELLED")}>
-          <span className={styles.statIcon}><OrganizerIcon type="cancelled" /></span>
-          <span className={styles.statNumber}>{stats.cancelled}</span>
-          <span className={styles.statLabel}>{t("status.cancelled")}</span>
-        </div>
+      <div className={styles.commandDeck}>
+        <section className={styles.mainConsole}>
+          <div className={styles.consoleHeader}>
+            <div>
+              <p className={styles.consoleEyebrow}>{t("organizer.consoleLabel")}</p>
+              <h2>{t("organizer.eventPipeline")}</h2>
+            </div>
+            <span className={styles.livePill}>
+              <span className={styles.liveDot} />
+              {publicationRate}%
+            </span>
+          </div>
+
+          <div className={styles.consoleBody}>
+            <div className={styles.consoleMetric}>
+              <span>{t("organizer.totalEvents")}</span>
+              <strong>{formatStat(stats.total)}</strong>
+              <small>{formatStat(filteredCount)} {t("organizer.eventsShown")}</small>
+            </div>
+
+            <div className={styles.nextEventPanel}>
+              <span className={styles.nextLabel}>{t("organizer.nextEvent")}</span>
+              {nextEvent ? (
+                <>
+                  <strong>{nextEvent.title}</strong>
+                  <small>{formatDateTime(nextEvent.startDateTime)} · {nextEvent.location || t("common.toBeAnnounced")}</small>
+                </>
+              ) : (
+                <>
+                  <strong>{t("organizer.noUpcomingEvent")}</strong>
+                  <small>{t("organizer.createFirstEvent")}</small>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.signalGrid}>
+            {signalCards.map((item) => (
+              <button key={item.label} type="button" className={styles.signalCard} onClick={() => setFilter(item.icon === "pending" ? "PENDING_APPROVAL" : item.icon === "published" ? "PUBLISHED" : "ALL")}>
+                <span className={styles.signalIcon}><OrganizerIcon type={item.icon} /></span>
+                <span>
+                  <small>{item.label}</small>
+                  <strong>{formatStat(item.value)}</strong>
+                  <em>{item.meta}</em>
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {financeSummary && (
+            <div className={styles.financePanel}>
+              <div className={styles.financeHeader}>
+                <div>
+                  <p className={styles.financeEyebrow}>{t("finance.indicativeEstimate")}</p>
+                  <h3>{t("finance.organizerTitle")}</h3>
+                </div>
+                <span>{t("finance.commissionRate", { rate: Math.round((financeSummary.commissionRate || 0) * 100) })}</span>
+              </div>
+
+              <div className={styles.financeGrid}>
+                <div className={styles.financeMetric}>
+                  <span>{t("finance.confirmedRegistrations")}</span>
+                  <strong>{formatStat(financeSummary.confirmedRegistrations || 0)}</strong>
+                </div>
+                <div className={styles.financeMetric}>
+                  <span>{t("finance.grossRevenue")}</span>
+                  <strong>{formatEuro(financeSummary.eventGrossRevenue)}</strong>
+                </div>
+                <div className={styles.financeMetric}>
+                  <span>{t("finance.roomCost")}</span>
+                  <strong>{formatEuro(financeSummary.roomCostChargedToOrganizers)}</strong>
+                </div>
+                <div className={styles.financeMetric}>
+                  <span>{t("finance.organizerNetEstimate")}</span>
+                  <strong>{formatEuro(financeSummary.organizerNetEstimate)}</strong>
+                </div>
+              </div>
+              <p className={styles.financeNote}>{t("finance.organizerHint")}</p>
+
+              {topFinanceEvents.length > 0 && (
+                <div className={styles.financeList}>
+                  {topFinanceEvents.map((eventFinance) => (
+                    <div key={eventFinance.eventId} className={styles.financeListItem}>
+                      <span>{eventFinance.eventTitle}</span>
+                      <strong>{formatEuro(eventFinance.organizerNetEstimate)}</strong>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+
+        <aside className={styles.statusPanel}>
+          <div className={styles.statusPanelHeader}>
+            <span>{t("organizer.quickReview")}</span>
+            <strong>{formatStat(stats.pending)}</strong>
+          </div>
+          <div className={styles.statusStack}>
+            {statusFilters.slice(1).map((status) => (
+              <button
+                key={status}
+                type="button"
+                className={`${styles.statusRow} ${filter === status ? styles.statusRowActive : ""}`}
+                onClick={() => setFilter(status)}
+              >
+                <span className={statusClass(status)}>{t(`status.${status.toLowerCase()}`)}</span>
+                <strong>{formatStat(getStatusCount(status))}</strong>
+              </button>
+            ))}
+          </div>
+        </aside>
       </div>
 
       <div className={styles.filterTabs}>
-        {["ALL", "PENDING_APPROVAL", "PUBLISHED", "REJECTED", "CANCELLED"].map((status) => (
+        {statusFilters.map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
@@ -193,11 +324,19 @@ export default function OrganizerEventsPage() {
           >
             {t(status === "ALL" ? "common.all" : `status.${status.toLowerCase()}`)}
             <span className={styles.filterCount}>
-              {status === "ALL" ? stats.total : events.filter((e) => e.status === status).length}
+              {formatStat(getStatusCount(status))}
             </span>
           </button>
         ))}
       </div>
+
+      <EventPlanningTimeline
+        events={filteredEvents}
+        title={t("planning.organizerTitle")}
+        subtitle={t("planning.organizerSubtitle")}
+        getEventHref={(event) => `/organizer/events/edit/${event.id}`}
+        maxDays={4}
+      />
 
       {filteredEvents.length === 0 ? (
         <div className={styles.emptyState}>
@@ -233,13 +372,21 @@ export default function OrganizerEventsPage() {
                 </div>
                 <div className={styles.eventDetail}>
                   <span className={styles.detailIcon}><OrganizerIcon type="capacity" /></span>
-                  {e.capacity} {t("common.persons")}
+                  {formatStat(e.capacity)} {t("common.persons")}
                 </div>
                 <div className={styles.eventDetail}>
                   <span className={styles.detailIcon}><OrganizerIcon type="price" /></span>
                   {e.price > 0 ? formatEuro(e.price) : t("events.free")}
                 </div>
               </div>
+
+              {financeByEventId.has(e.id) && (
+                <div className={styles.eventFinanceStrip}>
+                  <span>{t("finance.netShort")}</span>
+                  <strong>{formatEuro(financeByEventId.get(e.id).organizerNetEstimate)}</strong>
+                  <small>{formatStat(financeByEventId.get(e.id).confirmedParticipants || 0)} {t("common.participants")}</small>
+                </div>
+              )}
 
               <div className={styles.eventActions}>
                 <Link to={`/organizer/events/edit/${e.id}`} className={styles.editButton}>

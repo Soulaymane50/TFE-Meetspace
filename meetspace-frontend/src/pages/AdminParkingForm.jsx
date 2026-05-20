@@ -7,6 +7,8 @@ import {
 } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import PageState from "../components/PageState";
+import SelectDropdown from "../components/SelectDropdown";
 import styles from "./AdminParkingForm.module.css";
 
 export default function AdminParkingForm() {
@@ -29,6 +31,11 @@ export default function AdminParkingForm() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const statusOptions = [
+    { value: "OPEN", label: t("status.open") },
+    { value: "CLOSED", label: t("status.closed") },
+    { value: "CANCELLED", label: t("status.cancelled") },
+  ];
 
   useEffect(() => {
     if (isEditingParkingSlot) {
@@ -36,6 +43,8 @@ export default function AdminParkingForm() {
 
       const loadParkingSlot = async () => {
         setLoading(true);
+        setError("");
+
         try {
           const parkingSlot = await adminGetParkingSlot(id, token);
           if (!cancelled) {
@@ -78,14 +87,39 @@ export default function AdminParkingForm() {
     setError("");
 
     if (!parkingSlotForm.description || parkingSlotForm.description.trim().length < 10) {
-      setError(t('validation.descriptionRequired') || "Description requise (10 caractères minimum)");
+      setError(t("validation.descriptionRequired") || "Description requise (10 caracteres minimum)");
+      return;
+    }
+
+    const selectedDate = new Date(`${parkingSlotForm.slotDate}T00:00:00`);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (selectedDate < today) {
+      setError(t("validation.startDatePast"));
+      return;
+    }
+
+    if (!parkingSlotForm.startTime || !parkingSlotForm.endTime || parkingSlotForm.endTime <= parkingSlotForm.startTime) {
+      setError(t("validation.endBeforeStart"));
+      return;
+    }
+
+    const capacity = Number(parkingSlotForm.parkingCapacity);
+    if (!capacity || capacity < 1 || capacity > 150) {
+      setError(t("parking.capacityExceeded", { count: 150 }));
+      return;
+    }
+
+    const rate = Number(parkingSlotForm.parkingRate);
+    if (!Number.isFinite(rate) || rate < 0) {
+      setError(t("validation.pricePositive"));
       return;
     }
 
     const parkingSlotPayload = {
       ...parkingSlotForm,
-      parkingCapacity: Number(parkingSlotForm.parkingCapacity),
-      parkingRate: Number(parkingSlotForm.parkingRate),
+      parkingCapacity: capacity,
+      parkingRate: rate,
     };
 
     try {
@@ -100,23 +134,25 @@ export default function AdminParkingForm() {
     }
   };
 
-  if (loading) return <p className={styles.info}>{t('common.loading')}</p>;
+  if (loading) {
+    return <PageState type="loading" title={t("common.loading")} message={t("admin.parkingManagement")} />;
+  }
 
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>
-        {isEditingParkingSlot ? t('admin.editSession') : t('admin.newSession')}
+        {isEditingParkingSlot ? t("admin.editSession") : t("admin.newSession")}
       </h1>
 
       <p>
-        <Link to="/admin/parking">← {t('admin.backToList')}</Link>
+        <Link to="/admin/parking">{"\u2190"} {t("admin.backToList")}</Link>
       </p>
 
       {error && <p className={styles.error}>{error}</p>}
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
-          <label className={styles.label}>{t('common.title')} :</label>
+          <label className={styles.label}>{t("common.title")} :</label>
           <input
             type="text"
             name="title"
@@ -128,7 +164,7 @@ export default function AdminParkingForm() {
         </div>
 
         <div className={styles.formGroup}>
-            <label className={styles.label}>{t('common.description')} :</label>
+          <label className={styles.label}>{t("common.description")} :</label>
           <textarea
             name="description"
             value={parkingSlotForm.description}
@@ -141,7 +177,7 @@ export default function AdminParkingForm() {
         </div>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>{t('common.date')} :</label>
+          <label className={styles.label}>{t("common.date")} :</label>
           <input
             type="date"
             name="slotDate"
@@ -154,7 +190,7 @@ export default function AdminParkingForm() {
 
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
-              <label className={styles.label}>{t('reservation.startTime')} :</label>
+            <label className={styles.label}>{t("reservation.startTime")} :</label>
             <input
               type="time"
               name="startTime"
@@ -165,7 +201,7 @@ export default function AdminParkingForm() {
             />
           </div>
           <div className={styles.formGroup}>
-              <label className={styles.label}>{t('reservation.endTime')} :</label>
+            <label className={styles.label}>{t("reservation.endTime")} :</label>
             <input
               type="time"
               name="endTime"
@@ -179,7 +215,7 @@ export default function AdminParkingForm() {
 
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
-              <label className={styles.label}>{t('parking.places')} :</label>
+            <label className={styles.label}>{t("parking.places")} :</label>
             <input
               type="number"
               name="parkingCapacity"
@@ -187,11 +223,12 @@ export default function AdminParkingForm() {
               onChange={handleChange}
               required
               min="1"
+              max="150"
               className={styles.input}
             />
           </div>
           <div className={styles.formGroup}>
-              <label className={styles.label}>{t('parking.rateLabel')} (€) :</label>
+            <label className={styles.label}>{t("parking.rateLabel")} ({"\u20ac"}) :</label>
             <input
               type="number"
               name="parkingRate"
@@ -206,17 +243,14 @@ export default function AdminParkingForm() {
         </div>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>{t('common.status')} :</label>
-          <select
-            name="status"
+          <label className={styles.label}>{t("common.status")} :</label>
+          <SelectDropdown
             value={parkingSlotForm.status}
-            onChange={handleChange}
-            className={styles.select}
-          >
-            <option value="OPEN">{t('status.open')}</option>
-            <option value="CLOSED">{t('status.closed')}</option>
-            <option value="CANCELLED">{t('status.cancelled')}</option>
-          </select>
+            onChange={(value) => setParkingSlotForm({ ...parkingSlotForm, status: value })}
+            options={statusOptions}
+            label={t("common.status")}
+            className={styles.selectDropdown}
+          />
         </div>
 
         <div className={styles.buttonGroup}>
@@ -225,10 +259,10 @@ export default function AdminParkingForm() {
             onClick={() => navigate("/admin/parking")}
             className={styles.cancelButton}
           >
-            {t('common.cancel')}
+            {t("common.cancel")}
           </button>
           <button type="submit" className={styles.submitButton}>
-            {isEditingParkingSlot ? t('common.save') : t('common.create')}
+            {isEditingParkingSlot ? t("common.save") : t("common.create")}
           </button>
         </div>
       </form>

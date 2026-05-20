@@ -2,6 +2,7 @@ package be.meetspace.web.dto;
 
 import be.meetspace.entity.ParkingSlotStatus;
 import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -32,6 +33,7 @@ public class ParkingSlotRequest {
 
     @NotNull
     @Min(1)
+    @Max(150)
     private Integer parkingCapacity;
 
     @NotNull

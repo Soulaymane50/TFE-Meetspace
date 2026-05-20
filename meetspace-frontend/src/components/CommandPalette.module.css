@@ -1,0 +1,286 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: grid;
+  place-items: start center;
+  padding: clamp(5.8rem, 10vh, 8rem) 1rem 1rem;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(90, 124, 226, 0.16), transparent 30%),
+    rgba(11, 18, 32, 0.34);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: overlayIn 0.18s ease-out;
+}
+
+.palette {
+  width: min(760px, 100%);
+  overflow: hidden;
+  border-radius: 30px;
+  border: 1px solid rgba(27, 42, 64, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(181, 138, 76, 0.14), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 245, 239, 0.94) 100%);
+  box-shadow: 0 34px 90px rgba(11, 18, 32, 0.28);
+  animation: paletteIn 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.25rem 0.9rem;
+}
+
+.header p {
+  margin: 0 0 0.2rem;
+  color: var(--orange);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.header h2 {
+  margin: 0;
+  color: var(--blue-darker);
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+}
+
+.header > span {
+  flex: 0 0 auto;
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(27, 42, 64, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.searchBox {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 1.25rem 1rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 20px;
+  border: 1px solid rgba(27, 42, 64, 0.1);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+.searchBox input {
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--blue-darker);
+  box-shadow: none;
+}
+
+.searchBox input:focus {
+  box-shadow: none;
+}
+
+.iconSvg {
+  width: 1.05rem;
+  height: 1.05rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.commandList {
+  display: grid;
+  gap: 0.55rem;
+  max-height: min(58vh, 520px);
+  overflow-y: auto;
+  padding: 0 1rem 1rem;
+}
+
+.commandItem {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-height: 82px;
+  padding: 0.8rem;
+  border-radius: 22px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(90, 124, 226, 0.08), transparent 30%),
+    rgba(255, 255, 255, 0.66);
+  color: var(--blue-darker);
+  box-shadow: none;
+  text-align: left;
+}
+
+.commandItem:hover,
+.commandItem:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(181, 138, 76, 0.35);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 34px rgba(11, 18, 32, 0.12);
+  filter: none;
+}
+
+.commandIcon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #16243a 0%, #315784 100%);
+  color: #ffffff;
+}
+
+.commandContent {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.commandContent small {
+  color: var(--orange);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.commandContent strong {
+  overflow: hidden;
+  color: var(--blue-darker);
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commandContent em {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commandArrow {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(27, 42, 64, 0.06);
+  color: var(--blue-darker);
+  font-weight: 900;
+}
+
+.empty {
+  margin: 0;
+  padding: 1.8rem;
+  border-radius: 22px;
+  background: rgba(27, 42, 64, 0.04);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+:global([data-theme="dark"]) .overlay {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(137, 163, 255, 0.14), transparent 30%),
+    rgba(1, 5, 12, 0.62);
+}
+
+:global([data-theme="dark"]) .palette {
+  border-color: rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(circle at top right, rgba(207, 162, 101, 0.12), transparent 32%),
+    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(10, 15, 24, 0.98) 100%);
+}
+
+:global([data-theme="dark"]) .header h2,
+:global([data-theme="dark"]) .searchBox input,
+:global([data-theme="dark"]) .commandContent strong,
+:global([data-theme="dark"]) .commandArrow {
+  color: var(--text-primary);
+}
+
+:global([data-theme="dark"]) .header > span,
+:global([data-theme="dark"]) .searchBox,
+:global([data-theme="dark"]) .commandItem,
+:global([data-theme="dark"]) .empty {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+:global([data-theme="dark"]) .commandItem:hover,
+:global([data-theme="dark"]) .commandItem:focus-visible {
+  border-color: rgba(207, 162, 101, 0.34);
+  background: rgba(255, 255, 255, 0.075);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+}
+
+:global([data-theme="dark"]) .commandIcon {
+  background: linear-gradient(135deg, rgba(207, 162, 101, 0.92), rgba(49, 87, 132, 0.92));
+  color: #111827;
+}
+
+:global([data-theme="dark"]) .commandContent em,
+:global([data-theme="dark"]) .header > span,
+:global([data-theme="dark"]) .empty {
+  color: var(--text-secondary);
+}
+
+:global([data-theme="dark"]) .commandArrow {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes paletteIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .overlay {
+    padding-top: 4.8rem;
+  }
+
+  .header {
+    flex-direction: column;
+  }
+
+  .commandItem {
+    min-height: auto;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .commandArrow {
+    display: none;
+  }
+}

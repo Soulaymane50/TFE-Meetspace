@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { organizerCreateEvent, organizerGetMyEvent, organizerUpdateMyEvent } from "../services/api";
+import { getEspaces, organizerCreateEvent, organizerGetMyEvent, organizerUpdateMyEvent } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import PageState from "../components/PageState";
+import RoomSchedulePicker from "../components/RoomSchedulePicker";
+import SelectDropdown from "../components/SelectDropdown";
+import { formatMoney, normalizeLocale } from "../utils/formatters";
 import styles from "./OrganizerEventForm.module.css";
 
 export default function OrganizerEventForm() {
@@ -10,7 +14,8 @@ export default function OrganizerEventForm() {
   const isEdit = Boolean(id);
   const { user, token } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
   const parkingGridClassName = styles.parkingGrid;
 
   const [eventForm, setEventForm] = useState({
@@ -18,6 +23,7 @@ export default function OrganizerEventForm() {
     description: "",
     startDateTime: "",
     endDateTime: "",
+    spaceId: "",
     location: "",
     capacity: "",
     price: "",
@@ -26,16 +32,61 @@ export default function OrganizerEventForm() {
     parkingCapacity: "",
   });
   const [originalEvent, setOriginalEvent] = useState(null);
+  const [spaces, setSpaces] = useState([]);
+  const [loadingSpaces, setLoadingSpaces] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingEvent, setLoadingEvent] = useState(isEdit);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const availableSpaces = spaces
+    .filter((space) => space.status !== "UNAVAILABLE")
+    .sort((a, b) => (a.capacity || 0) - (b.capacity || 0));
+  const roomOptions = [
+    {
+      value: "",
+      label: loadingSpaces ? t("common.loading") : t("organizer.selectLocation"),
+    },
+    ...availableSpaces.map((space) => ({
+      value: String(space.id),
+      label: `${space.name} - ${space.capacity} ${t("common.persons")} - ${formatMoney(space.basePrice, locale)} ${t("common.perHour")}`,
+    })),
+  ];
+
+  const selectedSpace = availableSpaces.find(
+    (space) => String(space.id) === String(eventForm.spaceId) || space.name === eventForm.location,
+  );
+  const selectedCapacity = Number(selectedSpace?.capacity) || 0;
+  const recommendedCapacity = selectedCapacity
+    ? Math.min(selectedCapacity, Math.max(12, Math.round(selectedCapacity * 0.75)))
+    : 0;
+  const recommendedPrice = selectedCapacity >= 300 ? 120 : selectedCapacity >= 100 ? 80 : selectedCapacity >= 50 ? 45 : 25;
+  const recommendedParkingCapacity = recommendedCapacity
+    ? Math.min(50, Math.max(6, Math.round(recommendedCapacity * 0.3)))
+    : 0;
+  const recommendedParkingPrice = selectedCapacity >= 100 ? 10 : 8;
+  const previewStart = eventForm.startDateTime ? new Date(eventForm.startDateTime) : null;
+  const previewEnd = eventForm.endDateTime ? new Date(eventForm.endDateTime) : null;
+  const previewDate =
+    previewStart && !Number.isNaN(previewStart.getTime())
+      ? previewStart.toLocaleDateString(locale, { weekday: "long", day: "2-digit", month: "long" })
+      : t("organizer.previewDateFallback", { defaultValue: "Date à définir" });
+  const previewTime =
+    previewStart && previewEnd && !Number.isNaN(previewStart.getTime()) && !Number.isNaN(previewEnd.getTime())
+      ? `${previewStart.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })} - ${previewEnd.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}`
+      : t("organizer.previewTimeFallback", { defaultValue: "Horaire à définir" });
 
   useEffect(() => {
     if (!user || (user.role !== "ORGANIZER" && user.role !== "ADMIN")) {
       navigate("/login");
       return;
     }
+
+    setLoadingSpaces(true);
+    getEspaces()
+      .then((data) => setSpaces(Array.isArray(data) ? data : []))
+      .catch(() => setSpaces([]))
+      .finally(() => setLoadingSpaces(false));
 
     if (isEdit) {
       setLoadingEvent(true);
@@ -47,6 +98,7 @@ export default function OrganizerEventForm() {
             description: event.description || "",
             startDateTime: event.startDateTime.slice(0, 16),
             endDateTime: event.endDateTime.slice(0, 16),
+            spaceId: event.spaceId ?? "",
             location: event.location || "",
             capacity: event.capacity,
             price: event.price || "",
@@ -60,9 +112,99 @@ export default function OrganizerEventForm() {
     }
   }, [id, isEdit, user, token, navigate]);
 
+  useEffect(() => {
+    if (eventForm.spaceId || !eventForm.location || spaces.length === 0) return;
+
+    const room = spaces.find((space) => space.status !== "UNAVAILABLE" && space.name === eventForm.location);
+    if (room) {
+      setEventForm((prev) => ({ ...prev, spaceId: String(room.id) }));
+    }
+  }, [spaces, eventForm.location, eventForm.spaceId]);
+
+  const clampNumber = (value, min, max) => {
+    if (value === "") return "";
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "";
+    return String(Math.min(Math.max(number, min), max));
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setEventForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setEventForm((prev) => {
+      const next = { ...prev, [name]: type === "checkbox" ? checked : value };
+
+      if (name === "capacity") {
+        const maxCapacity = selectedSpace?.capacity ? Number(selectedSpace.capacity) : Number.MAX_SAFE_INTEGER;
+        next.capacity = clampNumber(value, 1, maxCapacity);
+        if (next.parkingCapacity && Number(next.parkingCapacity) > Number(next.capacity)) {
+          next.parkingCapacity = next.capacity;
+        }
+      }
+
+      if (name === "parkingCapacity") {
+        const maxParking = prev.capacity ? Number(prev.capacity) : Number.MAX_SAFE_INTEGER;
+        next.parkingCapacity = clampNumber(value, 1, maxParking);
+      }
+
+      return next;
+    });
+    setError("");
+  };
+
+  const handleLocationChange = (e) => {
+    const value = e.target.value;
+    const room = availableSpaces.find((space) => String(space.id) === String(value));
+
+    setEventForm((prev) => ({
+      ...prev,
+      spaceId: value,
+      location: room?.name || "",
+      capacity:
+        room && (!prev.capacity || Number(prev.capacity) > Number(room.capacity))
+          ? String(room.capacity)
+          : prev.capacity,
+      parkingCapacity:
+        room && prev.parkingCapacity && Number(prev.parkingCapacity) > Number(room.capacity)
+          ? String(room.capacity)
+          : prev.parkingCapacity,
+      startDateTime: "",
+      endDateTime: "",
+    }));
+    setError("");
+  };
+
+  const handleScheduleChange = ({ startDateTime, endDateTime }) => {
+    setEventForm((prev) => ({
+      ...prev,
+      startDateTime,
+      endDateTime,
+    }));
+    setError("");
+  };
+
+  const applyRoomCapacity = () => {
+    if (!selectedSpace) return;
+    setEventForm((prev) => ({
+      ...prev,
+      capacity: String(selectedSpace.capacity),
+      parkingCapacity:
+        prev.parkingCapacity && Number(prev.parkingCapacity) > Number(selectedSpace.capacity)
+          ? String(selectedSpace.capacity)
+          : prev.parkingCapacity,
+    }));
+    setError("");
+  };
+
+  const applySmartRecommendation = () => {
+    if (!selectedSpace) return;
+    setEventForm((prev) => ({
+      ...prev,
+      capacity: String(recommendedCapacity),
+      price: String(recommendedPrice),
+      parkingRequired: true,
+      parkingPrice: String(recommendedParkingPrice),
+      parkingCapacity: String(Math.min(recommendedParkingCapacity, recommendedCapacity)),
+    }));
     setError("");
   };
 
@@ -87,9 +229,28 @@ export default function OrganizerEventForm() {
       setError(t("validation.endBeforeStart"));
       return false;
     }
+    if (!selectedSpace) {
+      setError(t("organizer.locationRequired"));
+      return false;
+    }
     if (!eventForm.capacity || parseInt(eventForm.capacity) < 1) {
       setError(t("validation.capacityRequired"));
       return false;
+    }
+    if (selectedSpace && parseInt(eventForm.capacity) > Number(selectedSpace.capacity)) {
+      setError(t("organizer.capacityExceedsRoom", { capacity: selectedSpace.capacity }));
+      return false;
+    }
+    if (eventForm.parkingRequired) {
+      const parkingCapacity = parseInt(eventForm.parkingCapacity, 10);
+      if (!parkingCapacity || parkingCapacity < 1) {
+        setError(t("organizer.parkingCapacityRequired"));
+        return false;
+      }
+      if (parkingCapacity > parseInt(eventForm.capacity, 10)) {
+        setError(t("organizer.parkingCapacityExceedsEvent", { capacity: eventForm.capacity }));
+        return false;
+      }
     }
     return true;
   };
@@ -104,6 +265,10 @@ export default function OrganizerEventForm() {
 
     const payload = {
       ...eventForm,
+      locationType: "EXISTING_SPACE",
+      spaceId: Number(selectedSpace.id),
+      externalAddress: null,
+      location: selectedSpace.name,
       capacity: parseInt(eventForm.capacity),
       price: eventForm.price ? parseFloat(eventForm.price) : 0,
       parkingPrice: eventForm.parkingPrice !== "" ? parseFloat(eventForm.parkingPrice) : null,
@@ -127,7 +292,9 @@ export default function OrganizerEventForm() {
   };
 
   if (!user || (user.role !== "ORGANIZER" && user.role !== "ADMIN")) return null;
-  if (loadingEvent) return <div className={styles.loading}>{t("common.loading")}</div>;
+  if (loadingEvent) {
+    return <PageState type="loading" title={t("common.loading")} message={t("organizer.manageYourEvents")} />;
+  }
 
   return (
     <div className={styles.container}>
@@ -145,7 +312,7 @@ export default function OrganizerEventForm() {
 
         {!isEdit && (
           <div className={styles.infoBox}>
-            <div className={styles.infoIcon}>ℹ</div>
+            <div className={styles.infoIcon}>i</div>
             <div>
               <strong>{t("organizer.note")}:</strong>
               <p className={styles.infoText}>{t("organizer.pendingApprovalNote")}</p>
@@ -195,47 +362,69 @@ export default function OrganizerEventForm() {
             />
           </div>
 
-          <div className={styles.row}>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                {t("events.startDate")} <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="datetime-local"
-                name="startDateTime"
-                value={eventForm.startDateTime}
-                onChange={handleChange}
-                className={styles.input}
-                required
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                {t("events.endDate")} <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="datetime-local"
-                name="endDateTime"
-                value={eventForm.endDateTime}
-                onChange={handleChange}
-                className={styles.input}
-                required
-              />
-            </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
+              {t("events.location")} <span className={styles.required}>*</span>
+            </label>
+            <SelectDropdown
+              value={String(eventForm.spaceId || "")}
+              onChange={(value) => handleLocationChange({ target: { value } })}
+              options={roomOptions}
+              label={t("events.location")}
+              className={styles.selectDropdown}
+              disabled={loadingSpaces}
+            />
+            <span className={styles.hint}>
+              {selectedSpace
+                ? t("organizer.roomCapacityHint", {
+                    capacity: selectedSpace.capacity,
+                    price: selectedSpace.basePrice,
+                  })
+                : t("organizer.locationHint")}
+            </span>
           </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.label}>{t("events.location")}</label>
-            <input
-              type="text"
-              name="location"
-              value={eventForm.location}
-              onChange={handleChange}
-              placeholder={t("organizer.locationPlaceholder")}
-              className={styles.input}
-            />
-            <span className={styles.hint}>{t("organizer.locationHint")}</span>
-          </div>
+          {selectedSpace && (
+            <div className={styles.advisorCard}>
+              <div>
+                <p className={styles.advisorKicker}>{t("organizer.advisorKicker")}</p>
+                <h3>{t("organizer.advisorTitle")}</h3>
+                <p>{t("organizer.advisorText")}</p>
+              </div>
+              <div className={styles.advisorMetrics}>
+                <span>
+                  <strong>{recommendedCapacity}</strong>
+                  {t("organizer.advisorCapacity")}
+                </span>
+                <span>
+                  <strong>{formatMoney(recommendedPrice, locale)}</strong>
+                  {t("organizer.advisorPrice")}
+                </span>
+                <span>
+                  <strong>{recommendedParkingCapacity}</strong>
+                  {t("organizer.advisorParking")}
+                </span>
+              </div>
+              <div className={styles.advisorActions}>
+                <button type="button" onClick={applyRoomCapacity} className={styles.advisorGhost}>
+                  {t("organizer.applyCapacity")}
+                </button>
+                <button type="button" onClick={applySmartRecommendation} className={styles.advisorPrimary}>
+                  {t("organizer.applyRecommendation")}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <RoomSchedulePicker
+            key={eventForm.spaceId || "organizer-room-schedule"}
+            spaceId={eventForm.spaceId}
+            spaceName={selectedSpace?.name}
+            startDateTime={eventForm.startDateTime}
+            endDateTime={eventForm.endDateTime}
+            onChange={handleScheduleChange}
+            ignoreBlockId={isEdit ? id : undefined}
+          />
 
           <div className={styles.row}>
             <div className={styles.formGroup}>
@@ -248,6 +437,7 @@ export default function OrganizerEventForm() {
                 value={eventForm.capacity}
                 onChange={handleChange}
                 min="1"
+                max={selectedSpace?.capacity || undefined}
                 className={styles.input}
                 required
               />
@@ -303,11 +493,48 @@ export default function OrganizerEventForm() {
                   value={eventForm.parkingCapacity}
                   onChange={handleChange}
                   min="1"
+                  max={eventForm.capacity || undefined}
                   className={styles.input}
                 />
               </div>
             </div>
           )}
+
+          <section className={styles.previewPanel} aria-label={t("organizer.previewAria")}>
+            <div className={styles.previewIntro}>
+              <p className={styles.previewKicker}>{t("organizer.previewKicker")}</p>
+              <h2>{t("organizer.previewTitle")}</h2>
+              <span>{t("organizer.previewIntro")}</span>
+            </div>
+
+            <article className={styles.previewCard}>
+              <div className={styles.previewTopline}>
+                <span>{previewDate}</span>
+                <strong>{previewTime}</strong>
+              </div>
+              <h3>{eventForm.title || t("organizer.previewTitleFallback")}</h3>
+              <p>
+                {eventForm.description ||
+                  t("organizer.previewDescriptionFallback")}
+              </p>
+              <div className={styles.previewTags}>
+                <span>{selectedSpace?.name || t("organizer.previewRoomFallback")}</span>
+                <span>{eventForm.capacity || 0} {t("common.persons")}</span>
+                <span>{eventForm.price ? formatMoney(eventForm.price, locale) : t("events.free")}</span>
+                <span>{eventForm.parkingRequired ? t("organizer.previewParkingIncluded") : t("organizer.previewParkingExcluded")}</span>
+              </div>
+              <div className={styles.previewFooter}>
+                <span>{t("organizer.previewStatus")}</span>
+                <strong>
+                  {eventForm.capacity && selectedSpace
+                    ? t("organizer.previewRoomUsage", {
+                        usage: Math.min(100, Math.round((Number(eventForm.capacity) / Number(selectedSpace.capacity)) * 100)),
+                      })
+                    : t("organizer.previewCapacityFallback")}
+                </strong>
+              </div>
+            </article>
+          </section>
 
           <div className={styles.actions}>
             <button type="button" onClick={() => navigate("/organizer/events")} className={styles.cancelBtn}>

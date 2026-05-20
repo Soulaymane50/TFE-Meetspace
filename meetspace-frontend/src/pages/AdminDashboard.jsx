@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
   adminGetStats,
+  adminGetFinanceSummary,
   adminGetPendingEvents,
   adminGetPendingReservations,
   adminGetUsers,
@@ -14,6 +15,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import styles from "./AdminDashboard.module.css";
 import AuditLogs from "../components/AuditLogs";
+import PageState from "../components/PageState";
+import SelectDropdown from "../components/SelectDropdown";
+import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
+import { useFeedback } from "../context/FeedbackContext";
 
 function AdminIcon({ type }) {
   const icons = {
@@ -94,18 +99,18 @@ function AdminIcon({ type }) {
   );
 }
 
-const EURO = "\u20ac";
-
 export default function AdminDashboard() {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { confirm, notify } = useFeedback();
 
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [stats, setStats] = useState(null);
+  const [financeSummary, setFinanceSummary] = useState(null);
   const [pendingEvents, setPendingEvents] = useState([]);
   const [pendingReservations, setPendingReservations] = useState([]);
   const [users, setUsers] = useState([]);
@@ -115,23 +120,44 @@ export default function AdminDashboard() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
       const [
-        statsData,
-        pendingData,
-        pendingResData,
-        usersData,
-      ] = await Promise.all([
+        statsResult,
+        financeResult,
+        pendingEventsResult,
+        pendingReservationsResult,
+        usersResult,
+      ] = await Promise.allSettled([
         adminGetStats(token),
+        adminGetFinanceSummary(token),
         adminGetPendingEvents(token),
         adminGetPendingReservations(token),
         adminGetUsers(token),
       ]);
 
-      setStats(statsData);
-      setPendingEvents(pendingData);
-      setPendingReservations(pendingResData);
-      setUsers(usersData);
+      const criticalError =
+        statsResult.status === "rejected"
+          ? statsResult.reason
+          : usersResult.status === "rejected"
+            ? usersResult.reason
+            : null;
+
+      if (criticalError) {
+        if (criticalError.status === 401 || criticalError.status === 403) {
+          await logout();
+          navigate("/login", { replace: true });
+          return;
+        }
+        setError(criticalError.message);
+        return;
+      }
+
+      setStats(statsResult.value);
+      setFinanceSummary(financeResult.status === "fulfilled" ? financeResult.value : null);
+      setUsers(usersResult.value);
+      setPendingEvents(pendingEventsResult.status === "fulfilled" ? pendingEventsResult.value : []);
+      setPendingReservations(pendingReservationsResult.status === "fulfilled" ? pendingReservationsResult.value : []);
     } catch (err) {
       if (err.status === 401 || err.status === 403) {
         await logout();
@@ -158,32 +184,63 @@ export default function AdminDashboard() {
   }, [loadData, navigate, user]);
 
   const handleUpdateUserRole = async (userId, newRole) => {
-    if (!window.confirm(t("admin.confirmRoleChange"))) return;
+    const accepted = await confirm({
+      title: t("admin.confirmRoleChange"),
+      confirmLabel: t("common.confirm", { defaultValue: "Confirmer" }),
+      cancelLabel: t("common.cancel"),
+    });
+    if (!accepted) return;
     try {
       await adminUpdateUserRole(userId, newRole, token);
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("admin.roleUpdated", { defaultValue: "Rôle utilisateur mis à jour." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
   const handleBanUser = async (userId) => {
-    if (!window.confirm(t("admin.confirmBan"))) return;
+    const accepted = await confirm({
+      title: t("admin.confirmBan"),
+      confirmLabel: t("admin.ban", { defaultValue: "Suspendre" }),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
+    if (!accepted) return;
     try {
       const updated = await adminBanUser(userId, token);
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, status: updated.status } : u)));
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("admin.userSuspended", { defaultValue: "Utilisateur suspendu." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
   const handleReactivateUser = async (userId) => {
-    if (!window.confirm(t("admin.confirmReactivate"))) return;
+    const accepted = await confirm({
+      title: t("admin.confirmReactivate"),
+      confirmLabel: t("admin.reactivate", { defaultValue: "Réactiver" }),
+      cancelLabel: t("common.cancel"),
+    });
+    if (!accepted) return;
     try {
       const updated = await adminReactivateUser(userId, token);
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, status: updated.status } : u)));
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("admin.userReactivated", { defaultValue: "Utilisateur réactivé." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
@@ -194,7 +251,7 @@ export default function AdminDashboard() {
       setUserDetails(details);
       setSelectedUser(userId);
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     } finally {
       setLoadingDetails(false);
     }
@@ -216,17 +273,25 @@ export default function AdminDashboard() {
   };
 
   if (!user || user.role !== "ADMIN") return null;
-  if (loading) return <div className={styles.loading}>{t("common.loading")}</div>;
-  if (error) return <div className={styles.error}>{error}</div>;
+  if (loading) return <PageState type="loading" title={t("common.loading")} message={t("admin.dashboardSubtitle")} />;
+  if (error) return <PageState type="error" title={t("common.error")} message={error} />;
 
   const totalPending = pendingEvents.length + pendingReservations.length;
   const totalParkingSlots = stats?.totalParkingSlots ?? 0;
   const confirmedParkingReservations = stats?.confirmedParkingReservations ?? 0;
   const parkingRevenue = stats?.parkingRevenue ?? 0;
   const userParkingReservations = userDetails?.parkingReservations ?? [];
-  const formatEuro = (value) => `${(value || 0).toFixed(2)} ${EURO}`;
+  const locale = normalizeLocale(i18n.language);
+  const formatEuro = (value) => formatMoney(value, locale);
+  const formatStat = (value) => formatNumber(value, locale);
   const totalRevenue = stats?.totalRevenue || 0;
-  const getShare = (value) => (totalRevenue > 0 ? Math.max(4, Math.round(((value || 0) / totalRevenue) * 100)) : 0);
+  const financeTotal = financeSummary?.meetSpaceEstimatedRevenue ?? totalRevenue;
+  const eventGrossRevenue = financeSummary?.eventGrossRevenue ?? stats?.eventRevenue ?? 0;
+  const eventCommissionRevenue = financeSummary?.eventCommissionRevenue ?? 0;
+  const directRoomRevenue = financeSummary?.directRoomRevenue ?? stats?.spaceRevenue ?? 0;
+  const organizerRoomCost = financeSummary?.roomCostChargedToOrganizers ?? 0;
+  const organizerNetEstimate = financeSummary?.organizerNetEstimate ?? 0;
+  const getShare = (value, total = totalRevenue) => (total > 0 ? Math.max(4, Math.round(((value || 0) / total) * 100)) : 0);
 
   const tabs = [
     { id: "overview", label: t("admin.overview") },
@@ -234,28 +299,10 @@ export default function AdminDashboard() {
     { id: "audit", label: t("admin.auditLogs", "Logs d'audit") },
   ];
 
-  const navCards = [
-    {
-      to: "/admin/espaces",
-      icon: "spaces",
-      title: t("admin.spacesManagement"),
-      meta: `${stats?.totalEspaces || 0} ${t("nav.spaces").toLowerCase()}`,
-      badge: pendingReservations.length > 0 ? `${pendingReservations.length} ${t("admin.pending")}` : "",
-    },
-    {
-      to: "/admin/events",
-      icon: "events",
-      title: t("admin.eventsManagement"),
-      meta: `${stats?.totalEvents || 0} ${t("nav.events").toLowerCase()}`,
-      badge: pendingEvents.length > 0 ? `${pendingEvents.length} ${t("admin.pending")}` : "",
-    },
-    {
-      to: "/admin/parking",
-      icon: "parking",
-      title: t("admin.parkingManagement"),
-      meta: `${totalParkingSlots} ${t("admin.totalSessions").toLowerCase()}`,
-      badge: "",
-    },
+  const roleOptions = [
+    { value: "MEMBER", label: t("admin.roles.member") },
+    { value: "ORGANIZER", label: t("admin.roles.organizer") },
+    { value: "ADMIN", label: t("admin.roles.admin") },
   ];
 
   const platformStats = [
@@ -271,12 +318,10 @@ export default function AdminDashboard() {
     { icon: "parking", label: t("admin.confirmedParkingReservations"), value: confirmedParkingReservations, tone: styles.statGreen },
   ];
 
-  const revenueStats = [
-    { icon: "spaces", label: t("admin.spaceRevenue"), value: formatEuro(stats?.spaceRevenue) },
-    { icon: "events", label: t("admin.eventRevenue"), value: formatEuro(stats?.eventRevenue), tone: styles.statBlue },
-    { icon: "parking", label: t("admin.parkingRevenue"), value: formatEuro(parkingRevenue), tone: styles.statGreen },
-    { icon: "revenue", label: t("admin.totalRevenue"), value: formatEuro(stats?.totalRevenue), tone: styles.statPurple },
-  ];
+  const totalReservations =
+    (stats?.confirmedSpaceReservations || 0) +
+    (stats?.confirmedEventRegistrations || 0) +
+    confirmedParkingReservations;
 
   const revenueBreakdown = [
     { label: t("admin.eventRevenue"), value: stats?.eventRevenue || 0, share: getShare(stats?.eventRevenue), tone: styles.barBlue },
@@ -284,25 +329,11 @@ export default function AdminDashboard() {
     { label: t("admin.parkingRevenue"), value: parkingRevenue, share: getShare(parkingRevenue), tone: styles.barGreen },
   ];
 
-  const dashboardSignals = [
-    {
-      icon: "spaces",
-      label: t("admin.spacesManagement"),
-      value: stats?.totalEspaces ?? 0,
-      meta: pendingReservations.length > 0 ? `${pendingReservations.length} ${t("admin.pending")}` : t("common.status"),
-    },
-    {
-      icon: "events",
-      label: t("admin.eventsManagement"),
-      value: stats?.totalEvents ?? 0,
-      meta: pendingEvents.length > 0 ? `${pendingEvents.length} ${t("admin.pending")}` : t("status.published"),
-    },
-    {
-      icon: "parking",
-      label: t("admin.parkingManagement"),
-      value: totalParkingSlots,
-      meta: `${confirmedParkingReservations} ${t("admin.confirmedParkingReservations").toLowerCase()}`,
-    },
+  const financeBreakdown = [
+    { label: t("finance.directRoomRevenue"), value: directRoomRevenue, share: getShare(directRoomRevenue, financeTotal), tone: styles.barGold },
+    { label: t("finance.parkingRevenue"), value: financeSummary?.parkingRevenue ?? parkingRevenue, share: getShare(financeSummary?.parkingRevenue ?? parkingRevenue, financeTotal), tone: styles.barGreen },
+    { label: t("finance.eventCommissions"), value: eventCommissionRevenue, share: getShare(eventCommissionRevenue, financeTotal), tone: styles.barBlue },
+    { label: t("finance.roomCostChargedToOrganizers"), value: organizerRoomCost, share: getShare(organizerRoomCost, financeTotal), tone: styles.barViolet },
   ];
 
   const operations = [
@@ -326,6 +357,33 @@ export default function AdminDashboard() {
     },
   ];
 
+  const moduleCards = [
+    {
+      to: "/admin/espaces",
+      icon: "spaces",
+      label: t("admin.spacesManagement"),
+      value: stats?.totalEspaces ?? 0,
+      meta: pendingReservations.length > 0 ? `${pendingReservations.length} ${t("admin.pending")}` : t("admin.totalSpaces"),
+      tone: styles.moduleBlue,
+    },
+    {
+      to: "/admin/events",
+      icon: "events",
+      label: t("admin.eventsManagement"),
+      value: stats?.totalEvents ?? 0,
+      meta: pendingEvents.length > 0 ? `${pendingEvents.length} ${t("admin.pending")}` : t("status.published"),
+      tone: styles.moduleGreen,
+    },
+    {
+      to: "/admin/parking",
+      icon: "parking",
+      label: t("admin.parkingManagement"),
+      value: totalParkingSlots,
+      meta: `${confirmedParkingReservations} ${t("admin.confirmedParkingReservations").toLowerCase()}`,
+      tone: styles.moduleGold,
+    },
+  ];
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -343,7 +401,7 @@ export default function AdminDashboard() {
         <div className={styles.alertBanner}>
           <span className={styles.alertIcon}>!</span>
           <span>
-            {pendingEvents.length} {t("admin.eventsPendingApproval")}
+            {formatStat(pendingEvents.length)} {t("admin.eventsPendingApproval")}
           </span>
           <Link to="/admin/events" className={styles.alertButton}>
             {t("common.view")}
@@ -355,28 +413,13 @@ export default function AdminDashboard() {
         <div className={styles.alertBanner}>
           <span className={styles.alertIcon}>!</span>
           <span>
-            {pendingReservations.length} {t("admin.premiumRoomReservationsPending")}
+            {formatStat(pendingReservations.length)} {t("admin.premiumRoomReservationsPending")}
           </span>
           <Link to="/admin/espaces" className={styles.alertButton}>
             {t("common.view")}
           </Link>
         </div>
       )}
-
-      <div className={styles.navCards}>
-        {navCards.map((card) => (
-          <Link key={card.to} to={card.to} className={styles.navCard}>
-            <div className={styles.navCardIcon}>
-              <AdminIcon type={card.icon} />
-            </div>
-            <div className={styles.navCardContent}>
-              <h3>{card.title}</h3>
-              <p>{card.meta}</p>
-              {card.badge && <span className={styles.navBadge}>{card.badge}</span>}
-            </div>
-          </Link>
-        ))}
-      </div>
 
       <div className={styles.tabs}>
         {tabs.map((tab) => (
@@ -399,24 +442,46 @@ export default function AdminDashboard() {
             </div>
             <span className={styles.liveBadge}>
               <span className={styles.liveDot} />
-              {t("admin.pendingApprovals")}: {totalPending}
+              {t("admin.pendingApprovals")}: {formatStat(totalPending)}
             </span>
           </div>
 
-          <div className={styles.commandGrid}>
-            <div className={styles.commandPanel}>
-              <div className={styles.commandIcon}>
-                <AdminIcon type="revenue" />
+          <div className={styles.controlCenter}>
+            <div className={styles.revenueConsole}>
+              <div className={styles.revenueTopline}>
+                <span className={styles.consoleBadge}>{t("admin.totalRevenue")}</span>
+                <span className={styles.consoleStatus}>
+                  <span className={styles.liveDot} />
+                  {t("admin.pendingApprovals")}: {formatStat(totalPending)}
+                </span>
               </div>
-              <div className={styles.commandContent}>
-                <span>{t("admin.totalRevenue")}</span>
-                <strong>{formatEuro(stats.totalRevenue)}</strong>
+
+              <div className={styles.revenueHero}>
+                <div>
+                  <strong>{formatEuro(totalRevenue)}</strong>
+                  <p>{t("admin.allReservationsDesc")}</p>
+                </div>
+
+                <div className={styles.revenueChips}>
+                  <span>
+                    {t("admin.totalReservations")}
+                    <strong>{formatStat(totalReservations)}</strong>
+                  </span>
+                  <span>
+                    {t("admin.confirmedEventRes")}
+                    <strong>{formatStat(stats?.confirmedEventRegistrations || 0)}</strong>
+                  </span>
+                  <span>
+                    {t("admin.confirmedSpaceRes")}
+                    <strong>{formatStat(stats?.confirmedSpaceReservations || 0)}</strong>
+                  </span>
+                  <span>
+                    {t("admin.confirmedParkingReservations")}
+                    <strong>{formatStat(confirmedParkingReservations)}</strong>
+                  </span>
+                </div>
               </div>
-              <div className={styles.commandChips}>
-                <span>{t("admin.confirmedEventRes")}: {stats.confirmedEventRegistrations || 0}</span>
-                <span>{t("admin.confirmedSpaceRes")}: {stats.confirmedSpaceReservations || 0}</span>
-                <span>{t("admin.confirmedParkingReservations")}: {confirmedParkingReservations}</span>
-              </div>
+
               <div className={styles.revenueBreakdown}>
                 {revenueBreakdown.map((item) => (
                   <div key={item.label} className={styles.revenueRow}>
@@ -432,20 +497,21 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <aside className={styles.opsPanel}>
-              <div className={styles.opsHeader}>
-                <span>MeetSpace</span>
-                <strong>{t("admin.overview")}</strong>
+            <aside className={styles.statusConsole}>
+              <div className={styles.statusHeader}>
+                <span>{t("admin.priorities")}</span>
+                <strong>{t("admin.pendingApprovals")}</strong>
               </div>
-              <div className={styles.opsList}>
+
+              <div className={styles.cockpitStack}>
                 {operations.map((item) => (
-                  <div key={item.label} className={styles.opsItem}>
-                    <div className={styles.opsIcon}>
+                  <div key={item.label} className={styles.cockpitItem}>
+                    <div className={styles.cockpitIcon}>
                       <AdminIcon type={item.icon} />
                     </div>
                     <div>
                       <span>{item.label}</span>
-                      <strong>{item.value}</strong>
+                      <strong>{formatStat(item.value)}</strong>
                       <small>{item.meta}</small>
                     </div>
                   </div>
@@ -454,64 +520,123 @@ export default function AdminDashboard() {
             </aside>
           </div>
 
-          <div className={styles.signalGrid}>
-            {dashboardSignals.map((signal) => (
-              <div key={signal.label} className={styles.signalCard}>
-                <div className={styles.signalIcon}>
-                  <AdminIcon type={signal.icon} />
+          {financeSummary && (
+            <div className={styles.financeOverviewPanel}>
+              <div className={styles.financeOverviewHeader}>
+                <div>
+                  <p className={styles.financeEyebrow}>{t("finance.indicativeEstimate")}</p>
+                  <h3>{t("finance.adminTitle")}</h3>
+                  <span>{t("finance.adminHint")}</span>
+                </div>
+                <div className={styles.financeTotalCard}>
+                  <span>{t("finance.meetSpaceEstimatedRevenue")}</span>
+                  <strong>{formatEuro(financeTotal)}</strong>
+                </div>
+              </div>
+
+              <div className={styles.financeKpiGrid}>
+                <div className={styles.financeKpi}>
+                  <span>{t("finance.eventGrossRevenue")}</span>
+                  <strong>{formatEuro(eventGrossRevenue)}</strong>
+                </div>
+                <div className={styles.financeKpi}>
+                  <span>{t("finance.eventCommissions")}</span>
+                  <strong>{formatEuro(eventCommissionRevenue)}</strong>
+                </div>
+                <div className={styles.financeKpi}>
+                  <span>{t("finance.organizerNetTotal")}</span>
+                  <strong>{formatEuro(organizerNetEstimate)}</strong>
+                </div>
+              </div>
+
+              <div className={styles.financeBreakdownPanel}>
+                {financeBreakdown.map((item) => (
+                  <div key={item.label} className={styles.revenueRow}>
+                    <div className={styles.revenueRowHeader}>
+                      <span>{item.label}</span>
+                      <strong>{formatEuro(item.value)}</strong>
+                    </div>
+                    <div className={styles.revenueTrack}>
+                      <span className={item.tone} style={{ width: `${item.share}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className={styles.moduleGrid}>
+            {moduleCards.map((module) => (
+              <Link key={module.to} to={module.to} className={`${styles.moduleCard} ${module.tone}`}>
+                <div className={styles.moduleIcon}>
+                  <AdminIcon type={module.icon} />
                 </div>
                 <div>
-                  <span>{signal.label}</span>
-                  <strong>{signal.value}</strong>
-                  <small>{signal.meta}</small>
+                  <span>{module.label}</span>
+                  <strong>{formatStat(module.value)}</strong>
+                  <small>{module.meta}</small>
                 </div>
-              </div>
+                <span className={styles.moduleArrow}>{"\u2192"}</span>
+              </Link>
             ))}
           </div>
 
-          <div className={styles.boardGrid}>
-            <div className={styles.boardColumn}>
-              <h3 className={styles.subsectionTitle}>{t("admin.overview")}</h3>
-              <div className={styles.statsGrid}>
-                {platformStats.map((item) => (
+          <div className={styles.insightGrid}>
+            <div className={styles.operationsPanel}>
+              <div className={styles.panelHeader}>
+                <span>{t("admin.modules")}</span>
+                <strong>{t("admin.quickActions")}</strong>
+              </div>
+              <div className={styles.operationsList}>
+                {moduleCards.map((module) => (
+                  <Link key={module.to} to={module.to} className={styles.operationRow}>
+                    <div className={styles.operationIcon}>
+                      <AdminIcon type={module.icon} />
+                    </div>
+                    <div>
+                      <span>{module.label}</span>
+                      <strong>{formatStat(module.value)}</strong>
+                    </div>
+                    <small>{module.meta}</small>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.analyticsPanel}>
+              <div className={styles.analyticsGroup}>
+                <div className={styles.panelHeader}>
+                  <span>{t("admin.snapshot")}</span>
+                  <strong>{t("admin.statistics")}</strong>
+                </div>
+                <div className={styles.compactGrid}>
+                  {platformStats.map((item) => (
+                    <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
+                      <div className={styles.statIcon}>
+                        <AdminIcon type={item.icon} />
+                      </div>
+                      <p className={styles.statLabel}>{item.label}</p>
+                      <p className={styles.statNumber}>{formatStat(item.value)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.analyticsGroup}>
+                <h3 className={styles.subsectionTitle}>{t("admin.totalReservations")}</h3>
+                <div className={styles.compactGrid}>
+                  {reservationStats.map((item) => (
                   <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
                     <div className={styles.statIcon}>
                       <AdminIcon type={item.icon} />
                     </div>
                     <p className={styles.statLabel}>{item.label}</p>
-                    <p className={styles.statNumber}>{item.value}</p>
+                    <p className={styles.statNumber}>{formatStat(item.value)}</p>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.boardColumn}>
-              <h3 className={styles.subsectionTitle}>{t("admin.reservationsOverview")}</h3>
-              <div className={styles.statsGrid}>
-                {reservationStats.map((item) => (
-                  <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
-                    <div className={styles.statIcon}>
-                      <AdminIcon type={item.icon} />
-                    </div>
-                    <p className={styles.statLabel}>{item.label}</p>
-                    <p className={styles.statNumber}>{item.value}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <h3 className={styles.subsectionTitle}>{t("admin.revenue")}</h3>
-          <div className={styles.statsGrid}>
-            {revenueStats.map((item) => (
-              <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
-                <div className={styles.statIcon}>
-                  <AdminIcon type={item.icon} />
+                  ))}
                 </div>
-                <p className={styles.statLabel}>{item.label}</p>
-                <p className={styles.statNumber}>{item.value}</p>
               </div>
-            ))}
+            </div>
           </div>
         </section>
       )}
@@ -536,16 +661,14 @@ export default function AdminDashboard() {
                     <td>{u.firstName} {u.lastName}</td>
                     <td>{u.email}</td>
                     <td>
-                      <select
+                      <SelectDropdown
                         value={u.role}
-                        onChange={(ev) => handleUpdateUserRole(u.id, ev.target.value)}
-                        className={styles.select}
+                        onChange={(value) => handleUpdateUserRole(u.id, value)}
+                        options={roleOptions}
+                        label={t("admin.role")}
+                        className={styles.selectDropdown}
                         disabled={u.id === user.id || u.status !== "ACTIVE"}
-                      >
-                        <option value="MEMBER">{t("admin.roles.member")}</option>
-                        <option value="ORGANIZER">{t("admin.roles.organizer")}</option>
-                        <option value="ADMIN">{t("admin.roles.admin")}</option>
-                      </select>
+                      />
                       {u.id === user.id && <span className={styles.currentUserBadge}>{t("admin.currentUser")}</span>}
                     </td>
                     <td>

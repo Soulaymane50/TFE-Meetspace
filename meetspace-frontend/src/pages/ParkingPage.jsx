@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getParkingSlots } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
+import { formatMoney, formatNumber } from "../utils/formatters";
 import styles from "./ParkingPage.module.css";
 
 const getDateLocale = (lang) => {
@@ -15,11 +16,12 @@ export default function ParkingPage() {
   const [parkingSlots, setParkingSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedDate, setSelectedDate] = useState("ALL");
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const locale = getDateLocale(i18n.language);
 
-  useEffect(() => {
+  const fetchParkingSlots = useCallback(() => {
     getParkingSlots()
       .then(setParkingSlots)
       .catch((err) => {
@@ -31,6 +33,16 @@ export default function ParkingPage() {
       })
       .finally(() => setLoading(false));
   }, [t]);
+
+  useEffect(() => {
+    fetchParkingSlots();
+  }, [fetchParkingSlots]);
+
+  const retryParkingSlots = () => {
+    setLoading(true);
+    setError("");
+    fetchParkingSlots();
+  };
 
   const openSlotsCount = parkingSlots.filter((slot) => (slot.availableSpaces ?? 0) > 0).length;
   const totalAvailableSpaces = parkingSlots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0);
@@ -52,33 +64,61 @@ export default function ParkingPage() {
     return { label: t("status.available"), className: styles.statusAvailable };
   };
 
-  const groupedSlots = parkingSlots.reduce((groups, slot) => {
-    const key = slot.slotDate;
-    const existing = groups.find((group) => group.key === key);
-    if (existing) {
-      existing.slots.push(slot);
-      return groups;
-    }
+  const groupedSlots = useMemo(() => {
+    const groups = parkingSlots.reduce((acc, slot) => {
+      const key = slot.slotDate;
+      const existing = acc.find((group) => group.key === key);
+      if (existing) {
+        existing.slots.push(slot);
+        return acc;
+      }
 
-    groups.push({
-      key,
-      label: new Date(`${slot.slotDate}T00:00:00`).toLocaleDateString(locale, {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }),
-      slots: [slot],
-    });
-    return groups;
-  }, []);
+      acc.push({
+        key,
+        label: new Date(`${slot.slotDate}T00:00:00`).toLocaleDateString(locale, {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }),
+        compactLabel: new Date(`${slot.slotDate}T00:00:00`).toLocaleDateString(locale, {
+          day: "2-digit",
+          month: "short",
+        }),
+        slots: [slot],
+      });
+      return acc;
+    }, []);
+
+    return groups.sort((a, b) => new Date(a.key) - new Date(b.key));
+  }, [parkingSlots, locale]);
+
+  const visibleGroups = selectedDate === "ALL" ? groupedSlots : groupedSlots.filter((group) => group.key === selectedDate);
+  const selectedGroup = groupedSlots.find((group) => group.key === selectedDate);
+  const selectedDayAvailable = selectedGroup
+    ? selectedGroup.slots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0)
+    : totalAvailableSpaces;
+  const selectedDayCapacity = selectedGroup
+    ? selectedGroup.slots.reduce((sum, slot) => sum + (slot.parkingCapacity || 0), 0)
+    : totalCapacity;
 
   if (loading) {
     return <PageState type="loading" title={t("common.loading")} message={t("parking.capacityModelText")} />;
   }
 
   if (error) {
-    return <PageState type="error" title={t("common.error")} message={error} />;
+    return (
+      <PageState
+        type="error"
+        title={t("common.error")}
+        message={error}
+        action={
+          <button type="button" onClick={retryParkingSlots}>
+            {t("common.retry")}
+          </button>
+        }
+      />
+    );
   }
 
   return (
@@ -100,26 +140,31 @@ export default function ParkingPage() {
 
         <div className={styles.summaryGrid}>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{parkingSlots.length}</span>
+            <span className={styles.summaryValue}>{formatNumber(parkingSlots.length, locale)}</span>
             <span className={styles.summaryLabel}>{t("nav.parking")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{openSlotsCount}</span>
+            <span className={styles.summaryValue}>{formatNumber(openSlotsCount, locale)}</span>
             <span className={styles.summaryLabel}>{t("parking.operationsOpenSlots")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{totalAvailableSpaces}</span>
+            <span className={styles.summaryValue}>{formatNumber(totalAvailableSpaces, locale)}</span>
             <span className={styles.summaryLabel}>{t("parking.placesAvailable")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{averageRate} €</span>
+            <span className={styles.summaryValue}>{formatMoney(averageRate, locale)}</span>
             <span className={styles.summaryLabel}>{t("parking.rateLabel")}</span>
           </div>
         </div>
       </section>
 
       {parkingSlots.length === 0 ? (
-        <PageState type="empty" title={t("parking.noSessions")} message={t("parking.capacityModelText")} />
+        <PageState
+          type="empty"
+          title={t("parking.noSessions")}
+          message={t("parking.capacityModelText")}
+          action={<Link to="/events">{t("home.eventsCta", { defaultValue: "Découvrir les événements" })}</Link>}
+        />
       ) : (
         <div className={styles.workspace}>
           <aside className={styles.sidebar}>
@@ -131,13 +176,59 @@ export default function ParkingPage() {
 
             <div className={styles.sidebarStats}>
               <div className={styles.sidebarStat}>
-                <span className={styles.sidebarStatValue}>{groupedSlots.length}</span>
+                <span className={styles.sidebarStatValue}>{formatNumber(groupedSlots.length, locale)}</span>
                 <span className={styles.sidebarStatLabel}>{t("parking.daysCovered")}</span>
               </div>
               <div className={styles.sidebarStat}>
-                <span className={styles.sidebarStatValue}>{totalCapacity}</span>
+                <span className={styles.sidebarStatValue}>{formatNumber(totalCapacity, locale)}</span>
                 <span className={styles.sidebarStatLabel}>{t("parking.totalCapacityLabel")}</span>
               </div>
+            </div>
+
+            <div className={styles.sidebarSection}>
+              <p className={styles.sidebarListLabel}>{t("parking.selectDay")}</p>
+              <div className={styles.dateSelector}>
+                <button
+                  type="button"
+                  className={`${styles.dateChip} ${selectedDate === "ALL" ? styles.dateChipActive : ""}`}
+                  onClick={() => setSelectedDate("ALL")}
+                >
+                  <strong>{t("parking.allDays")}</strong>
+                  <span>{formatNumber(totalAvailableSpaces, locale)} {t("parking.remainingLabel")}</span>
+                </button>
+                {groupedSlots.map((group) => {
+                  const available = group.slots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0);
+                  const capacity = group.slots.reduce((sum, slot) => sum + (slot.parkingCapacity || 0), 0);
+                  const isFull = available <= 0;
+                  return (
+                    <button
+                      type="button"
+                      key={group.key}
+                      className={[
+                        styles.dateChip,
+                        selectedDate === group.key ? styles.dateChipActive : "",
+                        isFull ? styles.dateChipFull : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      onClick={() => setSelectedDate(group.key)}
+                    >
+                      <strong>{group.compactLabel}</strong>
+                      <span>{formatNumber(available, locale)}/{formatNumber(capacity, locale)} {t("parking.places")}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className={styles.selectedDayCard}>
+              <span>{selectedDate === "ALL" ? t("parking.allDays") : t("parking.selectedDay")}</span>
+              <strong>{formatNumber(selectedDayAvailable, locale)}</strong>
+              <p>
+                {selectedDate === "ALL"
+                  ? t("parking.availableAcrossDays", { count: selectedDayCapacity })
+                  : t("parking.availableOnDay", { count: selectedDayCapacity })}
+              </p>
             </div>
 
             <div className={styles.sidebarSection}>
@@ -150,7 +241,7 @@ export default function ParkingPage() {
           </aside>
 
           <section className={styles.dayBoard}>
-            {groupedSlots.map((group) => (
+            {visibleGroups.map((group) => (
               <section key={group.key} className={styles.daySection}>
                 <div className={styles.dayHeader}>
                   <div>
@@ -159,10 +250,10 @@ export default function ParkingPage() {
                   </div>
                   <div className={styles.dayStats}>
                     <span className={styles.dayStat}>
-                      {group.slots.length} {group.slots.length > 1 ? t("parking.sessionPlural") : t("parking.session")}
+                      {formatNumber(group.slots.length, locale)} {group.slots.length > 1 ? t("parking.sessionPlural") : t("parking.session")}
                     </span>
                     <span className={styles.dayStat}>
-                      {group.slots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0)} {t("parking.placesAvailable")}
+                      {formatNumber(group.slots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0), locale)} {t("parking.placesAvailable")}
                     </span>
                   </div>
                 </div>
@@ -190,28 +281,28 @@ export default function ParkingPage() {
                         <div className={styles.slotMetrics}>
                           <div className={styles.metricCard}>
                             <span className={styles.metricLabel}>{t("parking.reservedLabel")}</span>
-                            <span className={styles.metricValue}>{reserved}</span>
+                            <span className={styles.metricValue}>{formatNumber(reserved, locale)}</span>
                           </div>
                           <div className={styles.metricCard}>
                             <span className={styles.metricLabel}>{t("parking.remainingLabel")}</span>
-                            <span className={styles.metricValue}>{slot.availableSpaces}</span>
+                            <span className={styles.metricValue}>{formatNumber(slot.availableSpaces, locale)}</span>
                           </div>
                           <div className={styles.metricCard}>
                             <span className={styles.metricLabel}>{t("parking.rateLabel")}</span>
-                            <span className={styles.metricValue}>{slot.parkingRate} €</span>
+                            <span className={styles.metricValue}>{formatMoney(slot.parkingRate, locale)}</span>
                           </div>
                         </div>
 
                         <div className={styles.progressCard}>
                           <div className={styles.progressHeader}>
                             <span className={styles.progressLabel}>{t("parking.occupancyLabel")}</span>
-                            <span className={styles.progressValue}>{occupancy}%</span>
+                            <span className={styles.progressValue}>{formatNumber(occupancy, locale)}%</span>
                           </div>
                           <div className={styles.progressTrack} aria-hidden="true">
                             <span className={styles.progressFill} style={{ width: `${occupancy}%` }} />
                           </div>
                           <p className={styles.progressCaption}>
-                            {reserved} / {slot.parkingCapacity} {t("parking.places")}
+                            {formatNumber(reserved, locale)} / {formatNumber(slot.parkingCapacity, locale)} {t("parking.places")}
                           </p>
                         </div>
 

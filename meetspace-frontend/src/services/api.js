@@ -115,6 +115,7 @@ function normalizeEvent(event) {
     parkingSlotId: event.parkingSlotId ?? null,
     parkingPrice: event.parkingPrice ?? null,
     parkingCapacity: event.parkingCapacity ?? null,
+    parkingAvailableSpaces: event.parkingAvailableSpaces ?? event.parkingCapacity ?? null,
   };
 }
 
@@ -339,8 +340,7 @@ export async function forgotPasswordRequest(email) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
   });
-  if (!res.ok) throw new Error("Erreur lors de l'envoi de l'email");
-  return res.json();
+  return handleResponse(res, "Erreur lors de l'envoi de l'email");
 }
 
 export async function resetPasswordRequest(token, newPassword) {
@@ -349,8 +349,7 @@ export async function resetPasswordRequest(token, newPassword) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token, newPassword }),
   });
-  if (!res.ok) throw new Error("Erreur lors de la réinitialisation du mot de passe");
-  return res.json();
+  return handleResponse(res, "Erreur lors de la réinitialisation du mot de passe");
 }
 
 export async function logoutRequest(token) {
@@ -676,6 +675,22 @@ export async function adminGetStats(token) {
   return normalizeAdminStats(stats);
 }
 
+export async function adminGetFinanceSummary(token) {
+  const res = await fetch(`${API_URL}/api/admin/finance/summary`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) await throwApiError(res, "Erreur recuperation revenus estimes");
+  return res.json();
+}
+
+export async function adminGetEventFinance(id, token) {
+  const res = await fetch(`${API_URL}/api/admin/events/${id}/finance`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) await throwApiError(res, "Erreur recuperation estimation evenement");
+  return res.json();
+}
+
 export async function adminGetPendingReservations(token) {
   const res = await fetch(`${API_URL}/api/admin/reservations/pending`, {
     headers: authHeaders(token),
@@ -723,6 +738,22 @@ export async function organizerGetMyEvents(token) {
   if (!res.ok) throw new Error("Erreur récupération événements");
   const events = await res.json();
   return events.map(normalizeEvent);
+}
+
+export async function organizerGetFinanceSummary(token) {
+  const res = await fetch(`${API_URL}/api/organizer/finance/summary`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) await throwApiError(res, "Erreur recuperation estimation financiere");
+  return res.json();
+}
+
+export async function organizerGetEventFinance(id, token) {
+  const res = await fetch(`${API_URL}/api/organizer/events/${id}/finance`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) await throwApiError(res, "Erreur recuperation estimation evenement");
+  return res.json();
 }
 
 export async function organizerGetMyEvent(id, token) {

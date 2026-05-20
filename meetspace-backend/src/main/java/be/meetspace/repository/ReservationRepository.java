@@ -45,7 +45,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT r FROM Reservation r " +
            "WHERE r.espace.id = :espaceId " +
-           "AND r.status = 'CONFIRMED' " +
+           "AND r.status != 'CANCELLED' " +
            "AND r.startDateTime < :endDateTime " +
            "AND r.endDateTime > :startDateTime " +
            "ORDER BY r.startDateTime")

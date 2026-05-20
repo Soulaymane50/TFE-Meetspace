@@ -4,18 +4,23 @@ import { getMyProfile, updateMyProfile, changeMyPassword, deleteMyAccount } from
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { isStrongPassword } from "../utils/passwordPolicy";
+import PageState from "../components/PageState";
 import styles from "./ProfilePage.module.css";
+
+function profileFromUser(user) {
+  return {
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    email: user?.email || "",
+  };
+}
 
 export default function ProfilePage() {
   const { user, token, login, logout } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const [profile, setProfile] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-  });
+  const [profile, setProfile] = useState(() => profileFromUser(user));
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -32,14 +37,16 @@ export default function ProfilePage() {
       getMyProfile(token)
         .then((data) => {
           setProfile({
-            firstName: data.firstName,
-            lastName: data.lastName,
-            email: data.email,
+            firstName: data.firstName || user?.firstName || "",
+            lastName: data.lastName || user?.lastName || "",
+            email: data.email || user?.email || "",
           });
         })
-        .catch(console.error);
+        .catch(() => {
+          if (user) setProfile(profileFromUser(user));
+        });
     }
-  }, [token]);
+  }, [token, user]);
 
   const submitProfile = async (e) => {
     e.preventDefault();
@@ -118,15 +125,41 @@ export default function ProfilePage() {
   };
 
   if (!user) {
-    return <p className={styles.notice}>{t("profile.notLoggedIn")}</p>;
+    return <PageState type="empty" title={t("profile.title")} message={t("profile.notLoggedIn")} />;
   }
+
+  const displayName = `${profile.firstName || user.firstName || ""} ${profile.lastName || user.lastName || ""}`.trim();
+  const initials = `${profile.firstName || user.firstName || "M"}`.slice(0, 1).toUpperCase();
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>{t("profile.title")}</h1>
+      <section className={styles.hero}>
+        <div>
+          <p className={styles.kicker}>{t("profile.accountKicker")}</p>
+          <h1 className={styles.title}>{t("profile.title")}</h1>
+          <p className={styles.subtitle}>{t("profile.accountSubtitle")}</p>
+        </div>
 
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>{t("profile.personalInfo")}</h2>
+        <aside className={styles.accountCard}>
+          <span className={styles.avatar}>{initials}</span>
+          <div className={styles.accountMeta}>
+            <strong>{displayName || user.email}</strong>
+            <span>{profile.email || user.email}</span>
+          </div>
+          <span className={styles.roleChip}>{user.role || t("profile.accountStatus")}</span>
+        </aside>
+      </section>
+
+      <div className={styles.formGrid}>
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div>
+              <p className={styles.kicker}>{t("profile.identity")}</p>
+              <h2 className={styles.sectionTitle}>{t("profile.personalInfo")}</h2>
+            </div>
+            <p>{t("profile.personalInfoHint")}</p>
+          </div>
+
         <form onSubmit={submitProfile}>
           <div className={styles.formGroup}>
             <label className={styles.label}>{t("auth.firstName")} :</label>
@@ -161,10 +194,17 @@ export default function ProfilePage() {
         </form>
         {msg && <p className={styles.success}>{msg}</p>}
         {error && <p className={styles.error}>{error}</p>}
-      </div>
+        </section>
 
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>{t("profile.changePassword")}</h2>
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div>
+              <p className={styles.kicker}>{t("profile.security")}</p>
+              <h2 className={styles.sectionTitle}>{t("profile.changePassword")}</h2>
+            </div>
+            <p>{t("profile.passwordHint")}</p>
+          </div>
+
         <form onSubmit={submitPassword}>
           <div className={styles.formGroup}>
             <label className={styles.label}>{t("profile.currentPassword")} :</label>
@@ -202,9 +242,10 @@ export default function ProfilePage() {
         </form>
         {pwdMsg && <p className={styles.success}>{pwdMsg}</p>}
         {pwdError && <p className={styles.error}>{pwdError}</p>}
+        </section>
       </div>
 
-      <div className={`${styles.section} ${styles.dangerZone}`}>
+      <section className={`${styles.section} ${styles.dangerZone}`}>
         <h2 className={styles.sectionTitle}>{t("profile.dangerZone")}</h2>
         <p className={styles.dangerText}>{t("profile.deleteAccountWarning")}</p>
 
@@ -238,7 +279,7 @@ export default function ProfilePage() {
           </div>
         )}
         {deleteError && <p className={styles.error}>{deleteError}</p>}
-      </div>
+      </section>
     </div>
   );
 }

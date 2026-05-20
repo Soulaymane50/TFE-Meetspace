@@ -161,8 +161,153 @@
   padding: 1.45rem;
 }
 
+.sectionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kicker {
+  display: inline-flex;
+  margin-bottom: 0.35rem;
+  color: var(--gold-dark);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 .sectionTitle {
   margin: 0;
+}
+
+.availableBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.capacityPanel {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.1rem;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.16), transparent 32%),
+    rgba(27, 42, 64, 0.035);
+}
+
+.capacityHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--blue-darker);
+  font-weight: 900;
+}
+
+.capacityHeader span {
+  color: var(--text-muted);
+}
+
+.capacityHeader strong {
+  font-size: 1.45rem;
+}
+
+.capacityTrack {
+  height: 14px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(27, 42, 64, 0.09);
+}
+
+.capacityTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #10b981 0%, #5a7ce2 56%, #b58a4c 100%);
+  transition: width var(--transition-medium);
+}
+
+.quantityPanel {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 56px;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.quantityButton {
+  min-width: 56px;
+  min-height: 56px;
+  padding: 0;
+  border-radius: 18px;
+  border: 1px solid rgba(27, 42, 64, 0.1);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--blue-darker);
+  box-shadow: none;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.quantityButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.quantityValue {
+  display: grid;
+  place-items: center;
+  min-height: 74px;
+  padding: 0.8rem 1rem;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(27, 42, 64, 0.96), rgba(47, 74, 112, 0.92));
+  color: #fff;
+  box-shadow: 0 18px 38px rgba(27, 42, 64, 0.18);
+}
+
+.quantityValue strong {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1;
+}
+
+.quantityValue span {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.quickSelection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.quickSelection button {
+  min-width: 46px;
+  min-height: 42px;
+  padding: 0.55rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(27, 42, 64, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--blue-dark);
+  box-shadow: none;
+  font-weight: 900;
+}
+
+.quickSelection .quickSelectionActive {
+  border-color: rgba(181, 138, 76, 0.38);
+  background: linear-gradient(135deg, #1b2a40, #b58a4c);
+  color: #fff;
 }
 
 .inputRow {
@@ -173,6 +318,12 @@
 
 .input {
   max-width: 160px;
+}
+
+.helperText {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
 }
 
 .totalPanel {
@@ -223,6 +374,29 @@
   color: var(--blue-dark);
 }
 
+:global([data-theme="light"]) .heroPanel {
+  border: 1px solid rgba(20, 32, 51, 0.075);
+  background:
+    radial-gradient(circle at 78% 18%, rgba(90, 124, 226, 0.16), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 249, 253, 0.84) 58%, rgba(235, 244, 241, 0.78) 100%),
+    var(--hero-image);
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 30px 70px rgba(11, 18, 32, 0.12);
+}
+
+:global([data-theme="light"]) .kicker {
+  color: rgba(181, 138, 76, 0.88);
+}
+
+:global([data-theme="light"]) .title {
+  color: var(--blue-darker);
+}
+
+:global([data-theme="light"]) .subtitle {
+  color: var(--text-secondary);
+}
+
 [data-theme="dark"] .summaryPanel,
 [data-theme="dark"] .flowPanel,
 [data-theme="dark"] .info,
@@ -235,19 +409,51 @@
 [data-theme="dark"] .metricValue,
 [data-theme="dark"] .label,
 [data-theme="dark"] .sectionTitle,
+[data-theme="dark"] .capacityHeader,
 [data-theme="dark"] .secondaryAction {
   color: var(--text-primary);
 }
 
 [data-theme="dark"] .metricCard,
-[data-theme="dark"] .infoBox {
+[data-theme="dark"] .infoBox,
+[data-theme="dark"] .capacityPanel {
   background: rgba(255, 255, 255, 0.04);
 }
 
 [data-theme="dark"] .metricLabel,
+[data-theme="dark"] .helperText,
 [data-theme="dark"] .info,
 [data-theme="dark"] .loadingBox {
   color: var(--text-secondary);
+}
+
+[data-theme="dark"] .availableBadge {
+  background: rgba(16, 185, 129, 0.16);
+  color: #bbf7d0;
+}
+
+[data-theme="dark"] .capacityPanel {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .capacityHeader span {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .capacityTrack {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .quantityButton,
+[data-theme="dark"] .quickSelection button {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .quantityValue,
+[data-theme="dark"] .quickSelection .quickSelectionActive {
+  background: linear-gradient(135deg, rgba(47, 74, 112, 0.98), rgba(181, 138, 76, 0.9));
 }
 
 @media (max-width: 1080px) {
@@ -267,10 +473,15 @@
     padding: 1.2rem;
   }
 
+  .sectionHeader,
   .buttonGroup,
   .totalPanel {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .quantityPanel {
+    grid-template-columns: 1fr;
   }
 
   .summaryImage {

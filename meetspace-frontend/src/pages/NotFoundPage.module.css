@@ -55,3 +55,26 @@
   box-shadow: 0 8px 24px rgba(194, 117, 70, 0.4);
   color: #fff;
 }
+
+[data-theme="dark"] .content {
+  padding: 2rem;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(207, 162, 101, 0.1), transparent 32%),
+    linear-gradient(180deg, rgba(18, 26, 37, 0.92), rgba(12, 18, 27, 0.86));
+  box-shadow: var(--shadow-medium);
+}
+
+[data-theme="dark"] .code {
+  color: var(--text-primary);
+  opacity: 0.18;
+}
+
+[data-theme="dark"] .title {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .description {
+  color: var(--text-secondary);
+}

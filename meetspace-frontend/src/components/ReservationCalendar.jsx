@@ -112,6 +112,7 @@ export default function ReservationCalendar({ espaceId, onSelectDate, selectedDa
     const isSelected = selectedDate === dateStr;
     const isToday = dateStr === todayStr;
     const isPast = new Date(dateStr) < new Date(todayStr);
+    const isDisabled = isPast || status === "full";
 
     const dayClass = [
       styles.day,
@@ -119,13 +120,13 @@ export default function ReservationCalendar({ espaceId, onSelectDate, selectedDa
       status === "full" ? styles.dayFull : styles.dayAvailable,
       isSelected ? styles.daySelected : "",
       isToday ? styles.dayToday : "",
-      isPast ? styles.dayPast : "",
+      isDisabled ? styles.dayPast : "",
     ]
       .filter(Boolean)
       .join(" ");
 
     days.push(
-      <div key={day} onClick={() => !isPast && handleDayClick(day)} className={dayClass} aria-disabled={isPast}>
+      <div key={day} onClick={() => !isDisabled && handleDayClick(day)} className={dayClass} aria-disabled={isDisabled}>
         {day}
       </div>
     );

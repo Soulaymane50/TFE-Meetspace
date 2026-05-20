@@ -56,6 +56,28 @@
   margin-top: 0.5rem;
 }
 
+.action a,
+.action button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--blue-darker), #2f4568);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 850;
+  text-decoration: none;
+  box-shadow: var(--shadow-soft);
+}
+
+.action a:hover,
+.action button:hover {
+  transform: translateY(-1px);
+}
+
 .error {
   border-color: rgba(220, 38, 38, 0.18);
   background:
@@ -90,6 +112,12 @@
 
 [data-theme="dark"] .message {
   color: var(--text-secondary);
+}
+
+[data-theme="dark"] .action a,
+[data-theme="dark"] .action button {
+  background: linear-gradient(135deg, rgba(207, 162, 101, 0.95), rgba(138, 91, 24, 0.95));
+  color: #111827;
 }
 
 [data-theme="dark"] .error {

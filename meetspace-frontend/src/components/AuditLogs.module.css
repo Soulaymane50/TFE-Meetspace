@@ -59,6 +59,10 @@
   min-width: 0;
 }
 
+.selectDropdown {
+  width: 100%;
+}
+
 .btnClear {
   align-self: end;
   min-height: 50px;

@@ -4,6 +4,7 @@ import be.meetspace.entity.Event;
 import be.meetspace.entity.EventStatus;
 import be.meetspace.repository.EventRepository;
 import be.meetspace.repository.EventRegistrationRepository;
+import be.meetspace.repository.ParkingReservationRepository;
 import be.meetspace.web.dto.EventResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +19,16 @@ public class EventController {
 
     private final EventRepository eventRepository;
     private final EventRegistrationRepository registrationRepository;
+    private final ParkingReservationRepository parkingReservationRepository;
 
-    public EventController(EventRepository eventRepository, EventRegistrationRepository registrationRepository) {
+    public EventController(
+            EventRepository eventRepository,
+            EventRegistrationRepository registrationRepository,
+            ParkingReservationRepository parkingReservationRepository
+    ) {
         this.eventRepository = eventRepository;
         this.registrationRepository = registrationRepository;
+        this.parkingReservationRepository = parkingReservationRepository;
     }
 
     @GetMapping
@@ -32,7 +39,10 @@ public class EventController {
         ).stream()
         .map(e -> {
             int registered = registrationRepository.countTotalParticipantsByEventId(e.getId());
-            return EventResponseDto.fromEntity(e, registered);
+            int parkingReserved = e.getParkingSlot() != null
+                    ? parkingReservationRepository.countReservedSpacesByParkingSlotId(e.getParkingSlot().getId())
+                    : 0;
+            return EventResponseDto.fromEntity(e, registered, parkingReserved);
         })
         .toList();
     }
@@ -47,7 +57,9 @@ public class EventController {
         }
         
         int registered = registrationRepository.countTotalParticipantsByEventId(event.getId());
-        return EventResponseDto.fromEntity(event, registered);
+        int parkingReserved = event.getParkingSlot() != null
+                ? parkingReservationRepository.countReservedSpacesByParkingSlotId(event.getParkingSlot().getId())
+                : 0;
+        return EventResponseDto.fromEntity(event, registered, parkingReserved);
     }
 }
-

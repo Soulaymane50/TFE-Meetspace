@@ -2,10 +2,10 @@ import { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useTranslation } from "react-i18next";
+import { formatMoney, normalizeLocale } from "../utils/formatters";
 import styles from "./PaymentForm.module.css";
 
 const API_URL = `${import.meta.env.VITE_API_URL || ""}/api`;
-const EURO = "\u20ac";
 const LOCAL_PAYMENT_DELAY_MS = 700;
 const ALLOW_LOCAL_PAYMENTS =
   import.meta.env.DEV && import.meta.env.VITE_ALLOW_LOCAL_PAYMENTS !== "false";
@@ -38,7 +38,8 @@ function CheckoutForm({ amount, description, reservationType, metadata, onSucces
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const formattedAmount = formatMoney(amount, normalizeLocale(i18n.language));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -115,7 +116,7 @@ function CheckoutForm({ amount, description, reservationType, metadata, onSucces
       <div className={styles.summary}>
         <p className={styles.description}>{description}</p>
         <p className={styles.amount}>
-          {amount.toFixed(2)} {EURO}
+          {formattedAmount}
         </p>
       </div>
 
@@ -137,7 +138,7 @@ function CheckoutForm({ amount, description, reservationType, metadata, onSucces
           disabled={!stripe || loading}
           className={styles.submitButton}
         >
-          {loading ? t("payment.processing") : `${t("payment.pay")} ${amount.toFixed(2)} ${EURO}`}
+          {loading ? t("payment.processing") : `${t("payment.pay")} ${formattedAmount}`}
         </button>
       </div>
 
@@ -153,7 +154,8 @@ function LocalCheckoutForm({ amount, description, reservationType, onSuccess, on
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvc, setCvc] = useState("");
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const formattedAmount = formatMoney(amount, normalizeLocale(i18n.language));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -185,7 +187,7 @@ function LocalCheckoutForm({ amount, description, reservationType, onSuccess, on
       <div className={styles.summary}>
         <p className={styles.description}>{description}</p>
         <p className={styles.amount}>
-          {amount.toFixed(2)} {EURO}
+          {formattedAmount}
         </p>
       </div>
 
@@ -238,7 +240,7 @@ function LocalCheckoutForm({ amount, description, reservationType, onSuccess, on
           {t("common.cancel")}
         </button>
         <button type="submit" disabled={loading} className={styles.submitButton}>
-          {loading ? t("payment.processing") : `${t("payment.pay")} ${amount.toFixed(2)} ${EURO}`}
+          {loading ? t("payment.processing") : `${t("payment.pay")} ${formattedAmount}`}
         </button>
       </div>
 

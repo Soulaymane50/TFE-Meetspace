@@ -35,12 +35,17 @@ public class EventResponseDto {
     private Long parkingSlotId;
     private Double parkingPrice;
     private Integer parkingCapacity;
+    private Integer parkingAvailableSpaces;
 
     public static EventResponseDto fromEntity(Event e) {
         return fromEntity(e, 0);
     }
 
     public static EventResponseDto fromEntity(Event e, Integer registeredCount) {
+        return fromEntity(e, registeredCount, 0);
+    }
+
+    public static EventResponseDto fromEntity(Event e, Integer registeredCount, Integer reservedParkingSpaces) {
         EventResponseDto dto = new EventResponseDto();
         dto.id = e.getId();
         dto.title = e.getTitle();
@@ -75,6 +80,8 @@ public class EventResponseDto {
             dto.parkingSlotId = parkingSlot.getId();
             dto.parkingPrice = parkingSlot.getParkingRate();
             dto.parkingCapacity = parkingSlot.getCapacity();
+            int reserved = reservedParkingSpaces != null ? reservedParkingSpaces : 0;
+            dto.parkingAvailableSpaces = Math.max(0, parkingSlot.getCapacity() - reserved);
         }
 
         return dto;
@@ -104,5 +111,6 @@ public class EventResponseDto {
     public Long getParkingSlotId() { return parkingSlotId; }
     public Double getParkingPrice() { return parkingPrice; }
     public Integer getParkingCapacity() { return parkingCapacity; }
+    public Integer getParkingAvailableSpaces() { return parkingAvailableSpaces; }
 }
 

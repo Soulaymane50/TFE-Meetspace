@@ -756,6 +756,79 @@
   text-align: center;
 }
 
+:global([data-theme="light"]) .heroPanel {
+  border: 1px solid rgba(20, 32, 51, 0.075);
+  background:
+    radial-gradient(circle at 78% 16%, rgba(181, 138, 76, 0.18), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 249, 253, 0.86) 58%, rgba(236, 228, 214, 0.76) 100%),
+    url("/images/room-premium-orion-500.webp") center / cover;
+  box-shadow: 0 30px 70px rgba(11, 18, 32, 0.12);
+}
+
+:global([data-theme="light"]) .kicker {
+  color: rgba(181, 138, 76, 0.88);
+}
+
+:global([data-theme="light"]) .title {
+  color: var(--blue-darker);
+}
+
+:global([data-theme="light"]) .heroLead {
+  color: var(--text-secondary);
+}
+
+:global([data-theme="light"]) .linkGhost {
+  color: var(--blue-darker);
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(20, 32, 51, 0.12);
+}
+
+:global([data-theme="light"]) .summaryCard {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(20, 32, 51, 0.08);
+  box-shadow: 0 18px 34px rgba(11, 18, 32, 0.08);
+}
+
+:global([data-theme="light"]) .summaryValue {
+  color: var(--blue-darker);
+}
+
+:global([data-theme="light"]) .summaryLabel {
+  color: var(--text-secondary);
+}
+
+:global([data-theme="light"]) .progressCard {
+  border: 1px solid rgba(20, 32, 51, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(181, 138, 76, 0.14), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 249, 253, 0.96) 100%);
+  color: var(--blue-darker);
+  box-shadow: 0 18px 34px rgba(11, 18, 32, 0.08);
+}
+
+:global([data-theme="light"]) .progressLabel,
+:global([data-theme="light"]) .progressCaption {
+  color: var(--text-secondary);
+}
+
+:global([data-theme="light"]) .progressValue {
+  color: var(--blue-darker);
+}
+
+:global([data-theme="light"]) .progressTrack {
+  background: rgba(27, 42, 64, 0.1);
+}
+
+:global([data-theme="light"]) .progressFill {
+  background: linear-gradient(90deg, #1b2a40 0%, #5a7ce2 52%, #d09a5d 100%);
+}
+
+:global([data-theme="light"]) .buttonDisabled {
+  color: var(--blue-dark);
+  background: rgba(27, 42, 64, 0.08);
+  border: 1px solid rgba(27, 42, 64, 0.1);
+}
+
 [data-theme="dark"] .sidebar,
 [data-theme="dark"] .content,
 [data-theme="dark"] .eventBlock,

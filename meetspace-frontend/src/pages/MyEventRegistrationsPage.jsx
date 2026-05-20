@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getMyEventRegistrations, cancelEventRegistration } from "../services/api";
+import { cancelEventRegistration, getMyEventRegistrations } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import PageState from "../components/PageState";
+import { useFeedback } from "../context/FeedbackContext";
 import styles from "./MyEventRegistrationsPage.module.css";
 
 export default function MyEventRegistrationsPage() {
@@ -11,9 +13,12 @@ export default function MyEventRegistrationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { t } = useTranslation();
+  const { confirm, notify } = useFeedback();
 
   const fetchRegistrations = useCallback(async () => {
     setLoading(true);
+    setError("");
+
     try {
       const data = await getMyEventRegistrations(token);
       setRegistrations(data);
@@ -32,18 +37,34 @@ export default function MyEventRegistrationsPage() {
   }, [fetchRegistrations]);
 
   const handleCancel = async (id) => {
-    if (!window.confirm(t("events.confirmCancel"))) return;
+    const accepted = await confirm({
+      title: t("events.confirmCancel"),
+      confirmLabel: t("common.confirm", { defaultValue: "Confirmer" }),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
+    if (!accepted) return;
 
     try {
       await cancelEventRegistration(id, token);
       fetchRegistrations();
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("events.registrationCancelled", { defaultValue: "Inscription annulée." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
-  if (loading) return <p className={styles.info}>{t("common.loading")}</p>;
-  if (error) return <p className={styles.error}>{error}</p>;
+  if (loading) {
+    return <PageState type="loading" title={t("common.loading")} message={t("events.myRegistrations")} />;
+  }
+
+  if (error) {
+    return <PageState type="error" title={t("common.error")} message={error} />;
+  }
 
   return (
     <div className={styles.container}>
@@ -51,12 +72,17 @@ export default function MyEventRegistrationsPage() {
 
       <p className={styles.linkRow}>
         <Link to="/events" className={styles.linkGhost}>
-          ← {t("events.backToEvents")}
+          {"\u2190"} {t("events.backToEvents")}
         </Link>
       </p>
 
       {registrations.length === 0 ? (
-        <p className={styles.info}>{t("events.noRegistrations")}</p>
+        <PageState
+          type="empty"
+          title={t("events.noRegistrations")}
+          message={t("reservation.emptyEventsHint")}
+          action={<Link to="/events">{t("home.eventsCta", { defaultValue: "Découvrir les événements" })}</Link>}
+        />
       ) : (
         <table className={styles.table}>
           <thead>
@@ -70,24 +96,28 @@ export default function MyEventRegistrationsPage() {
             </tr>
           </thead>
           <tbody>
-            {registrations.map((r) => {
-              const isPast = new Date(r.eventStartDateTime) < new Date();
-              const canCancel = !isPast && r.status !== "CANCELLED";
+            {registrations.map((registration) => {
+              const isPast = new Date(registration.eventStartDateTime) < new Date();
+              const canCancel = !isPast && registration.status !== "CANCELLED";
 
               return (
-                <tr key={r.id}>
-                  <td>{r.eventTitle}</td>
-                  <td>{r.eventStartDateTime.replace("T", " ")}</td>
-                  <td>{r.numberOfParticipants}</td>
-                  <td>{r.totalPrice > 0 ? `${r.totalPrice} €` : t("events.free")}</td>
-                  <td>{t(`status.${r.status.toLowerCase()}`)}</td>
+                <tr key={registration.id}>
+                  <td>{registration.eventTitle}</td>
+                  <td>{registration.eventStartDateTime.replace("T", " ")}</td>
+                  <td>{registration.numberOfParticipants}</td>
+                  <td>
+                    {registration.totalPrice > 0 ? `${registration.totalPrice} \u20ac` : t("events.free")}
+                  </td>
+                  <td>{t(`status.${registration.status.toLowerCase()}`)}</td>
                   <td>
                     {canCancel ? (
-                      <button onClick={() => handleCancel(r.id)} className={styles.cancelButton}>
+                      <button onClick={() => handleCancel(registration.id)} className={styles.cancelButton}>
                         {t("events.cancelRegistration")}
                       </button>
                     ) : (
-                      <span className={styles.disabledText}>{isPast ? t("events.eventPassed") : "-"}</span>
+                      <span className={styles.disabledText}>
+                        {isPast ? t("events.eventPassed") : "-"}
+                      </span>
                     )}
                   </td>
                 </tr>

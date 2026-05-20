@@ -61,6 +61,19 @@
   composes: tableContainer from "./AdminDashboard.module.css";
 }
 
+.compactTable {
+  max-height: 520px;
+  overflow: auto;
+}
+
+.compactTable thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+}
+
 .table {
   composes: table from "./AdminDashboard.module.css";
 }
@@ -151,6 +164,12 @@
   background: rgba(27, 42, 64, 0.035);
 }
 
+.pendingReviewCard {
+  background:
+    radial-gradient(circle at top right, rgba(181, 138, 76, 0.1), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 245, 239, 0.86));
+}
+
 .cardHeader {
   display: flex;
   justify-content: space-between;
@@ -182,6 +201,37 @@
   font-weight: 700;
 }
 
+.pendingDetails {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.pendingDetails span {
+  display: grid;
+  gap: 0.25rem;
+  min-height: 86px;
+  padding: 0.85rem;
+  border-radius: 18px;
+  border: 1px solid rgba(27, 42, 64, 0.07);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.pendingDetails small {
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.pendingDetails strong {
+  color: var(--blue-darker);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
 .cardFooter {
   display: flex;
   justify-content: flex-end;
@@ -211,9 +261,210 @@
   min-width: 180px;
 }
 
+.selectDropdown {
+  min-width: 220px;
+}
+
 .resultCount {
   margin-left: auto;
   font-weight: 700;
+}
+
+.roomPlanner {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  padding: 1rem;
+  border-radius: 28px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(90, 124, 226, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.9));
+  box-shadow: var(--shadow-soft);
+}
+
+.roomPlannerHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.roomPlannerHeader h2 {
+  margin: 0.2rem 0;
+  color: var(--blue-darker);
+  font-size: clamp(1.45rem, 3vw, 2.2rem);
+}
+
+.roomPlannerHeader span {
+  color: var(--text-secondary);
+}
+
+.roomPlannerKicker {
+  margin: 0;
+  color: var(--orange-dark);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.daySwitch {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.dayButton {
+  min-width: 68px;
+  min-height: 54px;
+  padding: 0.55rem 0.7rem;
+  border-radius: 18px;
+  border: 1px solid rgba(27, 42, 64, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--blue-dark);
+  box-shadow: none;
+}
+
+.dayButton strong,
+.dayButton small {
+  display: block;
+}
+
+.dayButton small {
+  color: var(--taupe-dark);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.dayButtonActive {
+  border-color: rgba(27, 42, 64, 0.2);
+  background: linear-gradient(135deg, var(--blue-darker), #2d4266);
+  color: #fff;
+}
+
+.dayButtonActive small {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.roomColumns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.8rem;
+}
+
+.roomColumn {
+  min-height: 280px;
+  padding: 0.85rem;
+  border-radius: 24px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.roomColumnHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.roomColumnHeader h3 {
+  margin: 0;
+  color: var(--blue-darker);
+  font-size: 1rem;
+}
+
+.roomColumnHeader span {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.roomColumnHeader strong {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 13px;
+  background: rgba(27, 42, 64, 0.08);
+  color: var(--blue-dark);
+}
+
+.roomSchedule {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.roomEmpty,
+.roomBlock {
+  display: grid;
+  gap: 0.3rem;
+  min-height: 78px;
+  padding: 0.75rem;
+  border-radius: 18px;
+}
+
+.roomEmpty {
+  place-items: center;
+  border: 1px dashed rgba(16, 185, 129, 0.26);
+  background: rgba(16, 185, 129, 0.08);
+  text-align: center;
+}
+
+.roomEmpty span {
+  color: #047857;
+  font-weight: 900;
+}
+
+.roomEmpty small {
+  color: var(--text-secondary);
+}
+
+.roomBlock {
+  border: 1px solid rgba(90, 124, 226, 0.16);
+  background:
+    linear-gradient(135deg, rgba(90, 124, 226, 0.1), rgba(255, 255, 255, 0.7));
+  color: var(--blue-darker);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.roomBlock:hover {
+  transform: translateY(-2px);
+  border-color: rgba(181, 138, 76, 0.3);
+  box-shadow: var(--shadow-soft);
+}
+
+.roomTime {
+  color: var(--orange-dark);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.roomBlock small {
+  color: var(--text-secondary);
+}
+
+.roomBlock em {
+  width: fit-content;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(220, 38, 38, 0.12);
+  color: #991b1b;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.roomBlockConflict {
+  border-color: rgba(220, 38, 38, 0.26);
+  background:
+    radial-gradient(circle at top right, rgba(220, 38, 38, 0.14), transparent 35%),
+    rgba(255, 255, 255, 0.72);
 }
 
 .error {
@@ -222,7 +473,10 @@
 
 [data-theme="dark"] .tableContainer,
 [data-theme="dark"] .card,
-[data-theme="dark"] .filterBar {
+[data-theme="dark"] .filterBar,
+[data-theme="dark"] .roomPlanner,
+[data-theme="dark"] .roomColumn,
+[data-theme="dark"] .roomBlock {
   border-color: rgba(255, 255, 255, 0.08);
   background:
     radial-gradient(circle at top right, rgba(207, 162, 101, 0.06), transparent 34%),
@@ -230,9 +484,35 @@
   color: var(--text-primary);
 }
 
+[data-theme="dark"] .compactTable thead th {
+  background: rgba(18, 26, 37, 0.96);
+}
+
+[data-theme="dark"] .pendingReviewCard {
+  background:
+    radial-gradient(circle at top right, rgba(207, 162, 101, 0.1), transparent 34%),
+    linear-gradient(180deg, rgba(18, 26, 37, 0.98), rgba(12, 18, 27, 0.94));
+}
+
+[data-theme="dark"] .pendingDetails span {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+[data-theme="dark"] .pendingDetails small {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .pendingDetails strong {
+  color: var(--text-primary);
+}
+
 [data-theme="dark"] .nameCell,
 [data-theme="dark"] .cardTitle,
-[data-theme="dark"] .cardInfo {
+[data-theme="dark"] .cardInfo,
+[data-theme="dark"] .roomPlannerHeader h2,
+[data-theme="dark"] .roomColumnHeader h3,
+[data-theme="dark"] .roomBlock {
   color: var(--text-primary);
 }
 
@@ -243,8 +523,46 @@
 [data-theme="dark"] .emailSmall,
 [data-theme="dark"] .info,
 [data-theme="dark"] .loading,
-[data-theme="dark"] .noData {
+[data-theme="dark"] .noData,
+[data-theme="dark"] .roomPlannerHeader span,
+[data-theme="dark"] .roomColumnHeader span,
+[data-theme="dark"] .roomBlock small,
+[data-theme="dark"] .roomEmpty small,
+[data-theme="dark"] .dayButton small {
   color: var(--text-secondary);
+}
+
+[data-theme="dark"] .dayButton,
+[data-theme="dark"] .roomColumnHeader strong {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .dayButtonActive {
+  background: linear-gradient(135deg, rgba(207, 162, 101, 0.95), rgba(138, 91, 24, 0.95));
+  color: #111827;
+}
+
+[data-theme="dark"] .roomEmpty {
+  border-color: rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.09);
+}
+
+[data-theme="dark"] .roomEmpty span {
+  color: #bbf7d0;
+}
+
+[data-theme="dark"] .roomBlockConflict {
+  border-color: rgba(248, 113, 113, 0.26);
+  background:
+    radial-gradient(circle at top right, rgba(248, 113, 113, 0.12), transparent 35%),
+    rgba(30, 20, 24, 0.82);
+}
+
+[data-theme="dark"] .roomBlock em {
+  background: rgba(248, 113, 113, 0.16);
+  color: #fecaca;
 }
 
 [data-theme="dark"] .btnGhost {
@@ -276,4 +594,18 @@
 [data-theme="dark"] .statusCancelled {
   background: rgba(148, 163, 184, 0.16);
   color: #dbe5f2;
+}
+
+@media (max-width: 760px) {
+  .pendingDetails {
+    grid-template-columns: 1fr;
+  }
+
+  .roomPlannerHeader {
+    display: grid;
+  }
+
+  .daySwitch {
+    justify-content: flex-start;
+  }
 }

@@ -7,12 +7,18 @@ import {
   adminGetAllParkingReservations,
   adminGetParkingSlots,
 } from "../services/api";
+import PageState from "../components/PageState";
+import SelectDropdown from "../components/SelectDropdown";
+import { useFeedback } from "../context/FeedbackContext";
+import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./AdminParkingPage.module.css";
 
 export default function AdminParkingPage() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { confirm, notify } = useFeedback();
+  const locale = normalizeLocale(i18n.language);
 
   const [activeTab, setActiveTab] = useState("parkingSlots");
   const [parkingSlots, setParkingSlots] = useState([]);
@@ -23,6 +29,7 @@ export default function AdminParkingPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
       const [parkingSlotsData, parkingReservationsData] = await Promise.all([
         adminGetParkingSlots(token),
@@ -51,12 +58,23 @@ export default function AdminParkingPage() {
   }, [loadData, navigate, user]);
 
   const handleDeleteParkingSlot = async (id) => {
-    if (!window.confirm(t("admin.confirmDeleteSession"))) return;
+    const accepted = await confirm({
+      title: t("admin.confirmDeleteSession"),
+      confirmLabel: t("common.delete", { defaultValue: "Supprimer" }),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
+    if (!accepted) return;
     try {
       await adminDeleteParkingSlot(id, token);
       setParkingSlots((previousSlots) => previousSlots.filter((parkingSlot) => parkingSlot.id !== id));
+      notify({
+        type: "success",
+        title: t("common.success", { defaultValue: "Action confirmée" }),
+        message: t("admin.parkingSlotDeleted", { defaultValue: "Créneau parking supprimé." }),
+      });
     } catch (err) {
-      alert(err.message);
+      notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
@@ -66,12 +84,18 @@ export default function AdminParkingPage() {
   });
 
   if (!user || user.role !== "ADMIN") return null;
-  if (loading) return <div className={styles.loading}>{t("common.loading")}</div>;
-  if (error) return <div className={styles.error}>{error}</div>;
+  if (loading) return <PageState type="loading" title={t("common.loading")} message={t("admin.parkingManagement")} />;
+  if (error) return <PageState type="error" title={t("common.error")} message={error} />;
 
   const tabs = [
     { id: "parkingSlots", label: t("admin.parkingManagement") },
     { id: "parkingReservations", label: t("admin.parkingReservations") },
+  ];
+
+  const parkingReservationStatusOptions = [
+    { value: "ALL", label: t("common.all") },
+    { value: "CONFIRMED", label: t("status.confirmed") },
+    { value: "CANCELLED", label: t("status.cancelled") },
   ];
 
   return (
@@ -132,10 +156,10 @@ export default function AdminParkingPage() {
                       <td>{parkingSlot.startTime} - {parkingSlot.endTime}</td>
                       <td>
                         <span className={styles.capacityBadge}>
-                          {parkingSlot.availableSpaces} / {parkingSlot.parkingCapacity}
+                          {formatNumber(parkingSlot.availableSpaces, locale)} / {formatNumber(parkingSlot.parkingCapacity, locale)}
                         </span>
                       </td>
-                      <td>{parkingSlot.parkingRate} €</td>
+                      <td>{formatMoney(parkingSlot.parkingRate, locale)}</td>
                       <td>
                         <span className={`${styles.statusBadge} ${styles[`status${parkingSlot.status}`]}`}>
                           {t(`status.${parkingSlot.status.toLowerCase()}`)}
@@ -165,15 +189,13 @@ export default function AdminParkingPage() {
         <section className={styles.section}>
           <div className={styles.filterBar}>
             <label>{t("admin.filterByStatus")}</label>
-            <select
+            <SelectDropdown
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className={styles.select}
-            >
-              <option value="ALL">{t("common.all")}</option>
-              <option value="CONFIRMED">{t("status.confirmed")}</option>
-              <option value="CANCELLED">{t("status.cancelled")}</option>
-            </select>
+              onChange={setFilterStatus}
+              options={parkingReservationStatusOptions}
+              label={t("admin.filterByStatus")}
+              className={styles.selectDropdown}
+            />
             <span className={styles.resultCount}>
               {filteredParkingReservations.length} {t("admin.reservationsShown")}
             </span>
@@ -207,8 +229,8 @@ export default function AdminParkingPage() {
                         </div>
                       </td>
                       <td>{parkingReservation.slotDate}</td>
-                      <td>{parkingReservation.reservedSpaces}</td>
-                      <td>{parkingReservation.totalPrice} €</td>
+                      <td>{formatNumber(parkingReservation.reservedSpaces, locale)}</td>
+                      <td>{formatMoney(parkingReservation.totalPrice, locale)}</td>
                       <td>
                         <span className={`${styles.statusBadge} ${styles[`status${parkingReservation.status}`]}`}>
                           {t(`status.${parkingReservation.status.toLowerCase()}`)}

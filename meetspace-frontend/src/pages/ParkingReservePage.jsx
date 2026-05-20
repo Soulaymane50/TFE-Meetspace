@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { createParkingReservation, getParkingSlot } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { useFeedback } from "../context/FeedbackContext";
 import { useTranslation } from "react-i18next";
 import PaymentForm from "../components/PaymentForm";
 import PageState from "../components/PageState";
 import { PARKING_IMAGE } from "../utils/mediaAssets";
+import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./ParkingReservePage.module.css";
 
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
@@ -14,7 +16,8 @@ export default function ParkingReservePage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { token } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { notify } = useFeedback();
 
   const [parkingSlot, setParkingSlot] = useState(null);
   const [reservedSpaces, setReservedSpaces] = useState(1);
@@ -36,7 +39,37 @@ export default function ParkingReservePage() {
       .finally(() => setLoading(false));
   }, [id, t]);
 
+  const maxReservableSpaces = Math.max(0, parkingSlot?.availableSpaces ?? parkingSlot?.parkingCapacity ?? 0);
   const totalAmount = parkingSlot ? parkingSlot.parkingRate * reservedSpaces : 0;
+  const occupiedSpaces = parkingSlot ? Math.max(0, parkingSlot.parkingCapacity - maxReservableSpaces) : 0;
+  const selectedOccupiedSpaces = occupiedSpaces + reservedSpaces;
+  const selectedOccupancyPercent = parkingSlot?.parkingCapacity
+    ? Math.min(100, Math.round((selectedOccupiedSpaces / parkingSlot.parkingCapacity) * 100))
+    : 0;
+  const locale = normalizeLocale(i18n.language);
+  const formattedTotalAmount = formatMoney(totalAmount, locale);
+  const remainingAfterSelection = Math.max(0, maxReservableSpaces - reservedSpaces);
+  const quickSpaceOptions = [1, 2, 3, 4, 5].filter((option) => option <= Math.max(maxReservableSpaces, 1));
+
+  const handleReservedSpacesChange = (value) => {
+    const number = parseInt(value, 10);
+    const safeNumber = Number.isFinite(number) ? number : 1;
+    setReservedSpaces(Math.min(Math.max(safeNumber, 1), maxReservableSpaces || 1));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setError("");
+    if (maxReservableSpaces <= 0) {
+      setError(t("parking.full"));
+      return;
+    }
+    if (reservedSpaces > maxReservableSpaces) {
+      setError(t("parking.capacityExceeded", { count: maxReservableSpaces }));
+      return;
+    }
+    setIsPaymentStepVisible(true);
+  };
 
   const handlePaymentSuccess = async (paymentIntentId) => {
     setIsCreatingReservation(true);
@@ -51,7 +84,13 @@ export default function ParkingReservePage() {
         },
         token,
       );
-      alert(t("payment.success"));
+      notify({
+        type: "success",
+        title: t("payment.successTitle", { defaultValue: "Paiement validé" }),
+        message: t("payment.parkingSuccessMessage", {
+          defaultValue: "Votre réservation parking est confirmée.",
+        }),
+      });
       navigate("/my-parking-reservations");
     } catch (err) {
       setError(err.message);
@@ -88,16 +127,16 @@ export default function ParkingReservePage() {
               <div className={styles.metricGrid}>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("parking.reservedSpacesLabel")}</span>
-                  <span className={styles.metricValue}>{reservedSpaces}</span>
+                  <span className={styles.metricValue}>{formatNumber(reservedSpaces, locale)}</span>
                 </div>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("parking.rateLabel")}</span>
-                  <span className={styles.metricValue}>{parkingSlot?.parkingRate} €</span>
+                  <span className={styles.metricValue}>{formatMoney(parkingSlot?.parkingRate, locale)}</span>
                 </div>
               </div>
               <div className={styles.totalPanel}>
                 <span>{t("reservation.totalPrice")}</span>
-                <strong>{totalAmount.toFixed(2)} €</strong>
+                <strong>{formattedTotalAmount}</strong>
               </div>
             </div>
           </aside>
@@ -160,12 +199,12 @@ export default function ParkingReservePage() {
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("parking.placesAvailable")}</span>
                   <span className={styles.metricValue}>
-                    {parkingSlot.availableSpaces} / {parkingSlot.parkingCapacity}
+                    {formatNumber(parkingSlot.availableSpaces, locale)} / {formatNumber(parkingSlot.parkingCapacity, locale)}
                   </span>
                 </div>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("parking.rateLabel")}</span>
-                  <span className={styles.metricValue}>{parkingSlot.parkingRate} €</span>
+                  <span className={styles.metricValue}>{formatMoney(parkingSlot.parkingRate, locale)}</span>
                 </div>
               </div>
 
@@ -177,19 +216,70 @@ export default function ParkingReservePage() {
           )}
         </aside>
 
-        <form onSubmit={(e) => { e.preventDefault(); setIsPaymentStepVisible(true); }} className={styles.mainColumn}>
+        <form onSubmit={handleSubmit} className={styles.mainColumn}>
           <div className={styles.flowPanel}>
-            <h3 className={styles.sectionTitle}>{t("parking.reservedSpacesLabel")}</h3>
-            <div className={styles.inputRow}>
-              <label className={styles.label}>{t("parking.reservedSpacesLabel")}</label>
-              <input
-                type="number"
-                min="1"
-                max={parkingSlot?.availableSpaces ?? parkingSlot?.parkingCapacity ?? undefined}
-                value={reservedSpaces}
-                onChange={(e) => setReservedSpaces(parseInt(e.target.value, 10) || 1)}
-                className={styles.input}
-              />
+            <div className={styles.sectionHeader}>
+              <div>
+                <span className={styles.kicker}>{t("parking.capacityStatus")}</span>
+                <h3 className={styles.sectionTitle}>{t("parking.reservedSpacesLabel")}</h3>
+              </div>
+              <strong className={styles.availableBadge}>
+                {maxReservableSpaces > 0 ? t("parking.remainingPlacesCount", { count: maxReservableSpaces }) : t("parking.full")}
+              </strong>
+            </div>
+
+            <div className={styles.capacityPanel}>
+              <div className={styles.capacityHeader}>
+                <span>
+                  {formatNumber(selectedOccupiedSpaces, locale)} / {formatNumber(parkingSlot?.parkingCapacity || 0, locale)}
+                </span>
+                <strong>{selectedOccupancyPercent}%</strong>
+              </div>
+              <div className={styles.capacityTrack} aria-hidden="true">
+                <span style={{ width: `${selectedOccupancyPercent}%` }} />
+              </div>
+              <p className={styles.helperText}>
+                {t("parking.remainingAfterSelection", { count: remainingAfterSelection })}
+              </p>
+            </div>
+
+            <div className={styles.quantityPanel}>
+              <button
+                type="button"
+                className={styles.quantityButton}
+                onClick={() => handleReservedSpacesChange(reservedSpaces - 1)}
+                disabled={reservedSpaces <= 1 || maxReservableSpaces <= 0}
+                aria-label={t("parking.decreaseSpaces")}
+              >
+                -
+              </button>
+              <div className={styles.quantityValue}>
+                <strong>{formatNumber(reservedSpaces, locale)}</strong>
+                <span>{t("parking.places")}</span>
+              </div>
+              <button
+                type="button"
+                className={styles.quantityButton}
+                onClick={() => handleReservedSpacesChange(reservedSpaces + 1)}
+                disabled={reservedSpaces >= maxReservableSpaces || maxReservableSpaces <= 0}
+                aria-label={t("parking.increaseSpaces")}
+              >
+                +
+              </button>
+            </div>
+
+            <div className={styles.quickSelection} aria-label={t("parking.quickSelection")}>
+              {quickSpaceOptions.map((option) => (
+                <button
+                  type="button"
+                  key={option}
+                  className={reservedSpaces === option ? styles.quickSelectionActive : ""}
+                  onClick={() => handleReservedSpacesChange(option)}
+                  disabled={maxReservableSpaces <= 0}
+                >
+                  {option}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -198,17 +288,17 @@ export default function ParkingReservePage() {
             <div className={styles.metricGrid}>
               <div className={styles.metricCard}>
                 <span className={styles.metricLabel}>{t("parking.reservedSpacesLabel")}</span>
-                <span className={styles.metricValue}>{reservedSpaces}</span>
+                <span className={styles.metricValue}>{formatNumber(reservedSpaces, locale)}</span>
               </div>
               <div className={styles.metricCard}>
                 <span className={styles.metricLabel}>{t("parking.rateLabel")}</span>
-                <span className={styles.metricValue}>{parkingSlot?.parkingRate} €</span>
+                <span className={styles.metricValue}>{formatMoney(parkingSlot?.parkingRate, locale)}</span>
               </div>
             </div>
 
             <div className={styles.totalPanel}>
               <span>{t("reservation.totalPrice")}</span>
-              <strong>{totalAmount.toFixed(2)} €</strong>
+              <strong>{formattedTotalAmount}</strong>
             </div>
 
             {error && <p className={styles.error}>{error}</p>}
@@ -217,7 +307,7 @@ export default function ParkingReservePage() {
               <button type="button" onClick={() => navigate("/parking")} className={styles.secondaryAction}>
                 {t("common.cancel")}
               </button>
-              <button type="submit" className={styles.primaryAction}>
+              <button type="submit" className={styles.primaryAction} disabled={maxReservableSpaces <= 0}>
                 {t("reservation.proceedPayment")}
               </button>
             </div>

@@ -3,13 +3,17 @@ import { useAuth } from "../context/AuthContext";
 import { adminCreateEvent, adminGetEvents, adminUpdateEvent, adminGetEspaces } from "../services/api";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import RoomSchedulePicker from "../components/RoomSchedulePicker";
+import SelectDropdown from "../components/SelectDropdown";
+import { formatMoney, normalizeLocale } from "../utils/formatters";
 import styles from "./AdminEventForm.module.css";
 
 export default function AdminEventForm() {
   const { user, token } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
   const parkingGridClassName = styles.parkingGrid;
 
   const isEdit = !!id;
@@ -19,7 +23,7 @@ export default function AdminEventForm() {
     description: "",
     startDateTime: "",
     endDateTime: "",
-    locationType: "EXTERNAL",
+    locationType: "EXISTING_SPACE",
     spaceId: "",
     location: "",
     capacity: "",
@@ -32,6 +36,32 @@ export default function AdminEventForm() {
 
   const [espaces, setEspaces] = useState([]);
   const [error, setError] = useState("");
+  const selectedSpace = espaces.find((space) => String(space.id) === String(eventForm.spaceId));
+  const selectedCapacity = Number(selectedSpace?.capacity) || 0;
+  const recommendedCapacity = selectedCapacity
+    ? Math.min(selectedCapacity, Math.max(12, Math.round(selectedCapacity * 0.75)))
+    : 0;
+  const recommendedPrice = selectedCapacity >= 300 ? 120 : selectedCapacity >= 100 ? 80 : selectedCapacity >= 50 ? 45 : 25;
+  const recommendedParkingCapacity = recommendedCapacity
+    ? Math.min(50, Math.max(6, Math.round(recommendedCapacity * 0.3)))
+    : 0;
+  const recommendedParkingPrice = selectedCapacity >= 100 ? 10 : 8;
+  const locationTypeOptions = [
+    { value: "EXISTING_SPACE", label: t("events.existingSpace") },
+    { value: "EXTERNAL", label: t("events.externalAddress") },
+  ];
+  const roomOptions = [
+    { value: "", label: t("common.select") },
+    ...espaces.map((space) => ({
+      value: String(space.id),
+      label: `${space.name} - ${space.capacity} ${t("common.persons")} - ${formatMoney(space.basePrice, locale)} ${t("common.perHour")}`,
+    })),
+  ];
+  const statusOptions = [
+    { value: "DRAFT", label: t("status.draft") },
+    { value: "PUBLISHED", label: t("status.published") },
+    { value: "CANCELLED", label: t("status.cancelled") },
+  ];
 
   useEffect(() => {
     if (!user || user.role !== "ADMIN") {
@@ -112,10 +142,33 @@ export default function AdminEventForm() {
       return;
     }
 
+    const capacity = Number(eventForm.capacity);
+    if (!capacity || capacity < 1) {
+      setError(t("validation.capacityRequired"));
+      return;
+    }
+
+    if (selectedSpace && capacity > Number(selectedSpace.capacity)) {
+      setError(t("organizer.capacityExceedsRoom", { capacity: selectedSpace.capacity }));
+      return;
+    }
+
+    if (eventForm.parkingRequired) {
+      const parkingCapacity = Number(eventForm.parkingCapacity);
+      if (!parkingCapacity || parkingCapacity < 1) {
+        setError(t("organizer.parkingCapacityRequired"));
+        return;
+      }
+      if (parkingCapacity > capacity) {
+        setError(t("organizer.parkingCapacityExceedsEvent", { capacity }));
+        return;
+      }
+    }
+
     const payload = {
       ...eventForm,
       spaceId: eventForm.spaceId ? Number(eventForm.spaceId) : null,
-      capacity: eventForm.capacity ? Number(eventForm.capacity) : null,
+      capacity,
       price: eventForm.price ? Number(eventForm.price) : null,
       parkingPrice: eventForm.parkingPrice !== "" ? Number(eventForm.parkingPrice) : null,
       parkingCapacity: eventForm.parkingCapacity !== "" ? Number(eventForm.parkingCapacity) : null,
@@ -136,7 +189,82 @@ export default function AdminEventForm() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setEventForm({ ...eventForm, [name]: type === "checkbox" ? checked : value });
+    setEventForm((prev) => {
+      const next = { ...prev, [name]: type === "checkbox" ? checked : value };
+
+      if (name === "locationType") {
+        next.spaceId = "";
+        next.location = "";
+        next.startDateTime = "";
+        next.endDateTime = "";
+      }
+
+      if (name === "spaceId") {
+        const room = espaces.find((space) => String(space.id) === String(value));
+        next.location = room?.name || "";
+        next.startDateTime = "";
+        next.endDateTime = "";
+        if (room && (!prev.capacity || Number(prev.capacity) > Number(room.capacity))) {
+          next.capacity = String(room.capacity);
+        }
+      }
+
+      if (name === "capacity") {
+        const room = espaces.find((space) => String(space.id) === String(prev.spaceId));
+        const numericValue = value === "" ? "" : Number(value);
+        const clampedCapacity =
+          room && numericValue !== "" ? Math.min(numericValue, Number(room.capacity)) : numericValue;
+        next.capacity = clampedCapacity === "" ? "" : String(clampedCapacity);
+        if (next.parkingCapacity && clampedCapacity !== "" && Number(next.parkingCapacity) > clampedCapacity) {
+          next.parkingCapacity = String(clampedCapacity);
+        }
+      }
+
+      if (name === "parkingCapacity") {
+        const eventCapacity = Number(prev.capacity);
+        const numericValue = value === "" ? "" : Number(value);
+        const clampedParking =
+          eventCapacity && numericValue !== "" ? Math.min(numericValue, eventCapacity) : numericValue;
+        next.parkingCapacity = clampedParking === "" ? "" : String(clampedParking);
+      }
+
+      return next;
+    });
+    setError("");
+  };
+
+  const handleScheduleChange = ({ startDateTime, endDateTime }) => {
+    setEventForm((prev) => ({
+      ...prev,
+      startDateTime,
+      endDateTime,
+    }));
+    setError("");
+  };
+
+  const applyRoomCapacity = () => {
+    if (!selectedSpace) return;
+    setEventForm((prev) => ({
+      ...prev,
+      capacity: String(selectedSpace.capacity),
+      parkingCapacity:
+        prev.parkingCapacity && Number(prev.parkingCapacity) > Number(selectedSpace.capacity)
+          ? String(selectedSpace.capacity)
+          : prev.parkingCapacity,
+    }));
+    setError("");
+  };
+
+  const applySmartRecommendation = () => {
+    if (!selectedSpace) return;
+    setEventForm((prev) => ({
+      ...prev,
+      capacity: String(recommendedCapacity),
+      price: String(recommendedPrice),
+      parkingRequired: true,
+      parkingPrice: String(recommendedParkingPrice),
+      parkingCapacity: String(Math.min(recommendedParkingCapacity, recommendedCapacity)),
+    }));
     setError("");
   };
 
@@ -186,33 +314,33 @@ export default function AdminEventForm() {
         <div className={styles.row}>
           <div className={styles.field}>
             <label className={styles.label}>{t("events.locationType")} *</label>
-            <select
-              name="locationType"
+            <SelectDropdown
               value={eventForm.locationType}
-              onChange={handleChange}
-              className={styles.select}
-            >
-              <option value="EXTERNAL">{t("events.externalAddress")}</option>
-              <option value="EXISTING_SPACE">{t("events.existingSpace")}</option>
-            </select>
+              onChange={(value) => handleChange({ target: { name: "locationType", value } })}
+              options={locationTypeOptions}
+              label={t("events.locationType")}
+              className={styles.selectDropdown}
+            />
           </div>
 
           {eventForm.locationType === "EXISTING_SPACE" ? (
             <div className={styles.field}>
               <label className={styles.label}>{t("spaces.space")}</label>
-              <select
-                name="spaceId"
-                value={eventForm.spaceId}
-                onChange={handleChange}
-                className={styles.select}
-              >
-                <option value="">{t("common.select")}</option>
-                {espaces.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+              <SelectDropdown
+                value={String(eventForm.spaceId || "")}
+                onChange={(value) => handleChange({ target: { name: "spaceId", value } })}
+                options={roomOptions}
+                label={t("spaces.space")}
+                className={styles.selectDropdown}
+              />
+              {selectedSpace && (
+                <span className={styles.hint}>
+                  {t("organizer.roomCapacityHint", {
+                    capacity: selectedSpace.capacity,
+                    price: selectedSpace.basePrice,
+                  })}
+                </span>
+              )}
             </div>
           ) : (
             <div className={styles.field}>
@@ -228,33 +356,77 @@ export default function AdminEventForm() {
           )}
         </div>
 
-        <div className={styles.row}>
-          <div className={styles.field}>
-            <label className={styles.label}>{t("reservation.startDate")} *</label>
-            <input
-              type="datetime-local"
-              name="startDateTime"
-              value={eventForm.startDateTime}
-              onChange={handleChange}
-              min={getMinDateTime()}
-              className={styles.input}
-              required
-            />
+        {eventForm.locationType === "EXISTING_SPACE" && selectedSpace && (
+          <div className={styles.advisorCard}>
+            <div>
+              <p className={styles.advisorKicker}>{t("organizer.advisorKicker")}</p>
+              <h3>{t("organizer.advisorTitle")}</h3>
+              <p>{t("organizer.advisorText")}</p>
+            </div>
+            <div className={styles.advisorMetrics}>
+              <span>
+                <strong>{recommendedCapacity}</strong>
+                {t("organizer.advisorCapacity")}
+              </span>
+              <span>
+                <strong>{formatMoney(recommendedPrice, locale)}</strong>
+                {t("organizer.advisorPrice")}
+              </span>
+              <span>
+                <strong>{recommendedParkingCapacity}</strong>
+                {t("organizer.advisorParking")}
+              </span>
+            </div>
+            <div className={styles.advisorActions}>
+              <button type="button" onClick={applyRoomCapacity} className={styles.advisorGhost}>
+                {t("organizer.applyCapacity")}
+              </button>
+              <button type="button" onClick={applySmartRecommendation} className={styles.advisorPrimary}>
+                {t("organizer.applyRecommendation")}
+              </button>
+            </div>
           </div>
+        )}
 
-          <div className={styles.field}>
-            <label className={styles.label}>{t("reservation.endDate")} *</label>
-            <input
-              type="datetime-local"
-              name="endDateTime"
-              value={eventForm.endDateTime}
-              onChange={handleChange}
-              min={eventForm.startDateTime || getMinDateTime()}
-              className={styles.input}
-              required
-            />
+        {eventForm.locationType === "EXISTING_SPACE" ? (
+          <RoomSchedulePicker
+            key={eventForm.spaceId || "admin-room-schedule"}
+            spaceId={eventForm.spaceId}
+            spaceName={selectedSpace?.name}
+            startDateTime={eventForm.startDateTime}
+            endDateTime={eventForm.endDateTime}
+            onChange={handleScheduleChange}
+            ignoreBlockId={isEdit ? id : undefined}
+          />
+        ) : (
+          <div className={styles.row}>
+            <div className={styles.field}>
+              <label className={styles.label}>{t("reservation.startDate")} *</label>
+              <input
+                type="datetime-local"
+                name="startDateTime"
+                value={eventForm.startDateTime}
+                onChange={handleChange}
+                min={getMinDateTime()}
+                className={styles.input}
+                required
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label}>{t("reservation.endDate")} *</label>
+              <input
+                type="datetime-local"
+                name="endDateTime"
+                value={eventForm.endDateTime}
+                onChange={handleChange}
+                min={eventForm.startDateTime || getMinDateTime()}
+                className={styles.input}
+                required
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         <div className={styles.row}>
           <div className={styles.field}>
@@ -265,6 +437,7 @@ export default function AdminEventForm() {
               value={eventForm.capacity}
               onChange={handleChange}
               min="1"
+              max={selectedSpace?.capacity || undefined}
               className={styles.input}
             />
           </div>
@@ -317,6 +490,7 @@ export default function AdminEventForm() {
                 value={eventForm.parkingCapacity}
                 onChange={handleChange}
                 min="1"
+                max={eventForm.capacity || undefined}
                 className={styles.input}
               />
             </div>
@@ -325,16 +499,13 @@ export default function AdminEventForm() {
 
         <div className={styles.field}>
           <label className={styles.label}>{t("common.status")} *</label>
-          <select
-            name="status"
+          <SelectDropdown
             value={eventForm.status}
-            onChange={handleChange}
-            className={styles.select}
-          >
-            <option value="DRAFT">{t("status.draft")}</option>
-            <option value="PUBLISHED">{t("status.published")}</option>
-            <option value="CANCELLED">{t("status.cancelled")}</option>
-          </select>
+            onChange={(value) => handleChange({ target: { name: "status", value } })}
+            options={statusOptions}
+            label={t("common.status")}
+            className={styles.selectDropdown}
+          />
         </div>
 
         <div className={styles.actions}>

@@ -38,6 +38,11 @@ public class User {
 
     private LocalDateTime updatedAt;
 
+    @Column(length = 64)
+    private String passwordResetTokenHash;
+
+    private LocalDateTime passwordResetExpiresAt;
+
 
     @PrePersist
     public void prePersist() {
@@ -84,5 +89,17 @@ public class User {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getPasswordResetTokenHash() { return passwordResetTokenHash; }
+
+    public void setPasswordResetTokenHash(String passwordResetTokenHash) {
+        this.passwordResetTokenHash = passwordResetTokenHash;
+    }
+
+    public LocalDateTime getPasswordResetExpiresAt() { return passwordResetExpiresAt; }
+
+    public void setPasswordResetExpiresAt(LocalDateTime passwordResetExpiresAt) {
+        this.passwordResetExpiresAt = passwordResetExpiresAt;
+    }
 }
 

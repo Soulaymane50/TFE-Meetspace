@@ -1,0 +1,167 @@
+.toastStack {
+  position: fixed;
+  right: 1.1rem;
+  bottom: 1.1rem;
+  z-index: 1200;
+  display: grid;
+  gap: 0.7rem;
+  width: min(360px, calc(100vw - 2rem));
+}
+
+.toast {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.25rem;
+  align-items: start;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(27, 42, 64, 0.1);
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--blue-darker);
+  box-shadow: var(--shadow-medium);
+  backdrop-filter: blur(16px);
+}
+
+.toast::before {
+  content: "";
+  grid-row: 1 / span 2;
+  width: 10px;
+  height: 10px;
+  margin-top: 0.32rem;
+  border-radius: 999px;
+  background: #3867d6;
+  box-shadow: 0 0 0 6px rgba(56, 103, 214, 0.08);
+}
+
+.toast strong {
+  font-size: 0.88rem;
+}
+
+.toast span {
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.success {
+  border-color: rgba(16, 185, 129, 0.24);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.14), transparent 34%),
+    rgba(255, 255, 255, 0.96);
+}
+
+.success::before {
+  background: #10b981;
+  box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.14);
+}
+
+.error {
+  border-color: rgba(220, 38, 38, 0.22);
+}
+
+.error::before {
+  background: #dc2626;
+  box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.12);
+}
+
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(11, 18, 32, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.confirmBox {
+  width: min(460px, 100%);
+  padding: 1.25rem;
+  border-radius: 26px;
+  border: 1px solid rgba(27, 42, 64, 0.1);
+  background:
+    radial-gradient(circle at top right, rgba(90, 124, 226, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 245, 239, 0.96));
+  box-shadow: var(--shadow-strong);
+}
+
+.confirmKicker {
+  margin: 0 0 0.25rem;
+  color: var(--orange);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.confirmBox h2 {
+  margin-bottom: 0.5rem;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.confirmBox p {
+  color: var(--text-secondary);
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+
+.cancelButton,
+.confirmButton {
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.cancelButton {
+  border: 1px solid rgba(27, 42, 64, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--blue-dark);
+  box-shadow: none;
+}
+
+.dangerButton {
+  background: linear-gradient(135deg, #991b1b, #dc2626);
+}
+
+[data-theme="dark"] .toast,
+[data-theme="dark"] .confirmBox {
+  border-color: rgba(255, 255, 255, 0.09);
+  background:
+    radial-gradient(circle at top right, rgba(207, 162, 101, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(18, 26, 37, 0.98), rgba(12, 18, 27, 0.96));
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .success {
+  border-color: rgba(16, 185, 129, 0.28);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.14), transparent 34%),
+    linear-gradient(180deg, rgba(15, 45, 38, 0.98), rgba(12, 24, 24, 0.96));
+}
+
+[data-theme="dark"] .error {
+  border-color: rgba(248, 113, 113, 0.26);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(248, 113, 113, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(48, 20, 24, 0.98), rgba(24, 12, 16, 0.96));
+}
+
+[data-theme="dark"] .toast span,
+[data-theme="dark"] .confirmBox p {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .cancelButton {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}

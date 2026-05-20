@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getPublicEvents } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import SelectDropdown from "../components/SelectDropdown";
+import PageState from "../components/PageState";
 import { getEventImage } from "../utils/mediaAssets";
+import { formatMoney, formatNumber } from "../utils/formatters";
 import styles from "./EventsPage.module.css";
 
-const EURO = "€";
 
 const getDateLocale = (lang) => {
   const locales = { fr: "fr-BE", nl: "nl-BE", en: "en-GB" };
@@ -43,6 +44,8 @@ const getDayKey = (isoDate) => {
 
 export default function EventsPage() {
   const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [priceFilter, setPriceFilter] = useState("all");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [parkingFilter, setParkingFilter] = useState("all");
@@ -61,13 +64,33 @@ export default function EventsPage() {
     { value: "capacityDesc", label: t("events.sortByCapacityDesc") },
   ];
 
-  useEffect(() => {
+  const fetchEvents = useCallback(() => {
     getPublicEvents()
       .then(setEvents)
-      .catch(console.error);
+      .catch((error) => {
+        console.error(error);
+        setEvents([]);
+        setLoadError(true);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const availableEventsCount = events.filter((ev) => (ev.availablePlaces ?? 0) > 0).length;
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  const retryEvents = () => {
+    setLoading(true);
+    setLoadError(false);
+    fetchEvents();
+  };
+
+  const getAvailablePlaces = (event) =>
+    typeof event.availablePlaces === "number"
+      ? Math.max(0, event.availablePlaces)
+      : Math.max(0, Number(event.capacity) || 0);
+
+  const availableEventsCount = events.filter((ev) => getAvailablePlaces(ev) > 0).length;
   const paidEventsCount = events.filter((ev) => (ev.price || 0) > 0).length;
   const parkingEnabledEventsCount = events.filter((ev) => Boolean(ev.parkingSlotId)).length;
 
@@ -125,7 +148,7 @@ export default function EventsPage() {
     });
 
   const getRegisteredCount = (event) => {
-    const availablePlaces = typeof event.availablePlaces === "number" ? event.availablePlaces : event.capacity;
+    const availablePlaces = getAvailablePlaces(event);
     return Math.max(0, event.capacity - availablePlaces);
   };
 
@@ -192,6 +215,25 @@ export default function EventsPage() {
     );
   };
 
+  if (loading) {
+    return <PageState type="loading" title={t("common.loading")} message={t("events.workspaceLead")} />;
+  }
+
+  if (loadError) {
+    return (
+      <PageState
+        type="error"
+        title={t("common.error")}
+        message={t("events.resultsHint")}
+        action={
+          <button type="button" onClick={retryEvents}>
+            {t("common.retry")}
+          </button>
+        }
+      />
+    );
+  }
+
   return (
     <div className={styles.page}>
       <section className={styles.heroPanel}>
@@ -216,19 +258,19 @@ export default function EventsPage() {
 
         <div className={styles.summaryGrid}>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{events.length}</span>
+            <span className={styles.summaryValue}>{formatNumber(events.length, locale)}</span>
             <span className={styles.summaryLabel}>{t("nav.events")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{availableEventsCount}</span>
+            <span className={styles.summaryValue}>{formatNumber(availableEventsCount, locale)}</span>
             <span className={styles.summaryLabel}>{t("events.availableOnly")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{parkingEnabledEventsCount}</span>
+            <span className={styles.summaryValue}>{formatNumber(parkingEnabledEventsCount, locale)}</span>
             <span className={styles.summaryLabel}>{t("events.withParking")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{paidEventsCount}</span>
+            <span className={styles.summaryValue}>{formatNumber(paidEventsCount, locale)}</span>
             <span className={styles.summaryLabel}>{t("events.paid")}</span>
           </div>
         </div>
@@ -347,7 +389,7 @@ export default function EventsPage() {
 
           <div className={styles.sidebarFoot}>
             <div className={styles.sidebarMetric}>
-              <span className={styles.sidebarMetricValue}>{activeFiltersCount}</span>
+              <span className={styles.sidebarMetricValue}>{formatNumber(activeFiltersCount, locale)}</span>
               <span className={styles.sidebarMetricLabel}>{t("events.activeFilters")}</span>
             </div>
             {hasActiveFilters && (
@@ -384,12 +426,27 @@ export default function EventsPage() {
 
           <div className={styles.contentMeta}>
             <span className={styles.resultsCount}>
-              {filteredAndSortedEvents.length} {filteredAndSortedEvents.length === 1 ? t("events.eventFound") : t("events.eventsFound")}
+              {formatNumber(filteredAndSortedEvents.length, locale)} {filteredAndSortedEvents.length === 1 ? t("events.eventFound") : t("events.eventsFound")}
             </span>
             <span className={styles.resultsHint}>{t("events.resultsHint")}</span>
           </div>
 
-          {filteredAndSortedEvents.length === 0 && <p className={styles.empty}>{t("events.noEvents")}</p>}
+          {filteredAndSortedEvents.length === 0 && (
+            <PageState
+              type="empty"
+              title={t("events.noEvents")}
+              message={hasActiveFilters ? t("events.resultsHint") : t("events.workspaceLead")}
+              action={
+                hasActiveFilters ? (
+                  <button type="button" onClick={resetFilters}>
+                    {t("events.resetFilters")}
+                  </button>
+                ) : (
+                  <Link to="/espace">{t("home.roomsCta", { defaultValue: "Réserver une salle" })}</Link>
+                )
+              }
+            />
+          )}
 
           {filteredAndSortedEvents.length > 0 && viewMode === "cards" && (
             <div className={styles.eventStream}>
@@ -419,7 +476,7 @@ export default function EventsPage() {
                           <h3 className={styles.cardTitle}>{event.title}</h3>
                           <div className={styles.inlineTags}>
                             <span className={`${styles.priceTag} ${isPaid ? styles.priceTagPaid : styles.priceTagFree}`}>
-                              {isPaid ? `${event.price} ${EURO}` : t("events.free")}
+                              {isPaid ? formatMoney(event.price, locale) : t("events.free")}
                             </span>
                             <span className={`${styles.parkingTag} ${event.parkingSlotId ? styles.parkingTagOn : styles.parkingTagOff}`}>
                               {event.parkingSlotId ? t("events.statusParkingIncluded") : t("events.statusParkingUnavailable")}
@@ -437,12 +494,12 @@ export default function EventsPage() {
                           <div className={styles.metaCard}>
                             <span className={styles.metaLabel}>{t("events.registeredParticipants")}</span>
                             <span className={styles.metaValue}>
-                              {registeredCount} / {event.capacity} {t("common.persons")}
+                              {formatNumber(registeredCount, locale)} / {formatNumber(event.capacity, locale)} {t("common.persons")}
                             </span>
                           </div>
                           <div className={styles.metaCard}>
                             <span className={styles.metaLabel}>{t("events.remainingPlaces")}</span>
-                            <span className={styles.metaValue}>{Math.max(0, event.availablePlaces ?? 0)}</span>
+                            <span className={styles.metaValue}>{formatNumber(getAvailablePlaces(event), locale)}</span>
                           </div>
                         </div>
                       </div>
@@ -451,13 +508,13 @@ export default function EventsPage() {
                         <div className={styles.progressCard}>
                           <div className={styles.progressHeader}>
                             <span className={styles.progressLabel}>{t("events.occupancy")}</span>
-                            <span className={styles.progressValue}>{occupancyRate}%</span>
+                            <span className={styles.progressValue}>{formatNumber(occupancyRate, locale)}%</span>
                           </div>
                           <div className={styles.progressTrack} aria-hidden="true">
                             <span className={styles.progressFill} style={{ width: `${occupancyRate}%` }} />
                           </div>
                           <p className={styles.progressCaption}>
-                            {registeredCount} {t("events.participants")} · {Math.max(0, event.availablePlaces ?? 0)} {t("events.remainingPlaces")}
+                            {formatNumber(registeredCount, locale)} {t("events.participants")} · {formatNumber(getAvailablePlaces(event), locale)} {t("events.remainingPlaces")}
                           </p>
                         </div>
 
@@ -478,7 +535,7 @@ export default function EventsPage() {
                     <p className={styles.planningLabel}>{t("events.dailyAgenda")}</p>
                     <h3 className={styles.planningDate}>{group.label}</h3>
                     <span className={styles.planningCount}>
-                      {group.events.length} {group.events.length === 1 ? t("events.eventFound") : t("events.eventsFound")}
+                      {formatNumber(group.events.length, locale)} {group.events.length === 1 ? t("events.eventFound") : t("events.eventsFound")}
                     </span>
                   </div>
 
@@ -505,7 +562,7 @@ export default function EventsPage() {
 
                             <div className={styles.timelineMeta}>
                               <span>{event.location || t("common.toBeAnnounced")}</span>
-                              <span>{event.price && event.price > 0 ? `${event.price} ${EURO}` : t("events.free")}</span>
+                              <span>{event.price && event.price > 0 ? formatMoney(event.price, locale) : t("events.free")}</span>
                               <span>{event.parkingSlotId ? t("events.statusParkingIncluded") : t("events.statusParkingUnavailable")}</span>
                             </div>
 
@@ -514,7 +571,7 @@ export default function EventsPage() {
                                 <span className={styles.progressFill} style={{ width: `${occupancyRate}%` }} />
                               </div>
                               <p className={styles.progressCaption}>
-                                {registeredCount} / {event.capacity} {t("common.persons")} · {Math.max(0, event.availablePlaces ?? 0)} {t("events.remainingPlaces")}
+                                {formatNumber(registeredCount, locale)} / {formatNumber(event.capacity, locale)} {t("common.persons")} · {formatNumber(getAvailablePlaces(event), locale)} {t("events.remainingPlaces")}
                               </p>
                             </div>
 
