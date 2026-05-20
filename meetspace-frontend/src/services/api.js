@@ -54,6 +54,26 @@ async function throwAccountApiError(res, fallbackMessage) {
   throw error;
 }
 
+async function throwPasswordResetApiError(res, fallbackMessage) {
+  const message = await readApiErrorCode(res, fallbackMessage);
+
+  if (message.includes("PASSWORD_WEAK")) {
+    throw new Error("PASSWORD_WEAK");
+  }
+
+  if (message.includes("PASSWORD_RESET_EXPIRED")) {
+    throw new Error("PASSWORD_RESET_EXPIRED");
+  }
+
+  if (message.includes("PASSWORD_RESET_INVALID")) {
+    throw new Error("PASSWORD_RESET_INVALID");
+  }
+
+  const error = new Error(fallbackMessage);
+  error.status = res.status;
+  throw error;
+}
+
 function normalizeParkingSlot(slot) {
   if (!slot) return null;
 
@@ -340,7 +360,14 @@ export async function forgotPasswordRequest(email) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
   });
-  return handleResponse(res, "Erreur lors de l'envoi de l'email");
+
+  if (!res.ok) {
+    const error = new Error("FORGOT_PASSWORD_FAILED");
+    error.status = res.status;
+    throw error;
+  }
+
+  return handleResponse(res, "FORGOT_PASSWORD_FAILED");
 }
 
 export async function resetPasswordRequest(token, newPassword) {
@@ -349,7 +376,12 @@ export async function resetPasswordRequest(token, newPassword) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token, newPassword }),
   });
-  return handleResponse(res, "Erreur lors de la réinitialisation du mot de passe");
+
+  if (!res.ok) {
+    await throwPasswordResetApiError(res, "RESET_PASSWORD_FAILED");
+  }
+
+  return handleResponse(res, "RESET_PASSWORD_FAILED");
 }
 
 export async function logoutRequest(token) {

@@ -20,10 +20,8 @@ export default function ForgotPasswordPage() {
     try {
       await forgotPasswordRequest(email);
       setSuccess(true);
-    } catch (err) {
-      const message = err.message || "";
-      const emailServiceUnavailable = /smtp|service email|mail/i.test(message);
-      setError(emailServiceUnavailable ? t("auth.emailServiceUnavailable") : message || t("auth.forgotPasswordError"));
+    } catch {
+      setError(t("auth.forgotPasswordError"));
     } finally {
       setLoading(false);
     }

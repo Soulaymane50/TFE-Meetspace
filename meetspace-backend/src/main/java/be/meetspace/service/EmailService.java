@@ -18,15 +18,21 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final boolean enabled;
     private final String host;
+    private final String username;
+    private final String password;
     private final String from;
 
     public EmailService(JavaMailSender mailSender,
                         @Value("${app.mail.enabled:false}") boolean enabled,
                         @Value("${spring.mail.host:}") String host,
+                        @Value("${spring.mail.username:}") String username,
+                        @Value("${spring.mail.password:}") String password,
                         @Value("${app.mail.from:}") String from) {
         this.mailSender = mailSender;
         this.enabled = enabled;
         this.host = host;
+        this.username = username;
+        this.password = password;
         this.from = from;
     }
 
@@ -42,23 +48,21 @@ public class EmailService {
             helper.setText(buildPasswordResetText(firstName, resetUrl), buildPasswordResetHtml(firstName, resetUrl));
             mailSender.send(message);
         } catch (MessagingException | RuntimeException ex) {
-            throw new ResponseStatusException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "Impossible d'envoyer l'email de réinitialisation. Vérifiez la configuration SMTP."
-            );
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "EMAIL_SEND_FAILED", ex);
         }
     }
 
     public boolean canSendMail() {
-        return enabled && StringUtils.hasText(host) && StringUtils.hasText(from);
+        return enabled
+                && StringUtils.hasText(host)
+                && StringUtils.hasText(username)
+                && StringUtils.hasText(password)
+                && StringUtils.hasText(from);
     }
 
     private void ensureMailConfigured() {
         if (!canSendMail()) {
-            throw new ResponseStatusException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "Service email non configuré. Renseignez la configuration SMTP."
-            );
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "EMAIL_SERVICE_UNAVAILABLE");
         }
     }
 

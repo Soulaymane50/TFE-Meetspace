@@ -156,7 +156,7 @@ public class AuthController {
         passwordResetService.requestPasswordReset(request.getEmail());
         return Map.of(
                 "message",
-                "Si un compte existe avec cette adresse, un email de réinitialisation a été envoyé."
+                "Si un compte existe avec cette adresse, un lien de réinitialisation a été envoyé."
         );
     }
 

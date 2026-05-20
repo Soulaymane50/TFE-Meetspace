@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { resetPasswordRequest } from "../services/api";
 import LanguageSwitcher from "../components/LanguageSwitcher";
+import { getPasswordChecks, isStrongPassword } from "../utils/passwordPolicy";
 import styles from "./ResetPasswordPage.module.css";
 
 export default function ResetPasswordPage() {
@@ -16,18 +17,19 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const passwordChecks = getPasswordChecks(password);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     if (password !== confirmPassword) {
-      setError(t("profile.passwordMismatch"));
+      setError(t("auth.passwordMismatch"));
       return;
     }
 
-    if (password.length < 6) {
-      setError(t("auth.passwordTooShort"));
+    if (!isStrongPassword(password)) {
+      setError(t("auth.passwordRequirementsError"));
       return;
     }
 
@@ -38,7 +40,15 @@ export default function ResetPasswordPage() {
       setSuccess(true);
       setTimeout(() => navigate("/login"), 3000);
     } catch (err) {
-      setError(err.message || t("auth.resetPasswordError"));
+      if (err.message === "PASSWORD_WEAK") {
+        setError(t("auth.passwordRequirementsError"));
+      } else if (err.message === "PASSWORD_RESET_EXPIRED") {
+        setError(t("auth.passwordResetExpired"));
+      } else if (err.message === "PASSWORD_RESET_INVALID") {
+        setError(t("auth.passwordResetInvalid"));
+      } else {
+        setError(t("auth.resetPasswordError"));
+      }
     } finally {
       setLoading(false);
     }
@@ -119,8 +129,23 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className={styles.input}
                 required
-                minLength={6}
+                minLength={8}
               />
+            </div>
+
+            <div className={styles.passwordRules} aria-live="polite">
+              <p className={styles.passwordRulesTitle}>{t("auth.passwordRulesTitle")}</p>
+              <ul>
+                {passwordChecks.map((check) => (
+                  <li
+                    key={check.key}
+                    className={check.isValid ? styles.passwordRuleValid : styles.passwordRule}
+                  >
+                    <span className={styles.passwordRuleDot} />
+                    {t(`auth.passwordRule${check.key.charAt(0).toUpperCase()}${check.key.slice(1)}`)}
+                  </li>
+                ))}
+              </ul>
             </div>
 
             <div className={styles.formGroup}>
@@ -132,7 +157,7 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className={styles.input}
                 required
-                minLength={6}
+                minLength={8}
               />
             </div>
 
