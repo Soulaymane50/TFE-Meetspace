@@ -315,6 +315,7 @@
         "checkYourEmail": "Vérifiez votre boîte de réception. Si un compte existe avec cette adresse, vous recevrez un lien pour réinitialiser votre mot de passe.",
         "backToLogin": "← Retour à la connexion",
         "forgotPasswordError": "Erreur lors de l'envoi de l'email",
+        "emailServiceUnavailable": "Service email non configuré. Renseignez la configuration SMTP.",
         "resetPassword": "Réinitialiser le mot de passe",
         "enterNewPassword": "Entrez votre nouveau mot de passe.",
         "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères",

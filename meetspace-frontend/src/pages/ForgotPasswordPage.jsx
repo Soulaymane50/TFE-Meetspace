@@ -21,7 +21,9 @@ export default function ForgotPasswordPage() {
       await forgotPasswordRequest(email);
       setSuccess(true);
     } catch (err) {
-      setError(err.message || t("auth.forgotPasswordError"));
+      const message = err.message || "";
+      const emailServiceUnavailable = /smtp|service email|mail/i.test(message);
+      setError(emailServiceUnavailable ? t("auth.emailServiceUnavailable") : message || t("auth.forgotPasswordError"));
     } finally {
       setLoading(false);
     }

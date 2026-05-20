@@ -49,8 +49,12 @@ public class EmailService {
         }
     }
 
+    public boolean canSendMail() {
+        return enabled && StringUtils.hasText(host) && StringUtils.hasText(from);
+    }
+
     private void ensureMailConfigured() {
-        if (!enabled || !StringUtils.hasText(host) || !StringUtils.hasText(from)) {
+        if (!canSendMail()) {
             throw new ResponseStatusException(
                     HttpStatus.SERVICE_UNAVAILABLE,
                     "Service email non configuré. Renseignez la configuration SMTP."

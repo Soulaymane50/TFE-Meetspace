@@ -317,6 +317,7 @@
     "checkYourEmail": "Check your inbox. If an account exists with this address, you will receive a link to reset your password.",
     "backToLogin": "← Back to login",
     "forgotPasswordError": "Error sending email",
+    "emailServiceUnavailable": "Email service is not configured. Please configure SMTP settings.",
     "resetPassword": "Reset password",
     "enterNewPassword": "Enter your new password.",
     "passwordTooShort": "Password must be at least 6 characters",

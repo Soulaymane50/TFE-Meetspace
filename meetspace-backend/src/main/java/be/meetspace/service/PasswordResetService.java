@@ -23,6 +23,8 @@ import java.util.Locale;
 public class PasswordResetService {
 
     private static final int TOKEN_VALIDITY_MINUTES = 30;
+    private static final String EMAIL_NOT_CONFIGURED_MESSAGE =
+            "Service email non configuré. Renseignez la configuration SMTP.";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -42,6 +44,10 @@ public class PasswordResetService {
 
     @Transactional
     public void requestPasswordReset(String email) {
+        if (!emailService.canSendMail()) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, EMAIL_NOT_CONFIGURED_MESSAGE);
+        }
+
         String normalizedEmail = normalizeEmail(email);
         userRepository.findByEmail(normalizedEmail)
                 .filter(user -> user.getStatus() == UserStatus.ACTIVE)
@@ -72,7 +78,13 @@ public class PasswordResetService {
         userRepository.save(user);
 
         String resetUrl = frontendUrl.replaceAll("/+$", "") + "/reset-password?token=" + token;
-        emailService.sendPasswordResetEmail(user.getEmail(), user.getFirstName(), resetUrl);
+        try {
+            emailService.sendPasswordResetEmail(user.getEmail(), user.getFirstName(), resetUrl);
+        } catch (ResponseStatusException ex) {
+            clearResetToken(user);
+            userRepository.save(user);
+            throw ex;
+        }
     }
 
     private void clearResetToken(User user) {
