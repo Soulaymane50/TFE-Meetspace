@@ -100,7 +100,7 @@ public class AuthController {
 
         if (authentication != null && authentication.getName() != null) {
             auditService.logSecurityEvent(AuditAction.LOGOUT, authentication.getName(),
-                    "Deconnexion utilisateur", ipAddress);
+                    "Déconnexion utilisateur", ipAddress);
         }
     }
 
@@ -137,16 +137,16 @@ public class AuthController {
             String token = jwtService.generateToken(userDetails);
 
             auditService.logSecurityEvent(AuditAction.LOGIN_SUCCESS, user.getEmail(),
-                    "Connexion reussie", ipAddress);
+                    "Connexion réussie", ipAddress);
 
             return new AuthResponseDto(token, UserResponseDto.fromEntity(user));
         } catch (LockedException e) {
             auditService.logSecurityEvent(AuditAction.LOGIN_FAILURE, normalizedEmail,
-                    "Tentative de connexion avec compte verrouille", ipAddress);
+                    "Tentative de connexion avec compte verrouillé", ipAddress);
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "SUSPENDED");
         } catch (BadCredentialsException e) {
             auditService.logSecurityEvent(AuditAction.LOGIN_FAILURE, normalizedEmail,
-                    "Echec de connexion - identifiants incorrects", ipAddress);
+                    "Échec de connexion - identifiants incorrects", ipAddress);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email ou mot de passe incorrect");
         }
     }

@@ -32,8 +32,8 @@ public class EmailService {
         this.enabled = enabled;
         this.host = host;
         this.username = username;
-        this.password = password;
-        this.from = from;
+        this.password = normalizeSecret(password);
+        this.from = StringUtils.hasText(from) ? from : username;
     }
 
     public void sendPasswordResetEmail(String to, String firstName, String resetUrl) {
@@ -41,7 +41,7 @@ public class EmailService {
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, StandardCharsets.UTF_8.name());
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
             helper.setFrom(from);
             helper.setTo(to);
             helper.setSubject("Réinitialisation de votre mot de passe MeetSpace");
@@ -91,5 +91,9 @@ public class EmailService {
                   <p style="color:#64748b">Ce lien expire dans 30 minutes. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
                 </div>
                 """.formatted(greetingName, resetUrl);
+    }
+
+    private String normalizeSecret(String value) {
+        return value == null ? "" : value.replaceAll("\\s+", "");
     }
 }
