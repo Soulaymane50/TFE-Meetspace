@@ -47,6 +47,10 @@ export default function ForgotPasswordPage() {
             <Link to="/login" className={styles.backLink}>
               {t("auth.backToLogin")}
             </Link>
+            <div className={styles.signupCallout}>
+              <span>{t("auth.noAccount")}</span>
+              <Link to="/register">{t("auth.createAccount")}</Link>
+            </div>
           </div>
         </div>
       </div>
@@ -93,6 +97,11 @@ export default function ForgotPasswordPage() {
           <p className={styles.link}>
             <Link to="/login">{t("auth.backToLogin")}</Link>
           </p>
+
+          <div className={styles.signupCallout}>
+            <span>{t("auth.noAccount")}</span>
+            <Link to="/register">{t("auth.createAccount")}</Link>
+          </div>
         </div>
       </div>
     </div>
