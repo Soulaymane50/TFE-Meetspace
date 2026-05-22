@@ -221,8 +221,95 @@
                 "login":  "Inloggen",
                 "register":  "Registreren",
                 "logout":  "Uitloggen",
+                "contact": "Contact",
                 "hello":  "Hallo"
             },
+    "footer": {
+        "description": "MeetSpace is een platform voor het reserveren van zalen, evenementen en parking in Brussel.",
+        "productLinks": "Platform",
+        "legalLinks": "Informatie"
+    },
+    "support": {
+        "kicker": "MeetSpace support",
+        "title": "Contact / Support",
+        "intro": "Heeft u een vraag over uw account, een zaalreservatie, een evenement, parking of betaling? Stuur een duidelijke aanvraag naar het MeetSpace-team.",
+        "responseLabel": "Opvolging",
+        "responseTitle": "Uw aanvraag wordt naar support gestuurd",
+        "responseText": "Voeg een referentie toe als u die hebt, zodat de aanvraag sneller verwerkt kan worden.",
+        "formKicker": "Supportaanvraag",
+        "formTitle": "Beschrijf uw vraag",
+        "name": "Naam",
+        "email": "E-mail",
+        "category": "Categorie",
+        "subject": "Onderwerp",
+        "message": "Bericht",
+        "reference": "Optionele reservatiereferentie",
+        "referencePlaceholder": "Bijv. ROOM-12, EVENT-8, PARK-3",
+        "submit": "Aanvraag verzenden",
+        "success": "Uw aanvraag is verzonden. MeetSpace support behandelt ze zo snel mogelijk.",
+        "helpKicker": "Nuttige details",
+        "helpTitle": "Voor een sneller antwoord",
+        "helpItemAccount": "Vermeld het betrokken e-mailadres als de aanvraag over een account gaat.",
+        "helpItemBooking": "Voeg de referentie of het reservatietype toe voor een zaal, evenement of parking.",
+        "helpItemPayment": "Vermeld bij een betaling welke dienst betrokken is en wanneer de handeling gebeurde.",
+        "categories": {
+            "account": "Account",
+            "room_reservation": "Zaalreservatie",
+            "event": "Evenement",
+            "parking": "Parking",
+            "payment": "Betaling",
+            "other": "Andere"
+        },
+        "errors": {
+            "required": "Vul de verplichte velden in.",
+            "email": "Vul een geldig e-mailadres in.",
+            "messageShort": "Beschrijf uw aanvraag met iets meer detail.",
+            "generic": "De aanvraag kan nu niet worden verzonden. Probeer het later opnieuw."
+        }
+    },
+    "legal": {
+        "kicker": "Juridische informatie",
+        "legalNotice": {
+            "title": "Juridische vermeldingen",
+            "intro": "MeetSpace is een platform voor het reserveren van zalen, evenementen en parking in Brussel, voorgesteld als demonstratie/TFE-project.",
+            "sections": [
+                { "title": "Voorstelling", "text": "MeetSpace laat gebruikers zalen, professionele evenementen en parkingopties bekijken vanuit een enkele interface." },
+                { "title": "Contact", "text": "Aanvragen over de dienst kunnen via de pagina Contact / Support worden verzonden." },
+                { "title": "Aansprakelijkheid", "text": "De informatie wordt verstrekt voor een academische demonstratie en kan worden aangepast voor echt gebruik." },
+                { "title": "Inhoud", "text": "Teksten, gegevens en beschikbaarheden illustreren de reservatieflows van MeetSpace." }
+            ]
+        },
+        "privacy": {
+            "title": "Privacybeleid",
+            "intro": "Deze pagina legt kort uit welke gegevens MeetSpace gebruikt om de demo te laten werken.",
+            "sections": [
+                { "title": "Accountgegevens", "text": "MeetSpace gebruikt naam, e-mail en rol om gebruikers te authenticeren en hun omgeving te personaliseren." },
+                { "title": "Reservaties", "text": "Gegevens over zalen, evenementen, parking en betaling tonen bevestigingen en gebruikershistoriek." },
+                { "title": "Support", "text": "Berichten via het contactformulier worden alleen gebruikt om de aanvraag te behandelen." },
+                { "title": "Beveiliging", "text": "Wachtwoorden worden gehasht opgeslagen en gevoelige informatie hoort nooit in de code." }
+            ]
+        },
+        "terms": {
+            "title": "Gebruiksvoorwaarden",
+            "intro": "Deze voorwaarden vatten de basisregels samen voor het gebruik van MeetSpace in de democontext.",
+            "sections": [
+                { "title": "Rol van MeetSpace", "text": "MeetSpace centraliseert zaalreservaties, evenementinschrijvingen en parkingreservaties." },
+                { "title": "Gebruiker", "text": "De gebruiker geeft correcte informatie en respecteert de reservatieregels op het platform." },
+                { "title": "Organisator", "text": "Een organisator kan professionele evenementen indienen die voor publicatie worden gevalideerd." },
+                { "title": "Beschikbaarheid", "text": "Beschikbaarheid, prijzen en capaciteiten kunnen variëren volgens de demogegevens." }
+            ]
+        },
+        "cancellation": {
+            "title": "Annulering / terugbetaling",
+            "intro": "Onderstaande regels geven een eenvoudig kader voor aanvragen rond MeetSpace-reservaties.",
+            "sections": [
+                { "title": "Zaalreservatie", "text": "Een zaalannulering kan vanuit de gebruikersruimte of via support worden aangevraagd als opvolging nodig is." },
+                { "title": "Evenement", "text": "Annulering van een evenementinschrijving hangt af van de status en de voorwaarden van de sessie." },
+                { "title": "Parking", "text": "Een parkingreservatie kan worden geannuleerd afhankelijk van beschikbaarheid en reservatiestatus." },
+                { "title": "Verwerking", "text": "Aanvragen voor terugbetaling of correctie worden via support verstuurd met de reservatiereferentie." }
+            ]
+        }
+    },
     "command":  {
                     "open":  "Commando",
                     "eyebrow":  "Snelle navigatie",

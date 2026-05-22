@@ -38,6 +38,8 @@ app:
   mail:
     enabled: ${APP_MAIL_ENABLED:true}
     from: ${SMTP_FROM:${APP_MAIL_FROM:no-reply@meetspace.local}}
+  support:
+    admin-email: ${SUPPORT_ADMIN_EMAIL:}
   password-reset:
     log-reset-link-when-email-disabled: ${APP_PASSWORD_RESET_LOG_LINK:false}
   security:

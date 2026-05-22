@@ -384,6 +384,19 @@ export async function resetPasswordRequest(token, newPassword) {
   return handleResponse(res, "RESET_PASSWORD_FAILED");
 }
 
+export async function sendSupportContactRequest(data, token) {
+  const res = await fetch(`${API_URL}/api/support/contact`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(token),
+    },
+    body: JSON.stringify(data),
+  });
+
+  return handleResponse(res, "SUPPORT_CONTACT_FAILED");
+}
+
 export async function logoutRequest(token) {
   const res = await fetch(`${API_URL}/api/auth/logout`, {
     method: "POST",

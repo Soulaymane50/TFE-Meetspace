@@ -221,7 +221,94 @@
         "login": "Connexion",
         "register": "Inscription",
         "logout": "Déconnexion",
+        "contact": "Contact",
         "hello": "Bonjour"
+    },
+    "footer": {
+        "description": "MeetSpace est une plateforme de réservation de salles, événements et parking à Bruxelles.",
+        "productLinks": "Plateforme",
+        "legalLinks": "Informations"
+    },
+    "support": {
+        "kicker": "Support MeetSpace",
+        "title": "Contact / Support",
+        "intro": "Une question sur votre compte, une réservation, un événement, le parking ou un paiement ? Envoyez une demande claire à l'équipe MeetSpace.",
+        "responseLabel": "Suivi",
+        "responseTitle": "Votre demande est transmise au support",
+        "responseText": "Ajoutez une référence si vous en avez une afin de faciliter le traitement.",
+        "formKicker": "Demande support",
+        "formTitle": "Expliquez votre besoin",
+        "name": "Nom",
+        "email": "Email",
+        "category": "Catégorie",
+        "subject": "Sujet",
+        "message": "Message",
+        "reference": "Référence réservation optionnelle",
+        "referencePlaceholder": "Ex. ROOM-12, EVENT-8, PARK-3",
+        "submit": "Envoyer la demande",
+        "success": "Votre demande a bien été envoyée. Le support MeetSpace la traitera dès que possible.",
+        "helpKicker": "Bon à savoir",
+        "helpTitle": "Pour une réponse plus rapide",
+        "helpItemAccount": "Indiquez l'adresse email concernée si la demande porte sur un compte.",
+        "helpItemBooking": "Ajoutez la référence ou le type de réservation si la demande concerne une salle, un événement ou le parking.",
+        "helpItemPayment": "Pour un paiement, précisez le service concerné et le moment de l'opération.",
+        "categories": {
+            "account": "Compte",
+            "room_reservation": "Réservation salle",
+            "event": "Événement",
+            "parking": "Parking",
+            "payment": "Paiement",
+            "other": "Autre"
+        },
+        "errors": {
+            "required": "Veuillez compléter les champs obligatoires.",
+            "email": "Veuillez indiquer une adresse email valide.",
+            "messageShort": "Veuillez décrire votre demande avec un peu plus de détails.",
+            "generic": "Impossible d'envoyer la demande pour le moment. Veuillez réessayer plus tard."
+        }
+    },
+    "legal": {
+        "kicker": "Informations légales",
+        "legalNotice": {
+            "title": "Mentions légales",
+            "intro": "MeetSpace est une plateforme de réservation de salles, événements et parking à Bruxelles, présentée dans le cadre d'une démonstration/TFE.",
+            "sections": [
+                { "title": "Présentation", "text": "MeetSpace permet de consulter des salles, des événements professionnels et des options de parking depuis une interface unique." },
+                { "title": "Contact", "text": "Les demandes relatives au service peuvent être envoyées via la page Contact / Support." },
+                { "title": "Responsabilité", "text": "Les informations sont fournies pour une démonstration académique et peuvent être ajustées avant un usage réel." },
+                { "title": "Contenu", "text": "Les textes, données et disponibilités affichés servent à illustrer les parcours de réservation MeetSpace." }
+            ]
+        },
+        "privacy": {
+            "title": "Politique de confidentialité",
+            "intro": "Cette page explique simplement quelles données sont utilisées par MeetSpace pour faire fonctionner la démonstration.",
+            "sections": [
+                { "title": "Données de compte", "text": "MeetSpace utilise le nom, le prénom, l'email et le rôle pour authentifier l'utilisateur et personnaliser son espace." },
+                { "title": "Réservations", "text": "Les données de salles, événements, parking et paiement servent à afficher les confirmations et l'historique utilisateur." },
+                { "title": "Support", "text": "Les messages envoyés via le formulaire de contact sont utilisés uniquement pour traiter la demande." },
+                { "title": "Sécurité", "text": "Les mots de passe sont stockés sous forme hashée et les informations sensibles ne doivent jamais être placées dans le code." }
+            ]
+        },
+        "terms": {
+            "title": "Conditions d'utilisation",
+            "intro": "Ces conditions résument les règles de base pour utiliser MeetSpace dans le cadre de la démonstration.",
+            "sections": [
+                { "title": "Rôle de MeetSpace", "text": "MeetSpace centralise les parcours de réservation de salles, d'inscription à des événements et de parking." },
+                { "title": "Utilisateur", "text": "L'utilisateur s'engage à fournir des informations exactes et à respecter les règles de réservation affichées." },
+                { "title": "Organisateur", "text": "Un organisateur peut proposer des événements professionnels soumis à validation avant publication." },
+                { "title": "Disponibilité", "text": "Les disponibilités, prix et capacités affichés peuvent varier selon les données de démonstration." }
+            ]
+        },
+        "cancellation": {
+            "title": "Annulation / remboursement",
+            "intro": "Les règles ci-dessous donnent un cadre simple pour les demandes liées aux réservations MeetSpace.",
+            "sections": [
+                { "title": "Réservation de salle", "text": "Une demande d'annulation de salle peut être effectuée depuis l'espace utilisateur ou via le support si un suivi est nécessaire." },
+                { "title": "Événement", "text": "L'annulation d'une inscription à un événement dépend du statut de l'inscription et des conditions prévues pour la session." },
+                { "title": "Parking", "text": "Une réservation parking peut être annulée selon les disponibilités et l'état de la réservation." },
+                { "title": "Traitement", "text": "Les demandes de remboursement ou de correction doivent être envoyées au support avec la référence de réservation." }
+            ]
+        }
     },
     "command": {
         "open": "Commander",

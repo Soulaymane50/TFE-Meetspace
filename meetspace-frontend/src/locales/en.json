@@ -222,7 +222,94 @@
     "login": "Login",
     "register": "Register",
     "logout": "Logout",
+    "contact": "Contact",
     "hello": "Hello"
+  },
+  "footer": {
+    "description": "MeetSpace is a platform for booking rooms, events and parking in Brussels.",
+    "productLinks": "Platform",
+    "legalLinks": "Information"
+  },
+  "support": {
+    "kicker": "MeetSpace support",
+    "title": "Contact / Support",
+    "intro": "Need help with your account, a room booking, an event, parking or a payment? Send a clear request to the MeetSpace team.",
+    "responseLabel": "Follow-up",
+    "responseTitle": "Your request is sent to support",
+    "responseText": "Add a reference if you have one so the team can process your request more easily.",
+    "formKicker": "Support request",
+    "formTitle": "Explain what you need",
+    "name": "Name",
+    "email": "Email",
+    "category": "Category",
+    "subject": "Subject",
+    "message": "Message",
+    "reference": "Optional booking reference",
+    "referencePlaceholder": "Ex. ROOM-12, EVENT-8, PARK-3",
+    "submit": "Send request",
+    "success": "Your request has been sent. MeetSpace support will process it as soon as possible.",
+    "helpKicker": "Useful details",
+    "helpTitle": "For a faster answer",
+    "helpItemAccount": "Include the email address concerned if the request is about an account.",
+    "helpItemBooking": "Add the reference or booking type if the request concerns a room, event or parking.",
+    "helpItemPayment": "For a payment, specify the service concerned and when the operation happened.",
+    "categories": {
+      "account": "Account",
+      "room_reservation": "Room booking",
+      "event": "Event",
+      "parking": "Parking",
+      "payment": "Payment",
+      "other": "Other"
+    },
+    "errors": {
+      "required": "Please complete the required fields.",
+      "email": "Please enter a valid email address.",
+      "messageShort": "Please describe your request with a little more detail.",
+      "generic": "Unable to send the request right now. Please try again later."
+    }
+  },
+  "legal": {
+    "kicker": "Legal information",
+    "legalNotice": {
+      "title": "Legal notice",
+      "intro": "MeetSpace is a platform for booking rooms, events and parking in Brussels, presented as a demonstration/TFE project.",
+      "sections": [
+        { "title": "Presentation", "text": "MeetSpace lets users browse rooms, professional events and parking options from one interface." },
+        { "title": "Contact", "text": "Service-related requests can be sent through the Contact / Support page." },
+        { "title": "Liability", "text": "The information is provided for an academic demonstration and may be adjusted before real-world use." },
+        { "title": "Content", "text": "Texts, data and availability are used to illustrate MeetSpace booking flows." }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "intro": "This page briefly explains which data MeetSpace uses to run the demo.",
+      "sections": [
+        { "title": "Account data", "text": "MeetSpace uses name, email and role information to authenticate users and personalize their workspace." },
+        { "title": "Bookings", "text": "Room, event, parking and payment data are used to show confirmations and user history." },
+        { "title": "Support", "text": "Messages sent through the contact form are used only to process the request." },
+        { "title": "Security", "text": "Passwords are stored as hashes and sensitive information must never be placed in the code." }
+      ]
+    },
+    "terms": {
+      "title": "Terms of use",
+      "intro": "These terms summarize the basic rules for using MeetSpace in the demo context.",
+      "sections": [
+        { "title": "MeetSpace role", "text": "MeetSpace centralizes room bookings, event registrations and parking reservations." },
+        { "title": "User", "text": "Users must provide accurate information and respect the booking rules shown on the platform." },
+        { "title": "Organizer", "text": "An organizer can submit professional events for validation before publication." },
+        { "title": "Availability", "text": "Availability, prices and capacities may vary according to demonstration data." }
+      ]
+    },
+    "cancellation": {
+      "title": "Cancellation / refund",
+      "intro": "The following rules provide a simple framework for requests related to MeetSpace bookings.",
+      "sections": [
+        { "title": "Room booking", "text": "A room cancellation can be requested from the user space or through support when follow-up is needed." },
+        { "title": "Event", "text": "Cancelling an event registration depends on the registration status and the session conditions." },
+        { "title": "Parking", "text": "A parking reservation can be cancelled depending on availability and reservation status." },
+        { "title": "Processing", "text": "Refund or correction requests should be sent to support with the booking reference." }
+      ]
+    }
   },
   "command": {
     "open": "Command",

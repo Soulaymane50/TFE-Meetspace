@@ -116,6 +116,12 @@ export default function Navbar() {
           >
             {t("nav.parking")}
           </NavLink>
+          <NavLink
+            to="/contact"
+            className={({ isActive }) => `${styles.productLink} ${isActive ? styles.productLinkActive : ""}`}
+          >
+            {t("nav.contact")}
+          </NavLink>
         </nav>
       </div>
     </header>

@@ -1,5 +1,6 @@
 import Navbar from "./Navbar";
 import CommandPalette from "./CommandPalette";
+import Footer from "./Footer";
 import styles from "./Layout.module.css";
 
 export default function Layout({ children }) {
@@ -11,6 +12,7 @@ export default function Layout({ children }) {
       <main className={styles.main}>
         <div className={styles.shell}>{children}</div>
       </main>
+      <Footer />
     </div>
   );
 }

@@ -1,0 +1,182 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.hero,
+.contentGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.hero > div,
+.sidePanel,
+.form,
+.helpCard {
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: var(--shadow-soft);
+}
+
+.hero > div {
+  padding: 2rem;
+}
+
+.hero h1,
+.form h2,
+.helpCard h2 {
+  margin-bottom: 0.75rem;
+}
+
+.hero p,
+.sidePanel p,
+.helpCard li {
+  color: var(--text-secondary);
+}
+
+.kicker {
+  margin: 0 0 0.75rem;
+  color: var(--orange);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sidePanel {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sidePanel span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.sidePanel strong {
+  margin: 0.5rem 0;
+  color: var(--blue-darker);
+  font-size: 1.25rem;
+}
+
+.form,
+.helpCard {
+  padding: 1.6rem;
+}
+
+.formHeader {
+  margin-bottom: 1.25rem;
+}
+
+.twoColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.field span {
+  color: var(--blue-darker);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 180px;
+}
+
+.error,
+.success {
+  margin: 0 0 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  font-weight: 700;
+}
+
+.error {
+  border: 1px solid rgba(220, 38, 38, 0.22);
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+}
+
+.success {
+  border: 1px solid rgba(22, 163, 74, 0.22);
+  background: rgba(22, 163, 74, 0.08);
+  color: #15803d;
+}
+
+.helpCard ul {
+  margin: 1rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.helpCard li {
+  margin-bottom: 0.75rem;
+}
+
+:global([data-theme="dark"]) .hero > div,
+:global([data-theme="dark"]) .sidePanel,
+:global([data-theme="dark"]) .form,
+:global([data-theme="dark"]) .helpCard {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(18, 26, 37, 0.82);
+}
+
+:global([data-theme="dark"]) .sidePanel strong,
+:global([data-theme="dark"]) .field span {
+  color: var(--text-primary);
+}
+
+:global([data-theme="dark"]) .hero p,
+:global([data-theme="dark"]) .sidePanel p,
+:global([data-theme="dark"]) .helpCard li {
+  color: var(--text-secondary);
+}
+
+:global([data-theme="dark"]) .error {
+  border-color: rgba(248, 113, 113, 0.24);
+  background: rgba(127, 29, 29, 0.24);
+  color: #fecaca;
+}
+
+:global([data-theme="dark"]) .success {
+  border-color: rgba(74, 222, 128, 0.22);
+  background: rgba(20, 83, 45, 0.24);
+  color: #bbf7d0;
+}
+
+@media (max-width: 900px) {
+  .hero,
+  .contentGrid,
+  .twoColumns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero > div,
+  .sidePanel,
+  .form,
+  .helpCard {
+    padding: 1.2rem;
+    border-radius: 20px;
+  }
+}

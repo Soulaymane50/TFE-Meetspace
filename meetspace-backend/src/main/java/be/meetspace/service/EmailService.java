@@ -7,6 +7,7 @@ import be.meetspace.entity.ParkingReservation;
 import be.meetspace.entity.ParkingSlot;
 import be.meetspace.entity.Reservation;
 import be.meetspace.entity.User;
+import be.meetspace.web.dto.SupportContactRequest;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
@@ -53,6 +54,9 @@ public class EmailService {
 
     @Value("${app.mail.from:}")
     private String from;
+
+    @Value("${app.support.admin-email:}")
+    private String supportAdminEmail;
 
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
@@ -163,6 +167,46 @@ public class EmailService {
                 "Votre parking est confirmé. Retrouvez les détails de votre créneau ci-dessous.",
                 details
         );
+    }
+
+    public void sendSupportContactEmail(SupportContactRequest request, LocalDateTime receivedAt) {
+        String recipient = supportAdminEmail;
+        Map<String, String> details = new LinkedHashMap<>();
+        details.put("Nom", request.name());
+        details.put("Email", request.email());
+        details.put("Categorie", formatSupportCategory(request.category()));
+        details.put("Sujet", request.subject());
+        details.put("Message", request.message());
+        details.put("Reference reservation", StringUtils.hasText(request.reservationReference()) ? request.reservationReference() : "Non precisee");
+        details.put("Date de reception", receivedAt == null ? "Non precisee" : receivedAt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+
+        if (!StringUtils.hasText(recipient)) {
+            LOGGER.info("Support request received but no admin email is configured: {} from {}", request.category(), maskEmail(request.email()));
+            return;
+        }
+
+        if (!canSendMail()) {
+            LOGGER.info("Support request would be sent to {} but SMTP is not configured: {} from {}", maskEmail(recipient), request.category(), maskEmail(request.email()));
+            return;
+        }
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(from);
+            helper.setTo(recipient);
+            helper.setReplyTo(request.email());
+            helper.setSubject("[MeetSpace Support] " + request.subject());
+            helper.setText(
+                    buildTransactionalText("Nouvelle demande support", "Une demande a ete envoyee depuis le formulaire Contact.", details),
+                    buildTransactionalHtml("Nouvelle demande support", "Une demande a ete envoyee depuis le formulaire Contact.", details)
+            );
+            mailSender.send(message);
+        } catch (MessagingException ex) {
+            LOGGER.warn("Support email could not be prepared for {}", maskEmail(recipient), ex);
+        } catch (RuntimeException ex) {
+            LOGGER.warn("Support email could not be sent to {}", maskEmail(recipient), ex);
+        }
     }
 
     private void sendTransactionalEmail(String type, String to, String subject, String title, String intro, Map<String, String> details) {
@@ -371,6 +415,20 @@ public class EmailService {
             case "REJECTED" -> "Refusé";
             case "CANCELLED" -> "Annulé";
             default -> status.name();
+        };
+    }
+
+    private String formatSupportCategory(String category) {
+        if (category == null) {
+            return "Autre";
+        }
+        return switch (category) {
+            case "account" -> "Compte";
+            case "room_reservation" -> "Reservation salle";
+            case "event" -> "Evenement";
+            case "parking" -> "Parking";
+            case "payment" -> "Paiement";
+            default -> "Autre";
         };
     }
 

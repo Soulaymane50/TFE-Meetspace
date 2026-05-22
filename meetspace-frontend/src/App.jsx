@@ -10,6 +10,8 @@ const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
+const LegalPage = lazy(() => import("./pages/LegalPage"));
 const EspacesPage = lazy(() => import("./pages/EspacesPage"));
 const EventsPage = lazy(() => import("./pages/EventsPage"));
 const ParkingPage = lazy(() => import("./pages/ParkingPage"));
@@ -51,6 +53,11 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/contact" element={<Shell><ContactPage /></Shell>} />
+        <Route path="/mentions-legales" element={<Shell><LegalPage pageKey="legalNotice" /></Shell>} />
+        <Route path="/confidentialite" element={<Shell><LegalPage pageKey="privacy" /></Shell>} />
+        <Route path="/conditions-utilisation" element={<Shell><LegalPage pageKey="terms" /></Shell>} />
+        <Route path="/annulation-remboursement" element={<Shell><LegalPage pageKey="cancellation" /></Shell>} />
 
         <Route path="/espace" element={<Shell><EspacesPage /></Shell>} />
         <Route path="/events" element={<Shell><EventsPage /></Shell>} />
