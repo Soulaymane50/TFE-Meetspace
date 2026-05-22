@@ -184,7 +184,7 @@ export default function CreateReservationPage() {
         type: "success",
         title: t("payment.successTitle", { defaultValue: "Paiement validé" }),
         message: t("payment.spaceSuccessMessage", {
-          defaultValue: "Votre réservation de salle est confirmée.",
+          defaultValue: "Votre réservation de salle est confirmée. Un email de confirmation vous est envoyé si le service email est disponible.",
         }),
       });
       navigate("/my-reservations?tab=spaces");

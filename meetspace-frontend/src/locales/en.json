@@ -524,6 +524,7 @@
     "participants": "Participants",
     "confirmRegistration": "Confirm attendance",
     "registrationSuccess": "Attendance confirmed!",
+    "registrationSuccessMessage": "Your attendance is confirmed. A confirmation email is sent if the email service is available.",
     "registering": "Confirming attendance...",
     "registration": "Attendance",
     "cancelRegistration": "Cancel",
@@ -664,9 +665,9 @@
     "unavailableMessage": "Payment is not configured for this environment. Please try again later or contact the MeetSpace team.",
         "securedBy": "Secured by Stripe",
     "successTitle": "Payment confirmed",
-    "spaceSuccessMessage": "Your room reservation is confirmed.",
-    "eventSuccessMessage": "Your event registration is confirmed.",
-    "parkingSuccessMessage": "Your parking reservation is confirmed."
+    "spaceSuccessMessage": "Your room reservation is confirmed. A confirmation email is sent if the email service is available.",
+    "eventSuccessMessage": "Your event registration is confirmed. A confirmation email is sent if the email service is available.",
+    "parkingSuccessMessage": "Your parking reservation is confirmed. A confirmation email is sent if the email service is available."
   },
 
   "profile": {

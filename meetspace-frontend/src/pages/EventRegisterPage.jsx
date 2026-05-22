@@ -96,8 +96,8 @@ export default function EventRegisterPage() {
           ? t("payment.successTitle", { defaultValue: "Paiement validé" })
           : t("events.registrationSuccess"),
         message: requiresPayment
-          ? t("payment.eventSuccessMessage", { defaultValue: "Votre inscription est confirmée." })
-          : t("events.registrationSuccessMessage", { defaultValue: "Votre participation est confirmée." }),
+          ? t("payment.eventSuccessMessage", { defaultValue: "Votre inscription est confirmée. Un email de confirmation vous est envoyé si le service email est disponible." })
+          : t("events.registrationSuccessMessage", { defaultValue: "Votre participation est confirmée. Un email de confirmation vous est envoyé si le service email est disponible." }),
       });
       navigate("/my-reservations?tab=events");
     } catch (err) {

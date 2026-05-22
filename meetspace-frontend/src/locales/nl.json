@@ -517,6 +517,7 @@
         "participants": "Deelnemers",
         "confirmRegistration": "Deelname bevestigen",
         "registrationSuccess": "Deelname bevestigd!",
+        "registrationSuccessMessage": "Uw deelname is bevestigd. Er wordt een bevestigingsmail verzonden als de e-mailservice beschikbaar is.",
         "registering": "Deelname wordt bevestigd...",
         "registration": "Deelname",
         "cancelRegistration": "Annuleren",
@@ -655,9 +656,9 @@
                     "unavailableMessage":  "Betaling is niet geconfigureerd voor deze omgeving. Probeer het later opnieuw of neem contact op met het MeetSpace-team.",
                                         "securedBy":  "Beveiligd door Stripe",
                     "successTitle": "Betaling bevestigd",
-                    "spaceSuccessMessage": "Uw zaalreservatie is bevestigd.",
-                    "eventSuccessMessage": "Uw inschrijving voor het evenement is bevestigd.",
-                    "parkingSuccessMessage": "Uw parkingreservatie is bevestigd."
+                    "spaceSuccessMessage": "Uw zaalreservatie is bevestigd. Er wordt een bevestigingsmail verzonden als de e-mailservice beschikbaar is.",
+                    "eventSuccessMessage": "Uw inschrijving voor het evenement is bevestigd. Er wordt een bevestigingsmail verzonden als de e-mailservice beschikbaar is.",
+                    "parkingSuccessMessage": "Uw parkingreservatie is bevestigd. Er wordt een bevestigingsmail verzonden als de e-mailservice beschikbaar is."
                 },
     "profile":  {
                     "title":  "Mijn profiel",

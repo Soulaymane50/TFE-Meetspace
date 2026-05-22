@@ -7,6 +7,7 @@ import be.meetspace.repository.EventRepository;
 import be.meetspace.repository.ReservationRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
+import be.meetspace.service.EmailService;
 import be.meetspace.web.dto.CalendarReservationDto;
 import be.meetspace.web.dto.CreateReservationRequest;
 import be.meetspace.web.dto.PayReservationRequest;
@@ -34,19 +35,22 @@ public class ReservationController {
     private final EventRepository eventRepository;
     private final PaymentVerifier paymentVerifier;
     private final AuditService auditService;
+    private final EmailService emailService;
 
     public ReservationController(ReservationRepository reservationRepository,
                                  UserRepository userRepository,
                                  EspaceRepository espaceRepository,
                                  EventRepository eventRepository,
                                  PaymentVerifier paymentVerifier,
-                                 AuditService auditService) {
+                                 AuditService auditService,
+                                 EmailService emailService) {
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
         this.espaceRepository = espaceRepository;
         this.eventRepository = eventRepository;
         this.paymentVerifier = paymentVerifier;
         this.auditService = auditService;
+        this.emailService = emailService;
     }
 
     private void validateRoomWindow(Long espaceId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
@@ -127,6 +131,8 @@ public class ReservationController {
         auditService.log(AuditAction.RESERVATION_CREATE, "Reservation", saved.getId(),
                 String.format("Reservation creee pour l'espace: %s (ID: %d)", espace.getName(), espace.getId()),
                 ipAddress);
+
+        emailService.sendRoomReservationConfirmation(saved);
 
         return ReservationResponseDto.fromEntity(saved);
     }
@@ -219,6 +225,8 @@ public class ReservationController {
         auditService.log(AuditAction.RESERVATION_UPDATE, "Reservation", saved.getId(),
                 String.format("Paiement effectue pour reservation salle premium: %s", saved.getEspace().getName()),
                 "APPROVED", "CONFIRMED", ipAddress);
+
+        emailService.sendRoomReservationConfirmation(saved);
 
         return ReservationResponseDto.fromEntity(saved);
     }

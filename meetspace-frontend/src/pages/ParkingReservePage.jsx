@@ -88,7 +88,7 @@ export default function ParkingReservePage() {
         type: "success",
         title: t("payment.successTitle", { defaultValue: "Paiement validé" }),
         message: t("payment.parkingSuccessMessage", {
-          defaultValue: "Votre réservation parking est confirmée.",
+          defaultValue: "Votre réservation parking est confirmée. Un email de confirmation vous est envoyé si le service email est disponible.",
         }),
       });
       navigate("/my-parking-reservations");

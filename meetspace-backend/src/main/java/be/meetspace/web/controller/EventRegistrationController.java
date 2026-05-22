@@ -7,6 +7,7 @@ import be.meetspace.repository.EventRepository;
 import be.meetspace.repository.ParkingReservationRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
+import be.meetspace.service.EmailService;
 import be.meetspace.web.dto.EventRegistrationRequest;
 import be.meetspace.web.dto.EventRegistrationResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,6 +31,7 @@ public class EventRegistrationController {
     private final ParkingReservationRepository parkingReservationRepository;
     private final PaymentVerifier paymentVerifier;
     private final AuditService auditService;
+    private final EmailService emailService;
 
     public EventRegistrationController(
             EventRegistrationRepository registrationRepository,
@@ -37,7 +39,8 @@ public class EventRegistrationController {
             UserRepository userRepository,
             ParkingReservationRepository parkingReservationRepository,
             PaymentVerifier paymentVerifier,
-            AuditService auditService
+            AuditService auditService,
+            EmailService emailService
     ) {
         this.registrationRepository = registrationRepository;
         this.eventRepository = eventRepository;
@@ -45,6 +48,7 @@ public class EventRegistrationController {
         this.parkingReservationRepository = parkingReservationRepository;
         this.paymentVerifier = paymentVerifier;
         this.auditService = auditService;
+        this.emailService = emailService;
     }
 
     @PostMapping("/register")
@@ -135,6 +139,7 @@ public class EventRegistrationController {
 
         // Get IP address for audit logging
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
+        ParkingReservation savedParkingReservation = null;
 
         if (request.isAddParking() && parkingSlot != null && reservedSpaces > 0) {
             ParkingReservation parkingReservation = new ParkingReservation();
@@ -144,7 +149,7 @@ public class EventRegistrationController {
             parkingReservation.setTotalPrice(parkingPrice);
             parkingReservation.setPaymentIntentId(request.getPaymentIntentId());
             parkingReservation.setStatus(ParkingReservationStatus.CONFIRMED);
-            ParkingReservation savedParkingReservation = parkingReservationRepository.save(parkingReservation);
+            savedParkingReservation = parkingReservationRepository.save(parkingReservation);
 
             auditService.log(AuditAction.PARKING_RESERVATION_CREATE, "ParkingReservation", savedParkingReservation.getId(),
                     String.format("Réservation parking pour événement: %s (%d places)", event.getTitle(), reservedSpaces),
@@ -155,6 +160,11 @@ public class EventRegistrationController {
         auditService.log(AuditAction.EVENT_REGISTRATION_CREATE, "EventRegistration", saved.getId(),
                 String.format("Inscription à l'événement: %s (%d participants)", event.getTitle(), request.getNumberOfParticipants()),
                 ipAddress);
+
+        emailService.sendEventRegistrationConfirmation(saved);
+        if (savedParkingReservation != null) {
+            emailService.sendParkingReservationConfirmation(savedParkingReservation);
+        }
 
         return EventRegistrationResponseDto.fromEntity(saved);
     }

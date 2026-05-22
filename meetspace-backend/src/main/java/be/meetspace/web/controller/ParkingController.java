@@ -6,6 +6,7 @@ import be.meetspace.repository.ParkingReservationRepository;
 import be.meetspace.repository.ParkingSlotRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
+import be.meetspace.service.EmailService;
 import be.meetspace.web.dto.ParkingReservationRequest;
 import be.meetspace.web.dto.ParkingReservationResponseDto;
 import be.meetspace.web.dto.ParkingSlotResponseDto;
@@ -28,17 +29,20 @@ public class ParkingController {
     private final UserRepository userRepository;
     private final PaymentVerifier paymentVerifier;
     private final AuditService auditService;
+    private final EmailService emailService;
 
     public ParkingController(ParkingSlotRepository sessionRepository,
                               ParkingReservationRepository reservationRepository,
                               UserRepository userRepository,
                               PaymentVerifier paymentVerifier,
-                              AuditService auditService) {
+                              AuditService auditService,
+                              EmailService emailService) {
         this.sessionRepository = sessionRepository;
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
         this.paymentVerifier = paymentVerifier;
         this.auditService = auditService;
+        this.emailService = emailService;
     }
 
     @GetMapping("/sessions")
@@ -108,6 +112,8 @@ public class ParkingController {
         auditService.log(AuditAction.PARKING_RESERVATION_CREATE, "ParkingReservation", saved.getId(),
                 String.format("Réservation parking: %s (%d places)", session.getTitle(), reservedSpaces),
                 ipAddress);
+
+        emailService.sendParkingReservationConfirmation(saved);
 
         return ParkingReservationResponseDto.fromEntity(saved);
     }
