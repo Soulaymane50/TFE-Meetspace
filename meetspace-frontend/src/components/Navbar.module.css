@@ -167,23 +167,6 @@
   color: var(--blue-darker);
 }
 
-.notifBadge {
-  margin-left: 0.35rem;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 0.28rem;
-  border-radius: 999px;
-  background: #d13f3f;
-  color: #ffffff;
-  font-size: 0.66rem;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .productNav {
   display: flex;
   align-items: center;
