@@ -244,9 +244,18 @@ export default function EventsPage() {
             <p className={styles.heroLead}>{t("events.workspaceLead")}</p>
           </div>
           <div className={styles.heroActions}>
-            {user ? (
+            {user?.role === "ORGANIZER" || user?.role === "ADMIN" ? (
+              <>
+                <Link to="/organizer/events/new" className={styles.linkPrimary}>
+                  {t("events.createOrganizerEvent")}
+                </Link>
+                <Link to="/organizer/events" className={styles.linkGhost}>
+                  {t("nav.organizerEvents")}
+                </Link>
+              </>
+            ) : user ? (
               <Link to="/my-reservations?tab=events" className={styles.linkGhost}>
-                ← {t("events.viewMyRegistrations")}
+                {t("events.viewMyRegistrations")}
               </Link>
             ) : (
               <Link to="/login" className={styles.linkGhost}>

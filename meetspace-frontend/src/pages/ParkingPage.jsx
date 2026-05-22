@@ -133,7 +133,7 @@ export default function ParkingPage() {
 
           {user && (
             <Link to="/my-parking-reservations" className={styles.linkGhost}>
-              ← {t("parking.viewMyReservations")}
+              {t("parking.viewMyReservations")}
             </Link>
           )}
         </div>

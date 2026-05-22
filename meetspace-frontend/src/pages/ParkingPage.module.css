@@ -511,10 +511,10 @@
 :global([data-theme="light"]) .heroPanel {
   border: 1px solid rgba(20, 32, 51, 0.075);
   background:
-    radial-gradient(circle at 78% 18%, rgba(90, 124, 226, 0.16), transparent 28%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 249, 253, 0.86) 58%, rgba(235, 244, 241, 0.78) 100%),
+    radial-gradient(circle at 78% 18%, rgba(90, 124, 226, 0.1), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 249, 253, 0.92) 58%, rgba(238, 247, 244, 0.84) 100%),
     url("/images/parking-conference-center.webp") center / cover;
-  box-shadow: 0 30px 70px rgba(11, 18, 32, 0.12);
+  box-shadow: 0 22px 48px rgba(11, 18, 32, 0.09);
 }
 
 :global([data-theme="light"]) .kicker {

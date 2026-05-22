@@ -125,7 +125,7 @@ export default function EspacesPage() {
           </div>
           {user && (
             <Link to="/my-reservations?tab=spaces" className={styles.linkGhost}>
-              ← {t("reservation.myReservations")}
+              {t("reservation.myReservations")}
             </Link>
           )}
         </div>
