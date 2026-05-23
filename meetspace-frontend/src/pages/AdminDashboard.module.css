@@ -293,6 +293,14 @@
   margin-bottom: 0;
 }
 
+.sectionIntro {
+  max-width: 58rem;
+  margin: 0.45rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
 .liveBadge {
   display: inline-flex;
   align-items: center;
@@ -314,6 +322,206 @@
   border-radius: 999px;
   background: #10b981;
   box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.12);
+}
+
+.activityGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.activityCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.8rem;
+  min-height: 132px;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--shadow-soft);
+}
+
+.activityIcon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  background: rgba(27, 42, 64, 0.08);
+  color: var(--blue-dark);
+}
+
+.activityCard span,
+.activityCard small {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.activityCard span {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.activityCard strong {
+  display: block;
+  margin: 0.22rem 0;
+  color: var(--blue-darker);
+  font-size: clamp(1.75rem, 3vw, 2.35rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.adminOverviewGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.7fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.panelText {
+  margin: 0.55rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.financeContext {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem 1rem;
+  align-items: center;
+  padding: 0.95rem 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(27, 42, 64, 0.045);
+}
+
+.financeContext span,
+.financeContext small {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.financeContext span {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.financeContext strong {
+  color: var(--blue-darker);
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+}
+
+.financeContext small {
+  grid-column: 1 / -1;
+}
+
+.statusConsole .cockpitItem {
+  grid-template-columns: auto minmax(0, 1fr);
+  color: inherit;
+  text-decoration: none;
+}
+
+.planningGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.planningPanel {
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+  min-height: 330px;
+  padding: 1.1rem;
+  border-radius: 28px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--shadow-soft);
+}
+
+.timelineList {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.timelineItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 82px;
+  padding: 0.78rem 0.85rem;
+  border-radius: 18px;
+  border: 1px solid rgba(27, 42, 64, 0.07);
+  background: rgba(255, 255, 255, 0.72);
+  color: inherit;
+  text-decoration: none;
+  transition: transform var(--transition-normal), border-color var(--transition-fast), box-shadow var(--transition-normal);
+}
+
+.timelineItem:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-soft);
+}
+
+.timelineItem strong,
+.timelineItem small,
+.timelineMeta {
+  display: block;
+}
+
+.timelineItem strong {
+  margin: 0.15rem 0;
+  color: var(--blue-darker);
+  font-size: 0.94rem;
+  line-height: 1.25;
+}
+
+.timelineItem small,
+.timelineMeta {
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.timelineMeta {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  max-width: 9rem;
+  padding: 0.3rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-align: center;
+  white-space: normal;
+}
+
+.emptyLine {
+  margin: 0;
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(27, 42, 64, 0.045);
+  color: var(--text-secondary);
+  font-weight: 750;
 }
 
 .dashboardConsole {
@@ -1124,6 +1332,14 @@
   letter-spacing: -0.06em;
 }
 
+.financeTotalCard small {
+  display: block;
+  margin-top: 0.45rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
 .financeKpiGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1152,6 +1368,27 @@
   border-radius: 20px;
   border: 1px solid rgba(27, 42, 64, 0.08);
   background: rgba(255, 255, 255, 0.62);
+}
+
+.financeBreakdownPanel .revenueRowHeader {
+  align-items: center;
+  color: var(--text-secondary);
+}
+
+.financeBreakdownPanel .revenueRowHeader span,
+.financeBreakdownPanel .revenueRowHeader strong {
+  min-width: 0;
+}
+
+.financeBreakdownPanel .revenueRowHeader strong {
+  color: var(--blue-darker);
+  font-size: 0.82rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.financeBreakdownPanel .revenueTrack {
+  background: rgba(27, 42, 64, 0.12);
 }
 
 .opsPanel {
@@ -1728,6 +1965,8 @@
 [data-theme="dark"] .revenueConsole,
 [data-theme="dark"] .statusConsole,
 [data-theme="dark"] .moduleCard,
+[data-theme="dark"] .activityCard,
+[data-theme="dark"] .planningPanel,
 [data-theme="dark"] .operationsPanel,
 [data-theme="dark"] .analyticsPanel,
 [data-theme="dark"] .financeOverviewPanel,
@@ -1768,6 +2007,9 @@
 [data-theme="dark"] .statusHeader strong,
 [data-theme="dark"] .panelHeader strong,
 [data-theme="dark"] .cockpitItem strong,
+[data-theme="dark"] .activityCard strong,
+[data-theme="dark"] .timelineItem strong,
+[data-theme="dark"] .financeContext strong,
 [data-theme="dark"] .operationRow strong,
 [data-theme="dark"] .moduleCard strong,
 [data-theme="dark"] .moduleArrow {
@@ -1784,6 +2026,14 @@
 [data-theme="dark"] .revenueConsole .revenueRowHeader,
 [data-theme="dark"] .cockpitItem span,
 [data-theme="dark"] .cockpitItem small,
+[data-theme="dark"] .sectionIntro,
+[data-theme="dark"] .panelText,
+[data-theme="dark"] .activityCard span,
+[data-theme="dark"] .activityCard small,
+[data-theme="dark"] .timelineItem small,
+[data-theme="dark"] .timelineMeta,
+[data-theme="dark"] .financeContext span,
+[data-theme="dark"] .financeContext small,
 [data-theme="dark"] .operationRow span,
 [data-theme="dark"] .operationRow small,
 [data-theme="dark"] .moduleCard span,
@@ -1796,6 +2046,9 @@
 [data-theme="dark"] .heroPanel .revenueBreakdown,
 [data-theme="dark"] .heroMetric,
 [data-theme="dark"] .actionCard,
+[data-theme="dark"] .timelineItem,
+[data-theme="dark"] .financeContext,
+[data-theme="dark"] .emptyLine,
 [data-theme="dark"] .cockpitItem,
 [data-theme="dark"] .operationRow {
   border-color: rgba(255, 255, 255, 0.08);
@@ -1831,6 +2084,14 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
+[data-theme="dark"] .financeBreakdownPanel .revenueRowHeader {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .financeBreakdownPanel .revenueRowHeader strong {
+  color: var(--text-primary);
+}
+
 [data-theme="dark"] .cockpitIcon,
 [data-theme="dark"] .operationIcon,
 [data-theme="dark"] .moduleIcon {
@@ -1841,6 +2102,16 @@
 [data-theme="dark"] .statIcon {
   background: rgba(207, 162, 101, 0.12);
   color: #f4d7a8;
+}
+
+[data-theme="dark"] .activityIcon {
+  background: rgba(207, 162, 101, 0.12);
+  color: #f4d7a8;
+}
+
+[data-theme="dark"] .statusPill {
+  background: rgba(16, 185, 129, 0.14);
+  color: #bbf7d0;
 }
 
 [data-theme="dark"] .liveBadge {
@@ -2089,6 +2360,8 @@
 
 .statusConsole,
 .moduleCard,
+.activityCard,
+.planningPanel,
 .operationsPanel,
 .analyticsPanel,
 .financeOverviewPanel {
@@ -2164,6 +2437,8 @@
 
 [data-theme="dark"] .statusConsole,
 [data-theme="dark"] .moduleCard,
+[data-theme="dark"] .activityCard,
+[data-theme="dark"] .planningPanel,
 [data-theme="dark"] .operationsPanel,
 [data-theme="dark"] .analyticsPanel,
 [data-theme="dark"] .financeOverviewPanel {
@@ -2174,13 +2449,20 @@
 
 @media (max-width: 1180px) {
   .controlCenter,
-  .insightGrid {
+  .insightGrid,
+  .adminOverviewGrid {
     grid-template-columns: 1fr;
+  }
+
+  .activityGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 820px) {
-  .moduleGrid {
+  .moduleGrid,
+  .planningGrid,
+  .activityGrid {
     grid-template-columns: 1fr;
   }
 
@@ -2195,5 +2477,14 @@
 
   .revenueChips {
     min-width: 0;
+  }
+
+  .timelineItem {
+    grid-template-columns: 1fr;
+  }
+
+  .statusPill {
+    justify-content: flex-start;
+    max-width: none;
   }
 }

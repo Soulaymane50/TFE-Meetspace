@@ -5,6 +5,9 @@ import {
   adminGetFinanceSummary,
   adminGetPendingEvents,
   adminGetPendingReservations,
+  adminGetEvents,
+  adminGetAllSpaceReservations,
+  adminGetParkingSlots,
   adminGetUsers,
   adminUpdateUserRole,
   adminBanUser,
@@ -113,6 +116,9 @@ export default function AdminDashboard() {
   const [financeSummary, setFinanceSummary] = useState(null);
   const [pendingEvents, setPendingEvents] = useState([]);
   const [pendingReservations, setPendingReservations] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [spaceReservations, setSpaceReservations] = useState([]);
+  const [parkingSlots, setParkingSlots] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [userDetails, setUserDetails] = useState(null);
@@ -127,12 +133,18 @@ export default function AdminDashboard() {
         financeResult,
         pendingEventsResult,
         pendingReservationsResult,
+        eventsResult,
+        spaceReservationsResult,
+        parkingSlotsResult,
         usersResult,
       ] = await Promise.allSettled([
         adminGetStats(token),
         adminGetFinanceSummary(token),
         adminGetPendingEvents(token),
         adminGetPendingReservations(token),
+        adminGetEvents(token),
+        adminGetAllSpaceReservations(token),
+        adminGetParkingSlots(token),
         adminGetUsers(token),
       ]);
 
@@ -158,6 +170,9 @@ export default function AdminDashboard() {
       setUsers(usersResult.value);
       setPendingEvents(pendingEventsResult.status === "fulfilled" ? pendingEventsResult.value : []);
       setPendingReservations(pendingReservationsResult.status === "fulfilled" ? pendingReservationsResult.value : []);
+      setEvents(eventsResult.status === "fulfilled" ? eventsResult.value : []);
+      setSpaceReservations(spaceReservationsResult.status === "fulfilled" ? spaceReservationsResult.value : []);
+      setParkingSlots(parkingSlotsResult.status === "fulfilled" ? parkingSlotsResult.value : []);
     } catch (err) {
       if (err.status === 401 || err.status === 403) {
         await logout();
@@ -290,8 +305,64 @@ export default function AdminDashboard() {
   const eventCommissionRevenue = financeSummary?.eventCommissionRevenue ?? 0;
   const directRoomRevenue = financeSummary?.directRoomRevenue ?? stats?.spaceRevenue ?? 0;
   const organizerRoomCost = financeSummary?.roomCostChargedToOrganizers ?? 0;
-  const organizerNetEstimate = financeSummary?.organizerNetEstimate ?? 0;
-  const getShare = (value, total = totalRevenue) => (total > 0 ? Math.max(4, Math.round(((value || 0) / total) * 100)) : 0);
+  const parkingFinanceRevenue = financeSummary?.parkingRevenue ?? parkingRevenue;
+  const getShare = (value, total = financeTotal) => (total > 0 ? Math.max(4, Math.round(((value || 0) / total) * 100)) : 0);
+  const totalReservations =
+    (stats?.confirmedSpaceReservations || 0) +
+    (stats?.confirmedEventRegistrations || 0) +
+    confirmedParkingReservations;
+  const activeUsers = users.filter((u) => u.status === "ACTIVE").length;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const toDate = (value) => {
+    const date = value ? new Date(value) : null;
+    return date && !Number.isNaN(date.getTime()) ? date : null;
+  };
+  const isFutureOrToday = (value) => {
+    const date = toDate(value);
+    return Boolean(date && date >= today);
+  };
+  const dateTimeFormatter = new Intl.DateTimeFormat(locale, {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const dateFormatter = new Intl.DateTimeFormat(locale, {
+    day: "2-digit",
+    month: "short",
+  });
+  const formatDateTime = (value) => {
+    const date = toDate(value);
+    return date ? dateTimeFormatter.format(date) : "-";
+  };
+  const formatDate = (value) => {
+    const date = toDate(value);
+    return date ? dateFormatter.format(date) : "-";
+  };
+
+  const upcomingEvents = events
+    .filter((event) => isFutureOrToday(event.startDateTime) && event.status !== "CANCELLED")
+    .sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime))
+    .slice(0, 4);
+  const upcomingSpaceReservations = spaceReservations
+    .filter((reservation) => (
+      isFutureOrToday(reservation.startDateTime) &&
+      reservation.status !== "CANCELLED" &&
+      reservation.status !== "REJECTED"
+    ))
+    .sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime))
+    .slice(0, 4);
+  const futureParkingSlots = parkingSlots
+    .filter((slot) => isFutureOrToday(slot.slotDate) && slot.status !== "CANCELLED")
+    .sort((a, b) => new Date(a.slotDate) - new Date(b.slotDate));
+  const upcomingParkingSlots = futureParkingSlots.slice(0, 4);
+  const futureParkingCapacity = futureParkingSlots.reduce((sum, slot) => sum + (slot.parkingCapacity || 0), 0);
+  const futureParkingAvailable = futureParkingSlots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0);
+  const futureParkingReserved = Math.max(0, futureParkingCapacity - futureParkingAvailable);
+  const parkingOccupancy = futureParkingCapacity
+    ? Math.round((futureParkingReserved / futureParkingCapacity) * 100)
+    : 0;
 
   const tabs = [
     { id: "overview", label: t("admin.overview") },
@@ -305,55 +376,94 @@ export default function AdminDashboard() {
     { value: "ADMIN", label: t("admin.roles.admin") },
   ];
 
-  const platformStats = [
-    { icon: "users", label: t("admin.totalUsers"), value: stats?.totalUsers ?? 0 },
-    { icon: "spaces", label: t("admin.totalSpaces"), value: stats?.totalEspaces ?? 0, tone: styles.statBlue },
-    { icon: "events", label: t("admin.totalEvents"), value: stats?.totalEvents ?? 0, tone: styles.statGreen },
-    { icon: "pending", label: t("admin.pendingApprovals"), value: totalPending, tone: styles.statOrange },
-  ];
-
-  const reservationStats = [
-    { icon: "spaces", label: t("admin.confirmedSpaceRes"), value: stats?.confirmedSpaceReservations || 0 },
-    { icon: "events", label: t("admin.confirmedEventRes"), value: stats?.confirmedEventRegistrations || 0, tone: styles.statBlue },
-    { icon: "parking", label: t("admin.confirmedParkingReservations"), value: confirmedParkingReservations, tone: styles.statGreen },
-  ];
-
-  const totalReservations =
-    (stats?.confirmedSpaceReservations || 0) +
-    (stats?.confirmedEventRegistrations || 0) +
-    confirmedParkingReservations;
-
-  const revenueBreakdown = [
-    { label: t("admin.eventRevenue"), value: stats?.eventRevenue || 0, share: getShare(stats?.eventRevenue), tone: styles.barBlue },
-    { label: t("admin.spaceRevenue"), value: stats?.spaceRevenue || 0, share: getShare(stats?.spaceRevenue), tone: styles.barGold },
-    { label: t("admin.parkingRevenue"), value: parkingRevenue, share: getShare(parkingRevenue), tone: styles.barGreen },
-  ];
-
-  const financeBreakdown = [
-    { label: t("finance.directRoomRevenue"), value: directRoomRevenue, share: getShare(directRoomRevenue, financeTotal), tone: styles.barGold },
-    { label: t("finance.parkingRevenue"), value: financeSummary?.parkingRevenue ?? parkingRevenue, share: getShare(financeSummary?.parkingRevenue ?? parkingRevenue, financeTotal), tone: styles.barGreen },
-    { label: t("finance.eventCommissions"), value: eventCommissionRevenue, share: getShare(eventCommissionRevenue, financeTotal), tone: styles.barBlue },
-    { label: t("finance.roomCostChargedToOrganizers"), value: organizerRoomCost, share: getShare(organizerRoomCost, financeTotal), tone: styles.barViolet },
-  ];
-
-  const operations = [
+  const activityStats = [
     {
-      icon: "pending",
-      label: t("admin.pendingApprovals"),
-      value: totalPending,
-      meta: `${pendingEvents.length} ${t("nav.events").toLowerCase()} / ${pendingReservations.length} ${t("nav.spaces").toLowerCase()}`,
+      icon: "reservations",
+      label: t("admin.totalReservations"),
+      value: totalReservations,
+      helper: t("admin.confirmedReservationsHelp"),
     },
     {
-      icon: "users",
-      label: t("admin.totalUsers"),
-      value: stats?.totalUsers ?? 0,
-      meta: t("common.status"),
+      icon: "events",
+      label: t("admin.confirmedEventRes"),
+      value: stats?.confirmedEventRegistrations || 0,
+      helper: t("admin.eventRegistrationsHelp"),
+      tone: styles.statBlue,
+    },
+    {
+      icon: "spaces",
+      label: t("admin.confirmedSpaceRes"),
+      value: stats?.confirmedSpaceReservations || 0,
+      helper: t("admin.roomReservationsHelp"),
+      tone: styles.statOrange,
     },
     {
       icon: "parking",
       label: t("admin.confirmedParkingReservations"),
       value: confirmedParkingReservations,
-      meta: `${totalParkingSlots} ${t("admin.totalSessions").toLowerCase()}`,
+      helper: t("admin.parkingReservationsHelp"),
+      tone: styles.statGreen,
+    },
+    {
+      icon: "users",
+      label: t("admin.activeUsers"),
+      value: activeUsers,
+      helper: t("admin.activeUsersHelp"),
+      tone: styles.statPurple,
+    },
+  ];
+
+  const revenueItems = [
+    {
+      label: t("finance.directRoomRevenue"),
+      value: directRoomRevenue,
+      share: getShare(directRoomRevenue),
+      tone: styles.barGold,
+    },
+    {
+      label: t("finance.parkingRevenue"),
+      value: parkingFinanceRevenue,
+      share: getShare(parkingFinanceRevenue),
+      tone: styles.barGreen,
+    },
+    {
+      label: t("finance.eventCommissions"),
+      value: eventCommissionRevenue,
+      share: getShare(eventCommissionRevenue),
+      tone: styles.barBlue,
+    },
+    {
+      label: t("finance.roomCostChargedToOrganizers"),
+      value: organizerRoomCost,
+      share: getShare(organizerRoomCost),
+      tone: styles.barViolet,
+    },
+  ];
+
+  const priorityItems = [
+    {
+      icon: "pending",
+      label: t("admin.eventsPendingShort"),
+      value: pendingEvents.length,
+      meta: pendingEvents.length > 0 ? t("admin.requiresReview") : t("admin.noImmediateAction"),
+      to: "/admin/events",
+    },
+    {
+      icon: "spaces",
+      label: t("admin.roomRequestsPendingShort"),
+      value: pendingReservations.length,
+      meta: pendingReservations.length > 0 ? t("admin.requiresReview") : t("admin.noImmediateAction"),
+      to: "/admin/espaces",
+    },
+    {
+      icon: "parking",
+      label: t("admin.parkingOccupancy"),
+      value: `${formatStat(parkingOccupancy)}%`,
+      meta: t("admin.futureParkingHelp", {
+        reserved: formatStat(futureParkingReserved),
+        capacity: formatStat(futureParkingCapacity),
+      }),
+      to: "/admin/parking",
     },
   ];
 
@@ -388,7 +498,7 @@ export default function AdminDashboard() {
     <div className={styles.container}>
       <div className={styles.header}>
         <div>
-          <p className={styles.kicker}>Admin</p>
+          <p className={styles.kicker}>{t("admin.dashboardKicker")}</p>
           <h1 className={styles.title}>{t("admin.dashboard")}</h1>
           <p className={styles.subtitle}>{t("admin.dashboardSubtitle")}</p>
         </div>
@@ -437,8 +547,9 @@ export default function AdminDashboard() {
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div>
-              <p className={styles.sectionEyebrow}>MeetSpace Admin</p>
-              <h2 className={styles.sectionTitle}>{t("admin.overview")}</h2>
+              <p className={styles.sectionEyebrow}>{t("admin.activityGlobal")}</p>
+              <h2 className={styles.sectionTitle}>{t("admin.overviewTitle")}</h2>
+              <p className={styles.sectionIntro}>{t("admin.overviewHint")}</p>
             </div>
             <span className={styles.liveBadge}>
               <span className={styles.liveDot} />
@@ -446,44 +557,38 @@ export default function AdminDashboard() {
             </span>
           </div>
 
-          <div className={styles.controlCenter}>
-            <div className={styles.revenueConsole}>
-              <div className={styles.revenueTopline}>
-                <span className={styles.consoleBadge}>{t("admin.totalRevenue")}</span>
-                <span className={styles.consoleStatus}>
-                  <span className={styles.liveDot} />
-                  {t("admin.pendingApprovals")}: {formatStat(totalPending)}
-                </span>
-              </div>
-
-              <div className={styles.revenueHero}>
+          <div className={styles.activityGrid}>
+            {activityStats.map((item) => (
+              <div key={item.label} className={`${styles.activityCard} ${item.tone || ""}`}>
+                <div className={styles.activityIcon}>
+                  <AdminIcon type={item.icon} />
+                </div>
                 <div>
-                  <strong>{formatEuro(totalRevenue)}</strong>
-                  <p>{t("admin.allReservationsDesc")}</p>
+                  <span>{item.label}</span>
+                  <strong>{formatStat(item.value)}</strong>
+                  <small>{item.helper}</small>
                 </div>
+              </div>
+            ))}
+          </div>
 
-                <div className={styles.revenueChips}>
-                  <span>
-                    {t("admin.totalReservations")}
-                    <strong>{formatStat(totalReservations)}</strong>
-                  </span>
-                  <span>
-                    {t("admin.confirmedEventRes")}
-                    <strong>{formatStat(stats?.confirmedEventRegistrations || 0)}</strong>
-                  </span>
-                  <span>
-                    {t("admin.confirmedSpaceRes")}
-                    <strong>{formatStat(stats?.confirmedSpaceReservations || 0)}</strong>
-                  </span>
-                  <span>
-                    {t("admin.confirmedParkingReservations")}
-                    <strong>{formatStat(confirmedParkingReservations)}</strong>
-                  </span>
+          <div className={styles.adminOverviewGrid}>
+            <div className={styles.financeOverviewPanel}>
+              <div className={styles.financeOverviewHeader}>
+                <div>
+                  <p className={styles.financeEyebrow}>{t("finance.indicativeEstimate")}</p>
+                  <h3>{t("admin.estimatedRevenueTitle")}</h3>
+                  <span>{t("finance.adminHint")}</span>
+                </div>
+                <div className={styles.financeTotalCard}>
+                  <span>{t("finance.meetSpaceEstimatedRevenue")}</span>
+                  <strong>{formatEuro(financeTotal)}</strong>
+                  <small>{t("admin.estimatedDisclaimer")}</small>
                 </div>
               </div>
 
-              <div className={styles.revenueBreakdown}>
-                {revenueBreakdown.map((item) => (
+              <div className={styles.financeBreakdownPanel}>
+                {revenueItems.map((item) => (
                   <div key={item.label} className={styles.revenueRow}>
                     <div className={styles.revenueRowHeader}>
                       <span>{item.label}</span>
@@ -494,76 +599,114 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              <div className={styles.financeContext}>
+                <span>{t("admin.grossEventVolume")}</span>
+                <strong>{formatEuro(eventGrossRevenue)}</strong>
+                <small>{t("admin.grossEventVolumeHelp")}</small>
               </div>
             </div>
 
             <aside className={styles.statusConsole}>
               <div className={styles.statusHeader}>
                 <span>{t("admin.priorities")}</span>
-                <strong>{t("admin.pendingApprovals")}</strong>
+                <strong>{t("admin.adminPrioritiesTitle")}</strong>
               </div>
+              <p className={styles.panelText}>{t("admin.adminPrioritiesHint")}</p>
 
               <div className={styles.cockpitStack}>
-                {operations.map((item) => (
-                  <div key={item.label} className={styles.cockpitItem}>
+                {priorityItems.map((item) => (
+                  <Link key={item.label} to={item.to} className={styles.cockpitItem}>
                     <div className={styles.cockpitIcon}>
                       <AdminIcon type={item.icon} />
                     </div>
                     <div>
                       <span>{item.label}</span>
-                      <strong>{formatStat(item.value)}</strong>
+                      <strong>{typeof item.value === "number" ? formatStat(item.value) : item.value}</strong>
                       <small>{item.meta}</small>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </aside>
           </div>
 
-          {financeSummary && (
-            <div className={styles.financeOverviewPanel}>
-              <div className={styles.financeOverviewHeader}>
-                <div>
-                  <p className={styles.financeEyebrow}>{t("finance.indicativeEstimate")}</p>
-                  <h3>{t("finance.adminTitle")}</h3>
-                  <span>{t("finance.adminHint")}</span>
-                </div>
-                <div className={styles.financeTotalCard}>
-                  <span>{t("finance.meetSpaceEstimatedRevenue")}</span>
-                  <strong>{formatEuro(financeTotal)}</strong>
-                </div>
+          <div className={styles.planningGrid}>
+            <div className={styles.planningPanel}>
+              <div className={styles.panelHeader}>
+                <span>{t("admin.upcomingPlanningTitle")}</span>
+                <strong>{t("admin.upcomingEvents")}</strong>
               </div>
-
-              <div className={styles.financeKpiGrid}>
-                <div className={styles.financeKpi}>
-                  <span>{t("finance.eventGrossRevenue")}</span>
-                  <strong>{formatEuro(eventGrossRevenue)}</strong>
-                </div>
-                <div className={styles.financeKpi}>
-                  <span>{t("finance.eventCommissions")}</span>
-                  <strong>{formatEuro(eventCommissionRevenue)}</strong>
-                </div>
-                <div className={styles.financeKpi}>
-                  <span>{t("finance.organizerNetTotal")}</span>
-                  <strong>{formatEuro(organizerNetEstimate)}</strong>
-                </div>
-              </div>
-
-              <div className={styles.financeBreakdownPanel}>
-                {financeBreakdown.map((item) => (
-                  <div key={item.label} className={styles.revenueRow}>
-                    <div className={styles.revenueRowHeader}>
-                      <span>{item.label}</span>
-                      <strong>{formatEuro(item.value)}</strong>
+              <p className={styles.panelText}>{t("admin.upcomingPlanningHint")}</p>
+              <div className={styles.timelineList}>
+                {upcomingEvents.length > 0 ? upcomingEvents.map((event) => (
+                  <Link key={event.id} to="/admin/events" className={styles.timelineItem}>
+                    <div>
+                      <span className={styles.timelineMeta}>{formatDateTime(event.startDateTime)}</span>
+                      <strong>{event.title}</strong>
+                      <small>{event.location || t("nav.events")}</small>
                     </div>
-                    <div className={styles.revenueTrack}>
-                      <span className={item.tone} style={{ width: `${item.share}%` }} />
-                    </div>
-                  </div>
-                ))}
+                    <span className={styles.statusPill}>
+                      {formatStat(event.registeredCount || 0)} / {formatStat(event.capacity || 0)}
+                    </span>
+                  </Link>
+                )) : (
+                  <p className={styles.emptyLine}>{t("admin.noUpcomingEvents")}</p>
+                )}
               </div>
             </div>
-          )}
+
+            <div className={styles.planningPanel}>
+              <div className={styles.panelHeader}>
+                <span>{t("admin.upcomingPlanningTitle")}</span>
+                <strong>{t("admin.upcomingRooms")}</strong>
+              </div>
+              <p className={styles.panelText}>{t("admin.upcomingRoomsHint")}</p>
+              <div className={styles.timelineList}>
+                {upcomingSpaceReservations.length > 0 ? upcomingSpaceReservations.map((reservation) => (
+                  <Link key={reservation.id} to="/admin/espaces" className={styles.timelineItem}>
+                    <div>
+                      <span className={styles.timelineMeta}>{formatDateTime(reservation.startDateTime)}</span>
+                      <strong>{reservation.espaceName || t("nav.spaces")}</strong>
+                      <small>{reservation.userName}</small>
+                    </div>
+                    <span className={styles.statusPill}>
+                      {t(`status.${String(reservation.status).toLowerCase()}`, reservation.status)}
+                    </span>
+                  </Link>
+                )) : (
+                  <p className={styles.emptyLine}>{t("admin.noUpcomingRooms")}</p>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.planningPanel}>
+              <div className={styles.panelHeader}>
+                <span>{t("admin.upcomingPlanningTitle")}</span>
+                <strong>{t("admin.parkingFocus")}</strong>
+              </div>
+              <p className={styles.panelText}>{t("admin.parkingFocusHint")}</p>
+              <div className={styles.timelineList}>
+                {upcomingParkingSlots.length > 0 ? upcomingParkingSlots.map((slot) => (
+                  <Link key={slot.id} to="/admin/parking" className={styles.timelineItem}>
+                    <div>
+                      <span className={styles.timelineMeta}>{formatDate(slot.slotDate)}</span>
+                      <strong>{slot.title}</strong>
+                      <small>
+                        {formatStat((slot.parkingCapacity || 0) - (slot.availableSpaces || 0))} / {formatStat(slot.parkingCapacity || 0)} {t("parking.places").toLowerCase()}
+                      </small>
+                    </div>
+                    <span className={styles.statusPill}>
+                      {formatStat(slot.availableSpaces || 0)} {t("admin.availableShort")}
+                    </span>
+                  </Link>
+                )) : (
+                  <p className={styles.emptyLine}>{t("admin.noUpcomingParking")}</p>
+                )}
+              </div>
+            </div>
+          </div>
 
           <div className={styles.moduleGrid}>
             {moduleCards.map((module) => (
@@ -579,64 +722,6 @@ export default function AdminDashboard() {
                 <span className={styles.moduleArrow}>{"\u2192"}</span>
               </Link>
             ))}
-          </div>
-
-          <div className={styles.insightGrid}>
-            <div className={styles.operationsPanel}>
-              <div className={styles.panelHeader}>
-                <span>{t("admin.modules")}</span>
-                <strong>{t("admin.quickActions")}</strong>
-              </div>
-              <div className={styles.operationsList}>
-                {moduleCards.map((module) => (
-                  <Link key={module.to} to={module.to} className={styles.operationRow}>
-                    <div className={styles.operationIcon}>
-                      <AdminIcon type={module.icon} />
-                    </div>
-                    <div>
-                      <span>{module.label}</span>
-                      <strong>{formatStat(module.value)}</strong>
-                    </div>
-                    <small>{module.meta}</small>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.analyticsPanel}>
-              <div className={styles.analyticsGroup}>
-                <div className={styles.panelHeader}>
-                  <span>{t("admin.snapshot")}</span>
-                  <strong>{t("admin.statistics")}</strong>
-                </div>
-                <div className={styles.compactGrid}>
-                  {platformStats.map((item) => (
-                    <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
-                      <div className={styles.statIcon}>
-                        <AdminIcon type={item.icon} />
-                      </div>
-                      <p className={styles.statLabel}>{item.label}</p>
-                      <p className={styles.statNumber}>{formatStat(item.value)}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.analyticsGroup}>
-                <h3 className={styles.subsectionTitle}>{t("admin.totalReservations")}</h3>
-                <div className={styles.compactGrid}>
-                  {reservationStats.map((item) => (
-                  <div key={item.label} className={`${styles.statCard} ${item.tone || ""}`}>
-                    <div className={styles.statIcon}>
-                      <AdminIcon type={item.icon} />
-                    </div>
-                    <p className={styles.statLabel}>{item.label}</p>
-                    <p className={styles.statNumber}>{formatStat(item.value)}</p>
-                  </div>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
         </section>
       )}
