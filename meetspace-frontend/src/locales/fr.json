@@ -782,6 +782,8 @@
         "selectDay": "Choisir une journée",
         "selectedDay": "Journée sélectionnée",
         "allDays": "Toutes les journées",
+        "availableChoicesTitle": "Choisir un créneau parking",
+        "availableChoicesHint": "Comparez rapidement les dates, les places restantes, le tarif et le remplissage avant de réserver.",
         "availableOnDay": "places disponibles sur {{count}} places allouées ce jour",
         "availableAcrossDays": "places disponibles sur {{count}} places au total"
     },

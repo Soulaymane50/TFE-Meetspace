@@ -785,6 +785,8 @@
                       "selectDay": "Kies een dag",
                       "selectedDay": "Geselecteerde dag",
                       "allDays": "Alle dagen",
+                      "availableChoicesTitle": "Kies een parkingslot",
+                      "availableChoicesHint": "Vergelijk snel data, resterende plaatsen, tarief en bezetting voor u reserveert.",
                       "availableOnDay": "plaatsen beschikbaar op {{count}} toegewezen plaatsen die dag",
                       "availableAcrossDays": "plaatsen beschikbaar op {{count}} plaatsen totaal"
                   },

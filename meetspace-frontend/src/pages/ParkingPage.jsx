@@ -93,7 +93,6 @@ export default function ParkingPage() {
     return groups.sort((a, b) => new Date(a.key) - new Date(b.key));
   }, [parkingSlots, locale]);
 
-  const visibleGroups = selectedDate === "ALL" ? groupedSlots : groupedSlots.filter((group) => group.key === selectedDate);
   const selectedGroup = groupedSlots.find((group) => group.key === selectedDate);
   const selectedDayAvailable = selectedGroup
     ? selectedGroup.slots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0)
@@ -101,6 +100,18 @@ export default function ParkingPage() {
   const selectedDayCapacity = selectedGroup
     ? selectedGroup.slots.reduce((sum, slot) => sum + (slot.parkingCapacity || 0), 0)
     : totalCapacity;
+  const visibleSlots = [...(selectedDate === "ALL" ? parkingSlots : selectedGroup?.slots || [])].sort((a, b) => {
+    const aDate = new Date(`${a.slotDate}T${a.startTime || "00:00:00"}`);
+    const bDate = new Date(`${b.slotDate}T${b.startTime || "00:00:00"}`);
+    return aDate - bDate;
+  });
+
+  const formatSlotDay = (slotDate) =>
+    new Date(`${slotDate}T00:00:00`).toLocaleDateString(locale, {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+    });
 
   if (loading) {
     return <PageState type="loading" title={t("common.loading")} message={t("parking.capacityModelText")} />;
@@ -241,34 +252,40 @@ export default function ParkingPage() {
           </aside>
 
           <section className={styles.dayBoard}>
-            {visibleGroups.map((group) => (
-              <section key={group.key} className={styles.daySection}>
-                <div className={styles.dayHeader}>
-                  <div>
-                    <p className={styles.dayLabel}>{t("parking.dayOverviewLabel")}</p>
-                    <h2 className={styles.dayTitle}>{group.label}</h2>
-                  </div>
-                  <div className={styles.dayStats}>
-                    <span className={styles.dayStat}>
-                      {formatNumber(group.slots.length, locale)} {group.slots.length > 1 ? t("parking.sessionPlural") : t("parking.session")}
-                    </span>
-                    <span className={styles.dayStat}>
-                      {formatNumber(group.slots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0), locale)} {t("parking.placesAvailable")}
-                    </span>
-                  </div>
+            <section className={styles.daySection}>
+              <div className={styles.dayHeader}>
+                <div>
+                  <p className={styles.dayLabel}>{t("parking.dayOverviewLabel")}</p>
+                  <h2 className={styles.dayTitle}>
+                    {selectedDate === "ALL" ? t("parking.availableChoicesTitle") : selectedGroup?.label}
+                  </h2>
+                  <p className={styles.dayHint}>{t("parking.availableChoicesHint")}</p>
                 </div>
+                <div className={styles.dayStats}>
+                  <span className={styles.dayStat}>
+                    {formatNumber(visibleSlots.length, locale)} {visibleSlots.length > 1 ? t("parking.sessionPlural") : t("parking.session")}
+                  </span>
+                  <span className={styles.dayStat}>
+                    {formatNumber(selectedDayAvailable, locale)} {t("parking.placesAvailable")}
+                  </span>
+                </div>
+              </div>
 
-                <div className={styles.slotGrid}>
-                  {group.slots.map((slot) => {
-                    const occupancy = getOccupancyRate(slot);
-                    const reserved = getRegisteredSpaces(slot);
-                    const status = getStatus(slot);
-                    const isFull = (slot.availableSpaces || 0) <= 0;
+              <div className={styles.slotGrid}>
+                {visibleSlots.map((slot) => {
+                  const occupancy = getOccupancyRate(slot);
+                  const reserved = getRegisteredSpaces(slot);
+                  const status = getStatus(slot);
+                  const isFull = (slot.availableSpaces || 0) <= 0;
 
-                    return (
-                      <article key={slot.id} className={styles.slotCard}>
+                  return (
+                    <article key={slot.id} className={styles.slotCard}>
+                      <div className={styles.slotMedia}>
                         <div className={styles.slotImage} aria-hidden="true" />
+                        <span className={styles.slotDateBadge}>{formatSlotDay(slot.slotDate)}</span>
+                      </div>
 
+                      <div className={styles.slotContent}>
                         <div className={styles.slotTopline}>
                           <p className={styles.slotTime}>
                             {slot.startTime} - {slot.endTime}
@@ -280,12 +297,12 @@ export default function ParkingPage() {
 
                         <div className={styles.slotMetrics}>
                           <div className={styles.metricCard}>
-                            <span className={styles.metricLabel}>{t("parking.reservedLabel")}</span>
-                            <span className={styles.metricValue}>{formatNumber(reserved, locale)}</span>
-                          </div>
-                          <div className={styles.metricCard}>
                             <span className={styles.metricLabel}>{t("parking.remainingLabel")}</span>
                             <span className={styles.metricValue}>{formatNumber(slot.availableSpaces, locale)}</span>
+                          </div>
+                          <div className={styles.metricCard}>
+                            <span className={styles.metricLabel}>{t("parking.reservedLabel")}</span>
+                            <span className={styles.metricValue}>{formatNumber(reserved, locale)}</span>
                           </div>
                           <div className={styles.metricCard}>
                             <span className={styles.metricLabel}>{t("parking.rateLabel")}</span>
@@ -321,12 +338,12 @@ export default function ParkingPage() {
                             </Link>
                           )}
                         </div>
-                      </article>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
           </section>
         </div>
       )}

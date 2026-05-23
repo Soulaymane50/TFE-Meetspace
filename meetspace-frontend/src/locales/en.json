@@ -793,6 +793,8 @@
     "selectDay": "Choose a day",
     "selectedDay": "Selected day",
     "allDays": "All days",
+    "availableChoicesTitle": "Choose a parking slot",
+    "availableChoicesHint": "Compare dates, spaces left, price and occupancy quickly before booking.",
     "availableOnDay": "spaces available out of {{count}} allocated that day",
     "availableAcrossDays": "spaces available out of {{count}} total spaces"
   },
