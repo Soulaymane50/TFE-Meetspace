@@ -75,6 +75,23 @@ export default function OrganizerEventForm() {
     previewStart && previewEnd && !Number.isNaN(previewStart.getTime()) && !Number.isNaN(previewEnd.getTime())
       ? `${previewStart.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })} - ${previewEnd.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}`
       : t("organizer.previewTimeFallback", { defaultValue: "Horaire à définir" });
+  const eventCapacityEstimate = Number(eventForm.capacity) || 0;
+  const ticketPriceEstimate = Number(eventForm.price) || 0;
+  const roomHourlyRate = Number(selectedSpace?.basePrice) || 0;
+  const scheduleDurationMs =
+    previewStart &&
+    previewEnd &&
+    !Number.isNaN(previewStart.getTime()) &&
+    !Number.isNaN(previewEnd.getTime())
+      ? previewEnd.getTime() - previewStart.getTime()
+      : 0;
+  const scheduleDurationHours =
+    scheduleDurationMs > 0 ? Math.round((scheduleDurationMs / (1000 * 60 * 60)) * 100) / 100 : 0;
+  const grossRevenueEstimate = eventCapacityEstimate * ticketPriceEstimate;
+  const roomCostEstimate = roomHourlyRate * scheduleDurationHours;
+  const commissionEstimate = grossRevenueEstimate * 0.1;
+  const organizerNetEstimate = grossRevenueEstimate - commissionEstimate - roomCostEstimate;
+  const showFinancePreview = selectedSpace && eventCapacityEstimate > 0;
 
   useEffect(() => {
     if (!user || (user.role !== "ORGANIZER" && user.role !== "ADMIN")) {
@@ -458,6 +475,43 @@ export default function OrganizerEventForm() {
           </div>
 
           <div className={styles.divider} />
+
+          {showFinancePreview && (
+            <section className={styles.financePreview} aria-label={t("organizer.financePreviewTitle")}>
+              <div className={styles.financePreviewHeader}>
+                <div>
+                  <p className={styles.advisorKicker}>{t("finance.indicativeEstimate")}</p>
+                  <h3>{t("organizer.financePreviewTitle")}</h3>
+                </div>
+                <span>{t("finance.commissionRate", { rate: 10 })}</span>
+              </div>
+              <div className={styles.financePreviewGrid}>
+                <span>
+                  {t("finance.grossRevenue")}
+                  <strong>{formatMoney(grossRevenueEstimate, locale)}</strong>
+                </span>
+                <span>
+                  {t("finance.meetSpaceCommission")}
+                  <strong>{formatMoney(commissionEstimate, locale)}</strong>
+                </span>
+                <span>
+                  {t("finance.roomCost")}
+                  <strong>{formatMoney(roomCostEstimate, locale)}</strong>
+                </span>
+                <span>
+                  {t("finance.organizerNetEstimate")}
+                  <strong>{formatMoney(organizerNetEstimate, locale)}</strong>
+                </span>
+              </div>
+              <p className={styles.financePreviewNote}>
+                {t(
+                  scheduleDurationHours > 0
+                    ? "organizer.financePreviewFormula"
+                    : "organizer.financePreviewScheduleHint",
+                )}
+              </p>
+            </section>
+          )}
 
           <div className={styles.checkboxRow}>
             <label className={styles.checkboxLabel}>

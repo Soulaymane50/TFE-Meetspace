@@ -275,6 +275,75 @@
   background: linear-gradient(135deg, var(--blue-darker), #33476a);
 }
 
+.financePreview {
+  display: grid;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.financePreviewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.financePreviewHeader h3,
+.financePreviewNote {
+  margin: 0;
+}
+
+.financePreviewHeader h3 {
+  color: var(--blue-darker);
+}
+
+.financePreviewHeader > span {
+  flex: 0 0 auto;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(207, 162, 101, 0.14);
+  color: var(--orange-dark);
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.financePreviewGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.financePreviewGrid span {
+  display: grid;
+  gap: 0.3rem;
+  min-height: 86px;
+  padding: 0.8rem;
+  border-radius: 18px;
+  background: rgba(27, 42, 64, 0.055);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.financePreviewGrid strong {
+  align-self: end;
+  color: var(--blue-darker);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.1;
+  text-transform: none;
+}
+
+.financePreviewNote {
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
 .previewPanel {
   display: grid;
   grid-template-columns: minmax(180px, 0.7fr) minmax(0, 1.4fr);
@@ -399,6 +468,7 @@
 [data-theme="dark"] .checkboxRow,
 [data-theme="dark"] .cancelBtn,
 [data-theme="dark"] .advisorCard,
+[data-theme="dark"] .financePreview,
 [data-theme="dark"] .previewPanel,
 [data-theme="dark"] .previewCard {
   border-color: rgba(255, 255, 255, 0.08);
@@ -422,6 +492,8 @@
 [data-theme="dark"] .checkboxLabel,
 [data-theme="dark"] .advisorCard h3,
 [data-theme="dark"] .advisorMetrics strong,
+[data-theme="dark"] .financePreviewHeader h3,
+[data-theme="dark"] .financePreviewGrid strong,
 [data-theme="dark"] .previewIntro h2,
 [data-theme="dark"] .previewCard h3 {
   color: var(--text-primary);
@@ -435,6 +507,8 @@
 [data-theme="dark"] .advisorCard p,
 [data-theme="dark"] .advisorKicker,
 [data-theme="dark"] .advisorMetrics span,
+[data-theme="dark"] .financePreviewGrid span,
+[data-theme="dark"] .financePreviewNote,
 [data-theme="dark"] .previewIntro span,
 [data-theme="dark"] .previewCard p,
 [data-theme="dark"] .previewTopline,
@@ -444,6 +518,7 @@
 
 [data-theme="dark"] .advisorMetrics span,
 [data-theme="dark"] .advisorGhost,
+[data-theme="dark"] .financePreviewGrid span,
 [data-theme="dark"] .previewTags span,
 [data-theme="dark"] .previewFooter strong {
   border-color: rgba(255, 255, 255, 0.08);
@@ -452,6 +527,11 @@
 
 [data-theme="dark"] .advisorGhost {
   color: var(--text-primary);
+}
+
+[data-theme="dark"] .financePreviewHeader > span {
+  background: rgba(207, 162, 101, 0.18);
+  color: #f4d7a8;
 }
 
 [data-theme="dark"] .select {
@@ -503,6 +583,14 @@
   }
 
   .advisorMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .financePreviewHeader {
+    flex-direction: column;
+  }
+
+  .financePreviewGrid {
     grid-template-columns: 1fr;
   }
 

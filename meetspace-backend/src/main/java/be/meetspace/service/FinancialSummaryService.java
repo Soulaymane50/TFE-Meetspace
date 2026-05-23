@@ -8,6 +8,7 @@ import be.meetspace.entity.EventStatus;
 import be.meetspace.entity.ParkingReservationStatus;
 import be.meetspace.entity.ReservationStatus;
 import be.meetspace.entity.User;
+import be.meetspace.repository.EspaceRepository;
 import be.meetspace.repository.EventRegistrationRepository;
 import be.meetspace.repository.EventRepository;
 import be.meetspace.repository.ParkingReservationRepository;
@@ -31,6 +32,7 @@ public class FinancialSummaryService {
     public static final double MEETSPACE_COMMISSION_RATE = 0.10D;
 
     private final EventRepository eventRepository;
+    private final EspaceRepository espaceRepository;
     private final EventRegistrationRepository eventRegistrationRepository;
     private final ReservationRepository reservationRepository;
     private final ParkingReservationRepository parkingReservationRepository;
@@ -38,12 +40,14 @@ public class FinancialSummaryService {
 
     public FinancialSummaryService(
             EventRepository eventRepository,
+            EspaceRepository espaceRepository,
             EventRegistrationRepository eventRegistrationRepository,
             ReservationRepository reservationRepository,
             ParkingReservationRepository parkingReservationRepository,
             UserRepository userRepository
     ) {
         this.eventRepository = eventRepository;
+        this.espaceRepository = espaceRepository;
         this.eventRegistrationRepository = eventRegistrationRepository;
         this.reservationRepository = reservationRepository;
         this.parkingReservationRepository = parkingReservationRepository;
@@ -53,7 +57,7 @@ public class FinancialSummaryService {
     @Transactional(readOnly = true)
     public FinanceSummaryDto getAdminSummary() {
         List<EventFinanceDto> eventFinances = eventRepository.findAllByOrderByCreatedAtDesc().stream()
-                .filter(this::isFinanciallyRelevant)
+                .filter(this::isMeetSpaceRevenueRelevant)
                 .map(this::buildEventFinance)
                 .toList();
 
@@ -176,6 +180,10 @@ public class FinancialSummaryService {
         return event.getStatus() != EventStatus.CANCELLED && event.getStatus() != EventStatus.REJECTED;
     }
 
+    private boolean isMeetSpaceRevenueRelevant(Event event) {
+        return event.getStatus() == EventStatus.PUBLISHED;
+    }
+
     private Event findEvent(Long eventId) {
         return eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evenement introuvable."));
@@ -199,7 +207,16 @@ public class FinancialSummaryService {
 
     private double getRoomHourlyRate(Event event) {
         Espace space = event.getSpace();
-        return space != null ? valueOrZero(space.getBasePrice()) : 0D;
+        if (space != null) {
+            return valueOrZero(space.getBasePrice());
+        }
+        if (event.getLocation() == null || event.getLocation().isBlank()) {
+            return 0D;
+        }
+        return espaceRepository.findFirstByNameIgnoreCase(event.getLocation())
+                .map(Espace::getBasePrice)
+                .map(FinancialSummaryService::valueOrZero)
+                .orElse(0D);
     }
 
     private String getRoomName(Event event) {

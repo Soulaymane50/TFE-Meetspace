@@ -274,6 +274,10 @@ export default function OrganizerEventsPage() {
                   <strong>{formatEuro(financeSummary.roomCostChargedToOrganizers)}</strong>
                 </div>
                 <div className={styles.financeMetric}>
+                  <span>{t("finance.meetSpaceCommission")}</span>
+                  <strong>{formatEuro(financeSummary.eventCommissionRevenue)}</strong>
+                </div>
+                <div className={styles.financeMetric}>
                   <span>{t("finance.organizerNetEstimate")}</span>
                   <strong>{formatEuro(financeSummary.organizerNetEstimate)}</strong>
                 </div>
