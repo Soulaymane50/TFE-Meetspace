@@ -172,14 +172,15 @@ CREATE TABLE `event` (
 LOCK TABLES `event` WRITE;
 /*!40000 ALTER TABLE `event` DISABLE KEYS */;
 INSERT INTO `event` VALUES
-(3001,'Séminaire IA & Data','Séminaire professionnel dédié à l''IA, à la data et à leurs usages concrets en entreprise.','2026-05-05 09:00:00','2026-05-05 17:30:00','Salle Premium Executive','EXISTING_SPACE',2,NULL,120,120,'PUBLISHED',0,1111,'2026-03-01 09:00:00','2026-03-01 10:00:00',1111,NULL,1),
-(3002,'Séminaire Leadership','Session professionnelle axée sur le management, la communication et la prise de décision.','2026-05-05 10:00:00','2026-05-05 13:00:00','Salle Atlas','EXISTING_SPACE',3,NULL,80,75,'PUBLISHED',0,1111,'2026-03-01 09:15:00','2026-03-01 10:05:00',1111,NULL,1),
-(3003,'Conférence Stratégie Produit','Grande conférence destinée aux équipes produit, aux fondateurs et aux consultants autour de la priorisation et de la feuille de route.','2026-05-12 14:00:00','2026-05-12 18:00:00','Salle Premium Orion','EXISTING_SPACE',1,NULL,260,145,'PUBLISHED',0,1111,'2026-03-01 09:30:00','2026-03-01 10:10:00',1111,NULL,1),
-(3004,'Séminaire Cybersécurité','Rencontre professionnelle consacrée aux risques, à la prévention et à la gouvernance cyber.','2026-05-19 17:00:00','2026-05-19 20:30:00','Salle Atlas','EXISTING_SPACE',3,NULL,95,80,'PUBLISHED',0,1111,'2026-03-01 09:45:00','2026-03-01 10:15:00',1111,NULL,1),
-(3005,'Masterclass Marketing Digital','Atelier avancé pour les équipes marketing, growth et communication sur les leviers digitaux les plus performants.','2026-05-12 13:30:00','2026-05-12 17:00:00','Salle Atlas','EXISTING_SPACE',3,NULL,70,45,'PUBLISHED',0,1111,'2026-03-01 10:00:00','2026-03-01 10:20:00',1111,NULL,0),
-(3006,'Table ronde Finance & Investissement','Échanges entre experts, dirigeants et investisseurs autour du financement, de la croissance et du pilotage financier.','2026-05-19 18:30:00','2026-05-19 21:30:00','Salle Horizon','EXISTING_SPACE',4,NULL,45,25,'PUBLISHED',0,1111,'2026-03-01 10:15:00','2026-03-01 10:25:00',1111,NULL,1),
-(3007,'Meetup Innovation RH','Session dédiée aux pratiques RH, à la marque employeur et à l''expérience collaborateur.','2026-05-26 17:30:00','2026-05-26 20:00:00','Salle Atlas','EXISTING_SPACE',3,NULL,85,20,'PUBLISHED',0,1111,'2026-03-01 10:30:00','2026-03-01 10:35:00',1111,NULL,0),
-(3008,'Workshop Infrastructure Cloud','Workshop technique en format atelier consacré à l''architecture cloud, à la fiabilité et à la performance applicative.','2026-05-12 09:00:00','2026-05-12 12:30:00','Salle Horizon','EXISTING_SPACE',4,NULL,50,40,'PUBLISHED',0,1111,'2026-03-01 10:45:00','2026-03-01 10:40:00',1111,NULL,1);
+(3001,'Séminaire IA & Data','Séminaire professionnel dédié à l''IA, à la data et à leurs usages concrets en entreprise.','2026-06-02 09:00:00','2026-06-02 17:30:00','Salle Premium Executive','EXISTING_SPACE',2,NULL,120,120,'PUBLISHED',0,1111,'2026-03-01 09:00:00','2026-03-01 10:00:00',1111,NULL,1),
+(3002,'Séminaire Leadership','Session professionnelle axée sur le management, la communication et la prise de décision.','2026-06-04 10:00:00','2026-06-04 13:00:00','Salle Atlas','EXISTING_SPACE',3,NULL,80,75,'PUBLISHED',0,1111,'2026-03-01 09:15:00','2026-03-01 10:05:00',1111,NULL,1),
+(3003,'Conférence Stratégie Produit','Grande conférence destinée aux équipes produit, aux fondateurs et aux consultants autour de la priorisation et de la feuille de route.','2026-06-11 14:00:00','2026-06-11 18:00:00','Salle Premium Orion','EXISTING_SPACE',1,NULL,420,145,'PUBLISHED',0,1111,'2026-03-01 09:30:00','2026-03-01 10:10:00',1111,NULL,1),
+(3004,'Séminaire Cybersécurité','Rencontre professionnelle consacrée aux risques, à la prévention et à la gouvernance cyber.','2026-06-18 17:00:00','2026-06-18 20:30:00','Salle Atlas','EXISTING_SPACE',3,NULL,95,80,'PUBLISHED',0,1111,'2026-03-01 09:45:00','2026-03-01 10:15:00',1111,NULL,1),
+(3005,'Masterclass Marketing Digital','Atelier avancé pour les équipes marketing, growth et communication sur les leviers digitaux les plus performants.','2026-06-16 13:30:00','2026-06-16 17:00:00','Salle Atlas','EXISTING_SPACE',3,NULL,70,45,'PUBLISHED',0,1111,'2026-03-01 10:00:00','2026-03-01 10:20:00',1111,NULL,0),
+(3006,'Table ronde Finance & Investissement','Échanges entre experts, dirigeants et investisseurs autour du financement, de la croissance et du pilotage financier.','2026-06-24 18:30:00','2026-06-24 21:30:00','Salle Horizon','EXISTING_SPACE',4,NULL,45,25,'PUBLISHED',0,1111,'2026-03-01 10:15:00','2026-03-01 10:25:00',1111,NULL,1),
+(3007,'Meetup Innovation RH','Session dédiée aux pratiques RH, à la marque employeur et à l''expérience collaborateur.','2026-07-02 17:30:00','2026-07-02 20:00:00','Salle Atlas','EXISTING_SPACE',3,NULL,85,20,'PUBLISHED',0,1111,'2026-03-01 10:30:00','2026-03-01 10:35:00',1111,NULL,0),
+(3008,'Workshop Infrastructure Cloud','Workshop technique en format atelier consacré à l''architecture cloud, à la fiabilité et à la performance applicative.','2026-06-09 09:00:00','2026-06-09 12:30:00','Salle Horizon','EXISTING_SPACE',4,NULL,50,40,'PUBLISHED',0,1111,'2026-03-01 10:45:00','2026-03-01 10:40:00',1111,NULL,1),
+(3009,'Forum Mobilité Bruxelles','Événement proposé par un organisateur et en attente de validation admin.','2026-07-09 09:30:00','2026-07-09 12:30:00','Salle Horizon','EXISTING_SPACE',4,NULL,45,35,'PENDING_APPROVAL',0,1112,'2026-05-18 09:00:00',NULL,NULL,NULL,0);
 /*!40000 ALTER TABLE `event` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -284,13 +285,13 @@ CREATE TABLE `parking_slot` (
 LOCK TABLES `parking_slot` WRITE;
 /*!40000 ALTER TABLE `parking_slot` DISABLE KEYS */;
 INSERT INTO `parking_slot` VALUES
-(1,'Accès parking - Séminaire IA & Data','Accès parking associé au Séminaire IA & Data.','2026-05-05','08:00:00','18:30:00',40,12,'OPEN',0,'2026-03-02 09:00:00',3001),
-(2,'Accès parking - Séminaire Leadership','Accès parking associé au Séminaire Leadership.','2026-05-05','09:00:00','13:30:00',25,10,'OPEN',0,'2026-03-02 09:10:00',3002),
-(3,'Accès parking - Conférence Stratégie Produit','Accès parking associé à la Conférence Stratégie Produit.','2026-05-12','13:00:00','18:30:00',55,10,'OPEN',0,'2026-03-02 09:20:00',3003),
-(4,'Accès parking - Séminaire Cybersécurité','Accès parking associé au Séminaire Cybersécurité.','2026-05-19','16:30:00','21:00:00',30,8,'OPEN',0,'2026-03-02 09:30:00',3004),
-(5,'Accès parking - Masterclass Marketing Digital','Accès parking associé à la Masterclass Marketing Digital.','2026-05-12','12:30:00','17:30:00',20,8,'OPEN',0,'2026-03-02 09:40:00',3005),
-(6,'Accès parking - Table ronde Finance & Investissement','Accès parking associé à la Table ronde Finance & Investissement.','2026-05-19','17:30:00','22:00:00',16,8,'OPEN',0,'2026-03-02 09:50:00',3006),
-(7,'Accès parking - Workshop Infrastructure Cloud','Accès parking associé au Workshop Infrastructure Cloud.','2026-05-12','08:00:00','13:00:00',18,8,'OPEN',0,'2026-03-02 10:00:00',3008);
+(1,'Accès parking - Séminaire IA & Data','Accès parking associé au Séminaire IA & Data.','2026-06-02','08:00:00','18:30:00',48,12,'OPEN',0,'2026-03-02 09:00:00',3001),
+(2,'Accès parking - Séminaire Leadership','Accès parking associé au Séminaire Leadership.','2026-06-04','09:00:00','13:30:00',25,10,'OPEN',0,'2026-03-02 09:10:00',3002),
+(3,'Accès parking - Conférence Stratégie Produit','Accès parking associé à la Conférence Stratégie Produit.','2026-06-11','13:00:00','18:30:00',120,10,'OPEN',0,'2026-03-02 09:20:00',3003),
+(4,'Accès parking - Séminaire Cybersécurité','Accès parking associé au Séminaire Cybersécurité.','2026-06-18','16:30:00','21:00:00',32,8,'OPEN',0,'2026-03-02 09:30:00',3004),
+(5,'Accès parking - Masterclass Marketing Digital','Accès parking associé à la Masterclass Marketing Digital.','2026-06-16','12:30:00','17:30:00',20,8,'OPEN',0,'2026-03-02 09:40:00',3005),
+(6,'Accès parking - Table ronde Finance & Investissement','Accès parking associé à la Table ronde Finance & Investissement.','2026-06-24','17:30:00','22:00:00',18,8,'OPEN',0,'2026-03-02 09:50:00',3006),
+(7,'Accès parking - Workshop Infrastructure Cloud','Accès parking associé au Workshop Infrastructure Cloud.','2026-06-09','08:00:00','13:00:00',20,8,'OPEN',0,'2026-03-02 10:00:00',3008);
 /*!40000 ALTER TABLE `parking_slot` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -315,7 +316,7 @@ CREATE TABLE `utilisateur` (
   `password_reset_expires_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=1121 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1130 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -338,7 +339,16 @@ INSERT INTO `utilisateur` VALUES
 (1116,'Membre','Local','membre.local@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2025-12-15 14:32:47','2025-12-15 14:47:09',NULL,NULL),
 (1117,'Organisateur','Local','organisateur.local@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','ORGANIZER','ACTIVE','2025-12-15 14:33:08','2025-12-15 14:47:02',NULL,NULL),
 (1118,'Admin','Local','admin.local@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','ADMIN','ACTIVE','2025-12-15 14:33:27','2025-12-15 14:47:04',NULL,NULL),
-(1119,'Claire','Martin','claire.martin@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-04-26 12:00:00',NULL,NULL,NULL);
+(1119,'Claire','Martin','claire.martin@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-04-26 12:00:00',NULL,NULL,NULL),
+(1120,'Solvay','Digital Team','solvay.digital@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:00:00',NULL,NULL,NULL),
+(1121,'BNP Paribas','Innovation Hub','bnp.innovation@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:10:00',NULL,NULL,NULL),
+(1122,'Bruxelles','HR Collective','brussels.hr@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:20:00',NULL,NULL,NULL),
+(1123,'Laurent','Consultant','laurent.consultant@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:30:00',NULL,NULL,NULL),
+(1124,'UCLouvain','Alumni Network','uclouvain.alumni@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:40:00',NULL,NULL,NULL),
+(1125,'Startups','Brussels Club','startups.brussels@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:50:00',NULL,NULL,NULL),
+(1126,'Impact','Lab Brussels','impact.lab@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 10:00:00',NULL,NULL,NULL),
+(1127,'People','Operations Team','people.ops@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 10:10:00',NULL,NULL,NULL),
+(1128,'Finance','Circle Brussels','finance.circle@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 10:20:00',NULL,NULL,NULL);
 /*!40000 ALTER TABLE `utilisateur` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -346,10 +356,15 @@ LOCK TABLES `espace_reservation` WRITE;
 /*!40000 ALTER TABLE `espace_reservation` DISABLE KEYS */;
 INSERT INTO `espace_reservation` VALUES
 (351,1113,3,'2026-04-10 09:00:00','2026-04-10 12:00:00',330,'CONFIRMED',0,NULL,NULL,NULL,NULL,NULL,'2026-03-05 09:00:00'),
-(352,1116,1,'2026-04-16 08:00:00','2026-04-16 18:00:00',1800,'PENDING_APPROVAL',0,NULL,'Presentation client executive','',NULL,NULL,'2026-03-06 10:00:00'),
+(352,1116,1,'2026-06-29 08:00:00','2026-06-29 18:00:00',3200,'PENDING_APPROVAL',0,NULL,'Presentation client executive','',NULL,NULL,'2026-03-06 10:00:00'),
 (353,1003,5,'2026-04-22 14:00:00','2026-04-22 17:00:00',660,'APPROVED',0,NULL,'Session de preparation comite de direction',NULL,1111,'2026-03-08 11:15:00','2026-03-07 14:00:00'),
 (354,1115,4,'2026-05-05 09:00:00','2026-05-05 11:00:00',170,'CANCELLED',0,NULL,'Atelier equipe operationnelle',NULL,NULL,NULL,'2026-03-09 16:20:00'),
-(355,1004,2,'2026-05-20 13:00:00','2026-05-20 17:00:00',960,'CONFIRMED',0,NULL,'Comite investisseurs trimestriel',NULL,NULL,NULL,'2026-03-10 08:30:00');
+(355,1004,2,'2026-05-20 13:00:00','2026-05-20 17:00:00',960,'CONFIRMED',0,NULL,'Comite investisseurs trimestriel',NULL,NULL,NULL,'2026-03-10 08:30:00'),
+(356,1120,5,'2026-06-03 09:00:00','2026-06-03 11:00:00',380,'CONFIRMED',0,NULL,'Board meeting equipe digitale',NULL,NULL,NULL,'2026-05-12 09:00:00'),
+(357,1121,4,'2026-06-15 14:00:00','2026-06-15 17:00:00',270,'CONFIRMED',0,NULL,'Atelier innovation bancaire',NULL,NULL,NULL,'2026-05-12 10:00:00'),
+(358,1122,2,'2026-06-22 09:00:00','2026-06-22 13:00:00',1040,'PENDING_APPROVAL',0,NULL,'Session RH regionale avec accueil clients',NULL,NULL,NULL,'2026-05-13 11:00:00'),
+(359,1123,3,'2026-07-01 10:00:00','2026-07-01 16:00:00',780,'CONFIRMED',0,NULL,'Journee conseil independant',NULL,NULL,NULL,'2026-05-13 14:00:00'),
+(360,1124,1,'2026-07-08 09:00:00','2026-07-08 17:00:00',2560,'PENDING_APPROVAL',0,NULL,'Assemblee annuelle alumni',NULL,NULL,NULL,'2026-05-14 09:30:00');
 /*!40000 ALTER TABLE `espace_reservation` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -371,12 +386,12 @@ INSERT INTO `event_registration` VALUES
 (11513,1005,3002,9,675,'CONFIRMED',0,NULL,'2026-03-11 10:20:00'),
 (11514,1112,3002,15,1125,'CONFIRMED',0,NULL,'2026-03-11 10:25:00'),
 (11515,1115,3002,3,225,'CANCELLED',0,NULL,'2026-03-11 10:35:00'),
-(11516,1113,3003,8,1160,'CONFIRMED',0,NULL,'2026-03-11 11:00:00'),
-(11517,1116,3003,12,1740,'CONFIRMED',0,NULL,'2026-03-11 11:05:00'),
-(11518,1003,3003,10,1450,'CONFIRMED',0,NULL,'2026-03-11 11:10:00'),
-(11519,1004,3003,14,2030,'CONFIRMED',0,NULL,'2026-03-11 11:15:00'),
-(11520,1005,3003,6,870,'CONFIRMED',0,NULL,'2026-03-11 11:20:00'),
-(11521,1112,3003,8,1160,'CONFIRMED',0,NULL,'2026-03-11 11:25:00'),
+(11516,1113,3003,12,1740,'CONFIRMED',0,NULL,'2026-03-11 11:00:00'),
+(11517,1116,3003,18,2610,'CONFIRMED',0,NULL,'2026-03-11 11:05:00'),
+(11518,1003,3003,35,5075,'CONFIRMED',0,NULL,'2026-03-11 11:10:00'),
+(11519,1004,3003,60,8700,'CONFIRMED',0,NULL,'2026-03-11 11:15:00'),
+(11520,1005,3003,42,6090,'CONFIRMED',0,NULL,'2026-03-11 11:20:00'),
+(11521,1112,3003,50,7250,'CONFIRMED',0,NULL,'2026-03-11 11:25:00'),
 (11522,1113,3004,5,400,'CONFIRMED',0,NULL,'2026-03-11 12:00:00'),
 (11523,1116,3004,8,640,'CONFIRMED',0,NULL,'2026-03-11 12:05:00'),
 (11524,1003,3004,7,560,'CONFIRMED',0,NULL,'2026-03-11 12:10:00'),
@@ -395,7 +410,27 @@ INSERT INTO `event_registration` VALUES
 (11537,1113,3008,5,200,'CONFIRMED',0,NULL,'2026-03-11 16:00:00'),
 (11538,1116,3008,7,280,'CONFIRMED',0,NULL,'2026-03-11 16:05:00'),
 (11539,1003,3008,6,240,'CONFIRMED',0,NULL,'2026-03-11 16:10:00'),
-(11540,1004,3008,9,360,'CONFIRMED',0,NULL,'2026-03-11 16:15:00');
+(11540,1004,3008,9,360,'CONFIRMED',0,NULL,'2026-03-11 16:15:00'),
+(11541,1120,3003,80,11600,'CONFIRMED',0,NULL,'2026-05-14 09:00:00'),
+(11542,1121,3003,55,7975,'CONFIRMED',0,NULL,'2026-05-14 09:10:00'),
+(11543,1124,3003,28,4060,'CONFIRMED',0,NULL,'2026-05-14 09:20:00'),
+(11544,1120,3004,20,1600,'CONFIRMED',0,NULL,'2026-05-14 10:00:00'),
+(11545,1122,3004,18,1440,'CONFIRMED',0,NULL,'2026-05-14 10:10:00'),
+(11546,1126,3004,10,800,'CONFIRMED',0,NULL,'2026-05-14 10:20:00'),
+(11547,1123,3004,7,560,'CONFIRMED',0,NULL,'2026-05-14 10:30:00'),
+(11548,1125,3005,20,900,'CONFIRMED',0,NULL,'2026-05-14 11:00:00'),
+(11549,1127,3005,16,720,'CONFIRMED',0,NULL,'2026-05-14 11:10:00'),
+(11550,1123,3005,8,360,'CONFIRMED',0,NULL,'2026-05-14 11:20:00'),
+(11551,1128,3006,12,300,'CONFIRMED',0,NULL,'2026-05-14 12:00:00'),
+(11552,1121,3006,8,200,'CONFIRMED',0,NULL,'2026-05-14 12:10:00'),
+(11553,1123,3006,4,100,'CONFIRMED',0,NULL,'2026-05-14 12:20:00'),
+(11554,1127,3007,25,500,'CONFIRMED',0,NULL,'2026-05-14 13:00:00'),
+(11555,1122,3007,18,360,'CONFIRMED',0,NULL,'2026-05-14 13:10:00'),
+(11556,1126,3007,12,240,'CONFIRMED',0,NULL,'2026-05-14 13:20:00'),
+(11557,1123,3007,6,120,'CONFIRMED',0,NULL,'2026-05-14 13:30:00'),
+(11558,1125,3008,10,400,'CONFIRMED',0,NULL,'2026-05-14 14:00:00'),
+(11559,1120,3008,7,280,'CONFIRMED',0,NULL,'2026-05-14 14:10:00'),
+(11560,1123,3008,4,160,'CONFIRMED',0,NULL,'2026-05-14 14:20:00');
 /*!40000 ALTER TABLE `event_registration` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -426,7 +461,20 @@ INSERT INTO `parking_reservation` VALUES
 (222,1003,6,5,40,'CONFIRMED',0,NULL,'2026-03-12 14:10:00'),
 (223,1113,7,1,8,'CONFIRMED',0,NULL,'2026-03-12 15:00:00'),
 (224,1116,7,3,24,'CONFIRMED',0,NULL,'2026-03-12 15:05:00'),
-(225,1004,5,1,8,'CANCELLED',0,NULL,'2026-03-12 15:15:00');
+(225,1004,5,1,8,'CANCELLED',0,NULL,'2026-03-12 15:15:00'),
+(226,1120,3,32,320,'CONFIRMED',0,NULL,'2026-05-15 09:00:00'),
+(227,1121,3,28,280,'CONFIRMED',0,NULL,'2026-05-15 09:10:00'),
+(228,1124,3,14,140,'CONFIRMED',0,NULL,'2026-05-15 09:20:00'),
+(229,1120,4,10,80,'CONFIRMED',0,NULL,'2026-05-15 10:00:00'),
+(230,1122,4,6,48,'CONFIRMED',0,NULL,'2026-05-15 10:10:00'),
+(231,1126,4,5,40,'CONFIRMED',0,NULL,'2026-05-15 10:20:00'),
+(232,1125,5,6,48,'CONFIRMED',0,NULL,'2026-05-15 11:00:00'),
+(233,1127,5,4,32,'CONFIRMED',0,NULL,'2026-05-15 11:10:00'),
+(234,1123,5,3,24,'CONFIRMED',0,NULL,'2026-05-15 11:20:00'),
+(235,1128,6,4,32,'CONFIRMED',0,NULL,'2026-05-15 12:00:00'),
+(236,1125,7,8,64,'CONFIRMED',0,NULL,'2026-05-15 13:00:00'),
+(237,1120,7,4,32,'CONFIRMED',0,NULL,'2026-05-15 13:10:00'),
+(238,1123,7,2,16,'CONFIRMED',0,NULL,'2026-05-15 13:20:00');
 /*!40000 ALTER TABLE `parking_reservation` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
