@@ -3,59 +3,45 @@
   top: 0;
   z-index: 900;
   overflow: visible;
-  padding: 0.8rem 1.4rem 0;
-}
-
-.topShell,
-.navShell {
-  max-width: 1520px;
-  margin: 0 auto;
-  border: 1px solid rgba(20, 32, 51, 0.08);
-  background: rgba(255, 255, 255, 0.86);
-  backdrop-filter: blur(24px) saturate(1.08);
-  -webkit-backdrop-filter: blur(24px) saturate(1.08);
+  padding: 0.78rem clamp(0.9rem, 2.2vw, 2rem) 0;
 }
 
 .topShell {
-  position: relative;
-  z-index: 30;
   display: grid;
-  grid-template-columns: minmax(240px, auto) minmax(0, 1fr);
+  grid-template-columns: minmax(260px, 360px) minmax(390px, auto) minmax(340px, 1fr);
   align-items: center;
   gap: 1rem;
-  padding: 0.95rem 1.2rem;
-  border-radius: 24px 24px 0 0;
-  box-shadow: 0 22px 48px rgba(11, 18, 32, 0.1);
-}
-
-.navShell {
-  position: relative;
-  z-index: 10;
-  margin-top: -1px;
-  padding: 0 1.2rem;
-  border-radius: 0 0 20px 20px;
-  box-shadow: 0 18px 34px rgba(11, 18, 32, 0.07);
+  max-width: 1840px;
+  margin: 0 auto;
+  padding: 0.78rem 0.9rem;
+  border: 1px solid rgba(20, 32, 51, 0.08);
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 42px rgba(11, 18, 32, 0.1);
+  backdrop-filter: blur(24px) saturate(1.08);
+  -webkit-backdrop-filter: blur(24px) saturate(1.08);
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.75rem;
   min-width: 0;
   text-decoration: none;
 }
 
 .brandMark {
   display: grid;
+  flex: 0 0 auto;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   background:
     radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.34), transparent 32%),
     linear-gradient(145deg, rgba(11, 18, 32, 1) 0%, rgba(41, 71, 113, 1) 100%);
   color: #f8f5ef;
-  font-size: 1.15rem;
+  font-size: 1.18rem;
   font-weight: 800;
   box-shadow: 0 14px 30px rgba(22, 48, 84, 0.24);
 }
@@ -63,43 +49,75 @@
 .brandCopy {
   display: flex;
   flex-direction: column;
-  gap: 0.16rem;
+  gap: 0.18rem;
   min-width: 0;
 }
 
 .brandName {
   color: var(--blue-darker);
-  font-size: 1.2rem;
+  font-size: 1.16rem;
   line-height: 1;
   letter-spacing: -0.03em;
 }
 
 .brandSub {
+  overflow: visible;
   color: var(--taupe-dark);
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.productNav {
+  display: inline-flex;
+  align-items: center;
+  justify-self: center;
+  gap: 0.22rem;
+  min-width: 0;
+  padding: 0.28rem;
+  border: 1px solid rgba(20, 32, 51, 0.07);
+  border-radius: 999px;
+  background: rgba(20, 32, 51, 0.045);
+}
+
+.productLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.58rem 0.95rem;
+  border-radius: 999px;
+  color: var(--blue-dark);
+  text-decoration: none;
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.productLink:hover {
+  color: var(--blue-darker);
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.productLinkActive {
+  color: var(--blue-darker);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 10px 24px rgba(11, 18, 32, 0.08);
 }
 
 .topUtilities {
   position: relative;
   z-index: 60;
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-  gap: 0.45rem;
-  flex-wrap: wrap;
-}
-
-.userLabel {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  margin-right: 0.25rem;
-}
-
-.userLabel b {
-  color: var(--blue-darker);
+  justify-content: flex-end;
+  justify-self: end;
+  gap: 0.62rem;
+  min-width: 0;
 }
 
 .controls,
@@ -108,29 +126,28 @@
   z-index: 70;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.48rem;
 }
 
 .utilityLink,
-.logoutButton,
 .registerButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
-  padding: 0.5rem 0.8rem;
-  border-radius: 10px;
-  text-decoration: none;
+  min-height: 42px;
+  padding: 0.56rem 0.9rem;
+  border-radius: 999px;
   text-align: center;
-  font-size: 0.79rem;
-  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.84rem;
+  font-weight: 800;
   line-height: 1;
   white-space: nowrap;
 }
 
 .utilityLink {
   color: var(--blue-dark);
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(20, 32, 51, 0.08);
   box-shadow: 0 10px 24px rgba(11, 18, 32, 0.055);
 }
@@ -138,21 +155,8 @@
 .utilityLink:hover,
 .utilityLinkActive {
   color: var(--blue-darker);
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.98);
   border-color: rgba(181, 138, 76, 0.24);
-}
-
-.logoutButton {
-  border: 1px solid rgba(20, 32, 51, 0.1);
-  background: rgba(255, 255, 255, 0.62);
-  color: var(--blue-dark);
-  box-shadow: none;
-}
-
-.logoutButton:hover {
-  color: var(--blue-darker);
-  background: rgba(20, 32, 51, 0.06);
-  transform: none;
 }
 
 .registerButton {
@@ -167,55 +171,154 @@
   color: var(--blue-darker);
 }
 
-.productNav {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  min-height: 58px;
+.accountMenu {
+  position: relative;
+  flex: 0 0 auto;
 }
 
-.productLink {
-  position: relative;
+.accountButton {
   display: inline-flex;
   align-items: center;
-  min-height: 58px;
-  padding: 0.8rem 0.95rem;
-  color: var(--blue-dark);
-  text-decoration: none;
-  font-size: 0.9rem;
+  gap: 0.55rem;
+  min-height: 44px;
+  padding: 0.42rem 0.72rem 0.42rem 0.86rem;
+  border: 1px solid rgba(20, 32, 51, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--blue-darker);
+  box-shadow: 0 12px 28px rgba(11, 18, 32, 0.06);
+  cursor: pointer;
+  list-style: none;
+}
+
+.accountButton::-webkit-details-marker {
+  display: none;
+}
+
+.accountButton::after {
+  content: "";
+  width: 0.44rem;
+  height: 0.44rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-1px);
+  opacity: 0.65;
+}
+
+.accountMenu[open] .accountButton::after {
+  transform: rotate(225deg) translate(-2px, -1px);
+}
+
+.accountEyebrow {
+  color: var(--text-secondary);
+  font-size: 0.68rem;
   font-weight: 800;
-  border-bottom: 2px solid transparent;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.productLink:hover {
+.accountButton strong {
+  font-size: 0.88rem;
+  line-height: 1;
+}
+
+.accountPanel {
+  position: absolute;
+  top: calc(100% + 0.7rem);
+  right: 0;
+  display: grid;
+  gap: 0.32rem;
+  min-width: 250px;
+  padding: 0.65rem;
+  border: 1px solid rgba(20, 32, 51, 0.1);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 24px 52px rgba(11, 18, 32, 0.16);
+}
+
+.accountHeader {
+  display: grid;
+  gap: 0.14rem;
+  padding: 0.52rem 0.62rem 0.65rem;
+  border-bottom: 1px solid rgba(20, 32, 51, 0.08);
+}
+
+.accountHeader span {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.accountHeader strong {
   color: var(--blue-darker);
+  font-size: 0.95rem;
 }
 
-.productLinkActive {
+.menuLink,
+.menuLogout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 40px;
+  padding: 0.58rem 0.7rem;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--blue-dark);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.menuLink:hover,
+.menuLinkActive,
+.menuLogout:hover {
   color: var(--blue-darker);
-  border-bottom-color: var(--orange);
+  background: rgba(20, 32, 51, 0.055);
 }
 
-:global([data-theme="dark"]) .topShell,
-:global([data-theme="dark"]) .navShell {
+.menuLogout {
+  margin-top: 0.15rem;
+  color: #9f3a2f;
+}
+
+:global([data-theme="dark"]) .topShell {
   border-color: rgba(255, 255, 255, 0.08);
   background: rgba(12, 18, 27, 0.92);
 }
 
 :global([data-theme="dark"]) .brandName,
-:global([data-theme="dark"]) .userLabel b,
 :global([data-theme="dark"]) .productLink:hover,
-:global([data-theme="dark"]) .productLinkActive {
+:global([data-theme="dark"]) .productLinkActive,
+:global([data-theme="dark"]) .accountButton,
+:global([data-theme="dark"]) .accountHeader strong {
   color: var(--text-primary);
 }
 
 :global([data-theme="dark"]) .brandSub,
-:global([data-theme="dark"]) .userLabel,
-:global([data-theme="dark"]) .productLink {
+:global([data-theme="dark"]) .productLink,
+:global([data-theme="dark"]) .accountEyebrow,
+:global([data-theme="dark"]) .accountHeader span {
   color: var(--text-secondary);
 }
 
-:global([data-theme="dark"]) .utilityLink {
+:global([data-theme="dark"]) .productNav {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+:global([data-theme="dark"]) .productLink:hover,
+:global([data-theme="dark"]) .productLinkActive {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+
+:global([data-theme="dark"]) .utilityLink,
+:global([data-theme="dark"]) .accountButton {
   color: var(--text-secondary);
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.08);
@@ -223,51 +326,150 @@
 }
 
 :global([data-theme="dark"]) .utilityLink:hover,
-:global([data-theme="dark"]) .utilityLinkActive {
+:global([data-theme="dark"]) .utilityLinkActive,
+:global([data-theme="dark"]) .accountMenu[open] .accountButton {
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.08);
 }
 
-:global([data-theme="dark"]) .logoutButton {
-  border-color: rgba(226, 232, 240, 0.2);
-  background: rgba(226, 232, 240, 0.1);
-  color: #f8fafc;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+:global([data-theme="dark"]) .accountPanel {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(14, 21, 31, 0.98);
+  box-shadow: 0 24px 52px rgba(0, 0, 0, 0.38);
 }
 
-:global([data-theme="dark"]) .logoutButton:hover {
+:global([data-theme="dark"]) .accountHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme="dark"]) .menuLink,
+:global([data-theme="dark"]) .menuLogout {
+  color: var(--text-secondary);
+}
+
+:global([data-theme="dark"]) .menuLink:hover,
+:global([data-theme="dark"]) .menuLinkActive,
+:global([data-theme="dark"]) .menuLogout:hover {
   color: var(--text-primary);
-  border-color: rgba(244, 215, 168, 0.24);
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
 }
 
-@media (max-width: 1180px) {
+:global([data-theme="dark"]) .menuLogout {
+  color: #f7b7ad;
+}
+
+@media (max-width: 1120px) {
   .topShell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(240px, 1fr) auto;
+    gap: 0.7rem 1rem;
+  }
+
+  .brand {
+    grid-column: 1;
+    grid-row: 1;
   }
 
   .topUtilities {
-    justify-content: flex-start;
-  }
-}
-
-@media (max-width: 760px) {
-  .header {
-    padding: 0.6rem 0.8rem 0;
-  }
-
-  .topShell,
-  .navShell {
-    padding-left: 0.95rem;
-    padding-right: 0.95rem;
-  }
-
-  .brandSub,
-  .userLabel {
-    display: none;
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .productNav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
+  }
+}
+
+@media (max-width: 860px) {
+  .header {
+    padding: 0.55rem 0.7rem 0;
+  }
+
+  .topShell {
+    grid-template-columns: 1fr;
+    gap: 0.62rem;
+    padding: 0.7rem;
+    border-radius: 20px;
+  }
+
+  .brand,
+  .topUtilities,
+  .productNav {
+    grid-column: 1;
+  }
+
+  .brand {
+    justify-self: start;
+    grid-row: 1;
+  }
+
+  .topUtilities {
+    grid-row: 2;
+    justify-self: stretch;
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .productNav {
+    grid-row: 3;
+    justify-self: stretch;
     overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .productNav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .productLink {
+    flex: 1 0 auto;
+    min-height: 38px;
+    padding: 0.52rem 0.72rem;
+    font-size: 0.8rem;
+  }
+
+  .controls {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .controls::-webkit-scrollbar {
+    display: none;
+  }
+
+  .accountPanel {
+    right: 0;
+    min-width: min(280px, calc(100vw - 2.2rem));
+  }
+}
+
+@media (max-width: 560px) {
+  .brandMark {
+    width: 40px;
+    height: 40px;
+  }
+
+  .brandName {
+    font-size: 1.05rem;
+  }
+
+  .brandSub,
+  .accountEyebrow {
+    display: none;
+  }
+
+  .topUtilities {
+    align-items: flex-start;
+  }
+
+  .controls {
+    min-width: 0;
+  }
+
+  .accountButton {
+    min-height: 40px;
+    padding: 0.4rem 0.62rem 0.4rem 0.72rem;
   }
 }

@@ -27,77 +27,7 @@ export default function Navbar() {
           </div>
         </NavLink>
 
-        <div className={styles.topUtilities}>
-          {user && (
-            <span className={styles.userLabel}>
-              {t("nav.hello")}, <b>{user.firstName}</b>
-            </span>
-          )}
-
-          {user && (
-            <NavLink
-              to="/my-reservations"
-              className={({ isActive }) => `${styles.utilityLink} ${isActive ? styles.utilityLinkActive : ""}`}
-            >
-              {t("nav.myReservations")}
-            </NavLink>
-          )}
-
-          {user && (user.role === "ORGANIZER" || user.role === "ADMIN") && (
-            <NavLink
-              to="/organizer/events"
-              className={({ isActive }) => `${styles.utilityLink} ${isActive ? styles.utilityLinkActive : ""}`}
-            >
-              {t("nav.organizerEvents")}
-            </NavLink>
-          )}
-
-          {user?.role === "ADMIN" && (
-            <NavLink
-              to="/admin"
-              className={({ isActive }) => `${styles.utilityLink} ${isActive ? styles.utilityLinkActive : ""}`}
-            >
-              {t("nav.admin")}
-            </NavLink>
-          )}
-
-          {user && (
-            <NavLink
-              to="/profile"
-              className={({ isActive }) => `${styles.utilityLink} ${isActive ? styles.utilityLinkActive : ""}`}
-            >
-              {t("nav.profile")}
-            </NavLink>
-          )}
-
-          <div className={styles.controls}>
-            {user && <UserNotificationCenter token={token} user={user} />}
-            <LanguageSwitcher />
-            <ThemeToggle />
-          </div>
-
-          {user ? (
-            <button onClick={handleLogout} className={styles.logoutButton}>
-              {t("nav.logout")}
-            </button>
-          ) : (
-            <div className={styles.authLinks}>
-              <NavLink
-                to="/login"
-                className={({ isActive }) => `${styles.utilityLink} ${isActive ? styles.utilityLinkActive : ""}`}
-              >
-                {t("nav.login")}
-              </NavLink>
-              <NavLink to="/register" className={styles.registerButton}>
-                {t("nav.register")}
-              </NavLink>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className={styles.navShell}>
-        <nav className={styles.productNav}>
+        <nav className={styles.productNav} aria-label={t("footer.productLinks")}>
           <NavLink
             to="/events"
             className={({ isActive }) => `${styles.productLink} ${isActive ? styles.productLinkActive : ""}`}
@@ -123,6 +53,78 @@ export default function Navbar() {
             {t("nav.contact")}
           </NavLink>
         </nav>
+
+        <div className={styles.topUtilities}>
+          <div className={styles.controls}>
+            {user && <UserNotificationCenter token={token} user={user} />}
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
+
+          {user ? (
+            <details className={styles.accountMenu}>
+              <summary className={styles.accountButton}>
+                <span className={styles.accountEyebrow}>{t("nav.accountMenu")}</span>
+                <strong>{user.firstName}</strong>
+              </summary>
+
+              <div className={styles.accountPanel}>
+                <div className={styles.accountHeader}>
+                  <span>{t("nav.hello")}</span>
+                  <strong>{user.firstName}</strong>
+                </div>
+
+                <NavLink
+                  to="/my-reservations"
+                  className={({ isActive }) => `${styles.menuLink} ${isActive ? styles.menuLinkActive : ""}`}
+                >
+                  {t("nav.myReservations")}
+                </NavLink>
+
+                {user.role === "ORGANIZER" || user.role === "ADMIN" ? (
+                  <NavLink
+                    to="/organizer/events"
+                    className={({ isActive }) => `${styles.menuLink} ${isActive ? styles.menuLinkActive : ""}`}
+                  >
+                    {t("nav.organizerEventsShort")}
+                  </NavLink>
+                ) : null}
+
+                {user.role === "ADMIN" ? (
+                  <NavLink
+                    to="/admin"
+                    className={({ isActive }) => `${styles.menuLink} ${isActive ? styles.menuLinkActive : ""}`}
+                  >
+                    {t("nav.admin")}
+                  </NavLink>
+                ) : null}
+
+                <NavLink
+                  to="/profile"
+                  className={({ isActive }) => `${styles.menuLink} ${isActive ? styles.menuLinkActive : ""}`}
+                >
+                  {t("nav.profile")}
+                </NavLink>
+
+                <button onClick={handleLogout} className={styles.menuLogout}>
+                  {t("nav.logout")}
+                </button>
+              </div>
+            </details>
+          ) : (
+            <div className={styles.authLinks}>
+              <NavLink
+                to="/login"
+                className={({ isActive }) => `${styles.utilityLink} ${isActive ? styles.utilityLinkActive : ""}`}
+              >
+                {t("nav.login")}
+              </NavLink>
+              <NavLink to="/register" className={styles.registerButton}>
+                {t("nav.register")}
+              </NavLink>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
