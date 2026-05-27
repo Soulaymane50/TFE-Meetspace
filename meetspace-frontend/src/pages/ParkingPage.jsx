@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
 import { formatMoney, formatNumber } from "../utils/formatters";
+import { MEETSPACE_TOTAL_PARKING_SPACES } from "../utils/businessRules";
 import styles from "./ParkingPage.module.css";
 
 const getDateLocale = (lang) => {
@@ -159,8 +160,8 @@ export default function ParkingPage() {
             <span className={styles.summaryLabel}>{t("parking.operationsOpenSlots")}</span>
           </div>
           <div className={styles.summaryCard}>
-            <span className={styles.summaryValue}>{formatNumber(totalAvailableSpaces, locale)}</span>
-            <span className={styles.summaryLabel}>{t("parking.placesAvailable")}</span>
+            <span className={styles.summaryValue}>{formatNumber(MEETSPACE_TOTAL_PARKING_SPACES, locale)}</span>
+            <span className={styles.summaryLabel}>{t("parking.physicalCapacityLabel")}</span>
           </div>
           <div className={styles.summaryCard}>
             <span className={styles.summaryValue}>{formatMoney(averageRate, locale)}</span>
@@ -192,7 +193,7 @@ export default function ParkingPage() {
               </div>
               <div className={styles.sidebarStat}>
                 <span className={styles.sidebarStatValue}>{formatNumber(totalCapacity, locale)}</span>
-                <span className={styles.sidebarStatLabel}>{t("parking.totalCapacityLabel")}</span>
+                <span className={styles.sidebarStatLabel}>{t("parking.allocatedQuotaLabel")}</span>
               </div>
             </div>
 

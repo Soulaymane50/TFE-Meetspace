@@ -352,7 +352,9 @@ export default function OrganizerEventsPage() {
         </div>
       ) : (
         <div className={styles.eventsGrid}>
-          {filteredEvents.map((e) => (
+          {filteredEvents.map((e) => {
+            const eventFinance = financeByEventId.get(e.id);
+            return (
             <div key={e.id} className={styles.eventCard}>
               <div className={styles.eventHeader}>
                 <h3 className={styles.eventTitle}>{e.title}</h3>
@@ -384,11 +386,37 @@ export default function OrganizerEventsPage() {
                 </div>
               </div>
 
-              {financeByEventId.has(e.id) && (
+              {e.parkingRequired && e.parkingCapacity ? (
+                <div className={styles.parkingQuotaStrip}>
+                  <span>{t("organizer.parkingQuota")}</span>
+                  <strong>
+                    {t("organizer.parkingQuotaSummary", {
+                      count: formatStat(e.parkingCapacity),
+                      price: formatEuro(e.parkingPrice || 0),
+                    })}
+                  </strong>
+                </div>
+              ) : null}
+
+              {eventFinance && (
                 <div className={styles.eventFinanceStrip}>
-                  <span>{t("finance.netShort")}</span>
-                  <strong>{formatEuro(financeByEventId.get(e.id).organizerNetEstimate)}</strong>
-                  <small>{formatStat(financeByEventId.get(e.id).confirmedParticipants || 0)} {t("common.participants")}</small>
+                  <span>
+                    {t("finance.grossShort")}
+                    <strong>{formatEuro(eventFinance.grossRevenue)}</strong>
+                  </span>
+                  <span>
+                    {t("finance.commissionShort")}
+                    <strong>{formatEuro(eventFinance.meetSpaceCommission)}</strong>
+                  </span>
+                  <span>
+                    {t("finance.roomShort")}
+                    <strong>{formatEuro(eventFinance.roomCost)}</strong>
+                  </span>
+                  <span>
+                    {t("finance.netShort")}
+                    <strong>{formatEuro(eventFinance.organizerNetEstimate)}</strong>
+                  </span>
+                  <small>{formatStat(eventFinance.confirmedParticipants || 0)} {t("common.participants")}</small>
                 </div>
               )}
 
@@ -410,7 +438,8 @@ export default function OrganizerEventsPage() {
                 ) : null}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

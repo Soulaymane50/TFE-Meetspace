@@ -7,6 +7,14 @@ import PageState from "../components/PageState";
 import RoomSchedulePicker from "../components/RoomSchedulePicker";
 import SelectDropdown from "../components/SelectDropdown";
 import { formatMoney, normalizeLocale } from "../utils/formatters";
+import {
+  MEETSPACE_COMMISSION_RATE,
+  MEETSPACE_TOTAL_PARKING_SPACES,
+  getParkingQuotaLimit,
+  getRecommendedParkingQuota,
+  getRecommendedParkingRate,
+  getRecommendedTicketPrice,
+} from "../utils/businessRules";
 import styles from "./OrganizerEventForm.module.css";
 
 export default function OrganizerEventForm() {
@@ -57,14 +65,6 @@ export default function OrganizerEventForm() {
     (space) => String(space.id) === String(eventForm.spaceId) || space.name === eventForm.location,
   );
   const selectedCapacity = Number(selectedSpace?.capacity) || 0;
-  const recommendedCapacity = selectedCapacity
-    ? Math.min(selectedCapacity, Math.max(12, Math.round(selectedCapacity * 0.75)))
-    : 0;
-  const recommendedPrice = selectedCapacity >= 300 ? 120 : selectedCapacity >= 100 ? 80 : selectedCapacity >= 50 ? 45 : 25;
-  const recommendedParkingCapacity = recommendedCapacity
-    ? Math.min(50, Math.max(6, Math.round(recommendedCapacity * 0.3)))
-    : 0;
-  const recommendedParkingPrice = selectedCapacity >= 100 ? 10 : 8;
   const previewStart = eventForm.startDateTime ? new Date(eventForm.startDateTime) : null;
   const previewEnd = eventForm.endDateTime ? new Date(eventForm.endDateTime) : null;
   const previewDate =
@@ -87,9 +87,16 @@ export default function OrganizerEventForm() {
       : 0;
   const scheduleDurationHours =
     scheduleDurationMs > 0 ? Math.round((scheduleDurationMs / (1000 * 60 * 60)) * 100) / 100 : 0;
+  const recommendedCapacity = selectedCapacity
+    ? Math.min(selectedCapacity, Math.max(12, Math.round(selectedCapacity * 0.75)))
+    : 0;
+  const recommendedPrice = getRecommendedTicketPrice(selectedCapacity);
+  const parkingQuotaLimit = getParkingQuotaLimit(eventCapacityEstimate || recommendedCapacity, selectedCapacity);
+  const recommendedParkingCapacity = getRecommendedParkingQuota(recommendedCapacity, selectedCapacity);
+  const recommendedParkingPrice = getRecommendedParkingRate(scheduleDurationHours, selectedCapacity);
   const grossRevenueEstimate = eventCapacityEstimate * ticketPriceEstimate;
   const roomCostEstimate = roomHourlyRate * scheduleDurationHours;
-  const commissionEstimate = grossRevenueEstimate * 0.1;
+  const commissionEstimate = grossRevenueEstimate * MEETSPACE_COMMISSION_RATE;
   const organizerNetEstimate = grossRevenueEstimate - commissionEstimate - roomCostEstimate;
   const showFinancePreview = selectedSpace && eventCapacityEstimate > 0;
 
@@ -153,14 +160,31 @@ export default function OrganizerEventForm() {
       if (name === "capacity") {
         const maxCapacity = selectedSpace?.capacity ? Number(selectedSpace.capacity) : Number.MAX_SAFE_INTEGER;
         next.capacity = clampNumber(value, 1, maxCapacity);
-        if (next.parkingCapacity && Number(next.parkingCapacity) > Number(next.capacity)) {
-          next.parkingCapacity = next.capacity;
+        const maxParking = getParkingQuotaLimit(next.capacity, selectedCapacity);
+        if (next.parkingCapacity && Number(next.parkingCapacity) > maxParking) {
+          next.parkingCapacity = String(maxParking);
         }
       }
 
       if (name === "parkingCapacity") {
-        const maxParking = prev.capacity ? Number(prev.capacity) : Number.MAX_SAFE_INTEGER;
+        const maxParking = getParkingQuotaLimit(prev.capacity, selectedCapacity);
         next.parkingCapacity = clampNumber(value, 1, maxParking);
+      }
+
+      if (name === "parkingRequired") {
+        if (checked) {
+          const maxParking = getParkingQuotaLimit(prev.capacity || recommendedCapacity, selectedCapacity);
+          const defaultQuota = recommendedParkingCapacity > 0
+            ? Math.min(recommendedParkingCapacity, maxParking)
+            : "";
+          next.parkingPrice = prev.parkingPrice || String(recommendedParkingPrice);
+          next.parkingCapacity = prev.parkingCapacity
+            ? clampNumber(prev.parkingCapacity, 1, maxParking)
+            : (defaultQuota ? String(defaultQuota) : "");
+        } else {
+          next.parkingPrice = "";
+          next.parkingCapacity = "";
+        }
       }
 
       return next;
@@ -172,29 +196,43 @@ export default function OrganizerEventForm() {
     const value = e.target.value;
     const room = availableSpaces.find((space) => String(space.id) === String(value));
 
-    setEventForm((prev) => ({
-      ...prev,
-      spaceId: value,
-      location: room?.name || "",
-      capacity:
+    setEventForm((prev) => {
+      const nextCapacity =
         room && (!prev.capacity || Number(prev.capacity) > Number(room.capacity))
           ? String(room.capacity)
-          : prev.capacity,
-      parkingCapacity:
-        room && prev.parkingCapacity && Number(prev.parkingCapacity) > Number(room.capacity)
-          ? String(room.capacity)
-          : prev.parkingCapacity,
-      startDateTime: "",
-      endDateTime: "",
-    }));
+          : prev.capacity;
+      const nextQuotaLimit = getParkingQuotaLimit(nextCapacity, room?.capacity);
+      return {
+        ...prev,
+        spaceId: value,
+        location: room?.name || "",
+        capacity: nextCapacity,
+        parkingPrice: prev.parkingRequired ? String(getRecommendedParkingRate(0, room?.capacity)) : prev.parkingPrice,
+        parkingCapacity:
+          prev.parkingCapacity && Number(prev.parkingCapacity) > nextQuotaLimit
+            ? String(nextQuotaLimit)
+            : prev.parkingCapacity,
+        startDateTime: "",
+        endDateTime: "",
+      };
+    });
     setError("");
   };
 
   const handleScheduleChange = ({ startDateTime, endDateTime }) => {
+    const start = startDateTime ? new Date(startDateTime) : null;
+    const end = endDateTime ? new Date(endDateTime) : null;
+    const durationHours =
+      start && end && !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && end > start
+        ? Math.round(((end.getTime() - start.getTime()) / (1000 * 60 * 60)) * 100) / 100
+        : 0;
     setEventForm((prev) => ({
       ...prev,
       startDateTime,
       endDateTime,
+      parkingPrice: prev.parkingRequired
+        ? String(getRecommendedParkingRate(durationHours, selectedCapacity))
+        : prev.parkingPrice,
     }));
     setError("");
   };
@@ -205,8 +243,8 @@ export default function OrganizerEventForm() {
       ...prev,
       capacity: String(selectedSpace.capacity),
       parkingCapacity:
-        prev.parkingCapacity && Number(prev.parkingCapacity) > Number(selectedSpace.capacity)
-          ? String(selectedSpace.capacity)
+        prev.parkingCapacity && Number(prev.parkingCapacity) > getParkingQuotaLimit(selectedSpace.capacity, selectedCapacity)
+          ? String(getParkingQuotaLimit(selectedSpace.capacity, selectedCapacity))
           : prev.parkingCapacity,
     }));
     setError("");
@@ -268,6 +306,10 @@ export default function OrganizerEventForm() {
         setError(t("organizer.parkingCapacityExceedsEvent", { capacity: eventForm.capacity }));
         return false;
       }
+      if (parkingCapacity > parkingQuotaLimit) {
+        setError(t("organizer.parkingCapacityExceedsQuota", { quota: parkingQuotaLimit }));
+        return false;
+      }
     }
     return true;
   };
@@ -288,7 +330,9 @@ export default function OrganizerEventForm() {
       location: selectedSpace.name,
       capacity: parseInt(eventForm.capacity),
       price: eventForm.price ? parseFloat(eventForm.price) : 0,
-      parkingPrice: eventForm.parkingPrice !== "" ? parseFloat(eventForm.parkingPrice) : null,
+      parkingPrice: eventForm.parkingRequired
+        ? (eventForm.parkingPrice !== "" ? parseFloat(eventForm.parkingPrice) : recommendedParkingPrice)
+        : null,
       parkingCapacity: eventForm.parkingCapacity !== "" ? parseInt(eventForm.parkingCapacity) : null,
     };
 
@@ -483,7 +527,7 @@ export default function OrganizerEventForm() {
                   <p className={styles.advisorKicker}>{t("finance.indicativeEstimate")}</p>
                   <h3>{t("organizer.financePreviewTitle")}</h3>
                 </div>
-                <span>{t("finance.commissionRate", { rate: 10 })}</span>
+                <span>{t("finance.commissionRate", { rate: Math.round(MEETSPACE_COMMISSION_RATE * 100) })}</span>
               </div>
               <div className={styles.financePreviewGrid}>
                 <span>
@@ -536,8 +580,10 @@ export default function OrganizerEventForm() {
                   onChange={handleChange}
                   min="0"
                   step="0.01"
+                  readOnly
                   className={styles.input}
                 />
+                <span className={styles.hint}>{t("organizer.parkingRateHint")}</span>
               </div>
               <div className={styles.formGroup}>
                 <label className={styles.label}>{t("organizer.parkingCapacity")}</label>
@@ -547,9 +593,15 @@ export default function OrganizerEventForm() {
                   value={eventForm.parkingCapacity}
                   onChange={handleChange}
                   min="1"
-                  max={eventForm.capacity || undefined}
+                  max={parkingQuotaLimit || undefined}
                   className={styles.input}
                 />
+                <span className={styles.hint}>
+                  {t("organizer.parkingQuotaHint", {
+                    quota: parkingQuotaLimit,
+                    total: MEETSPACE_TOTAL_PARKING_SPACES,
+                  })}
+                </span>
               </div>
             </div>
           )}
@@ -575,7 +627,14 @@ export default function OrganizerEventForm() {
                 <span>{selectedSpace?.name || t("organizer.previewRoomFallback")}</span>
                 <span>{eventForm.capacity || 0} {t("common.persons")}</span>
                 <span>{eventForm.price ? formatMoney(eventForm.price, locale) : t("events.free")}</span>
-                <span>{eventForm.parkingRequired ? t("organizer.previewParkingIncluded") : t("organizer.previewParkingExcluded")}</span>
+                <span>
+                  {eventForm.parkingRequired
+                    ? t("organizer.previewParkingQuota", {
+                        count: eventForm.parkingCapacity || 0,
+                        price: formatMoney(eventForm.parkingPrice || recommendedParkingPrice, locale),
+                      })
+                    : t("organizer.previewParkingExcluded")}
+                </span>
               </div>
               <div className={styles.previewFooter}>
                 <span>{t("organizer.previewStatus")}</span>

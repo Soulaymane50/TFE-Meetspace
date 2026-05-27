@@ -692,28 +692,72 @@
   color: var(--blue-dark);
 }
 
+.parkingQuotaStrip,
 .eventFinanceStrip {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
   margin: 0 1.3rem 0.2rem;
-  padding: 0.72rem 0.85rem;
   border-radius: 18px;
   border: 1px solid rgba(27, 42, 64, 0.08);
-  background: rgba(16, 185, 129, 0.08);
-  color: #047857;
 }
 
-.eventFinanceStrip span,
-.eventFinanceStrip small {
+.parkingQuotaStrip {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.72rem 0.85rem;
+  background: rgba(90, 124, 226, 0.08);
+  color: #3157b6;
+}
+
+.parkingQuotaStrip span,
+.parkingQuotaStrip strong {
   color: inherit;
   font-size: 0.76rem;
   font-weight: 850;
 }
 
+.eventFinanceStrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  align-items: stretch;
+  gap: 0.45rem;
+  padding: 0.55rem;
+  background: rgba(16, 185, 129, 0.08);
+  color: #047857;
+}
+
+.eventFinanceStrip small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  padding: 0.45rem 0.6rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.48);
+  color: inherit;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.eventFinanceStrip span {
+  display: grid;
+  align-content: center;
+  gap: 0.22rem;
+  min-height: 50px;
+  padding: 0.45rem 0.6rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.48);
+  color: rgba(4, 120, 87, 0.78);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
 .eventFinanceStrip strong {
-  margin-left: auto;
+  display: block;
   color: #065f46;
+  font-size: 0.9rem;
+  letter-spacing: -0.02em;
 }
 
 .eventActions {
@@ -836,9 +880,21 @@
   color: var(--text-primary);
 }
 
+[data-theme="dark"] .parkingQuotaStrip {
+  border-color: rgba(137, 163, 255, 0.18);
+  background: rgba(137, 163, 255, 0.12);
+  color: #dbe5ff;
+}
+
 [data-theme="dark"] .eventFinanceStrip {
   border-color: rgba(16, 185, 129, 0.18);
   background: rgba(16, 185, 129, 0.12);
+  color: #bbf7d0;
+}
+
+[data-theme="dark"] .eventFinanceStrip span,
+[data-theme="dark"] .eventFinanceStrip small {
+  background: rgba(255, 255, 255, 0.065);
   color: #bbf7d0;
 }
 
@@ -981,7 +1037,12 @@
   .commandDeck,
   .consoleBody,
   .signalGrid,
-  .financeGrid {
+  .financeGrid,
+  .eventFinanceStrip {
     grid-template-columns: 1fr;
+  }
+
+  .parkingQuotaStrip {
+    flex-direction: column;
   }
 }

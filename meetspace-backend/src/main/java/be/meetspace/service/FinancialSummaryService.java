@@ -29,8 +29,6 @@ import java.util.Objects;
 @Service
 public class FinancialSummaryService {
 
-    public static final double MEETSPACE_COMMISSION_RATE = 0.10D;
-
     private final EventRepository eventRepository;
     private final EspaceRepository espaceRepository;
     private final EventRegistrationRepository eventRegistrationRepository;
@@ -121,7 +119,7 @@ public class FinancialSummaryService {
                 .toList();
 
         return new FinanceSummaryDto(
-                MEETSPACE_COMMISSION_RATE,
+                BusinessRules.MEETSPACE_COMMISSION_RATE,
                 sortedEvents.size(),
                 confirmedRegistrations,
                 confirmedParticipants,
@@ -153,7 +151,7 @@ public class FinancialSummaryService {
         double roomHourlyRate = getRoomHourlyRate(event);
         double grossRevenue = ticketPrice * participantCount;
         double roomCost = roomHourlyRate * durationHours;
-        double commission = grossRevenue * MEETSPACE_COMMISSION_RATE;
+        double commission = BusinessRules.calculateMeetSpaceCommission(grossRevenue);
         double organizerNet = grossRevenue - commission - roomCost;
 
         return new EventFinanceDto(
@@ -172,7 +170,7 @@ public class FinancialSummaryService {
                 roundMoney(roomCost),
                 roundMoney(commission),
                 roundMoney(organizerNet),
-                MEETSPACE_COMMISSION_RATE
+                BusinessRules.MEETSPACE_COMMISSION_RATE
         );
     }
 

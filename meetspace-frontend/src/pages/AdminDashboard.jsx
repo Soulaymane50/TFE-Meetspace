@@ -305,6 +305,7 @@ export default function AdminDashboard() {
   const eventCommissionRevenue = financeSummary?.eventCommissionRevenue ?? 0;
   const directRoomRevenue = financeSummary?.directRoomRevenue ?? stats?.spaceRevenue ?? 0;
   const organizerRoomCost = financeSummary?.roomCostChargedToOrganizers ?? 0;
+  const organizerNetEstimate = financeSummary?.organizerNetEstimate ?? 0;
   const parkingFinanceRevenue = financeSummary?.parkingRevenue ?? parkingRevenue;
   const getShare = (value, total = financeTotal) => (total > 0 ? Math.max(4, Math.round(((value || 0) / total) * 100)) : 0);
   const totalReservations =
@@ -601,10 +602,17 @@ export default function AdminDashboard() {
                 ))}
               </div>
 
-              <div className={styles.financeContext}>
-                <span>{t("admin.grossEventVolume")}</span>
-                <strong>{formatEuro(eventGrossRevenue)}</strong>
-                <small>{t("admin.grossEventVolumeHelp")}</small>
+              <div className={styles.financeContextGrid}>
+                <div className={styles.financeContext}>
+                  <span>{t("admin.grossEventVolume")}</span>
+                  <strong>{formatEuro(eventGrossRevenue)}</strong>
+                  <small>{t("admin.grossEventVolumeHelp")}</small>
+                </div>
+                <div className={styles.financeContext}>
+                  <span>{t("finance.organizerNetTotal")}</span>
+                  <strong>{formatEuro(organizerNetEstimate)}</strong>
+                  <small>{t("admin.organizerNetHelp")}</small>
+                </div>
               </div>
             </div>
 

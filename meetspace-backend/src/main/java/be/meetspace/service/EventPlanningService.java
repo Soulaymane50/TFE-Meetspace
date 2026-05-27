@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Service
@@ -147,8 +148,12 @@ public class EventPlanningService {
                     "Le nombre de places de parking ne peut pas dépasser la capacité de l'événement"
             );
         }
-        if (data.parkingPrice() == null || data.parkingPrice() < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le tarif du parking est requis");
+        int quotaLimit = BusinessRules.calculateParkingQuotaLimit(data.capacity(), getRoomCapacity(event));
+        if (data.parkingCapacity() > quotaLimit) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Le quota parking ne peut pas depasser " + quotaLimit + " places pour cette salle"
+            );
         }
 
         ParkingSlot parkingSlot = event.getParkingSlot();
@@ -165,16 +170,28 @@ public class EventPlanningService {
         }
 
         parkingSlot.setEvent(event);
-        parkingSlot.setTitle("Accès parking - " + event.getTitle());
-        parkingSlot.setDescription("Parking associé à l'événement " + event.getTitle());
+        parkingSlot.setTitle("Acces parking - " + event.getTitle());
+        parkingSlot.setDescription("Quota parking lie a l'evenement. Les participants paient leur place separement via MeetSpace.");
         parkingSlot.setSessionDate(event.getStartDateTime().toLocalDate());
         parkingSlot.setStartTime(event.getStartDateTime().toLocalTime());
         parkingSlot.setEndTime(event.getEndDateTime().toLocalTime());
         parkingSlot.setCapacity(data.parkingCapacity());
-        parkingSlot.setParkingRate(data.parkingPrice());
+        parkingSlot.setParkingRate(BusinessRules.calculateParkingRate(calculateDurationHours(event), getRoomCapacity(event)));
         parkingSlot.setStatus(ParkingSlotStatus.OPEN);
 
         event.setParkingSlot(parkingSlot);
+    }
+
+    private double calculateDurationHours(Event event) {
+        if (event.getStartDateTime() == null || event.getEndDateTime() == null) {
+            return 0D;
+        }
+        long minutes = Duration.between(event.getStartDateTime(), event.getEndDateTime()).toMinutes();
+        return Math.max(0D, minutes / 60D);
+    }
+
+    private Integer getRoomCapacity(Event event) {
+        return event.getSpace() != null ? event.getSpace().getCapacity() : event.getCapacity();
     }
 
     public record EventData(
