@@ -80,7 +80,7 @@
 
 .heroNext {
   grid-column: 1 / -1;
-  background: linear-gradient(135deg, var(--blue-darker), #344762 72%, rgba(181, 138, 76, 0.75));
+  background: linear-gradient(135deg, var(--brand-navy), #344762 72%, rgba(181, 138, 76, 0.75));
   color: #fff;
 }
 
@@ -293,7 +293,7 @@
 }
 
 .payButton {
-  background: linear-gradient(135deg, var(--blue-darker) 0%, #22344f 58%, var(--orange) 180%);
+  background: linear-gradient(135deg, var(--brand-navy) 0%, #22344f 58%, var(--orange) 180%);
   color: #fff;
 }
 
@@ -378,7 +378,7 @@
 
 .dayButtonActive {
   border-color: rgba(27, 42, 64, 0.22);
-  background: linear-gradient(135deg, var(--blue-darker), #263b5f);
+  background: linear-gradient(135deg, var(--brand-navy), #263b5f);
   color: #fff;
 }
 
@@ -396,7 +396,7 @@
   align-self: start;
   padding: 1.1rem;
   border-radius: 24px;
-  background: linear-gradient(135deg, var(--blue-darker), #33445e 68%, rgba(181, 138, 76, 0.78));
+  background: linear-gradient(135deg, var(--brand-navy), #33445e 68%, rgba(181, 138, 76, 0.78));
   color: #fff;
 }
 
