@@ -3,9 +3,10 @@ package be.meetspace.web.controller;
 import be.meetspace.entity.AuditAction;
 import be.meetspace.entity.User;
 import be.meetspace.repository.UserRepository;
+import be.meetspace.service.AccountDeletionService;
 import be.meetspace.service.AuditService;
 import be.meetspace.service.PasswordPolicyService;
-import be.meetspace.service.UserService;
+import be.meetspace.web.dto.AccountDeletionConfirmRequest;
 import be.meetspace.web.dto.ChangePasswordRequest;
 import be.meetspace.web.dto.UserProfileResponseDto;
 import be.meetspace.web.dto.UserProfileUpdateRequest;
@@ -28,19 +29,19 @@ public class UserProfileController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuditService auditService;
-    private final UserService userService;
     private final PasswordPolicyService passwordPolicyService;
+    private final AccountDeletionService accountDeletionService;
 
     public UserProfileController(UserRepository userRepository,
                                  PasswordEncoder passwordEncoder,
                                  AuditService auditService,
-                                 UserService userService,
-                                 PasswordPolicyService passwordPolicyService) {
+                                 PasswordPolicyService passwordPolicyService,
+                                 AccountDeletionService accountDeletionService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.auditService = auditService;
-        this.userService = userService;
         this.passwordPolicyService = passwordPolicyService;
+        this.accountDeletionService = accountDeletionService;
     }
 
     @GetMapping("/me")
@@ -135,8 +136,35 @@ public class UserProfileController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
 
+        accountDeletionService.requestDeletion(user);
+
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/me/deletion-request")
+    public ResponseEntity<Void> requestAccountDeletion(
+            Authentication authentication,
+            HttpServletRequest httpRequest
+    ) {
+        return deleteMyAccount(authentication, httpRequest);
+    }
+
+    @PostMapping("/me/deletion-confirm")
+    public ResponseEntity<Void> confirmAccountDeletion(
+            @Valid @RequestBody AccountDeletionConfirmRequest request,
+            Authentication authentication,
+            HttpServletRequest httpRequest
+    ) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecte");
+        }
+
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
+
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
-        userService.deactivateAccount(user, ipAddress, true);
+        accountDeletionService.confirmDeletion(user, request.getToken(), ipAddress);
 
         return ResponseEntity.noContent().build();
     }
