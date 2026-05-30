@@ -374,8 +374,14 @@
 .eventCard a {
   width: 100%;
   min-height: 42px;
-  color: #ffffff;
-  background: var(--blue-darker);
+  color: var(--cta-solid-fg);
+  background: linear-gradient(135deg, var(--cta-solid-bg), var(--cta-solid-bg-end));
+}
+
+:global([data-theme="dark"]) .roomBody a,
+:global([data-theme="dark"]) .eventCard a {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
 }
 
 .organizerSection,
