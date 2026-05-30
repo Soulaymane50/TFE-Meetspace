@@ -20,7 +20,7 @@
   width: 52px;
   height: 52px;
   border-radius: 18px;
-  background: linear-gradient(135deg, var(--blue-darker) 0%, #243a58 100%);
+  background: linear-gradient(135deg, var(--brand-navy) 0%, #243a58 100%);
   color: #f8f5ef;
   font-weight: 900;
 }
@@ -65,7 +65,7 @@
   padding: 0.7rem 1rem;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--blue-darker), #2f4568);
+  background: linear-gradient(135deg, var(--brand-navy), #2f4568);
   color: #fff;
   font-size: 0.9rem;
   font-weight: 850;

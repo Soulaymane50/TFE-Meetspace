@@ -126,7 +126,7 @@
 
 .durationActive,
 .presetActive {
-  background: var(--blue-darker) !important;
+  background: var(--brand-navy) !important;
   color: #f8f5ef !important;
 }
 

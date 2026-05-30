@@ -3,6 +3,8 @@
 :root {
   --blue-dark: #1b2a40;
   --blue-darker: #0b1220;
+  --brand-navy: #0b1220;
+  --brand-navy-soft: #22344f;
   --orange: #b58a4c;
   --orange-light: #d9bb8a;
   --blue-light: #5a7ce2;
@@ -28,6 +30,9 @@
   --text-primary: var(--blue-dark);
   --text-secondary: var(--taupe-dark);
   --text-muted: var(--taupe-light);
+  --cta-solid-bg: var(--brand-navy);
+  --cta-solid-bg-end: var(--brand-navy-soft);
+  --cta-solid-fg: #ffffff;
 
   font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
   line-height: 1.6;
@@ -44,6 +49,8 @@
 [data-theme="dark"] {
   --blue-dark: #eef1f6;
   --blue-darker: #fbfcfd;
+  --brand-navy: #0b1220;
+  --brand-navy-soft: #22344f;
   --orange: #cfa265;
   --orange-light: #e3c28f;
   --blue-light: #89a3ff;
@@ -62,6 +69,9 @@
   --text-primary: #eef1f6;
   --text-secondary: #b1bccd;
   --text-muted: #7f8da4;
+  --cta-solid-bg: #f8fafc;
+  --cta-solid-bg-end: #dce7f7;
+  --cta-solid-fg: #0b1220;
   color-scheme: dark;
 }
 
@@ -174,8 +184,8 @@ button {
   font-size: 0.9rem;
   font-weight: 700;
   font-family: inherit;
-  background: linear-gradient(135deg, var(--blue-darker) 0%, #22344f 62%, var(--orange) 180%);
-  color: #f8f5ef;
+  background: linear-gradient(135deg, var(--cta-solid-bg) 0%, var(--cta-solid-bg-end) 72%, var(--orange) 190%);
+  color: var(--cta-solid-fg);
   cursor: pointer;
   box-shadow: 0 16px 28px rgba(11, 18, 32, 0.16);
   transition: transform var(--transition-normal), box-shadow var(--transition-normal), filter var(--transition-normal);
