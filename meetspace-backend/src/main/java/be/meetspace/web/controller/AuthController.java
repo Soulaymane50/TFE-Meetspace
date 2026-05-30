@@ -7,6 +7,7 @@ import be.meetspace.entity.User;
 import be.meetspace.entity.UserStatus;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
+import be.meetspace.service.EmailService;
 import be.meetspace.service.PasswordPolicyService;
 import be.meetspace.service.PasswordResetService;
 import be.meetspace.web.dto.*;
@@ -38,6 +39,7 @@ public class AuthController {
     private final AuditService auditService;
     private final PasswordPolicyService passwordPolicyService;
     private final PasswordResetService passwordResetService;
+    private final EmailService emailService;
 
     public AuthController(UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
@@ -45,7 +47,8 @@ public class AuthController {
                           JwtService jwtService,
                           AuditService auditService,
                           PasswordPolicyService passwordPolicyService,
-                          PasswordResetService passwordResetService) {
+                          PasswordResetService passwordResetService,
+                          EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
@@ -53,6 +56,7 @@ public class AuthController {
         this.auditService = auditService;
         this.passwordPolicyService = passwordPolicyService;
         this.passwordResetService = passwordResetService;
+        this.emailService = emailService;
     }
 
     @PostMapping("/register")
@@ -82,6 +86,7 @@ public class AuthController {
 
         auditService.logSecurityEvent(AuditAction.USER_CREATE, saved.getEmail(),
                 "Nouvel utilisateur inscrit: " + saved.getFirstName() + " " + saved.getLastName(), ipAddress);
+        emailService.sendAccountCreatedEmail(saved);
 
         UserDetails userDetails = org.springframework.security.core.userdetails.User
                 .withUsername(saved.getEmail())
