@@ -8,6 +8,7 @@ import be.meetspace.entity.ParkingSlot;
 import be.meetspace.entity.Reservation;
 import be.meetspace.entity.User;
 import be.meetspace.web.dto.SupportContactRequest;
+import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
@@ -62,6 +63,11 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
+    @PostConstruct
+    void logMailConfigurationStatus() {
+        LOGGER.info("Email configuration status: {}", mailConfigurationStatus());
+    }
+
     public void sendPasswordResetEmail(String to, String resetUrl) {
         ensureMailConfigured();
 
@@ -73,6 +79,7 @@ public class EmailService {
             helper.setSubject("Réinitialisation de votre mot de passe MeetSpace");
             helper.setText(buildPasswordResetText(resetUrl), buildPasswordResetHtml(resetUrl));
             mailSender.send(message);
+            LOGGER.info("Password reset email sent to {}", maskEmail(to));
         } catch (MessagingException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Impossible de préparer l'email de récupération", ex);
         } catch (RuntimeException ex) {
@@ -82,6 +89,49 @@ public class EmailService {
 
     public void sendPasswordResetEmail(String to, String firstName, String resetUrl) {
         sendPasswordResetEmail(to, resetUrl);
+    }
+
+    public void sendAccountCreatedEmail(User user) {
+        if (user == null || !StringUtils.hasText(user.getEmail())) {
+            LOGGER.info("Account creation email skipped: missing user email");
+            return;
+        }
+
+        Map<String, String> details = new LinkedHashMap<>();
+        details.put("Compte", fullName(user));
+        details.put("Email", user.getEmail());
+        details.put("Acces", "Salles, evenements professionnels et parking");
+
+        sendTransactionalEmail(
+                "account-created",
+                user.getEmail(),
+                "Bienvenue sur MeetSpace",
+                "Votre compte MeetSpace est cree",
+                "Votre espace est pret. Vous pouvez reserver une salle, rejoindre un evenement ou reserver du parking depuis MeetSpace.",
+                details
+        );
+    }
+
+    public void sendAccountDeletionConfirmationEmail(String to, String firstName, String confirmationUrl) {
+        ensureMailConfigured();
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(from);
+            helper.setTo(to);
+            helper.setSubject("Validation de suppression de votre compte MeetSpace");
+            helper.setText(
+                    buildAccountDeletionText(firstName, confirmationUrl),
+                    buildAccountDeletionHtml(firstName, confirmationUrl)
+            );
+            mailSender.send(message);
+            LOGGER.info("Account deletion confirmation email sent to {}", maskEmail(to));
+        } catch (MessagingException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Impossible de preparer l'email de validation", ex);
+        } catch (RuntimeException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Impossible d'envoyer l'email de validation", ex);
+        }
     }
 
     public void sendRoomReservationConfirmation(Reservation reservation) {
@@ -202,6 +252,7 @@ public class EmailService {
                     buildTransactionalHtml("Nouvelle demande support", "Une demande a ete envoyee depuis le formulaire Contact.", details)
             );
             mailSender.send(message);
+            LOGGER.info("Support email sent to {}", maskEmail(recipient));
         } catch (MessagingException ex) {
             LOGGER.warn("Support email could not be prepared for {}", maskEmail(recipient), ex);
         } catch (RuntimeException ex) {
@@ -228,6 +279,7 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(buildTransactionalText(title, intro, details), buildTransactionalHtml(title, intro, details));
             mailSender.send(message);
+            LOGGER.info("Transactional email sent: {} for {}", type, maskEmail(to));
         } catch (MessagingException ex) {
             LOGGER.warn("Transactional email could not be prepared: {} for {}", type, maskEmail(to), ex);
         } catch (RuntimeException ex) {
@@ -237,6 +289,7 @@ public class EmailService {
 
     private void ensureMailConfigured() {
         if (!canSendMail()) {
+            LOGGER.warn("Email send blocked because SMTP configuration is incomplete: {}", mailConfigurationStatus());
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Service email non configuré");
         }
     }
@@ -253,7 +306,19 @@ public class EmailService {
         if (password == null) {
             return "";
         }
-        return password.replace("\\s", " ");
+        return password.replaceAll("\\s+", "");
+    }
+
+    private String mailConfigurationStatus() {
+        return "enabled=" + enabled
+                + ", host=" + presence(host)
+                + ", username=" + presence(username)
+                + ", password=" + presence(normalizedPassword())
+                + ", from=" + presence(from);
+    }
+
+    private String presence(String value) {
+        return StringUtils.hasText(value) ? "present" : "missing";
     }
 
     private String buildPasswordResetText(String resetUrl) {
@@ -279,6 +344,34 @@ public class EmailService {
                   <p style="color: #64748b;">Ce lien expire automatiquement. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
                 </div>
                 """.formatted(escapeHtml(resetUrl));
+    }
+
+    private String buildAccountDeletionText(String firstName, String confirmationUrl) {
+        String greeting = StringUtils.hasText(firstName) ? "Bonjour " + firstName + "," : "Bonjour,";
+        return greeting + "\n\n"
+                + "Une demande de suppression de compte MeetSpace vient d'etre lancee.\n"
+                + "Pour confirmer cette action, ouvrez le lien suivant :\n"
+                + confirmationUrl + "\n\n"
+                + "Ce lien expire automatiquement. Si vous n'etes pas a l'origine de cette demande, ignorez cet email et votre compte restera actif.\n\n"
+                + "MeetSpace";
+    }
+
+    private String buildAccountDeletionHtml(String firstName, String confirmationUrl) {
+        String greeting = StringUtils.hasText(firstName) ? "Bonjour " + firstName + "," : "Bonjour,";
+        return """
+                <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #111827;">
+                  <p style="font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #64748b;">MeetSpace</p>
+                  <h2 style="margin: 0 0 16px;">Validation de suppression de compte</h2>
+                  <p>%s</p>
+                  <p>Une demande de suppression de compte MeetSpace vient d'etre lancee.</p>
+                  <p>
+                    <a href="%s" style="display: inline-block; padding: 12px 18px; border-radius: 12px; background: #10213f; color: #ffffff; text-decoration: none;">
+                      Confirmer la suppression
+                    </a>
+                  </p>
+                  <p style="color: #64748b;">Ce lien expire automatiquement. Si vous n'etes pas a l'origine de cette demande, ignorez cet email et votre compte restera actif.</p>
+                </div>
+                """.formatted(escapeHtml(greeting), escapeHtml(confirmationUrl));
     }
 
     private String buildTransactionalText(String title, String intro, Map<String, String> details) {
