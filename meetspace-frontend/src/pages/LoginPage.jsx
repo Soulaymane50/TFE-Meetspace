@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { loginRequest } from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import styles from "./LoginPage.module.css";
@@ -9,6 +9,7 @@ import styles from "./LoginPage.module.css";
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
 
   const [email, setEmail] = useState("");
@@ -20,7 +21,7 @@ export default function LoginPage() {
     try {
       const data = await loginRequest(email, password);
       login(data.user, data.token);
-      navigate("/espace");
+      navigate(location.state?.from || "/espace", { replace: true });
     } catch (err) {
       if (err.message === "ACCOUNT_BANNED") {
         setError(t("auth.accountBanned"));

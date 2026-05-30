@@ -538,7 +538,7 @@ export async function getMyProfile(token) {
   const res = await fetch(`${API_URL}/api/user/me`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur chargement profil");
+  if (!res.ok) await throwApiError(res, "PROFILE_LOAD_FAILED");
   return res.json();
 }
 
@@ -916,13 +916,56 @@ export async function adminGetUserDetails(id, token) {
   return normalizeUserDetails(userDetails);
 }
 
-export async function deleteMyAccount(token) {
-  const res = await fetch(`${API_URL}/api/user/me`, {
-    method: "DELETE",
+async function throwAccountDeletionApiError(res, fallbackMessage) {
+  const message = await readApiErrorCode(res, fallbackMessage);
+
+  if (res.status === 401 || res.status === 403) {
+    const error = new Error("SESSION_EXPIRED");
+    error.status = res.status;
+    throw error;
+  }
+
+  if (message.includes("ACCOUNT_DELETION_EMAIL_UNAVAILABLE")) {
+    throw new Error("ACCOUNT_DELETION_EMAIL_UNAVAILABLE");
+  }
+
+  if (message.includes("ACCOUNT_DELETION_EXPIRED")) {
+    throw new Error("ACCOUNT_DELETION_EXPIRED");
+  }
+
+  if (message.includes("ACCOUNT_DELETION_INVALID")) {
+    throw new Error("ACCOUNT_DELETION_INVALID");
+  }
+
+  const error = new Error(fallbackMessage);
+  error.status = res.status;
+  throw error;
+}
+
+export async function requestAccountDeletion(token) {
+  const res = await fetch(`${API_URL}/api/user/me/deletion-request`, {
+    method: "POST",
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur lors de la suppression du compte");
+  if (!res.ok) await throwAccountDeletionApiError(res, "ACCOUNT_DELETION_REQUEST_FAILED");
   return true;
+}
+
+export async function confirmAccountDeletion(deletionToken, token) {
+  const res = await fetch(`${API_URL}/api/user/me/deletion-confirm`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(token),
+    },
+    body: JSON.stringify({ token: deletionToken }),
+  });
+  if (!res.ok) await throwAccountDeletionApiError(res, "ACCOUNT_DELETION_CONFIRM_FAILED");
+  return true;
+}
+
+export async function deleteMyAccount(token) {
+  return requestAccountDeletion(token);
 }
 
 // Audit Logs
