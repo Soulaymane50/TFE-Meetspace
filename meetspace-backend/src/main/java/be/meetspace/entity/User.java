@@ -43,6 +43,11 @@ public class User {
 
     private LocalDateTime passwordResetExpiresAt;
 
+    @Column(length = 64)
+    private String accountDeletionTokenHash;
+
+    private LocalDateTime accountDeletionExpiresAt;
+
 
     @PrePersist
     public void prePersist() {
@@ -100,6 +105,18 @@ public class User {
 
     public void setPasswordResetExpiresAt(LocalDateTime passwordResetExpiresAt) {
         this.passwordResetExpiresAt = passwordResetExpiresAt;
+    }
+
+    public String getAccountDeletionTokenHash() { return accountDeletionTokenHash; }
+
+    public void setAccountDeletionTokenHash(String accountDeletionTokenHash) {
+        this.accountDeletionTokenHash = accountDeletionTokenHash;
+    }
+
+    public LocalDateTime getAccountDeletionExpiresAt() { return accountDeletionExpiresAt; }
+
+    public void setAccountDeletionExpiresAt(LocalDateTime accountDeletionExpiresAt) {
+        this.accountDeletionExpiresAt = accountDeletionExpiresAt;
     }
 }
 

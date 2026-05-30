@@ -10,7 +10,7 @@ USE `meetspace`;
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8 */;
+/*!50503 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -314,6 +314,8 @@ CREATE TABLE `utilisateur` (
   `updated_at` datetime DEFAULT NULL,
   `password_reset_token_hash` varchar(64) DEFAULT NULL,
   `password_reset_expires_at` datetime DEFAULT NULL,
+  `account_deletion_token_hash` varchar(64) DEFAULT NULL,
+  `account_deletion_expires_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1130 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -326,29 +328,29 @@ CREATE TABLE `utilisateur` (
 LOCK TABLES `utilisateur` WRITE;
 /*!40000 ALTER TABLE `utilisateur` DISABLE KEYS */;
 INSERT INTO `utilisateur` VALUES
-(1001,'Amine','Benali','amine.benali@hotmail.be','$2a$10$iys2pPn0qRd5Ck2DMjbFNuNhKKwRaXQtHM0W964Qc1DrmZ4k9CEUq','ADMIN','ACTIVE','2025-01-02 09:00:00','2025-12-10 16:39:54',NULL,NULL),
-(1002,'Sophie','Vandenberg','sophie.vandenberg@hotmail.be','$2a$10$iys2pPn0qRd5Ck2DMjbFNuNhKKwRaXQtHM0W964Qc1DrmZ4k9CEUq','ADMIN','ACTIVE','2025-01-02 09:05:00','2025-12-10 16:39:54',NULL,NULL),
-(1003,'Fatou','Diop','fatou.diop@hotmail.be','$2a$10$iys2pPn0qRd5Ck2DMjbFNuNhKKwRaXQtHM0W964Qc1DrmZ4k9CEUq','ORGANIZER','ACTIVE','2025-01-02 09:10:00','2025-12-10 16:39:54',NULL,NULL),
-(1004,'Mehdi','El Haddad','mehdi.elhaddad@hotmail.be','$2a$10$iys2pPn0qRd5Ck2DMjbFNuNhKKwRaXQtHM0W964Qc1DrmZ4k9CEUq','ORGANIZER','ACTIVE','2025-01-02 09:15:00','2025-12-10 16:39:54',NULL,NULL),
-(1005,'Charlotte','Dubois','charlotte.dubois@hotmail.be','$2a$10$iys2pPn0qRd5Ck2DMjbFNuNhKKwRaXQtHM0W964Qc1DrmZ4k9CEUq','ORGANIZER','ACTIVE','2025-01-02 09:20:00','2025-12-10 16:39:54',NULL,NULL),
-(1111,'admin','admin','admin@admin.admin','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','ADMIN','ACTIVE','2025-12-10 15:32:34','2025-12-10 16:39:54',NULL,NULL),
-(1112,'Organisateur','MeetSpace','organisateur@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','ORGANIZER','ACTIVE','2025-12-10 16:56:17','2025-12-10 16:56:48',NULL,NULL),
-(1113,'Utilisateur','Test','utilisateur@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2025-12-10 20:27:28',NULL,NULL,NULL),
-(1114,'Admin','Test','admin.test@meetspace.local','$2a$10$iys2pPn0qRd5Ck2DMjbFNuNhKKwRaXQtHM0W964Qc1DrmZ4k9CEUq','ADMIN','ACTIVE','2025-12-10 20:27:42','2025-12-10 20:56:37',NULL,NULL),
-(1115,'Organisateur','Test','organisateur.test@meetspace.local','$2a$10$iys2pPn0qRd5Ck2DMjbFNuNhKKwRaXQtHM0W964Qc1DrmZ4k9CEUq','ORGANIZER','ACTIVE','2025-12-10 20:29:14','2025-12-10 20:56:34',NULL,NULL),
-(1116,'Membre','Local','membre.local@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2025-12-15 14:32:47','2025-12-15 14:47:09',NULL,NULL),
-(1117,'Organisateur','Local','organisateur.local@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','ORGANIZER','ACTIVE','2025-12-15 14:33:08','2025-12-15 14:47:02',NULL,NULL),
-(1118,'Admin','Local','admin.local@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','ADMIN','ACTIVE','2025-12-15 14:33:27','2025-12-15 14:47:04',NULL,NULL),
-(1119,'Claire','Martin','claire.martin@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-04-26 12:00:00',NULL,NULL,NULL),
-(1120,'Solvay','Digital Team','solvay.digital@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:00:00',NULL,NULL,NULL),
-(1121,'BNP Paribas','Innovation Hub','bnp.innovation@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:10:00',NULL,NULL,NULL),
-(1122,'Bruxelles','HR Collective','brussels.hr@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:20:00',NULL,NULL,NULL),
-(1123,'Laurent','Consultant','laurent.consultant@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:30:00',NULL,NULL,NULL),
-(1124,'UCLouvain','Alumni Network','uclouvain.alumni@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:40:00',NULL,NULL,NULL),
-(1125,'Startups','Brussels Club','startups.brussels@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:50:00',NULL,NULL,NULL),
-(1126,'Impact','Lab Brussels','impact.lab@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 10:00:00',NULL,NULL,NULL),
-(1127,'People','Operations Team','people.ops@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 10:10:00',NULL,NULL,NULL),
-(1128,'Finance','Circle Brussels','finance.circle@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 10:20:00',NULL,NULL,NULL);
+(1001,'Amine','Benali','amine.benali@hotmail.be','$2a$10$iys2pPn0qRd5Ck2DMjbFNuNhKKwRaXQtHM0W964Qc1DrmZ4k9CEUq','ADMIN','ACTIVE','2025-01-02 09:00:00','2025-12-10 16:39:54',NULL,NULL,NULL,NULL),
+(1002,'Sophie','Vandenberg','sophie.vandenberg@hotmail.be','$2a$10$iys2pPn0qRd5Ck2DMjbFNuNhKKwRaXQtHM0W964Qc1DrmZ4k9CEUq','ADMIN','ACTIVE','2025-01-02 09:05:00','2025-12-10 16:39:54',NULL,NULL,NULL,NULL),
+(1003,'Fatou','Diop','fatou.diop@hotmail.be','$2a$10$iys2pPn0qRd5Ck2DMjbFNuNhKKwRaXQtHM0W964Qc1DrmZ4k9CEUq','ORGANIZER','ACTIVE','2025-01-02 09:10:00','2025-12-10 16:39:54',NULL,NULL,NULL,NULL),
+(1004,'Mehdi','El Haddad','mehdi.elhaddad@hotmail.be','$2a$10$iys2pPn0qRd5Ck2DMjbFNuNhKKwRaXQtHM0W964Qc1DrmZ4k9CEUq','ORGANIZER','ACTIVE','2025-01-02 09:15:00','2025-12-10 16:39:54',NULL,NULL,NULL,NULL),
+(1005,'Charlotte','Dubois','charlotte.dubois@hotmail.be','$2a$10$iys2pPn0qRd5Ck2DMjbFNuNhKKwRaXQtHM0W964Qc1DrmZ4k9CEUq','ORGANIZER','ACTIVE','2025-01-02 09:20:00','2025-12-10 16:39:54',NULL,NULL,NULL,NULL),
+(1111,'admin','admin','admin@admin.admin','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','ADMIN','ACTIVE','2025-12-10 15:32:34','2025-12-10 16:39:54',NULL,NULL,NULL,NULL),
+(1112,'Organisateur','MeetSpace','organisateur@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','ORGANIZER','ACTIVE','2025-12-10 16:56:17','2025-12-10 16:56:48',NULL,NULL,NULL,NULL),
+(1113,'Utilisateur','Test','utilisateur@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2025-12-10 20:27:28',NULL,NULL,NULL,NULL,NULL),
+(1114,'Admin','Test','admin.test@meetspace.local','$2a$10$iys2pPn0qRd5Ck2DMjbFNuNhKKwRaXQtHM0W964Qc1DrmZ4k9CEUq','ADMIN','ACTIVE','2025-12-10 20:27:42','2025-12-10 20:56:37',NULL,NULL,NULL,NULL),
+(1115,'Organisateur','Test','organisateur.test@meetspace.local','$2a$10$iys2pPn0qRd5Ck2DMjbFNuNhKKwRaXQtHM0W964Qc1DrmZ4k9CEUq','ORGANIZER','ACTIVE','2025-12-10 20:29:14','2025-12-10 20:56:34',NULL,NULL,NULL,NULL),
+(1116,'Membre','Local','membre.local@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2025-12-15 14:32:47','2025-12-15 14:47:09',NULL,NULL,NULL,NULL),
+(1117,'Organisateur','Local','organisateur.local@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','ORGANIZER','ACTIVE','2025-12-15 14:33:08','2025-12-15 14:47:02',NULL,NULL,NULL,NULL),
+(1118,'Admin','Local','admin.local@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','ADMIN','ACTIVE','2025-12-15 14:33:27','2025-12-15 14:47:04',NULL,NULL,NULL,NULL),
+(1119,'Claire','Martin','claire.martin@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-04-26 12:00:00',NULL,NULL,NULL,NULL,NULL),
+(1120,'Solvay','Digital Team','solvay.digital@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:00:00',NULL,NULL,NULL,NULL,NULL),
+(1121,'BNP Paribas','Innovation Hub','bnp.innovation@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:10:00',NULL,NULL,NULL,NULL,NULL),
+(1122,'Bruxelles','HR Collective','brussels.hr@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:20:00',NULL,NULL,NULL,NULL,NULL),
+(1123,'Laurent','Consultant','laurent.consultant@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:30:00',NULL,NULL,NULL,NULL,NULL),
+(1124,'UCLouvain','Alumni Network','uclouvain.alumni@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:40:00',NULL,NULL,NULL,NULL,NULL),
+(1125,'Startups','Brussels Club','startups.brussels@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 09:50:00',NULL,NULL,NULL,NULL,NULL),
+(1126,'Impact','Lab Brussels','impact.lab@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 10:00:00',NULL,NULL,NULL,NULL,NULL),
+(1127,'People','Operations Team','people.ops@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 10:10:00',NULL,NULL,NULL,NULL,NULL),
+(1128,'Finance','Circle Brussels','finance.circle@meetspace.local','$2a$10$ChKHgow5LjSHbnDIYLnx0ef6rEmk9iegZOfKVAArWiHSI7bMTWNlm','MEMBER','ACTIVE','2026-05-10 10:20:00',NULL,NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `utilisateur` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -488,5 +490,4 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2025-12-16 11:31:23
-
 
