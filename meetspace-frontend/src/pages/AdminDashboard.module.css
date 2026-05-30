@@ -124,7 +124,7 @@
 
 .alertButton:hover {
   color: #fff;
-  background: var(--blue-darker);
+  background: var(--brand-navy);
 }
 
 .navCards {

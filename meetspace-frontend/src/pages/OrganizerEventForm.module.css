@@ -272,7 +272,7 @@
 
 .advisorPrimary {
   color: #f8f5ef;
-  background: linear-gradient(135deg, var(--blue-darker), #33476a);
+  background: linear-gradient(135deg, var(--brand-navy), #33476a);
 }
 
 .financePreview {

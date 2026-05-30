@@ -153,31 +153,31 @@
   }
 }
 
-:global(.dark) .passwordRules {
+:global([data-theme="dark"]) .passwordRules {
   border-color: rgba(148, 163, 184, 0.22);
   background:
     linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(21, 31, 49, 0.9));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-:global(.dark) .passwordRulesTitle {
+:global([data-theme="dark"]) .passwordRulesTitle {
   color: #aeb9cb;
 }
 
-:global(.dark) .passwordRule {
+:global([data-theme="dark"]) .passwordRule {
   color: #94a3b8;
 }
 
-:global(.dark) .passwordRuleValid {
+:global([data-theme="dark"]) .passwordRuleValid {
   color: #7ee4bc;
 }
 
-:global(.dark) .passwordRuleDot {
+:global([data-theme="dark"]) .passwordRuleDot {
   background: #64748b;
   box-shadow: 0 0 0 4px rgba(100, 116, 139, 0.18);
 }
 
-:global(.dark) .passwordRuleValid .passwordRuleDot {
+:global([data-theme="dark"]) .passwordRuleValid .passwordRuleDot {
   background: #34d399;
   box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.16);
 }
