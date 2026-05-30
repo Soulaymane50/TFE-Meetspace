@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { getMyProfile, updateMyProfile, changeMyPassword, deleteMyAccount } from "../services/api";
+import { getMyProfile, updateMyProfile, changeMyPassword, requestAccountDeletion } from "../services/api";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import { isStrongPassword } from "../utils/passwordPolicy";
 import PageState from "../components/PageState";
 import styles from "./ProfilePage.module.css";
@@ -18,12 +17,12 @@ function profileFromUser(user) {
 export default function ProfilePage() {
   const { user, token, login, logout } = useAuth();
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   const [profile, setProfile] = useState(() => profileFromUser(user));
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteMsg, setDeleteMsg] = useState("");
   const [deleteError, setDeleteError] = useState("");
 
   const [currentPassword, setCurrentPassword] = useState("");
@@ -42,11 +41,16 @@ export default function ProfilePage() {
             email: data.email || user?.email || "",
           });
         })
-        .catch(() => {
-          if (user) setProfile(profileFromUser(user));
+        .catch((err) => {
+          if (err?.status === 401 || err?.status === 403) {
+            logout();
+            return;
+          }
+
+          setError(t("profile.loadFailed"));
         });
     }
-  }, [token, user]);
+  }, [token, user, logout, t]);
 
   const submitProfile = async (e) => {
     e.preventDefault();
@@ -114,13 +118,21 @@ export default function ProfilePage() {
   };
 
   const handleDeleteAccount = async () => {
+    setDeleteMsg("");
     setDeleteError("");
     try {
-      await deleteMyAccount(token);
-      logout();
-      navigate("/");
+      await requestAccountDeletion(token);
+      setDeleteMsg(t("profile.deleteValidationEmailSent"));
+      setShowDeleteConfirm(false);
     } catch (err) {
-      setDeleteError(err.message);
+      if (err?.message === "ACCOUNT_DELETION_EMAIL_UNAVAILABLE") {
+        setDeleteError(t("profile.deleteEmailUnavailable"));
+      } else if (err?.message === "SESSION_EXPIRED" || err?.status === 401 || err?.status === 403) {
+        setDeleteError(t("profile.sessionExpired"));
+        logout();
+      } else {
+        setDeleteError(t("profile.deleteRequestFailed"));
+      }
     }
   };
 
@@ -253,7 +265,11 @@ export default function ProfilePage() {
           <button
             type="button"
             className={styles.dangerButton}
-            onClick={() => setShowDeleteConfirm(true)}
+            onClick={() => {
+              setDeleteMsg("");
+              setDeleteError("");
+              setShowDeleteConfirm(true);
+            }}
           >
             {t("profile.deleteAccount")}
           </button>
@@ -271,13 +287,17 @@ export default function ProfilePage() {
               <button
                 type="button"
                 className={styles.button}
-                onClick={() => setShowDeleteConfirm(false)}
+                onClick={() => {
+                  setDeleteError("");
+                  setShowDeleteConfirm(false);
+                }}
               >
                 {t("common.cancel")}
               </button>
             </div>
           </div>
         )}
+        {deleteMsg && <p className={styles.success}>{deleteMsg}</p>}
         {deleteError && <p className={styles.error}>{deleteError}</p>}
       </section>
     </div>

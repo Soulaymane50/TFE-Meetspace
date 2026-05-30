@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { logoutRequest } from "../services/api";
 
 const AuthContext = createContext(null);
@@ -32,11 +32,11 @@ export function AuthProvider({ children }) {
     }
   }, [auth, isLoading]);
 
-  const login = (user, token) => {
+  const login = useCallback((user, token) => {
     setAuth({ user, token });
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       if (auth.token) {
         await logoutRequest(auth.token);
@@ -48,7 +48,7 @@ export function AuthProvider({ children }) {
       setAuth({ user: null, token: null });
       localStorage.removeItem("auth");
     }
-  };
+  }, [auth.token]);
 
   return (
     <AuthContext.Provider value={{ ...auth, login, logout, isLoading }}>
