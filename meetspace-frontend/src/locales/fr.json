@@ -821,6 +821,7 @@
         "security": "Sécurité",
         "personalInfo": "Informations personnelles",
         "personalInfoHint": "Ces informations sont utilisées sur vos réservations et demandes de validation.",
+        "loadFailed": "Impossible de charger le profil. Réessayez dans un instant.",
         "updateSuccess": "Profil mis à jour avec succès",
         "updateFailed": "Impossible de mettre à jour le profil.",
         "changePassword": "Changer le mot de passe",
@@ -836,8 +837,26 @@
         "notLoggedIn": "Veuillez vous connecter pour accéder à votre profil.",
         "dangerZone": "Zone de danger",
         "deleteAccount": "Supprimer mon compte",
-        "deleteAccountWarning": "Attention : La suppression de votre compte est irréversible. Toutes vos réservations (salles, événements professionnels, parking) seront automatiquement annulées.",
-        "confirmDeleteAccount": "Êtes-vous vraiment sûr de vouloir supprimer votre compte ? Cette action est définitive."
+        "deleteAccountWarning": "Attention : la suppression de votre compte est irréversible. Pour votre sécurité, un email de validation sera envoyé avant toute suppression.",
+        "confirmDeleteAccount": "Confirmez l'envoi de l'email de validation. Votre compte ne sera supprimé qu'après ouverture du lien reçu.",
+        "deleteValidationEmailSent": "Email de validation envoyé. Ouvrez le lien reçu pour confirmer la suppression du compte.",
+        "deleteEmailUnavailable": "Le service email est indisponible. La suppression du compte n'a pas été lancée.",
+        "sessionExpired": "Votre session n'est plus valide. Reconnectez-vous avant de continuer.",
+        "deleteRequestFailed": "Impossible de lancer la validation de suppression du compte."
+    },
+    "accountDeletion": {
+        "kicker": "Sécurité du compte",
+        "title": "Validation de suppression",
+        "subtitle": "Cette page confirme que vous avez accès à l'email du compte avant de supprimer votre espace MeetSpace.",
+        "confirmTitle": "Confirmer la suppression du compte",
+        "confirmText": "Cette action désactive votre compte et annule vos réservations actives. Elle ne doit être validée que si vous êtes bien à l'origine de la demande.",
+        "confirmButton": "Supprimer mon compte",
+        "success": "Compte supprimé. Vous allez être redirigé vers l'accueil.",
+        "expired": "Ce lien de validation a expiré. Relancez la demande depuis votre profil.",
+        "invalid": "Ce lien de validation est invalide ou ne correspond pas à votre compte.",
+        "failed": "Impossible de confirmer la suppression du compte.",
+        "invalidTitle": "Lien invalide",
+        "missingToken": "Le lien de validation ne contient pas de token."
     },
     "admin": {
         "dashboard": "Dashboard Admin",

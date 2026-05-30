@@ -834,6 +834,7 @@
     "security": "Security",
     "personalInfo": "Personal information",
     "personalInfoHint": "These details are used for your reservations and approval requests.",
+    "loadFailed": "Unable to load your profile. Please try again in a moment.",
     "updateSuccess": "Profile updated successfully",
     "updateFailed": "Unable to update profile.",
     "changePassword": "Change password",
@@ -849,8 +850,27 @@
     "notLoggedIn": "Please log in to access your profile.",
     "dangerZone": "Danger zone",
     "deleteAccount": "Delete my account",
-    "deleteAccountWarning": "Warning: Deleting your account is irreversible. All your reservations (rooms, professional events, parking) will be automatically cancelled.",
-    "confirmDeleteAccount": "Are you really sure you want to delete your account? This action is permanent."
+    "deleteAccountWarning": "Warning: deleting your account is irreversible. For security, a validation email will be sent before any deletion.",
+    "confirmDeleteAccount": "Confirm that the validation email should be sent. Your account will only be deleted after opening the link you receive.",
+    "deleteValidationEmailSent": "Validation email sent. Open the link you received to confirm account deletion.",
+    "deleteEmailUnavailable": "The email service is unavailable. Account deletion has not been started.",
+    "sessionExpired": "Your session is no longer valid. Please log in again before continuing.",
+    "deleteRequestFailed": "Unable to start account deletion validation."
+  },
+
+  "accountDeletion": {
+    "kicker": "Account security",
+    "title": "Deletion validation",
+    "subtitle": "This page confirms that you have access to the account email before deleting your MeetSpace space.",
+    "confirmTitle": "Confirm account deletion",
+    "confirmText": "This action disables your account and cancels your active reservations. Validate it only if you initiated the request.",
+    "confirmButton": "Delete my account",
+    "success": "Account deleted. You will be redirected to the homepage.",
+    "expired": "This validation link has expired. Start a new request from your profile.",
+    "invalid": "This validation link is invalid or does not match your account.",
+    "failed": "Unable to confirm account deletion.",
+    "invalidTitle": "Invalid link",
+    "missingToken": "The validation link does not contain a token."
   },
 
   "admin": {

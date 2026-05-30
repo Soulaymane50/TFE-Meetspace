@@ -824,6 +824,7 @@
                     "security": "Beveiliging",
                     "personalInfo":  "Persoonlijke gegevens",
                     "personalInfoHint": "Deze gegevens worden gebruikt voor uw reserveringen en goedkeuringsaanvragen.",
+                    "loadFailed":  "Profiel kan niet worden geladen. Probeer het zo meteen opnieuw.",
                     "updateSuccess":  "Profiel succesvol bijgewerkt",
                     "updateFailed":  "Profiel kan niet worden bijgewerkt.",
                     "changePassword":  "Wachtwoord wijzigen",
@@ -839,8 +840,26 @@
                     "notLoggedIn":  "Log in om toegang te krijgen tot uw profiel.",
                     "dangerZone":  "Gevarenzone",
                     "deleteAccount":  "Mijn account verwijderen",
-                    "deleteAccountWarning":  "Waarschuwing: Het verwijderen van uw account is onomkeerbaar. Al uw reserveringen (zalen, professionele evenementen, parking) worden automatisch geannuleerd.",
-                    "confirmDeleteAccount":  "Weet u zeker dat u uw account wilt verwijderen? Deze actie is definitief."
+                    "deleteAccountWarning":  "Waarschuwing: het verwijderen van uw account is onomkeerbaar. Voor uw veiligheid wordt eerst een validatiemail verzonden.",
+                    "confirmDeleteAccount":  "Bevestig dat de validatiemail mag worden verzonden. Uw account wordt pas verwijderd nadat u de ontvangen link opent.",
+                    "deleteValidationEmailSent":  "Validatiemail verzonden. Open de ontvangen link om de verwijdering van uw account te bevestigen.",
+                    "deleteEmailUnavailable":  "De e-mailservice is niet beschikbaar. De accountverwijdering is niet gestart.",
+                    "sessionExpired":  "Uw sessie is niet meer geldig. Log opnieuw in voordat u verdergaat.",
+                    "deleteRequestFailed":  "De validatie voor accountverwijdering kan niet worden gestart."
+                },
+    "accountDeletion": {
+                    "kicker": "Accountbeveiliging",
+                    "title": "Validatie van verwijdering",
+                    "subtitle": "Deze pagina bevestigt dat u toegang hebt tot het e-mailadres van het account voordat uw MeetSpace-ruimte wordt verwijderd.",
+                    "confirmTitle": "Accountverwijdering bevestigen",
+                    "confirmText": "Deze actie deactiveert uw account en annuleert uw actieve reserveringen. Bevestig alleen als u deze aanvraag zelf hebt gestart.",
+                    "confirmButton": "Mijn account verwijderen",
+                    "success": "Account verwijderd. U wordt doorgestuurd naar de startpagina.",
+                    "expired": "Deze validatielink is verlopen. Start een nieuwe aanvraag vanuit uw profiel.",
+                    "invalid": "Deze validatielink is ongeldig of hoort niet bij uw account.",
+                    "failed": "Accountverwijdering kan niet worden bevestigd.",
+                    "invalidTitle": "Ongeldige link",
+                    "missingToken": "De validatielink bevat geen token."
                 },
     "admin":  {
                   "dashboard":  "Admin Dashboard",
