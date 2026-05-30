@@ -64,15 +64,17 @@ public class UserService {
 
     /**
      * Deactivates a user account (soft delete).
-     * The user data is preserved for historical purposes, but the account cannot be used.
+     * The user data and existing reservations are preserved for historical
+     * reporting, but the account cannot be used anymore.
      */
     @Transactional
     public User deactivateAccount(User user, String ipAddress, boolean isSelfDelete) {
         UserStatus oldStatus = user.getStatus();
         user.setStatus(UserStatus.DELETED);
-
-        // Cancel all reservations
-        cancelAllUserReservations(user);
+        user.setPasswordResetTokenHash(null);
+        user.setPasswordResetExpiresAt(null);
+        user.setAccountDeletionTokenHash(null);
+        user.setAccountDeletionExpiresAt(null);
 
         User saved = userRepository.save(user);
 
