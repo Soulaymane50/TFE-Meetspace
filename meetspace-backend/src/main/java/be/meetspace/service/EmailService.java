@@ -30,6 +30,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class EmailService {
@@ -102,7 +103,7 @@ public class EmailService {
         details.put("Email", user.getEmail());
         details.put("Acces", "Salles, evenements professionnels et parking");
 
-        sendTransactionalEmail(
+        sendTransactionalEmailAsync(
                 "account-created",
                 user.getEmail(),
                 "Bienvenue sur MeetSpace",
@@ -285,6 +286,14 @@ public class EmailService {
         } catch (RuntimeException ex) {
             LOGGER.warn("Transactional email could not be sent: {} for {}", type, maskEmail(to), ex);
         }
+    }
+
+    private void sendTransactionalEmailAsync(String type, String to, String subject, String title, String intro, Map<String, String> details) {
+        CompletableFuture.runAsync(() -> sendTransactionalEmail(type, to, subject, title, intro, details))
+                .exceptionally(ex -> {
+                    LOGGER.warn("Transactional email async task failed: {} for {}", type, maskEmail(to), ex);
+                    return null;
+                });
     }
 
     private void ensureMailConfigured() {

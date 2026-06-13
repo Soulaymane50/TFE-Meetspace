@@ -448,6 +448,7 @@
                  "lastName":  "Achternaam",
                  "loginButton":  "Inloggen",
                  "registerButton":  "Registreren",
+                 "registeringButton":  "Account aanmaken...",
                  "noAccount":  "Geen account?",
                  "hasAccount":  "Al geregistreerd?",
                  "createAccount":  "Account aanmaken",

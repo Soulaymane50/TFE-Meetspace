@@ -450,6 +450,7 @@
     "lastName": "Last name",
     "loginButton": "Log in",
     "registerButton": "Sign up",
+    "registeringButton": "Creating account...",
     "noAccount": "No account?",
     "hasAccount": "Already registered?",
     "createAccount": "Create an account",

@@ -18,10 +18,13 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const passwordChecks = getPasswordChecks(password);
 
   const submit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     setError("");
 
     if (!isStrongPassword(password)) {
@@ -35,6 +38,7 @@ export default function RegisterPage() {
     }
 
     try {
+      setIsSubmitting(true);
       const data = await registerRequest({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -55,6 +59,8 @@ export default function RegisterPage() {
       } else {
         setError(t("auth.registerError"));
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -152,8 +158,8 @@ export default function RegisterPage() {
                 required
               />
             </div>
-            <button type="submit" className={styles.button}>
-              {t("auth.registerButton")}
+            <button type="submit" className={styles.button} disabled={isSubmitting}>
+              {isSubmitting ? t("auth.registeringButton") : t("auth.registerButton")}
             </button>
           </form>
           {error && <p className={styles.error}>{error}</p>}

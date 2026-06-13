@@ -448,6 +448,7 @@
         "lastName": "Nom",
         "loginButton": "Se connecter",
         "registerButton": "S'inscrire",
+        "registeringButton": "Création du compte...",
         "noAccount": "Pas de compte ?",
         "hasAccount": "Déjà inscrit ?",
         "createAccount": "Créer un compte",
