@@ -1,46 +1,31 @@
 .toggle {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
   padding: 0;
-  border-radius: 999px;
-  border: 1px solid rgba(20, 32, 51, 0.12);
-  background:
-    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.9), transparent 34%),
-    linear-gradient(145deg, #ffffff 0%, #e8edf5 100%);
-  color: #0f1b2d;
-  box-shadow: 0 14px 30px rgba(11, 18, 32, 0.12);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  clip-path: none;
+  box-shadow: none;
 }
 
 .toggle:hover {
-  background:
-    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 1), transparent 34%),
-    linear-gradient(145deg, #ffffff 0%, #f5f0e7 100%);
-  border-color: rgba(181, 138, 76, 0.38);
-  transform: none;
-  box-shadow: 0 16px 32px rgba(181, 138, 76, 0.18);
+  border-color: var(--cyan);
+  background: var(--cyan-pale);
+  color: var(--cyan-deep);
+  box-shadow: none;
 }
 
 .toggle:active {
-  transform: none;
+  transform: translateY(1px);
 }
 
 .toggle svg {
-  transition: transform var(--transition-normal), opacity var(--transition-normal);
+  transition: transform var(--transition-normal);
 }
 
 .toggle:hover svg {
-  transform: rotate(16deg) scale(1.04);
-}
-
-:global([data-theme="dark"]) .toggle {
-  border-color: rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.08);
-  color: #f8f5ef;
-  box-shadow: none;
-}
-
-:global([data-theme="dark"]) .toggle:hover {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: none;
+  transform: rotate(12deg);
 }

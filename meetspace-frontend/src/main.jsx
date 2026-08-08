@@ -7,6 +7,7 @@ import { ThemeProvider } from "./context/ThemeContext.jsx";
 import { FeedbackProvider } from "./context/FeedbackContext.jsx";
 import "./i18n";
 import "./index.css";
+import "./refinement.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

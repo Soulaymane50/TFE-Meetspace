@@ -140,7 +140,7 @@ npm run dev -- --port 5174
 URLs locales :
 
 ```text
-Frontend : http://localhost:5174
+Frontend : http://localhost:5174 avec la commande Vite ci-dessus
 Backend  : http://localhost:8080
 ```
 
@@ -150,7 +150,9 @@ Backend  : http://localhost:8080
 docker compose up --build
 ```
 
-Docker Compose lance MySQL, le backend et le frontend. Le dump SQL du dossier `init/` est importe automatiquement au premier demarrage du volume MySQL.
+Docker Compose lance MySQL, le backend et le frontend sur `http://localhost:5173`. Le dump SQL du dossier `init/` est importe automatiquement au premier demarrage du volume MySQL.
+
+Pour un deploiement separe, le frontend doit recevoir `VITE_API_URL` au moment du build (URL publique du backend Railway). Le backend doit recevoir `APP_FRONTEND_URL` et `CORS_ALLOWED_ORIGINS` avec l'URL publique exacte du frontend, actuellement `https://tfe-meetspace.vercel.app`.
 
 ## Endpoints utiles
 

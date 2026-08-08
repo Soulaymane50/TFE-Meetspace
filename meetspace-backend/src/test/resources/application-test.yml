@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:meetspace-test;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  mail:
+    host: localhost
+
+app:
+  mail:
+    enabled: false
+  security:
+    jwt:
+      secret: test-only-jwt-secret-with-at-least-32-characters
+      expiration: 3600000
+
+stripe:
+  secret-key: ""
+  public-key: ""

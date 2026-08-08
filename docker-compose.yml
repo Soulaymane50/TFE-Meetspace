@@ -45,17 +45,9 @@ services:
     build: ./meetspace-frontend
     container_name: meetspace-frontend
     ports:
-      - "5173:5173"
-    volumes:
-      - ./meetspace-frontend:/app
-      - /app/node_modules
+      - "5173:80"
     depends_on:
       - backend
-    develop:
-      watch:
-        - action: sync
-          path: ./meetspace-frontend/src
-          target: /app/src
 
 volumes:
   mysql_data:
