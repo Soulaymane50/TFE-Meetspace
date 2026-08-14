@@ -19,6 +19,12 @@ spring:
       ddl-auto: ${DDL_AUTO:validate}
     show-sql: ${SHOW_SQL:false}
 
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
+
   mail:
     host: ${SMTP_HOST:${MAIL_HOST:}}
     port: ${SMTP_PORT:${MAIL_PORT:587}}
@@ -37,10 +43,26 @@ spring:
 server:
   port: ${PORT:${SERVER_PORT:8080}}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+  health:
+    mail:
+      enabled: false
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{requestId:-system}] %logger{36} - %msg%n"
+
 app:
   frontend-url: ${APP_FRONTEND_URL:http://localhost:5174}
   mail:
-    enabled: ${APP_MAIL_ENABLED:true}
+    enabled: ${APP_MAIL_ENABLED:false}
     from: ${SMTP_FROM:${APP_MAIL_FROM:no-reply@meetspace.local}}
   support:
     admin-email: ${SUPPORT_ADMIN_EMAIL:}
@@ -48,18 +70,23 @@ app:
     log-reset-link-when-email-disabled: ${APP_PASSWORD_RESET_LOG_LINK:false}
   account-deletion:
     log-confirmation-link-when-email-disabled: ${APP_ACCOUNT_DELETION_LOG_LINK:${APP_PASSWORD_RESET_LOG_LINK:false}}
+  finance:
+    vat-rate: ${APP_FINANCE_VAT_RATE:0.21}
+    processing-variable-rate: ${APP_FINANCE_PROCESSING_VARIABLE_RATE:0.015}
+    processing-fixed-fee-cents: ${APP_FINANCE_PROCESSING_FIXED_FEE_CENTS:25}
   security:
     jwt:
       secret: ${JWT_SECRET:}
       expiration: ${JWT_EXPIRATION:3600000}
     cors:
-      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:4174,http://localhost:3000}
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:4174,http://127.0.0.1:4174,http://localhost:3000,http://127.0.0.1:3000}
   testing:
     allowFakePayments: ${APP_TESTING_ALLOWFAKEPAYMENTS:false}
 
 stripe:
   secret-key: ${STRIPE_SECRET_KEY:}
   public-key: ${STRIPE_PUBLIC_KEY:}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
 
 ---
 
@@ -69,7 +96,7 @@ spring:
       on-profile: dev
   jpa:
     hibernate:
-      ddl-auto: ${DDL_AUTO:update}
+      ddl-auto: ${DDL_AUTO:validate}
     show-sql: ${SHOW_SQL:true}
 
 ---
@@ -99,5 +126,7 @@ spring:
       on-profile: dev
 
 app:
+  mail:
+    enabled: false
   password-reset:
     log-reset-link-when-email-disabled: ${APP_PASSWORD_RESET_LOG_LINK:false}
