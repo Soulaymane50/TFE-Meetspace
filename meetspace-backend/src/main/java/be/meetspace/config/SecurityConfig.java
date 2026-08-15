@@ -1,5 +1,6 @@
 package be.meetspace.config;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -42,9 +43,12 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                        .requestMatchers("/error", "/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/support/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/payments/webhook").permitAll()
                         .requestMatchers("/api/payments/**").authenticated()
                         .requestMatchers("/api/organizer/**").hasAnyRole("ORGANIZER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -60,11 +64,15 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isBlank())
+                .toList();
         configuration.setAllowedOrigins(origins);
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With", "X-Request-Id"));
+        configuration.setExposedHeaders(List.of("X-Request-Id"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

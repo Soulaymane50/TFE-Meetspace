@@ -10,6 +10,7 @@ import be.meetspace.service.AuditService;
 import be.meetspace.service.EmailService;
 import be.meetspace.service.PasswordPolicyService;
 import be.meetspace.service.PasswordResetService;
+import be.meetspace.service.RequestRateLimitService;
 import be.meetspace.web.dto.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -23,10 +24,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -40,6 +43,7 @@ public class AuthController {
     private final PasswordPolicyService passwordPolicyService;
     private final PasswordResetService passwordResetService;
     private final EmailService emailService;
+    private final RequestRateLimitService rateLimitService;
 
     public AuthController(UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
@@ -48,7 +52,8 @@ public class AuthController {
                           AuditService auditService,
                           PasswordPolicyService passwordPolicyService,
                           PasswordResetService passwordResetService,
-                          EmailService emailService) {
+                          EmailService emailService,
+                          RequestRateLimitService rateLimitService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
@@ -57,11 +62,13 @@ public class AuthController {
         this.passwordPolicyService = passwordPolicyService;
         this.passwordResetService = passwordResetService;
         this.emailService = emailService;
+        this.rateLimitService = rateLimitService;
     }
 
     @PostMapping("/register")
     public AuthResponseDto register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
+        rateLimitService.check("register", ipAddress, 6, Duration.ofHours(1));
         String normalizedEmail = normalizeEmail(request.getEmail());
 
         if (!Objects.equals(request.getPassword(), request.getConfirmPassword())) {
@@ -94,16 +101,21 @@ public class AuthController {
                 .authorities("ROLE_" + saved.getRole().name())
                 .build();
 
-        String token = jwtService.generateToken(userDetails);
+        String token = jwtService.generateToken(userDetails, saved.getTokenVersion() == null ? 0 : saved.getTokenVersion());
 
         return new AuthResponseDto(token, UserResponseDto.fromEntity(saved));
     }
 
     @PostMapping("/logout")
+    @Transactional
     public void logout(Authentication authentication, HttpServletRequest httpRequest) {
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
 
         if (authentication != null && authentication.getName() != null) {
+            userRepository.findByEmailIgnoreCase(authentication.getName()).ifPresent(user -> {
+                user.incrementTokenVersion();
+                userRepository.save(user);
+            });
             auditService.logSecurityEvent(AuditAction.LOGOUT, authentication.getName(),
                     "Déconnexion utilisateur", ipAddress);
         }
@@ -113,6 +125,8 @@ public class AuthController {
     public AuthResponseDto login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
         String normalizedEmail = normalizeEmail(request.getEmail());
+        rateLimitService.check("login-ip", ipAddress, 20, Duration.ofMinutes(10));
+        rateLimitService.check("login-account", normalizedEmail, 10, Duration.ofMinutes(10));
 
         User existingUser = userRepository.findByEmailIgnoreCase(normalizedEmail).orElse(null);
         if (existingUser != null && existingUser.getStatus() != UserStatus.ACTIVE) {
@@ -139,7 +153,7 @@ public class AuthController {
             User user = userRepository.findByEmailIgnoreCase(userDetails.getUsername())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "USER_NOT_FOUND"));
 
-            String token = jwtService.generateToken(userDetails);
+            String token = jwtService.generateToken(userDetails, user.getTokenVersion() == null ? 0 : user.getTokenVersion());
 
             auditService.logSecurityEvent(AuditAction.LOGIN_SUCCESS, user.getEmail(),
                     "Connexion réussie", ipAddress);
@@ -157,7 +171,10 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public Map<String, String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    public Map<String, String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request,
+                                               HttpServletRequest httpRequest) {
+        rateLimitService.check("forgot-password", AuditService.getClientIpAddress(httpRequest),
+                5, Duration.ofHours(1));
         passwordResetService.requestPasswordReset(request.getEmail());
         return Map.of(
                 "message",

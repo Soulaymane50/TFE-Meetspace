@@ -48,6 +48,17 @@ public class User {
 
     private LocalDateTime accountDeletionExpiresAt;
 
+    @Column(nullable = false)
+    private Integer tokenVersion = 0;
+
+    @Column(length = 120)
+    private String pendingEmail;
+
+    @Column(length = 64, unique = true)
+    private String emailChangeTokenHash;
+
+    private LocalDateTime emailChangeExpiresAt;
+
 
     @PrePersist
     public void prePersist() {
@@ -118,5 +129,23 @@ public class User {
     public void setAccountDeletionExpiresAt(LocalDateTime accountDeletionExpiresAt) {
         this.accountDeletionExpiresAt = accountDeletionExpiresAt;
     }
+
+    public Integer getTokenVersion() { return tokenVersion; }
+
+    public void setTokenVersion(Integer tokenVersion) { this.tokenVersion = tokenVersion; }
+
+    public void incrementTokenVersion() { this.tokenVersion = (tokenVersion == null ? 0 : tokenVersion) + 1; }
+
+    public String getPendingEmail() { return pendingEmail; }
+
+    public void setPendingEmail(String pendingEmail) { this.pendingEmail = pendingEmail; }
+
+    public String getEmailChangeTokenHash() { return emailChangeTokenHash; }
+
+    public void setEmailChangeTokenHash(String emailChangeTokenHash) { this.emailChangeTokenHash = emailChangeTokenHash; }
+
+    public LocalDateTime getEmailChangeExpiresAt() { return emailChangeExpiresAt; }
+
+    public void setEmailChangeExpiresAt(LocalDateTime emailChangeExpiresAt) { this.emailChangeExpiresAt = emailChangeExpiresAt; }
 }
 

@@ -288,6 +288,30 @@ public class EmailService {
         }
     }
 
+    public void sendEmailChangeConfirmation(String to, String firstName, String confirmationUrl) {
+        ensureMailConfigured();
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(from);
+            helper.setTo(to);
+            helper.setSubject("Confirmez votre nouvelle adresse MeetSpace");
+            String greeting = StringUtils.hasText(firstName) ? "Bonjour " + firstName + "," : "Bonjour,";
+            helper.setText(
+                    greeting + "\n\nConfirmez votre nouvelle adresse email en ouvrant ce lien:\n" + confirmationUrl
+                            + "\n\nCe lien expire dans 30 minutes.",
+                    "<p>" + escapeHtml(greeting) + "</p><p>Confirmez votre nouvelle adresse email:</p>"
+                            + "<p><a href=\"" + escapeHtml(confirmationUrl) + "\">Confirmer mon adresse</a></p>"
+                            + "<p>Ce lien expire dans 30 minutes.</p>"
+            );
+            mailSender.send(message);
+            LOGGER.info("Email change confirmation sent to {}", maskEmail(to));
+        } catch (MessagingException | RuntimeException exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Impossible d'envoyer la confirmation de changement d'email", exception);
+        }
+    }
+
     private void sendTransactionalEmailAsync(String type, String to, String subject, String title, String intro, Map<String, String> details) {
         CompletableFuture.runAsync(() -> sendTransactionalEmail(type, to, subject, title, intro, details))
                 .exceptionally(ex -> {

@@ -15,6 +15,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByPasswordResetTokenHash(String passwordResetTokenHash);
 
+    Optional<User> findByEmailChangeTokenHash(String emailChangeTokenHash);
+
     Optional<User> findByAccountDeletionTokenHash(String accountDeletionTokenHash);
 }
 

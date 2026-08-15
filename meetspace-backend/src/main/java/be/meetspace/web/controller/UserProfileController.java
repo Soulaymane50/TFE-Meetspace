@@ -4,6 +4,8 @@ import be.meetspace.entity.AuditAction;
 import be.meetspace.entity.User;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AccountDeletionService;
+import be.meetspace.service.EmailChangeService;
+import be.meetspace.web.dto.EmailChangeRequest;
 import be.meetspace.service.AuditService;
 import be.meetspace.service.PasswordPolicyService;
 import be.meetspace.web.dto.AccountDeletionConfirmRequest;
@@ -31,17 +33,20 @@ public class UserProfileController {
     private final AuditService auditService;
     private final PasswordPolicyService passwordPolicyService;
     private final AccountDeletionService accountDeletionService;
+    private final EmailChangeService emailChangeService;
 
     public UserProfileController(UserRepository userRepository,
                                  PasswordEncoder passwordEncoder,
                                  AuditService auditService,
                                  PasswordPolicyService passwordPolicyService,
-                                 AccountDeletionService accountDeletionService) {
+                                 AccountDeletionService accountDeletionService,
+                                 EmailChangeService emailChangeService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.auditService = auditService;
         this.passwordPolicyService = passwordPolicyService;
         this.accountDeletionService = accountDeletionService;
+        this.emailChangeService = emailChangeService;
     }
 
     @GetMapping("/me")
@@ -73,13 +78,12 @@ public class UserProfileController {
 
         String oldEmail = user.getEmail();
         String normalizedEmail = normalizeEmail(request.getEmail());
-        if (!oldEmail.equalsIgnoreCase(normalizedEmail) && userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "EMAIL_ALREADY_EXISTS");
+        if (!oldEmail.equalsIgnoreCase(normalizedEmail)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "EMAIL_CHANGE_REQUIRES_VERIFICATION");
         }
 
         user.setFirstName(request.getFirstName().trim());
         user.setLastName(request.getLastName().trim());
-        user.setEmail(normalizedEmail);
         user.setUpdatedAt(LocalDateTime.now());
 
         User saved = userRepository.save(user);
@@ -114,6 +118,7 @@ public class UserProfileController {
         passwordPolicyService.validateOrThrow(request.getNewPassword());
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.incrementTokenVersion();
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
 
@@ -121,6 +126,17 @@ public class UserProfileController {
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
         auditService.log(AuditAction.PASSWORD_CHANGE, "User", user.getId(),
                 "Changement de mot de passe effectué", ipAddress);
+    }
+
+    @PostMapping("/me/email-change-request")
+    public void requestEmailChange(@Valid @RequestBody EmailChangeRequest request,
+                                   Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecte");
+        }
+        User user = userRepository.findByEmailIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
+        emailChangeService.request(user, request.getNewEmail(), request.getCurrentPassword());
     }
 
     @DeleteMapping("/me")

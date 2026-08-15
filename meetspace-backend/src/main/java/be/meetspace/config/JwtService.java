@@ -52,8 +52,21 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
+        return generateToken(userDetails, 0);
+    }
+
+    public String generateToken(UserDetails userDetails, int tokenVersion) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("tokenVersion", tokenVersion);
         return createToken(claims, userDetails.getUsername());
+    }
+
+    public int extractTokenVersion(String token) {
+        Object value = extractAllClaims(token).get("tokenVersion");
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        return 0;
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {

@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import be.meetspace.repository.UserRepository;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -21,11 +22,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final UserRepository userRepository;
 
     public JwtAuthenticationFilter(JwtService jwtService,
-                                   UserDetailsService userDetailsService) {
+                                   UserDetailsService userDetailsService,
+                                   UserRepository userRepository) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -60,7 +64,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            if (isActiveAccount(userDetails) && jwtService.isTokenValid(jwt, userDetails)) {
+            int tokenVersion = jwtService.extractTokenVersion(jwt);
+            boolean versionMatches = userRepository.findByEmailIgnoreCase(userEmail)
+                    .map(user -> (user.getTokenVersion() == null ? 0 : user.getTokenVersion()) == tokenVersion)
+                    .orElse(false);
+
+            if (versionMatches && isActiveAccount(userDetails) && jwtService.isTokenValid(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
