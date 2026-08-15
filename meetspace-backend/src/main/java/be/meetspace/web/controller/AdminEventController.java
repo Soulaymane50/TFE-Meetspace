@@ -123,7 +123,7 @@ public class AdminEventController {
                 String.format("Modification événement: %s", saved.getTitle()), ipAddress);
 
         int registered = registrationRepository.countTotalParticipantsByEventId(saved.getId());
-        return EventResponseDto.fromEntity(saved, registered);
+        return EventResponseDto.fromEntity(event, registered);
     }
 
     @PostMapping("/{id}/approve")
@@ -165,7 +165,7 @@ public class AdminEventController {
         auditService.log(action, "Event", saved.getId(), details, oldStatus, saved.getStatus().name(), ipAddress);
 
         int registered = registrationRepository.countTotalParticipantsByEventId(saved.getId());
-        return EventResponseDto.fromEntity(saved, registered);
+        return EventResponseDto.fromEntity(event, registered);
     }
 
     @PatchMapping("/{id}/status")
@@ -198,7 +198,7 @@ public class AdminEventController {
                 oldStatus, saved.getStatus().name(), ipAddress);
 
         int registered = registrationRepository.countTotalParticipantsByEventId(saved.getId());
-        return EventResponseDto.fromEntity(saved, registered);
+        return EventResponseDto.fromEntity(event, registered);
     }
 
     @DeleteMapping("/{id}")

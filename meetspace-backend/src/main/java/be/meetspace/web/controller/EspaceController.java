@@ -21,13 +21,5 @@ public class EspaceController {
     public List<Espace> getAvailableEspaces() {
         return espaceRepository.findByStatus(EspaceStatus.AVAILABLE);
     }
-
-    @PostMapping
-    public Espace create(@RequestBody Espace espace) {
-        if (espace.getStatus() == null) {
-            espace.setStatus(EspaceStatus.AVAILABLE);
-        }
-        return espaceRepository.save(espace);
-    }
 }
 
