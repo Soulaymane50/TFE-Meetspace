@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -35,6 +37,7 @@ public class FinancialSummaryService {
     private final ReservationRepository reservationRepository;
     private final ParkingReservationRepository parkingReservationRepository;
     private final UserRepository userRepository;
+    private final FinanceTransactionMetricsService transactionMetricsService;
 
     public FinancialSummaryService(
             EventRepository eventRepository,
@@ -42,7 +45,8 @@ public class FinancialSummaryService {
             EventRegistrationRepository eventRegistrationRepository,
             ReservationRepository reservationRepository,
             ParkingReservationRepository parkingReservationRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            FinanceTransactionMetricsService transactionMetricsService
     ) {
         this.eventRepository = eventRepository;
         this.espaceRepository = espaceRepository;
@@ -50,10 +54,11 @@ public class FinancialSummaryService {
         this.reservationRepository = reservationRepository;
         this.parkingReservationRepository = parkingReservationRepository;
         this.userRepository = userRepository;
+        this.transactionMetricsService = transactionMetricsService;
     }
 
     @Transactional(readOnly = true)
-    public FinanceSummaryDto getAdminSummary() {
+    public FinanceSummaryDto getAdminSummary(LocalDate from, LocalDate to) {
         List<EventFinanceDto> eventFinances = eventRepository.findAllByOrderByCreatedAtDesc().stream()
                 .filter(this::isMeetSpaceRevenueRelevant)
                 .map(this::buildEventFinance)
@@ -61,23 +66,22 @@ public class FinancialSummaryService {
 
         double directRoomRevenue = valueOrZero(reservationRepository.sumTotalPriceByStatus(ReservationStatus.CONFIRMED));
         double parkingRevenue = valueOrZero(parkingReservationRepository.sumTotalPriceByStatus(ParkingReservationStatus.CONFIRMED));
+        FinanceTransactionMetricsService.Metrics metrics = transactionMetricsService.forAdmin(from, to);
 
-        return buildSummary(eventFinances, directRoomRevenue, parkingRevenue);
+        return buildSummary(eventFinances, directRoomRevenue, parkingRevenue, metrics);
     }
 
     @Transactional(readOnly = true)
-    public FinanceSummaryDto getOrganizerSummary(String email, boolean adminView) {
-        if (adminView) {
-            return getAdminSummary();
-        }
-
+    public FinanceSummaryDto getOrganizerSummary(String email, boolean adminView, LocalDate from, LocalDate to) {
         User organizer = findUser(email);
         List<EventFinanceDto> eventFinances = eventRepository.findByCreatedByIdOrderByCreatedAtDesc(organizer.getId()).stream()
                 .filter(this::isFinanciallyRelevant)
                 .map(this::buildEventFinance)
                 .toList();
+        FinanceTransactionMetricsService.Metrics metrics =
+                transactionMetricsService.forOrganizer(organizer.getId(), from, to);
 
-        return buildSummary(eventFinances, 0D, 0D);
+        return buildSummary(eventFinances, 0D, 0D, metrics);
     }
 
     @Transactional(readOnly = true)
@@ -101,7 +105,8 @@ public class FinancialSummaryService {
         return buildEventFinance(event);
     }
 
-    private FinanceSummaryDto buildSummary(List<EventFinanceDto> eventFinances, double directRoomRevenue, double parkingRevenue) {
+    private FinanceSummaryDto buildSummary(List<EventFinanceDto> eventFinances, double directRoomRevenue,
+                                           double parkingRevenue, FinanceTransactionMetricsService.Metrics metrics) {
         int confirmedRegistrations = eventFinances.stream()
                 .mapToInt(EventFinanceDto::getConfirmedRegistrations)
                 .sum();
@@ -112,7 +117,11 @@ public class FinancialSummaryService {
         double eventCommissionRevenue = sum(eventFinances, EventFinanceDto::getMeetSpaceCommission);
         double roomCostChargedToOrganizers = sum(eventFinances, EventFinanceDto::getRoomCost);
         double organizerNetEstimate = sum(eventFinances, EventFinanceDto::getOrganizerNetEstimate);
+        double eventPotentialGrossRevenue = sum(eventFinances, EventFinanceDto::getPotentialGrossRevenue);
+        double eventPotentialCommissionRevenue = sum(eventFinances, EventFinanceDto::getPotentialMeetSpaceCommission);
+        double organizerPotentialNet = sum(eventFinances, EventFinanceDto::getOrganizerPotentialNet);
         double meetSpaceEstimatedRevenue = directRoomRevenue + parkingRevenue + eventCommissionRevenue + roomCostChargedToOrganizers;
+        double meetSpacePotentialRevenue = directRoomRevenue + parkingRevenue + eventPotentialCommissionRevenue + roomCostChargedToOrganizers;
 
         List<EventFinanceDto> sortedEvents = eventFinances.stream()
                 .sorted(Comparator.comparing(EventFinanceDto::getGrossRevenue, Comparator.nullsLast(Comparator.reverseOrder())))
@@ -130,7 +139,22 @@ public class FinancialSummaryService {
                 roundMoney(directRoomRevenue),
                 roundMoney(parkingRevenue),
                 roundMoney(meetSpaceEstimatedRevenue),
-                sortedEvents
+                roundMoney(eventPotentialGrossRevenue),
+                roundMoney(eventPotentialCommissionRevenue),
+                roundMoney(organizerPotentialNet),
+                roundMoney(meetSpacePotentialRevenue),
+                sortedEvents,
+                metrics.periodStart(),
+                metrics.periodEnd(),
+                metrics.grossCollected(),
+                metrics.refundedAmount(),
+                metrics.estimatedProcessingFees(),
+                metrics.netCashFlow(),
+                metrics.outstandingReceivables(),
+                metrics.vatRate(),
+                metrics.revenueExcludingVat(),
+                metrics.vatIncluded(),
+                metrics.transactionCount()
         );
     }
 
@@ -152,7 +176,15 @@ public class FinancialSummaryService {
         double grossRevenue = ticketPrice * participantCount;
         double roomCost = roomHourlyRate * durationHours;
         double commission = BusinessRules.calculateMeetSpaceCommission(grossRevenue);
-        double organizerNet = grossRevenue - commission - roomCost;
+        double organizerNet = BusinessRules.calculateOrganizerNet(grossRevenue, roomCost);
+        int capacity = Math.max(0, event.getCapacity() != null ? event.getCapacity() : 0);
+        boolean eventCanStillFill = event.getEndDateTime() != null && event.getEndDateTime().isAfter(LocalDateTime.now());
+        int potentialParticipants = eventCanStillFill ? Math.max(participantCount, capacity) : participantCount;
+        double potentialGrossRevenue = ticketPrice * potentialParticipants;
+        double potentialCommission = BusinessRules.calculateMeetSpaceCommission(potentialGrossRevenue);
+        double organizerPotentialNet = BusinessRules.calculateOrganizerNet(potentialGrossRevenue, roomCost);
+        double occupancyRate = capacity > 0 ? (participantCount * 100D) / capacity : 0D;
+        int breakEvenParticipants = BusinessRules.calculateBreakEvenParticipants(ticketPrice, roomCost);
 
         return new EventFinanceDto(
                 event.getId(),
@@ -170,6 +202,11 @@ public class FinancialSummaryService {
                 roundMoney(roomCost),
                 roundMoney(commission),
                 roundMoney(organizerNet),
+                roundMoney(potentialGrossRevenue),
+                roundMoney(potentialCommission),
+                roundMoney(organizerPotentialNet),
+                roundHours(occupancyRate),
+                breakEvenParticipants,
                 BusinessRules.MEETSPACE_COMMISSION_RATE
         );
     }

@@ -17,6 +17,11 @@ public class EventFinanceDto {
     private final Double roomCost;
     private final Double meetSpaceCommission;
     private final Double organizerNetEstimate;
+    private final Double potentialGrossRevenue;
+    private final Double potentialMeetSpaceCommission;
+    private final Double organizerPotentialNet;
+    private final Double occupancyRate;
+    private final Integer breakEvenParticipants;
     private final Double commissionRate;
 
     public EventFinanceDto(
@@ -35,6 +40,11 @@ public class EventFinanceDto {
             Double roomCost,
             Double meetSpaceCommission,
             Double organizerNetEstimate,
+            Double potentialGrossRevenue,
+            Double potentialMeetSpaceCommission,
+            Double organizerPotentialNet,
+            Double occupancyRate,
+            Integer breakEvenParticipants,
             Double commissionRate
     ) {
         this.eventId = eventId;
@@ -52,6 +62,11 @@ public class EventFinanceDto {
         this.roomCost = roomCost;
         this.meetSpaceCommission = meetSpaceCommission;
         this.organizerNetEstimate = organizerNetEstimate;
+        this.potentialGrossRevenue = potentialGrossRevenue;
+        this.potentialMeetSpaceCommission = potentialMeetSpaceCommission;
+        this.organizerPotentialNet = organizerPotentialNet;
+        this.occupancyRate = occupancyRate;
+        this.breakEvenParticipants = breakEvenParticipants;
         this.commissionRate = commissionRate;
     }
 
@@ -70,5 +85,10 @@ public class EventFinanceDto {
     public Double getRoomCost() { return roomCost; }
     public Double getMeetSpaceCommission() { return meetSpaceCommission; }
     public Double getOrganizerNetEstimate() { return organizerNetEstimate; }
+    public Double getPotentialGrossRevenue() { return potentialGrossRevenue; }
+    public Double getPotentialMeetSpaceCommission() { return potentialMeetSpaceCommission; }
+    public Double getOrganizerPotentialNet() { return organizerPotentialNet; }
+    public Double getOccupancyRate() { return occupancyRate; }
+    public Integer getBreakEvenParticipants() { return breakEvenParticipants; }
     public Double getCommissionRate() { return commissionRate; }
 }
