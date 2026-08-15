@@ -15,10 +15,14 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setError("");
     try {
+      setIsSubmitting(true);
       const data = await loginRequest(email, password);
       login(data.user, data.token);
       navigate(location.state?.from || "/espace", { replace: true });
@@ -29,9 +33,13 @@ export default function LoginPage() {
         setError(t("auth.accountDeleted"));
       } else if (err.message === "ACCOUNT_INACTIVE" || err.message === "ACCOUNT_SUSPENDED") {
         setError(t("auth.accountSuspended"));
+      } else if (err.message === "AUTH_SERVICE_UNAVAILABLE" || err.message === "AUTH_ACCESS_FORBIDDEN") {
+        setError(t("auth.loginServiceUnavailable"));
       } else {
         setError(t("auth.loginError"));
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -80,8 +88,8 @@ export default function LoginPage() {
                 required
               />
             </div>
-            <button type="submit" className={styles.button}>
-              {t("auth.loginButton")}
+            <button type="submit" className={styles.button} disabled={isSubmitting}>
+              {isSubmitting ? t("common.loading") : t("auth.loginButton")}
             </button>
           </form>
           <p className={styles.forgotLink}>
@@ -90,7 +98,7 @@ export default function LoginPage() {
           {error && <p className={styles.error}>{error}</p>}
           <div className={styles.footer}>
             <p className={styles.link}>
-              {t("auth.noAccount")} <Link to="/register">{t("auth.createAccount")}</Link>
+              {t("auth.noAccount")} <Link to="/register" state={{ from: location.state?.from }}>{t("auth.createAccount")}</Link>
             </p>
             <p className={styles.homeLink}>
               <Link to="/">{t("auth.backToHome")}</Link>

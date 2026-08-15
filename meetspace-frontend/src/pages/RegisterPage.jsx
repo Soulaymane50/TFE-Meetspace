@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { registerRequest } from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import { getPasswordChecks, isStrongPassword } from "../utils/passwordPolicy";
@@ -10,6 +10,7 @@ import styles from "./RegisterPage.module.css";
 export default function RegisterPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
 
   const [firstName, setFirstName] = useState("");
@@ -47,7 +48,7 @@ export default function RegisterPage() {
         confirmPassword,
       });
       login(data.user, data.token);
-      navigate("/espace");
+      navigate(location.state?.from || "/espace", { replace: true });
     } catch (err) {
       const message = err?.message;
       if (message === "EMAIL_ALREADY_EXISTS") {
@@ -165,7 +166,7 @@ export default function RegisterPage() {
           {error && <p className={styles.error}>{error}</p>}
           <div className={styles.footer}>
             <p className={styles.link}>
-              {t("auth.hasAccount")} <Link to="/login">{t("auth.loginLink")}</Link>
+              {t("auth.hasAccount")} <Link to="/login" state={{ from: location.state?.from }}>{t("auth.loginLink")}</Link>
             </p>
             <p className={styles.homeLink}>
               <Link to="/">{t("auth.backToHome")}</Link>

@@ -83,11 +83,10 @@
 .passwordRules {
   margin: -0.3rem 0 1.1rem;
   padding: 0.95rem 1rem;
-  border: 1px solid rgba(28, 43, 68, 0.1);
-  border-radius: 1.1rem;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(245, 248, 253, 0.82));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  box-shadow: none;
 }
 
 .passwordRulesTitle {
@@ -125,7 +124,7 @@
   width: 0.55rem;
   height: 0.55rem;
   flex: 0 0 auto;
-  border-radius: 999px;
+  border-radius: 3px;
   background: #cbd3df;
   box-shadow: 0 0 0 4px rgba(203, 211, 223, 0.18);
 }
@@ -154,10 +153,9 @@
 }
 
 :global([data-theme="dark"]) .passwordRules {
-  border-color: rgba(148, 163, 184, 0.22);
-  background:
-    linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(21, 31, 49, 0.9));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border-color: var(--border);
+  background: var(--surface-muted);
+  box-shadow: none;
 }
 
 :global([data-theme="dark"]) .passwordRulesTitle {
