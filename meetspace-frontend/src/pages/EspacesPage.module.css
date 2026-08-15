@@ -809,3 +809,439 @@
     min-height: 150px;
   }
 }
+
+/* v2.2 — catalogue decision tools */
+.catalogTools {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.62fr) minmax(0, 1.38fr);
+  gap: 1.25rem;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.catalogToolsIntro {
+  align-self: center;
+}
+
+.toolKicker {
+  margin: 0 0 0.25rem;
+  color: var(--brand);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.catalogToolsIntro h2,
+.comparisonHeader h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  letter-spacing: -0.035em;
+}
+
+.catalogToolsIntro > p:last-child,
+.comparisonHeader > div > p:last-child {
+  margin: 0.28rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.catalogControls {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto minmax(155px, 0.7fr) auto;
+  gap: 0.65rem;
+  align-items: end;
+}
+
+.searchControl,
+.sortControl {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.searchControl > span,
+.sortControl > span {
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.searchControl input,
+.sortControl select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.typeControl {
+  display: flex;
+  align-items: stretch;
+  min-height: 44px;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.typeControl button {
+  min-height: 42px;
+  padding: 0.55rem 0.75rem;
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--text-secondary);
+  box-shadow: none;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.typeControl button:last-child {
+  border-right: 0;
+}
+
+.typeControl button:hover,
+.typeControl button:focus-visible,
+.typeControl .typeControlActive {
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  transform: none;
+  filter: none;
+}
+
+.typeControl .typeControlActive {
+  box-shadow: inset 0 -3px 0 var(--brand);
+}
+
+.resetCatalog,
+.clearComparison {
+  min-height: 44px;
+  padding: 0.58rem 0.8rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-primary);
+  box-shadow: none;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.resetCatalog:hover,
+.clearComparison:hover {
+  background: var(--surface-muted);
+  transform: none;
+  filter: none;
+}
+
+.comparisonPanel {
+  scroll-margin-top: 6rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--brand);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-medium);
+}
+
+.comparisonHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.comparisonGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.comparisonColumn {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.1rem 1.2rem;
+  border-right: 1px solid var(--border);
+}
+
+.comparisonColumn:last-child {
+  border-right: 0;
+}
+
+.comparisonEmpty {
+  display: grid;
+  min-height: 285px;
+  place-content: center;
+  justify-items: center;
+  gap: 0.55rem;
+  padding: 1.5rem;
+  border-right: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-muted) 38%, transparent);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.comparisonEmpty:last-child {
+  border-right: 0;
+}
+
+.comparisonEmpty span {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.comparisonEmpty p {
+  max-width: 18ch;
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.comparisonName {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.comparisonName span {
+  color: var(--brand);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.comparisonName h3 {
+  margin: 0.18rem 0 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.comparisonName button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  box-shadow: none;
+}
+
+.comparisonName button:hover {
+  background: var(--surface-muted);
+  color: var(--text-primary);
+  transform: none;
+}
+
+.comparisonColumn dl {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid var(--border);
+}
+
+.comparisonColumn dl > div {
+  display: grid;
+  grid-template-columns: 0.7fr 1.3fr;
+  gap: 0.6rem;
+  padding: 0.62rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.comparisonColumn dt {
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.comparisonColumn dd {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+.panelActions,
+.studioActions {
+  display: grid;
+  grid-template-columns: minmax(145px, auto) minmax(180px, 1fr);
+  gap: 0.55rem;
+}
+
+.compareButton {
+  min-height: 48px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  box-shadow: none;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.compareButton:hover,
+.compareButton:focus-visible,
+.compareButtonActive {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  transform: none;
+  filter: none;
+}
+
+.compareButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.noCatalogResults {
+  display: grid;
+  justify-items: start;
+  gap: 0.4rem;
+  padding: 1.5rem;
+  border-block: 1px solid var(--border);
+}
+
+.noCatalogResults strong {
+  color: var(--text-primary);
+}
+
+.noCatalogResults p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.noCatalogResults button {
+  margin-top: 0.35rem;
+}
+
+.comparisonTrigger {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  z-index: 700;
+  min-height: 46px;
+  padding: 0.7rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 65%, var(--border));
+  border-radius: var(--radius-md);
+  background: var(--hero-bg);
+  color: #fff;
+  box-shadow: 0 14px 36px rgba(7, 20, 18, 0.24);
+  font-size: 0.78rem;
+  font-weight: 800;
+  transform: translateX(-50%);
+}
+
+.comparisonTrigger:hover,
+.comparisonTrigger:focus-visible {
+  background: var(--brand-strong);
+  color: #fff;
+  transform: translateX(-50%) translateY(-2px);
+  filter: none;
+}
+
+@media (max-width: 1120px) {
+  .catalogTools {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogControls {
+    grid-template-columns: minmax(180px, 1fr) auto minmax(155px, 0.75fr);
+  }
+
+  .resetCatalog {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 760px) {
+  .catalogTools {
+    padding: 1rem;
+  }
+
+  .catalogControls,
+  .panelActions,
+  .studioActions {
+    grid-template-columns: 1fr;
+  }
+
+  .typeControl {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .comparisonHeader {
+    display: grid;
+  }
+
+  .clearComparison {
+    justify-self: start;
+  }
+
+  .comparisonGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .comparisonColumn {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .comparisonColumn:last-child {
+    border-bottom: 0;
+  }
+
+  .comparisonEmpty {
+    display: none;
+  }
+}
+
+.panelActions,
+.studioActions {
+  gap: 0.65rem;
+}
+
+.detailButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.detailButton:hover {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+}

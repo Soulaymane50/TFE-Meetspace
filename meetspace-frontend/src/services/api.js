@@ -319,14 +319,19 @@ async function fetchAdminParkingReservationsResponse(token) {
 }
 
 export async function loginRequest(email, password) {
-  const res = await fetch(`${API_URL}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
+  let res;
+  try {
+    res = await fetch(`${API_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+  } catch {
+    throw new Error("AUTH_SERVICE_UNAVAILABLE");
+  }
+
   if (!res.ok) {
     if (res.status === 403) {
-      // Get the status message from the response
       const text = await res.text();
       if (text.includes("BANNED")) {
         throw new Error("ACCOUNT_BANNED");
@@ -334,9 +339,12 @@ export async function loginRequest(email, password) {
         throw new Error("ACCOUNT_DELETED");
       } else if (text.includes("INACTIVE")) {
         throw new Error("ACCOUNT_INACTIVE");
+      } else if (text.includes("SUSPENDED")) {
+        throw new Error("ACCOUNT_SUSPENDED");
       }
-      throw new Error("ACCOUNT_SUSPENDED");
+      throw new Error("AUTH_ACCESS_FORBIDDEN");
     }
+    if (res.status >= 500) throw new Error("AUTH_SERVICE_UNAVAILABLE");
     throw new Error("Email ou mot de passe incorrect");
   }
   return res.json();
@@ -567,6 +575,29 @@ export async function changeMyPassword(data, token) {
   if (!res.ok) await throwAccountApiError(res, "PASSWORD_CHANGE_FAILED");
 }
 
+export async function requestEmailChange(data, token) {
+  const res = await fetch(`${API_URL}/api/user/me/email-change-request`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(token),
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) await throwAccountApiError(res, "EMAIL_CHANGE_REQUEST_FAILED");
+  return true;
+}
+
+export async function confirmEmailChange(token) {
+  const res = await fetch(`${API_URL}/api/auth/email-change/confirm`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+  if (!res.ok) await throwAccountApiError(res, "EMAIL_CHANGE_CONFIRM_FAILED");
+  return res.json();
+}
+
 export async function adminGetEspaces(token) {
   const res = await fetch(`${API_URL}/api/admin/espaces`, {
     headers: authHeaders(token),
@@ -720,8 +751,16 @@ export async function adminGetStats(token) {
   return normalizeAdminStats(stats);
 }
 
-export async function adminGetFinanceSummary(token) {
-  const res = await fetch(`${API_URL}/api/admin/finance/summary`, {
+function financeQuery(period = {}) {
+  const params = new URLSearchParams();
+  if (period.from) params.set("from", period.from);
+  if (period.to) params.set("to", period.to);
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
+export async function adminGetFinanceSummary(token, period) {
+  const res = await fetch(`${API_URL}/api/admin/finance/summary${financeQuery(period)}`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur recuperation revenus estimes");
@@ -785,8 +824,8 @@ export async function organizerGetMyEvents(token) {
   return events.map(normalizeEvent);
 }
 
-export async function organizerGetFinanceSummary(token) {
-  const res = await fetch(`${API_URL}/api/organizer/finance/summary`, {
+export async function organizerGetFinanceSummary(token, period) {
+  const res = await fetch(`${API_URL}/api/organizer/finance/summary${financeQuery(period)}`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur recuperation estimation financiere");

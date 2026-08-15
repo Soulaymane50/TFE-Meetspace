@@ -1,6 +1,20 @@
 export const MEETSPACE_COMMISSION_RATE = 0.1;
 export const MEETSPACE_TOTAL_PARKING_SPACES = 150;
 
+export function calculateRoomPrice(basePrice, durationHours) {
+  const rate = Number(basePrice) || 0;
+  const hours = Number(durationHours) || 0;
+  const discount = hours >= 8 ? 0.85 : hours >= 4 ? 0.92 : 1;
+  return Math.round(rate * hours * discount * 100) / 100;
+}
+
+export function getRoomPackageLabel(durationHours) {
+  const hours = Number(durationHours) || 0;
+  if (hours >= 8) return "day";
+  if (hours >= 4) return "halfDay";
+  return "hourly";
+}
+
 export function getRoomParkingQuotaLimit(roomCapacity) {
   const capacity = Number(roomCapacity) || 0;
   if (capacity <= 0) return MEETSPACE_TOTAL_PARKING_SPACES;

@@ -787,3 +787,33 @@
     min-height: 112px;
   }
 }
+
+.slotActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+
+.detailButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid rgba(248, 245, 239, 0.3);
+  border-radius: var(--radius-sm);
+  color: rgba(248, 245, 239, 0.9);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.detailButton:hover {
+  border-color: var(--sun);
+  color: var(--sun);
+}
+
+@media (max-width: 520px) {
+  .slotActions {
+    grid-template-columns: 1fr;
+  }
+}

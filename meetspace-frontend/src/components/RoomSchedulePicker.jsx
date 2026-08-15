@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getEspaceReservationsForCalendar } from "../services/api";
 import styles from "./RoomSchedulePicker.module.css";
@@ -42,6 +42,7 @@ export default function RoomSchedulePicker({
   const [reservationBucket, setReservationBucket] = useState({ key: "", items: [], failed: false });
   const [manualSelectedDate, setManualSelectedDate] = useState("");
   const [durationOverride, setDurationOverride] = useState(null);
+  const reportedPrefillRef = useRef("");
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
@@ -50,7 +51,10 @@ export default function RoomSchedulePicker({
   const selectedDate = startDateTime?.slice(0, 10) || manualSelectedDate;
   const duration = durationOverride ?? getDuration(startDateTime, endDateTime);
   const reservationKey = `${spaceId || "none"}-${year}-${month}`;
-  const reservations = reservationBucket.key === reservationKey ? reservationBucket.items : [];
+  const reservations = useMemo(
+    () => (reservationBucket.key === reservationKey ? reservationBucket.items : []),
+    [reservationBucket.items, reservationBucket.key, reservationKey],
+  );
   const calendarReady = Boolean(spaceId) && reservationBucket.key === reservationKey && !reservationBucket.failed;
   const calendarLoading = Boolean(spaceId) && !calendarReady;
   const calendarError = Boolean(spaceId) && reservationBucket.key === reservationKey && reservationBucket.failed;
@@ -223,6 +227,24 @@ export default function RoomSchedulePicker({
         isSlotAvailable(selectedDate, hour, 1),
       ).length
     : 0;
+
+  useEffect(() => {
+    if (!calendarReady || !startDateTime || !endDateTime || selectedStartHour === null || selectedEndHour === null) return;
+    const rangeDuration = selectedEndHour - selectedStartHour;
+    const slotStart = new Date(`${selectedDate}T${pad(selectedStartHour)}:00:00`);
+    const slotEnd = new Date(`${selectedDate}T${pad(selectedEndHour)}:00:00`);
+    const blocked = reservations.some((reservation) => {
+      if (ignoreBlockId && Number(reservation.id) === Number(ignoreBlockId)) return false;
+      const start = new Date(reservation.startDateTime);
+      const end = new Date(reservation.endDateTime);
+      return start < slotEnd && end > slotStart;
+    });
+    const available = rangeDuration > 0 && selectedStartHour >= OPENING_HOUR && selectedEndHour <= CLOSING_HOUR && slotEnd > new Date() && !blocked;
+    const reportKey = `${startDateTime}|${endDateTime}|${available}`;
+    if (reportedPrefillRef.current === reportKey) return;
+    reportedPrefillRef.current = reportKey;
+    onChange({ startDateTime, endDateTime, available });
+  }, [calendarReady, endDateTime, ignoreBlockId, onChange, reservations, selectedDate, selectedEndHour, selectedStartHour, startDateTime]);
 
   if (!spaceId) {
     return (

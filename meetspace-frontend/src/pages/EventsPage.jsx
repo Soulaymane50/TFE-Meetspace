@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { getPublicEvents } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -43,15 +43,16 @@ const getDayKey = (isoDate) => {
 };
 
 export default function EventsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [priceFilter, setPriceFilter] = useState("all");
-  const [availabilityFilter, setAvailabilityFilter] = useState("all");
-  const [parkingFilter, setParkingFilter] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("date");
-  const [viewMode, setViewMode] = useState("cards");
+  const [priceFilter, setPriceFilter] = useState(() => searchParams.get("price") || "all");
+  const [availabilityFilter, setAvailabilityFilter] = useState(() => searchParams.get("availability") || "all");
+  const [parkingFilter, setParkingFilter] = useState(() => searchParams.get("parking") || "all");
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q") || "");
+  const [sortBy, setSortBy] = useState(() => searchParams.get("sort") || "date");
+  const [viewMode, setViewMode] = useState(() => searchParams.get("view") || "cards");
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const locale = getDateLocale(i18n.language);
@@ -78,6 +79,17 @@ export default function EventsPage() {
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
+
+  useEffect(() => {
+    const next = {};
+    if (searchQuery.trim()) next.q = searchQuery.trim();
+    if (priceFilter !== "all") next.price = priceFilter;
+    if (availabilityFilter !== "all") next.availability = availabilityFilter;
+    if (parkingFilter !== "all") next.parking = parkingFilter;
+    if (sortBy !== "date") next.sort = sortBy;
+    if (viewMode !== "cards") next.view = viewMode;
+    setSearchParams(next, { replace: true });
+  }, [availabilityFilter, parkingFilter, priceFilter, searchQuery, setSearchParams, sortBy, viewMode]);
 
   const retryEvents = () => {
     setLoading(true);
@@ -195,23 +207,19 @@ export default function EventsPage() {
 
   const renderEventCta = (event) => {
     const isFull = event.availablePlaces !== null && event.availablePlaces !== undefined && event.availablePlaces <= 0;
-
-    if (isFull) {
-      return <span className={styles.buttonDisabled}>{user ? t("events.ctaWaitlist") : t("events.full")}</span>;
-    }
-
-    if (user) {
-      return (
-        <Link to={`/events/register/${event.id}`} className={styles.button}>
-          {t("events.register")}
-        </Link>
-      );
-    }
-
     return (
-      <Link to="/login" className={styles.buttonSecondary}>
-        {t("events.loginToRegister")}
-      </Link>
+      <div className={styles.ctaStack}>
+        <Link to={`/events/${event.id}`} className={styles.detailButton}>
+          {t("detail.viewDetails", { defaultValue: "Voir la fiche" })}
+        </Link>
+        {isFull ? (
+          <span className={styles.buttonDisabled}>{user ? t("events.ctaWaitlist") : t("events.full")}</span>
+        ) : (
+          <Link to={`/events/register/${event.id}`} className={user ? styles.button : styles.buttonSecondary}>
+            {user ? t("events.register") : t("events.loginToRegister")}
+          </Link>
+        )}
+      </div>
     );
   };
 

@@ -1107,3 +1107,27 @@
     width: 100%;
   }
 }
+
+.ctaStack {
+  display: grid;
+  gap: 0.55rem;
+  width: 100%;
+}
+
+.detailButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(248, 245, 239, 0.3);
+  border-radius: var(--radius-sm);
+  color: rgba(248, 245, 239, 0.9);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.detailButton:hover {
+  border-color: var(--sun);
+  color: var(--sun);
+}

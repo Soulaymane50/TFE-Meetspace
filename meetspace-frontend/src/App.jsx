@@ -15,6 +15,7 @@ const LegalPage = lazy(() => import("./pages/LegalPage"));
 const EspacesPage = lazy(() => import("./pages/EspacesPage"));
 const EventsPage = lazy(() => import("./pages/EventsPage"));
 const ParkingPage = lazy(() => import("./pages/ParkingPage"));
+const CatalogDetailPage = lazy(() => import("./pages/CatalogDetailPage"));
 const MyReservationsPage = lazy(() => import("./pages/MyReservationsPage"));
 const CreateReservationPage = lazy(() => import("./pages/CreateReservationPage"));
 const EventRegisterPage = lazy(() => import("./pages/EventRegisterPage"));
@@ -22,6 +23,7 @@ const ParkingReservePage = lazy(() => import("./pages/ParkingReservePage"));
 const MyParkingReservationsPage = lazy(() => import("./pages/MyParkingReservationsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const ConfirmAccountDeletionPage = lazy(() => import("./pages/ConfirmAccountDeletionPage"));
+const ConfirmEmailChangePage = lazy(() => import("./pages/ConfirmEmailChangePage"));
 const OrganizerEventsPage = lazy(() => import("./pages/OrganizerEventsPage"));
 const OrganizerEventForm = lazy(() => import("./pages/OrganizerEventForm"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -54,6 +56,7 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/confirm-email-change" element={<ConfirmEmailChangePage />} />
         <Route path="/contact" element={<Shell><ContactPage /></Shell>} />
         <Route path="/mentions-legales" element={<Shell><LegalPage pageKey="legalNotice" /></Shell>} />
         <Route path="/confidentialite" element={<Shell><LegalPage pageKey="privacy" /></Shell>} />
@@ -61,8 +64,11 @@ export default function App() {
         <Route path="/annulation-remboursement" element={<Shell><LegalPage pageKey="cancellation" /></Shell>} />
 
         <Route path="/espace" element={<Shell><EspacesPage /></Shell>} />
+        <Route path="/espace/:id" element={<Shell><CatalogDetailPage type="space" /></Shell>} />
         <Route path="/events" element={<Shell><EventsPage /></Shell>} />
+        <Route path="/events/:id" element={<Shell><CatalogDetailPage type="event" /></Shell>} />
         <Route path="/parking" element={<Shell><ParkingPage /></Shell>} />
+        <Route path="/parking/:id" element={<Shell><CatalogDetailPage type="parking" /></Shell>} />
 
         <Route path="/my-reservations" element={<PrivatePage><MyReservationsPage /></PrivatePage>} />
         <Route path="/my-day" element={<PrivatePage><Navigate to="/my-reservations?tab=day" replace /></PrivatePage>} />

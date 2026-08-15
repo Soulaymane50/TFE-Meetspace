@@ -232,7 +232,7 @@ export default function HomePage() {
                   <span>{formatNumber(space.capacity, numberLocale)} {t("common.persons")}</span>
                   <span>{formatMoney(space.basePrice, numberLocale)} {t("common.perHour")}</span>
                 </div>
-                <Link to={user ? `/reservations/new/${space.id}` : "/login"}>{user ? t("spaces.reserve") : t("spaces.loginToReserve")}</Link>
+                <Link to={`/reservations/new/${space.id}`}>{user ? t("spaces.reserve") : t("spaces.loginToReserve")}</Link>
               </div>
             </article>
           ))}
@@ -257,7 +257,7 @@ export default function HomePage() {
               <span>{dateFormatter.format(new Date(event.startDateTime))}</span>
               <strong>{event.title}</strong>
               <p>{event.location || t("common.toBeAnnounced")}</p>
-              <Link to={user ? `/events/register/${event.id}` : "/login"}>
+              <Link to={`/events/register/${event.id}`}>
                 {user ? t("events.register") : t("events.loginToRegister")}
               </Link>
             </article>
@@ -289,10 +289,10 @@ export default function HomePage() {
         </div>
         <div className={styles.faqGrid}>
           {faqs.map(([question, answer]) => (
-            <article key={question} className={styles.faqItem}>
-              <h3>{t(`home.${question}`)}</h3>
+            <details key={question} className={styles.faqItem}>
+              <summary>{t(`home.${question}`)}</summary>
               <p>{t(`home.${answer}`)}</p>
-            </article>
+            </details>
           ))}
         </div>
       </section>

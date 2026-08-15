@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFeedback } from "../context/FeedbackContext";
 import { getEspaces, requestPremiumRoomReservation, createReservation } from "../services/api";
@@ -8,22 +8,54 @@ import PaymentForm from "../components/PaymentForm";
 import PageState from "../components/PageState";
 import RoomSchedulePicker from "../components/RoomSchedulePicker";
 import { getSpaceImage } from "../utils/mediaAssets";
+import { calculateRoomPrice } from "../utils/businessRules";
 import { formatMoney, normalizeLocale } from "../utils/formatters";
 import styles from "./CreateReservationPage.module.css";
 
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+const BOOKING_DURATIONS = [1, 2, 3, 4, 6, 8];
+
+function getBookingPrefill(searchParams) {
+  const date = searchParams.get("date") || "";
+  const start = searchParams.get("start") || "";
+  const duration = Number(searchParams.get("duration"));
+  const startHour = Number(start.slice(0, 2));
+  const selectedDay = /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(`${date}T12:00:00`) : null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const valid = Boolean(
+    selectedDay &&
+    !Number.isNaN(selectedDay.getTime()) &&
+    selectedDay >= today &&
+    /^([01]\d|2[0-1]):00$/.test(start) &&
+    BOOKING_DURATIONS.includes(duration) &&
+    startHour >= 7 &&
+    startHour + duration <= 22,
+  );
+
+  if (!valid) return { date: "", start: "", end: "" };
+  return {
+    date,
+    start,
+    end: `${String(startHour + duration).padStart(2, "0")}:00`,
+  };
+}
 
 export default function CreateReservationPage() {
   const { espaceId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const prefill = getBookingPrefill(searchParams);
   const { user, token } = useAuth();
   const { t, i18n } = useTranslation();
   const { notify } = useFeedback();
 
   const [espace, setEspace] = useState(null);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [selectedDate, setSelectedDate] = useState(prefill.date);
+  const [startTime, setStartTime] = useState(prefill.start);
+  const [endTime, setEndTime] = useState(prefill.end);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [showPayment, setShowPayment] = useState(false);
@@ -37,7 +69,7 @@ export default function CreateReservationPage() {
 
   useEffect(() => {
     if (!user || !token) {
-      navigate("/login");
+      navigate("/login", { replace: true, state: { from: `${location.pathname}${location.search}` } });
       return;
     }
 
@@ -49,7 +81,7 @@ export default function CreateReservationPage() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [user, token, espaceId, navigate, t]);
+  }, [user, token, espaceId, navigate, t, location.pathname, location.search]);
 
   const calculateHours = () => {
     if (!selectedDate || !startTime || !endTime) return 1;
@@ -59,7 +91,7 @@ export default function CreateReservationPage() {
   };
 
   const durationHours = calculateHours();
-  const totalPrice = espace ? espace.basePrice * durationHours : 0;
+  const totalPrice = espace ? calculateRoomPrice(espace.basePrice, durationHours) : 0;
   const locale = normalizeLocale(i18n.language);
   const formattedTotalPrice = formatMoney(totalPrice, locale);
   const startDateTime = selectedDate && startTime ? `${selectedDate}T${startTime}` : "";
@@ -265,6 +297,8 @@ export default function CreateReservationPage() {
                 metadata={{
                   espaceId: Number(espaceId),
                   hours: durationHours,
+                  startDateTime: selectedDate && startTime ? `${selectedDate}T${startTime}:00` : undefined,
+                  endDateTime: selectedDate && endTime ? `${selectedDate}T${endTime}:00` : undefined,
                 }}
                 onSuccess={handlePaymentSuccess}
                 onCancel={() => setShowPayment(false)}

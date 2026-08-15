@@ -147,7 +147,7 @@ function CheckoutForm({ amount, description, reservationType, metadata, onSucces
   );
 }
 
-function LocalCheckoutForm({ amount, description, reservationType, onSuccess, onCancel }) {
+function LocalCheckoutForm({ amount, description, reservationType, metadata, onSuccess, onCancel, token }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [cardHolder, setCardHolder] = useState("");
@@ -168,9 +168,33 @@ function LocalCheckoutForm({ amount, description, reservationType, onSuccess, on
 
     setLoading(true);
 
-    window.setTimeout(() => {
-      onSuccess(`test_${reservationType.toLowerCase()}_${Date.now()}`);
-      setLoading(false);
+    window.setTimeout(async () => {
+      try {
+        const response = await fetch(`${API_URL}/payments/create-local-payment-intent`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            amount: Math.round(amount * 100),
+            currency: "eur",
+            description,
+            reservationType,
+            ...metadata,
+          }),
+        });
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.message || payload.error || t("payment.error"));
+        }
+        const payload = await response.json();
+        onSuccess(payload.paymentIntentId);
+      } catch (requestError) {
+        setError(requestError.message || t("payment.error"));
+      } finally {
+        setLoading(false);
+      }
     }, LOCAL_PAYMENT_DELAY_MS);
   };
 
@@ -276,7 +300,7 @@ function PaymentUnavailable({ onCancel }) {
 export default function PaymentForm({ stripePublicKey, token, ...props }) {
   if (!isValidStripePublicKey(stripePublicKey)) {
     if (ALLOW_LOCAL_PAYMENTS) {
-      return <LocalCheckoutForm {...props} />;
+      return <LocalCheckoutForm {...props} token={token} />;
     }
 
     return <PaymentUnavailable onCancel={props.onCancel} />;

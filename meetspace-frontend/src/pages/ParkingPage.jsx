@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { getParkingSlots } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -14,10 +14,11 @@ const getDateLocale = (lang) => {
 };
 
 export default function ParkingPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [parkingSlots, setParkingSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedDate, setSelectedDate] = useState("ALL");
+  const [selectedDate, setSelectedDate] = useState(() => searchParams.get("date") || "ALL");
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const locale = getDateLocale(i18n.language);
@@ -38,6 +39,10 @@ export default function ParkingPage() {
   useEffect(() => {
     fetchParkingSlots();
   }, [fetchParkingSlots]);
+
+  useEffect(() => {
+    setSearchParams(selectedDate === "ALL" ? {} : { date: selectedDate }, { replace: true });
+  }, [selectedDate, setSearchParams]);
 
   const retryParkingSlots = () => {
     setLoading(true);
@@ -325,17 +330,17 @@ export default function ParkingPage() {
                         </div>
 
                         <div className={styles.slotActions}>
-                          {user ? (
-                            isFull ? (
-                              <span className={styles.buttonDisabled}>{t("parking.full")}</span>
-                            ) : (
-                              <Link to={`/parking/reserve/${slot.id}`} className={styles.primaryButton}>
-                                {t("parking.reserve")}
-                              </Link>
-                            )
+                          <Link to={`/parking/${slot.id}`} className={styles.detailButton}>
+                            {t("detail.viewDetails", { defaultValue: "Voir la fiche" })}
+                          </Link>
+                          {isFull ? (
+                            <span className={styles.buttonDisabled}>{t("parking.full")}</span>
                           ) : (
-                            <Link to="/login" className={styles.secondaryButton}>
-                              {t("parking.loginToReserve")}
+                            <Link
+                              to={`/parking/reserve/${slot.id}`}
+                              className={user ? styles.primaryButton : styles.secondaryButton}
+                            >
+                              {user ? t("parking.reserve") : t("parking.loginToReserve")}
                             </Link>
                           )}
                         </div>

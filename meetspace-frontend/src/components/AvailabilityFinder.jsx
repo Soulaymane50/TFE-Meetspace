@@ -316,7 +316,10 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
                     <span>{formatNumber(availability?.dayBlocks ?? 0, locale)} {t("availabilityFinder.blocks")}</span>
                   </div>
                   {isAvailable && (
-                    <Link to={user ? `/reservations/new/${room.id}` : "/login"} className={styles.roomCta}>
+                    <Link
+                      to={`/reservations/new/${room.id}?date=${encodeURIComponent(selectedDate)}&start=${encodeURIComponent(availability.firstSlot)}&duration=${duration}`}
+                      className={styles.roomCta}
+                    >
                       {user ? t("availabilityFinder.reserve") : t("availabilityFinder.loginToReserve")}
                     </Link>
                   )}
