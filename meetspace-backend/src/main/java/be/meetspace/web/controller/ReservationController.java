@@ -1,6 +1,5 @@
 package be.meetspace.web.controller;
 
-import be.meetspace.config.PaymentVerifier;
 import be.meetspace.entity.*;
 import be.meetspace.repository.EspaceRepository;
 import be.meetspace.repository.EventRepository;
@@ -8,6 +7,10 @@ import be.meetspace.repository.ReservationRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
 import be.meetspace.service.EmailService;
+import be.meetspace.service.PaymentLifecycleService;
+import be.meetspace.service.PaymentQuoteService;
+import be.meetspace.service.CancellationPolicyService;
+import be.meetspace.web.dto.CancellationResponse;
 import be.meetspace.web.dto.CalendarReservationDto;
 import be.meetspace.web.dto.CreateReservationRequest;
 import be.meetspace.web.dto.PayReservationRequest;
@@ -19,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -33,7 +37,9 @@ public class ReservationController {
     private final UserRepository userRepository;
     private final EspaceRepository espaceRepository;
     private final EventRepository eventRepository;
-    private final PaymentVerifier paymentVerifier;
+    private final PaymentLifecycleService paymentLifecycleService;
+    private final PaymentQuoteService paymentQuoteService;
+    private final CancellationPolicyService cancellationPolicyService;
     private final AuditService auditService;
     private final EmailService emailService;
 
@@ -41,14 +47,18 @@ public class ReservationController {
                                  UserRepository userRepository,
                                  EspaceRepository espaceRepository,
                                  EventRepository eventRepository,
-                                 PaymentVerifier paymentVerifier,
+                                 PaymentLifecycleService paymentLifecycleService,
+                                 PaymentQuoteService paymentQuoteService,
+                                 CancellationPolicyService cancellationPolicyService,
                                  AuditService auditService,
                                  EmailService emailService) {
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
         this.espaceRepository = espaceRepository;
         this.eventRepository = eventRepository;
-        this.paymentVerifier = paymentVerifier;
+        this.paymentLifecycleService = paymentLifecycleService;
+        this.paymentQuoteService = paymentQuoteService;
+        this.cancellationPolicyService = cancellationPolicyService;
         this.auditService = auditService;
         this.emailService = emailService;
     }
@@ -86,6 +96,7 @@ public class ReservationController {
     }
 
     @PostMapping
+    @Transactional
     public ReservationResponseDto create(
             @Valid @RequestBody CreateReservationRequest request,
             Authentication authentication,
@@ -95,15 +106,13 @@ public class ReservationController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecte");
         }
 
-        Espace espace = espaceRepository.findById(request.getEspaceId())
+        Espace espace = espaceRepository.findByIdForUpdate(request.getEspaceId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Espace introuvable"));
 
         if (espace.getType() == EspaceType.PREMIUM_ROOM) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                 "Les salles premium doivent etre reservees via l'endpoint /premium-room");
         }
-
-        paymentVerifier.verifyPayment(request.getPaymentIntentId());
 
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
@@ -115,16 +124,22 @@ public class ReservationController {
 
         validateRoomWindow(request.getEspaceId(), request.getStartDateTime(), request.getEndDateTime());
 
+        long expectedAmountCents = paymentQuoteService.calculateRoomPriceCents(
+                espace, request.getStartDateTime(), request.getEndDateTime());
+        paymentLifecycleService.consume(
+                request.getPaymentIntentId(), user, PaymentType.SPACE, expectedAmountCents, espace.getId());
+
         Reservation reservation = new Reservation();
         reservation.setUser(user);
         reservation.setEspace(espace);
         reservation.setStartDateTime(request.getStartDateTime());
         reservation.setEndDateTime(request.getEndDateTime());
-        reservation.setTotalPrice(request.getTotalPrice());
+        reservation.setTotalPrice(expectedAmountCents / 100D);
         reservation.setPaymentIntentId(request.getPaymentIntentId());
         reservation.setStatus(ReservationStatus.CONFIRMED);
 
         Reservation saved = reservationRepository.save(reservation);
+        paymentLifecycleService.bindToBooking(request.getPaymentIntentId(), saved.getId());
 
         // Audit log
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
@@ -138,6 +153,7 @@ public class ReservationController {
     }
 
     @PostMapping("/premium-room")
+    @Transactional
     public ReservationResponseDto requestPremiumRoomReservation(
             @Valid @RequestBody PremiumRoomReservationRequest request,
             Authentication authentication,
@@ -147,7 +163,7 @@ public class ReservationController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecte");
         }
 
-        Espace espace = espaceRepository.findById(request.getEspaceId())
+        Espace espace = espaceRepository.findByIdForUpdate(request.getEspaceId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Espace introuvable"));
 
         if (espace.getType() != EspaceType.PREMIUM_ROOM) {
@@ -165,12 +181,15 @@ public class ReservationController {
 
         validateRoomWindow(request.getEspaceId(), request.getStartDateTime(), request.getEndDateTime());
 
+        long expectedAmountCents = paymentQuoteService.calculateRoomPriceCents(
+                espace, request.getStartDateTime(), request.getEndDateTime());
+
         Reservation reservation = new Reservation();
         reservation.setUser(user);
         reservation.setEspace(espace);
         reservation.setStartDateTime(request.getStartDateTime());
         reservation.setEndDateTime(request.getEndDateTime());
-        reservation.setTotalPrice(request.getTotalPrice());
+        reservation.setTotalPrice(expectedAmountCents / 100D);
         reservation.setJustification(request.getJustification());
         reservation.setStatus(ReservationStatus.PENDING_APPROVAL);
 
@@ -187,6 +206,7 @@ public class ReservationController {
     }
 
     @PostMapping("/{id}/pay")
+    @Transactional
     public ReservationResponseDto payApprovedReservation(
             @PathVariable Long id,
             @Valid @RequestBody PayReservationRequest request,
@@ -201,7 +221,7 @@ public class ReservationController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
 
-        Reservation reservation = reservationRepository.findById(id)
+        Reservation reservation = reservationRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation introuvable"));
 
         if (!reservation.getUser().getId().equals(user.getId())) {
@@ -213,12 +233,15 @@ public class ReservationController {
                 "Cette reservation n'est pas en attente de paiement. Statut actuel: " + reservation.getStatus());
         }
 
-        paymentVerifier.verifyPayment(request.getPaymentIntentId());
+        long expectedAmountCents = Math.round(reservation.getTotalPrice() * 100D);
+        paymentLifecycleService.consume(
+                request.getPaymentIntentId(), user, PaymentType.PREMIUM_ROOM, expectedAmountCents, reservation.getId());
 
         reservation.setPaymentIntentId(request.getPaymentIntentId());
         reservation.setStatus(ReservationStatus.CONFIRMED);
 
         Reservation saved = reservationRepository.save(reservation);
+        paymentLifecycleService.bindToBooking(request.getPaymentIntentId(), saved.getId());
 
         // Audit log
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
@@ -312,7 +335,8 @@ public class ReservationController {
     }
 
     @DeleteMapping("/{id}/cancel")
-    public void cancelReservation(@PathVariable Long id, Authentication authentication, HttpServletRequest httpRequest) {
+    @Transactional
+    public CancellationResponse cancelReservation(@PathVariable Long id, Authentication authentication, HttpServletRequest httpRequest) {
         if (authentication == null || authentication.getName() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecte");
         }
@@ -321,7 +345,7 @@ public class ReservationController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
 
-        Reservation reservation = reservationRepository.findById(id)
+        Reservation reservation = reservationRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation introuvable"));
 
         if (!reservation.getUser().getId().equals(user.getId())) {
@@ -337,6 +361,17 @@ public class ReservationController {
         }
 
         String oldStatus = reservation.getStatus().name();
+        long paidAmountCents = reservation.getPaymentIntentId() == null ? 0L : Math.round(reservation.getTotalPrice() * 100D);
+        CancellationPolicyService.CancellationDecision decision = cancellationPolicyService.decide(
+                reservation.getStartDateTime(), paidAmountCents);
+        if (decision.refundAmountCents() > 0 && reservation.getPaymentIntentId() != null) {
+            paymentLifecycleService.refundBookingPayment(
+                    reservation.getPaymentIntentId(), decision.refundAmountCents(), paidAmountCents,
+                    user,
+                    reservation.getEspace().getType() == EspaceType.PREMIUM_ROOM
+                            ? PaymentType.PREMIUM_ROOM : PaymentType.SPACE,
+                    reservation.getEspace().getId(), reservation.getId());
+        }
         reservation.setStatus(ReservationStatus.CANCELLED);
         reservationRepository.save(reservation);
 
@@ -345,6 +380,12 @@ public class ReservationController {
         auditService.log(AuditAction.RESERVATION_CANCEL, "Reservation", reservation.getId(),
                 String.format("Annulation reservation espace: %s", reservation.getEspace().getName()),
                 oldStatus, "CANCELLED", ipAddress);
+        return new CancellationResponse(
+                "CANCELLED",
+                decision.refundAmountCents(),
+                decision.refundPercent(),
+                decision.explanation()
+        );
     }
 }
 

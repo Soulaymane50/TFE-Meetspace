@@ -20,6 +20,10 @@ public class ParkingReservation {
     @JoinColumn(name = "parking_slot_id")
     private ParkingSlot parkingSlot;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_registration_id")
+    private EventRegistration eventRegistration;
+
     @Column(name = "reserved_spaces", nullable = false)
     private Integer reservedSpaces;
 
@@ -47,6 +51,9 @@ public class ParkingReservation {
 
     public ParkingSlot getParkingSlot() { return parkingSlot; }
     public void setParkingSlot(ParkingSlot parkingSlot) { this.parkingSlot = parkingSlot; }
+
+    public EventRegistration getEventRegistration() { return eventRegistration; }
+    public void setEventRegistration(EventRegistration eventRegistration) { this.eventRegistration = eventRegistration; }
 
     public Integer getReservedSpaces() { return reservedSpaces; }
     public void setReservedSpaces(Integer reservedSpaces) {

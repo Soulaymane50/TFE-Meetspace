@@ -1,5 +1,7 @@
 package be.meetspace.web.dto;
 
+import java.time.LocalDateTime;
+
 public class PaymentRequest {
     private Long amount;
     private String currency;
@@ -13,6 +15,8 @@ public class PaymentRequest {
     private Long eventId;
     private Long espaceId;
     private Integer reservedSpaces;
+    private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
 
     public Long getAmount() { return amount; }
     public void setAmount(Long amount) { this.amount = amount; }
@@ -46,6 +50,12 @@ public class PaymentRequest {
 
     public Integer getReservedSpaces() { return reservedSpaces; }
     public void setReservedSpaces(Integer reservedSpaces) { this.reservedSpaces = reservedSpaces; }
+
+    public LocalDateTime getStartDateTime() { return startDateTime; }
+    public void setStartDateTime(LocalDateTime startDateTime) { this.startDateTime = startDateTime; }
+
+    public LocalDateTime getEndDateTime() { return endDateTime; }
+    public void setEndDateTime(LocalDateTime endDateTime) { this.endDateTime = endDateTime; }
 
 }
 

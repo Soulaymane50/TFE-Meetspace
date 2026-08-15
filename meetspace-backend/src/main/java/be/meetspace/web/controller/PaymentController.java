@@ -2,241 +2,161 @@ package be.meetspace.web.controller;
 
 import be.meetspace.config.PaymentVerifier;
 import be.meetspace.entity.AuditAction;
-import be.meetspace.entity.Event;
-import be.meetspace.entity.Espace;
-import be.meetspace.entity.ParkingSlot;
-import be.meetspace.entity.Reservation;
+import be.meetspace.entity.BookingHold;
+import be.meetspace.entity.PaymentStatus;
 import be.meetspace.entity.User;
-import be.meetspace.entity.EventRegistrationStatus;
-import be.meetspace.repository.EventRepository;
-import be.meetspace.repository.EspaceRepository;
-import be.meetspace.repository.EventRegistrationRepository;
-import be.meetspace.repository.ParkingSlotRepository;
-import be.meetspace.repository.ReservationRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import be.meetspace.service.BookingHoldService;
+import be.meetspace.service.PaymentLifecycleService;
+import be.meetspace.service.PaymentQuoteService;
+import be.meetspace.service.RequestRateLimitService;
 import be.meetspace.web.dto.PaymentRequest;
 import be.meetspace.web.dto.PaymentResponse;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
+import com.stripe.net.RequestOptions;
 import com.stripe.param.PaymentIntentCreateParams;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
 
-    @Value("${stripe.public-key}")
-    private String publicKey;
-
-    private final EventRepository eventRepository;
-    private final EspaceRepository espaceRepository;
-    private final ParkingSlotRepository parkingSlotRepository;
-    private final ReservationRepository reservationRepository;
-    private final EventRegistrationRepository eventRegistrationRepository;
     private final UserRepository userRepository;
+    private final PaymentQuoteService quoteService;
+    private final BookingHoldService holdService;
+    private final PaymentLifecycleService paymentLifecycleService;
     private final PaymentVerifier paymentVerifier;
     private final AuditService auditService;
+    private final RequestRateLimitService rateLimitService;
 
-    public PaymentController(EventRepository eventRepository,
-                             EspaceRepository espaceRepository,
-                             ParkingSlotRepository parkingSlotRepository,
-                             ReservationRepository reservationRepository,
-                             EventRegistrationRepository eventRegistrationRepository,
-                             UserRepository userRepository,
+    @Value("${stripe.public-key:}")
+    private String publicKey;
+
+    public PaymentController(UserRepository userRepository,
+                             PaymentQuoteService quoteService,
+                             BookingHoldService holdService,
+                             PaymentLifecycleService paymentLifecycleService,
                              PaymentVerifier paymentVerifier,
-                             AuditService auditService) {
-        this.eventRepository = eventRepository;
-        this.espaceRepository = espaceRepository;
-        this.parkingSlotRepository = parkingSlotRepository;
-        this.reservationRepository = reservationRepository;
-        this.eventRegistrationRepository = eventRegistrationRepository;
+                             AuditService auditService,
+                             RequestRateLimitService rateLimitService) {
         this.userRepository = userRepository;
+        this.quoteService = quoteService;
+        this.holdService = holdService;
+        this.paymentLifecycleService = paymentLifecycleService;
         this.paymentVerifier = paymentVerifier;
         this.auditService = auditService;
+        this.rateLimitService = rateLimitService;
     }
 
     @PostMapping("/create-payment-intent")
-    public ResponseEntity<PaymentResponse> createPaymentIntent(@RequestBody PaymentRequest request, HttpServletRequest httpRequest) {
+    public PaymentResponse createPaymentIntent(@Valid @RequestBody PaymentRequest request,
+                                               Authentication authentication,
+                                               HttpServletRequest httpRequest) {
+        User user = authenticatedUser(authentication);
+        rateLimitService.check("payment", user.getId() + ":" + AuditService.getClientIpAddress(httpRequest),
+                30, Duration.ofMinutes(5));
+        PaymentQuoteService.PaymentQuote quote = quoteService.quote(request, user);
+        BookingHold hold = holdService.createHold(request, user, quote.type(), quote.amountCents());
+
         try {
-            if ("EVENT".equalsIgnoreCase(request.getReservationType()) && request.getEventId() != null) {
-                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                String email = auth.getName();
-                User user = userRepository.findByEmail(email)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur non trouvé"));
-                Event event = eventRepository.findById(request.getEventId())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Événement introuvable"));
+            PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+                    .setAmount(quote.amountCents())
+                    .setCurrency(quote.currency())
+                    .setDescription(safeDescription(request.getDescription()))
+                    .putMetadata("reservationType", quote.type().name())
+                    .putMetadata("userId", String.valueOf(user.getId()))
+                    .putMetadata("resourceId", String.valueOf(quote.resourceId()))
+                    .putMetadata("holdToken", hold.getToken())
+                    .build();
 
-                if (eventRegistrationRepository.existsByUserAndEventAndStatusNot(user, event, EventRegistrationStatus.CANCELLED)) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Vous êtes déjà inscrit à cet événement");
-                }
-            }
-
-            Long calculatedAmount = calculateServerSideAmount(request);
-
-            if (calculatedAmount <= 0) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le montant doit être supérieur à 0");
-            }
-
-            if (request.getAmount() != null && !request.getAmount().equals(calculatedAmount)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Montant invalide");
-            }
-
-            String normalizedReservationType = request.getReservationType();
-
-            PaymentIntentCreateParams.Builder paramsBuilder = PaymentIntentCreateParams.builder()
-                    .setAmount(calculatedAmount)
-                    .setCurrency(request.getCurrency() != null ? request.getCurrency() : "eur")
-                    .setDescription(request.getDescription())
-                    .putMetadata("reservationType", normalizedReservationType);
-
-            if (request.getReservationId() != null) {
-                paramsBuilder.putMetadata("reservationId", String.valueOf(request.getReservationId()));
-            }
-            if (request.getEspaceId() != null) {
-                paramsBuilder.putMetadata("espaceId", String.valueOf(request.getEspaceId()));
-            }
-            if (request.getParkingSlotId() != null) {
-                paramsBuilder.putMetadata("parkingSlotId", String.valueOf(request.getParkingSlotId()));
-            }
-            if (request.getReservedSpaces() != null) {
-                paramsBuilder.putMetadata("reservedSpaces", String.valueOf(request.getReservedSpaces()));
-            }
-            if (request.getNumberOfParticipants() != null) {
-                paramsBuilder.putMetadata("numberOfParticipants", String.valueOf(request.getNumberOfParticipants()));
-            }
-
-            PaymentIntent paymentIntent = PaymentIntent.create(paramsBuilder.build());
-
-            // Audit log
-            String ipAddress = AuditService.getClientIpAddress(httpRequest);
-            auditService.log(AuditAction.PAYMENT_INITIATED, "Payment", null,
-                    String.format("Paiement initié: %.2f€ - Type: %s", calculatedAmount / 100.0, normalizedReservationType),
-                    ipAddress);
-
-            return ResponseEntity.ok(new PaymentResponse(paymentIntent.getClientSecret(), publicKey));
-        } catch (StripeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erreur Stripe: " + e.getMessage());
+            PaymentIntent intent = PaymentIntent.create(
+                    params,
+                    RequestOptions.builder().setIdempotencyKey("meetspace-" + hold.getToken()).build()
+            );
+            paymentLifecycleService.registerIntent(intent.getId(), user, quote, hold, PaymentStatus.PENDING);
+            auditPayment(httpRequest, intent.getId(), quote, "Paiement Stripe initialise");
+            return new PaymentResponse(intent.getClientSecret(), publicKey, intent.getId(), holdService.getHoldSeconds());
+        } catch (StripeException exception) {
+            holdService.cancel(hold);
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                    "Stripe ne peut pas initialiser le paiement pour le moment.");
         }
     }
 
-    private Long calculateServerSideAmount(PaymentRequest request) {
-        String type = request.getReservationType();
-
-        if ("EVENT".equalsIgnoreCase(type) && request.getEventId() != null) {
-            Event event = eventRepository.findById(request.getEventId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Événement introuvable"));
-            Double price = event.getPrice() != null ? event.getPrice() : 0.0;
-            int participants = request.getNumberOfParticipants() != null ? request.getNumberOfParticipants() : 1;
-            double eventTotal = price * participants;
-
-            double parkingTotal = 0.0;
-            if (request.getReservedSpaces() != null && request.getReservedSpaces() > 0) {
-                ParkingSlot parkingSlot = event.getParkingSlot();
-                if (parkingSlot != null) {
-                    parkingTotal = parkingSlot.getParkingRate() * request.getReservedSpaces();
-                }
-            }
-
-            return Math.round((eventTotal + parkingTotal) * 100);
+    @PostMapping("/create-local-payment-intent")
+    public PaymentResponse createLocalPaymentIntent(@Valid @RequestBody PaymentRequest request,
+                                                    Authentication authentication,
+                                                    HttpServletRequest httpRequest) {
+        User user = authenticatedUser(authentication);
+        rateLimitService.check("local-payment", user.getId() + ":" + AuditService.getClientIpAddress(httpRequest),
+                30, Duration.ofMinutes(5));
+        PaymentQuoteService.PaymentQuote quote = quoteService.quote(request, user);
+        BookingHold hold = holdService.createHold(request, user, quote.type(), quote.amountCents());
+        try {
+            String paymentIntentId = paymentLifecycleService.createLocalPayment(user, quote, hold);
+            auditPayment(httpRequest, paymentIntentId, quote, "Paiement local initialise");
+            return new PaymentResponse(null, publicKey, paymentIntentId, holdService.getHoldSeconds());
+        } catch (RuntimeException exception) {
+            holdService.cancel(hold);
+            throw exception;
         }
-
-        if ("PARKING".equalsIgnoreCase(type) && request.getParkingSlotId() != null) {
-            ParkingSlot parkingSlot = parkingSlotRepository.findById(request.getParkingSlotId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Créneau parking introuvable"));
-            int reservedSpaces = request.getReservedSpaces() != null ? request.getReservedSpaces() : 1;
-            return Math.round(parkingSlot.getParkingRate() * reservedSpaces * 100);
-        }
-
-        if ("SPACE".equalsIgnoreCase(type) || "ESPACE".equalsIgnoreCase(type) || "PREMIUM_ROOM".equalsIgnoreCase(type)) {
-            if (request.getReservationId() != null) {
-                Reservation reservation = reservationRepository.findById(request.getReservationId())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Réservation introuvable"));
-                return Math.round(reservation.getTotalPrice() * 100);
-            }
-
-            if (request.getEspaceId() != null) {
-                Espace espace = espaceRepository.findById(request.getEspaceId())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Espace introuvable"));
-                double hours = request.getHours() != null ? Math.max(1.0, request.getHours()) : 1.0;
-                return Math.round(espace.getBasePrice() * hours * 100);
-            }
-        }
-
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Type de réservation invalide ou données manquantes");
     }
 
     @GetMapping("/verify/{paymentIntentId}")
-    public ResponseEntity<Map<String, Object>> verifyPayment(@PathVariable String paymentIntentId, HttpServletRequest httpRequest) {
+    public ResponseEntity<Map<String, Object>> verifyPayment(@PathVariable String paymentIntentId,
+                                                              Authentication authentication) {
+        User user = authenticatedUser(authentication);
+        PaymentVerifier.PaymentSnapshot snapshot = paymentLifecycleService.verifyOwnedPayment(paymentIntentId, user);
         Map<String, Object> response = new HashMap<>();
-        String ipAddress = AuditService.getClientIpAddress(httpRequest);
-
-        if (paymentVerifier != null) {
-            try {
-                paymentVerifier.verifyPayment(paymentIntentId);
-                response.put("status", "succeeded");
-                response.put("success", true);
-                response.put("paymentIntentId", paymentIntentId);
-
-                // Audit log success
-                auditService.log(AuditAction.PAYMENT_SUCCESS, "Payment", null,
-                        String.format("Paiement vérifié avec succès: %s", paymentIntentId), ipAddress);
-
-                return ResponseEntity.ok(response);
-            } catch (ResponseStatusException e) {
-                response.put("status", "failed");
-                response.put("success", false);
-                response.put("error", e.getReason());
-
-                // Audit log failure
-                auditService.log(AuditAction.PAYMENT_FAILURE, "Payment", null,
-                        String.format("Échec vérification paiement: %s - %s", paymentIntentId, e.getReason()), ipAddress);
-
-                return ResponseEntity.status(e.getStatusCode()).body(response);
-            }
+        response.put("status", "succeeded");
+        response.put("success", true);
+        response.put("paymentIntentId", paymentIntentId);
+        if (!snapshot.fake()) {
+            response.put("amount", snapshot.amountCents());
+            response.put("currency", snapshot.currency());
         }
+        return ResponseEntity.ok(response);
+    }
 
-        try {
-            PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentIntentId);
-
-            response.put("status", paymentIntent.getStatus());
-            response.put("success", "succeeded".equals(paymentIntent.getStatus()));
-            response.put("paymentIntentId", paymentIntentId);
-
-            // Audit log based on status
-            if ("succeeded".equals(paymentIntent.getStatus())) {
-                auditService.log(AuditAction.PAYMENT_SUCCESS, "Payment", null,
-                        String.format("Paiement vérifié avec succès: %s", paymentIntentId), ipAddress);
-            } else {
-                auditService.log(AuditAction.PAYMENT_FAILURE, "Payment", null,
-                        String.format("Paiement en attente ou échoué: %s - Status: %s", paymentIntentId, paymentIntent.getStatus()), ipAddress);
-            }
-
-            return ResponseEntity.ok(response);
-        } catch (StripeException e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", e.getMessage());
-
-            // Audit log error
-            auditService.log(AuditAction.PAYMENT_FAILURE, "Payment", null,
-                    String.format("Erreur vérification paiement: %s - %s", paymentIntentId, e.getMessage()), ipAddress);
-
-            return ResponseEntity.badRequest().body(error);
+    private User authenticatedUser(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur non connecte.");
         }
+        return userRepository.findByEmailIgnoreCase(authentication.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable."));
+    }
+
+    private void auditPayment(HttpServletRequest request,
+                              String paymentIntentId,
+                              PaymentQuoteService.PaymentQuote quote,
+                              String label) {
+        auditService.log(
+                AuditAction.PAYMENT_INITIATED,
+                "Payment",
+                null,
+                String.format("%s: %s - %.2f EUR - %s",
+                        label, paymentIntentId, quote.amountCents() / 100D, quote.type().name()),
+                AuditService.getClientIpAddress(request)
+        );
+    }
+
+    private static String safeDescription(String description) {
+        if (description == null || description.isBlank()) {
+            return "Reservation MeetSpace";
+        }
+        return description.length() > 300 ? description.substring(0, 300) : description;
     }
 }

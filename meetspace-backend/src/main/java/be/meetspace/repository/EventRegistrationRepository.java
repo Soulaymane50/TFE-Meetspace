@@ -5,8 +5,11 @@ import be.meetspace.entity.EventRegistration;
 import be.meetspace.entity.EventRegistrationStatus;
 import be.meetspace.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +17,18 @@ import java.util.List;
 import java.util.Optional;
 
 public interface EventRegistrationRepository extends JpaRepository<EventRegistration, Long> {
+
+    @Override
+    @EntityGraph(attributePaths = {"user", "event"})
+    List<EventRegistration> findAll();
+
+    @Override
+    @EntityGraph(attributePaths = {"user", "event"})
+    Optional<EventRegistration> findById(Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT er FROM EventRegistration er JOIN FETCH er.user JOIN FETCH er.event WHERE er.id = :id")
+    Optional<EventRegistration> findByIdForUpdate(@Param("id") Long id);
 
     @Query("SELECT er FROM EventRegistration er JOIN FETCH er.event JOIN FETCH er.user WHERE er.user.id = :userId")
     List<EventRegistration> findByUserId(@Param("userId") Long userId);

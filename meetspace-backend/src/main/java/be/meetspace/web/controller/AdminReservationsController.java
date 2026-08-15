@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -124,6 +125,7 @@ public class AdminReservationsController {
     }
 
     @PostMapping("/{id}/approve")
+    @Transactional
     public ReservationResponseDto approveReservation(
             @PathVariable Long id,
             @Valid @RequestBody ReservationApprovalRequest request,
@@ -136,7 +138,7 @@ public class AdminReservationsController {
 
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
 
-        Reservation reservation = reservationRepository.findById(id)
+        Reservation reservation = reservationRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Réservation introuvable"));
 
         if (reservation.getStatus() != ReservationStatus.PENDING_APPROVAL) {
@@ -154,6 +156,7 @@ public class AdminReservationsController {
             reservation.setStatus(ReservationStatus.APPROVED);
             reservation.setApprovedBy(admin);
             reservation.setApprovedAt(LocalDateTime.now());
+            reservation.setPaymentDueAt(LocalDateTime.now().plusHours(48));
 
             auditService.log(AuditAction.RESERVATION_APPROVE, "RESERVATION", reservation.getId(),
                     "Réservation approuvée pour l'espace: " + reservation.getEspace().getName(),
@@ -167,6 +170,7 @@ public class AdminReservationsController {
             reservation.setRejectionReason(request.getRejectionReason());
             reservation.setApprovedBy(admin);
             reservation.setApprovedAt(LocalDateTime.now());
+            reservation.setPaymentDueAt(null);
 
             auditService.log(AuditAction.RESERVATION_REJECT, "RESERVATION", reservation.getId(),
                     "Réservation rejetée - Raison: " + request.getRejectionReason(),

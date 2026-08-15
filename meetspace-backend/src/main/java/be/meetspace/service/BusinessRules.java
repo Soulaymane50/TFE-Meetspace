@@ -16,6 +16,18 @@ public final class BusinessRules {
         return grossRevenue * MEETSPACE_COMMISSION_RATE;
     }
 
+    public static double calculateOrganizerNet(double grossRevenue, double roomCost) {
+        return grossRevenue - calculateMeetSpaceCommission(grossRevenue) - roomCost;
+    }
+
+    public static int calculateBreakEvenParticipants(double ticketPrice, double roomCost) {
+        double organizerRevenuePerTicket = ticketPrice * (1D - MEETSPACE_COMMISSION_RATE);
+        if (organizerRevenuePerTicket <= 0D || roomCost <= 0D) {
+            return roomCost <= 0D ? 0 : -1;
+        }
+        return (int) Math.ceil(roomCost / organizerRevenuePerTicket);
+    }
+
     public static int calculateParkingQuotaLimit(Integer eventCapacity, Integer roomCapacity) {
         int eventLimit = positiveOrMax(eventCapacity);
         int roomLimit = calculateRoomParkingLimit(roomCapacity);

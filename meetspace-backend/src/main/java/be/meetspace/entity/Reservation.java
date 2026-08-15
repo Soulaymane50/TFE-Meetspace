@@ -50,6 +50,9 @@ public class Reservation {
 
     private LocalDateTime approvedAt;
 
+    @Column(name = "payment_due_at")
+    private LocalDateTime paymentDueAt;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -93,6 +96,9 @@ public class Reservation {
 
     public LocalDateTime getApprovedAt() { return approvedAt; }
     public void setApprovedAt(LocalDateTime approvedAt) { this.approvedAt = approvedAt; }
+
+    public LocalDateTime getPaymentDueAt() { return paymentDueAt; }
+    public void setPaymentDueAt(LocalDateTime paymentDueAt) { this.paymentDueAt = paymentDueAt; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
 }

@@ -17,6 +17,7 @@ public class ReservationResponseDto {
     private String justification;
     private String rejectionReason;
     private LocalDateTime approvedAt;
+    private LocalDateTime paymentDueAt;
     private LocalDateTime createdAt;
 
     public static ReservationResponseDto fromEntity(Reservation reservation) {
@@ -31,6 +32,7 @@ public class ReservationResponseDto {
         dto.justification = reservation.getJustification();
         dto.rejectionReason = reservation.getRejectionReason();
         dto.approvedAt = reservation.getApprovedAt();
+        dto.paymentDueAt = reservation.getPaymentDueAt();
         dto.createdAt = reservation.getCreatedAt();
         return dto;
     }
@@ -45,6 +47,7 @@ public class ReservationResponseDto {
     public String getJustification() { return justification; }
     public String getRejectionReason() { return rejectionReason; }
     public LocalDateTime getApprovedAt() { return approvedAt; }
+    public LocalDateTime getPaymentDueAt() { return paymentDueAt; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 }
 

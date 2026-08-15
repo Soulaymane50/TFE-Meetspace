@@ -1,6 +1,5 @@
 package be.meetspace.web.controller;
 
-import be.meetspace.config.PaymentVerifier;
 import be.meetspace.entity.*;
 import be.meetspace.repository.EventRegistrationRepository;
 import be.meetspace.repository.EventRepository;
@@ -8,6 +7,9 @@ import be.meetspace.repository.ParkingReservationRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
 import be.meetspace.service.EmailService;
+import be.meetspace.service.PaymentLifecycleService;
+import be.meetspace.service.CancellationPolicyService;
+import be.meetspace.web.dto.CancellationResponse;
 import be.meetspace.web.dto.EventRegistrationRequest;
 import be.meetspace.web.dto.EventRegistrationResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,7 +31,8 @@ public class EventRegistrationController {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final ParkingReservationRepository parkingReservationRepository;
-    private final PaymentVerifier paymentVerifier;
+    private final PaymentLifecycleService paymentLifecycleService;
+    private final CancellationPolicyService cancellationPolicyService;
     private final AuditService auditService;
     private final EmailService emailService;
 
@@ -38,7 +41,8 @@ public class EventRegistrationController {
             EventRepository eventRepository,
             UserRepository userRepository,
             ParkingReservationRepository parkingReservationRepository,
-            PaymentVerifier paymentVerifier,
+            PaymentLifecycleService paymentLifecycleService,
+            CancellationPolicyService cancellationPolicyService,
             AuditService auditService,
             EmailService emailService
     ) {
@@ -46,7 +50,8 @@ public class EventRegistrationController {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.parkingReservationRepository = parkingReservationRepository;
-        this.paymentVerifier = paymentVerifier;
+        this.paymentLifecycleService = paymentLifecycleService;
+        this.cancellationPolicyService = cancellationPolicyService;
         this.auditService = auditService;
         this.emailService = emailService;
     }
@@ -66,7 +71,7 @@ public class EventRegistrationController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
 
-        Event event = eventRepository.findById(request.getEventId())
+        Event event = eventRepository.findByIdForUpdate(request.getEventId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Événement introuvable"));
 
         if (event.getStatus() != EventStatus.PUBLISHED) {
@@ -124,7 +129,13 @@ public class EventRegistrationController {
             if (request.getPaymentIntentId() == null || request.getPaymentIntentId().isBlank()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Paiement requis");
             }
-            paymentVerifier.verifyPayment(request.getPaymentIntentId());
+            paymentLifecycleService.consume(
+                    request.getPaymentIntentId(),
+                    user,
+                    PaymentType.EVENT,
+                    Math.round(totalPrice * 100D),
+                    event.getId()
+            );
         }
 
         EventRegistration registration = new EventRegistration();
@@ -136,6 +147,9 @@ public class EventRegistrationController {
         registration.setStatus(EventRegistrationStatus.CONFIRMED);
 
         EventRegistration saved = registrationRepository.save(registration);
+        if (totalPrice > 0) {
+            paymentLifecycleService.bindToBooking(request.getPaymentIntentId(), saved.getId());
+        }
 
         // Get IP address for audit logging
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
@@ -145,6 +159,7 @@ public class EventRegistrationController {
             ParkingReservation parkingReservation = new ParkingReservation();
             parkingReservation.setUser(user);
             parkingReservation.setParkingSlot(parkingSlot);
+            parkingReservation.setEventRegistration(saved);
             parkingReservation.setReservedSpaces(reservedSpaces);
             parkingReservation.setTotalPrice(parkingPrice);
             parkingReservation.setPaymentIntentId(request.getPaymentIntentId());
@@ -186,7 +201,8 @@ public class EventRegistrationController {
     }
 
     @DeleteMapping("/registrations/{id}/cancel")
-    public void cancelRegistration(@PathVariable Long id, Authentication authentication, HttpServletRequest httpRequest) {
+    @Transactional
+    public CancellationResponse cancelRegistration(@PathVariable Long id, Authentication authentication, HttpServletRequest httpRequest) {
         if (authentication == null || authentication.getName() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecté");
         }
@@ -195,7 +211,7 @@ public class EventRegistrationController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
 
-        EventRegistration registration = registrationRepository.findById(id)
+        EventRegistration registration = registrationRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inscription introuvable"));
 
         if (!registration.getUser().getId().equals(user.getId())) {
@@ -207,14 +223,39 @@ public class EventRegistrationController {
         }
 
         String oldStatus = registration.getStatus().name();
+        ParkingReservation linkedParking = parkingReservationRepository.findByEventRegistrationId(registration.getId())
+                .orElse(null);
+        long eventAmountCents = Math.round((registration.getTotalPrice() != null ? registration.getTotalPrice() : 0D) * 100D);
+        long parkingAmountCents = linkedParking != null && linkedParking.getStatus() != ParkingReservationStatus.CANCELLED
+                ? Math.round((linkedParking.getTotalPrice() != null ? linkedParking.getTotalPrice() : 0D) * 100D)
+                : 0L;
+        CancellationPolicyService.CancellationDecision decision = cancellationPolicyService.decide(
+                registration.getEvent().getStartDateTime(), eventAmountCents + parkingAmountCents);
+        if (decision.refundAmountCents() > 0 && registration.getPaymentIntentId() != null) {
+            paymentLifecycleService.refundBookingPayment(
+                    registration.getPaymentIntentId(), decision.refundAmountCents(),
+                    eventAmountCents + parkingAmountCents, user,
+                    PaymentType.EVENT,
+                    registration.getEvent().getId(), registration.getId());
+        }
         registration.setStatus(EventRegistrationStatus.CANCELLED);
         registrationRepository.save(registration);
+        if (linkedParking != null && linkedParking.getStatus() != ParkingReservationStatus.CANCELLED) {
+            linkedParking.setStatus(ParkingReservationStatus.CANCELLED);
+            parkingReservationRepository.save(linkedParking);
+        }
 
         // Audit log
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
         auditService.log(AuditAction.EVENT_REGISTRATION_CANCEL, "EventRegistration", registration.getId(),
                 String.format("Annulation inscription événement: %s", registration.getEvent().getTitle()),
                 oldStatus, "CANCELLED", ipAddress);
+        return new CancellationResponse(
+                "CANCELLED",
+                decision.refundAmountCents(),
+                decision.refundPercent(),
+                decision.explanation()
+        );
     }
 }
 

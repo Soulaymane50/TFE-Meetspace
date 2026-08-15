@@ -5,20 +5,36 @@ import be.meetspace.entity.Reservation;
 import be.meetspace.entity.ReservationStatus;
 import be.meetspace.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
-    @Query("SELECT r FROM Reservation r JOIN FETCH r.espace WHERE r.user = :user")
+    @Override
+    @EntityGraph(attributePaths = {"user", "espace", "approvedBy"})
+    List<Reservation> findAll();
+
+    @Override
+    @EntityGraph(attributePaths = {"user", "espace", "approvedBy"})
+    Optional<Reservation> findById(Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.user JOIN FETCH r.espace WHERE r.id = :id")
+    Optional<Reservation> findByIdForUpdate(@Param("id") Long id);
+
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.espace JOIN FETCH r.user WHERE r.user = :user")
     List<Reservation> findByUser(@Param("user") User user);
 
-    @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.espace = :espace")
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.user JOIN FETCH r.espace WHERE r.espace = :espace")
     List<Reservation> findByEspace(@Param("espace") Espace espace);
 
     @Query("SELECT COUNT(r) > 0 FROM Reservation r " +
@@ -70,5 +86,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT COALESCE(SUM(r.totalPrice), 0) FROM Reservation r WHERE r.status = :status")
     Double sumTotalPriceByStatus(@Param("status") ReservationStatus status);
+
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.user JOIN FETCH r.espace " +
+           "WHERE r.status = 'APPROVED' AND r.paymentDueAt IS NOT NULL AND r.paymentDueAt < :now")
+    List<Reservation> findExpiredApprovedReservations(@Param("now") LocalDateTime now);
 }
 

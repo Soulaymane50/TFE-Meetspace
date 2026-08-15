@@ -1,12 +1,14 @@
 package be.meetspace.web.controller;
 
-import be.meetspace.config.PaymentVerifier;
 import be.meetspace.entity.*;
 import be.meetspace.repository.ParkingReservationRepository;
 import be.meetspace.repository.ParkingSlotRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
 import be.meetspace.service.EmailService;
+import be.meetspace.service.PaymentLifecycleService;
+import be.meetspace.service.CancellationPolicyService;
+import be.meetspace.web.dto.CancellationResponse;
 import be.meetspace.web.dto.ParkingReservationRequest;
 import be.meetspace.web.dto.ParkingReservationResponseDto;
 import be.meetspace.web.dto.ParkingSlotResponseDto;
@@ -18,7 +20,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @RestController
 @RequestMapping("/api/public/parking")
@@ -27,20 +31,23 @@ public class ParkingController {
     private final ParkingSlotRepository sessionRepository;
     private final ParkingReservationRepository reservationRepository;
     private final UserRepository userRepository;
-    private final PaymentVerifier paymentVerifier;
+    private final PaymentLifecycleService paymentLifecycleService;
+    private final CancellationPolicyService cancellationPolicyService;
     private final AuditService auditService;
     private final EmailService emailService;
 
     public ParkingController(ParkingSlotRepository sessionRepository,
                               ParkingReservationRepository reservationRepository,
                               UserRepository userRepository,
-                              PaymentVerifier paymentVerifier,
+                              PaymentLifecycleService paymentLifecycleService,
+                              CancellationPolicyService cancellationPolicyService,
                               AuditService auditService,
                               EmailService emailService) {
         this.sessionRepository = sessionRepository;
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
-        this.paymentVerifier = paymentVerifier;
+        this.paymentLifecycleService = paymentLifecycleService;
+        this.cancellationPolicyService = cancellationPolicyService;
         this.auditService = auditService;
         this.emailService = emailService;
     }
@@ -61,6 +68,7 @@ public class ParkingController {
     }
 
     @PostMapping("/reservations")
+    @Transactional
     public ParkingReservationResponseDto createReservation(
             @Valid @RequestBody ParkingReservationRequest request,
             Authentication authentication,
@@ -70,13 +78,11 @@ public class ParkingController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecté");
         }
 
-        paymentVerifier.verifyPayment(request.getPaymentIntentId());
-
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
 
-        ParkingSlot session = sessionRepository.findById(request.getParkingSlotId())
+        ParkingSlot session = sessionRepository.findByIdForUpdate(request.getParkingSlotId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Créneau parking introuvable"));
 
         if (session.getStatus() != ParkingSlotStatus.OPEN) {
@@ -96,6 +102,13 @@ public class ParkingController {
         }
 
         double totalPrice = session.getParkingRate() * reservedSpaces;
+        paymentLifecycleService.consume(
+                request.getPaymentIntentId(),
+                user,
+                PaymentType.PARKING,
+                Math.round(totalPrice * 100D),
+                session.getId()
+        );
 
         ParkingReservation reservation = new ParkingReservation();
         reservation.setUser(user);
@@ -106,6 +119,7 @@ public class ParkingController {
         reservation.setStatus(ParkingReservationStatus.CONFIRMED);
 
         ParkingReservation saved = reservationRepository.save(reservation);
+        paymentLifecycleService.bindToBooking(request.getPaymentIntentId(), saved.getId());
 
         // Audit log
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
@@ -137,7 +151,8 @@ public class ParkingController {
     }
 
     @DeleteMapping("/reservations/{id}/cancel")
-    public void cancelReservation(@PathVariable Long id, Authentication authentication, HttpServletRequest httpRequest) {
+    @Transactional
+    public CancellationResponse cancelReservation(@PathVariable Long id, Authentication authentication, HttpServletRequest httpRequest) {
         if (authentication == null || authentication.getName() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecté");
         }
@@ -146,7 +161,7 @@ public class ParkingController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
 
-        ParkingReservation reservation = reservationRepository.findById(id)
+        ParkingReservation reservation = reservationRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Réservation introuvable"));
 
         if (!reservation.getUser().getId().equals(user.getId())) {
@@ -162,6 +177,16 @@ public class ParkingController {
         }
 
         String oldStatus = reservation.getStatus().name();
+        LocalDateTime startsAt = LocalDateTime.of(
+                reservation.getParkingSlot().getSessionDate(),
+                reservation.getParkingSlot().getStartTime());
+        long paidAmountCents = Math.round((reservation.getTotalPrice() != null ? reservation.getTotalPrice() : 0D) * 100D);
+        CancellationPolicyService.CancellationDecision decision = cancellationPolicyService.decide(startsAt, paidAmountCents);
+        if (decision.refundAmountCents() > 0 && reservation.getPaymentIntentId() != null) {
+            paymentLifecycleService.refundBookingPayment(
+                    reservation.getPaymentIntentId(), decision.refundAmountCents(), paidAmountCents,
+                    user, PaymentType.PARKING, reservation.getParkingSlot().getId(), reservation.getId());
+        }
         reservation.setStatus(ParkingReservationStatus.CANCELLED);
         reservationRepository.save(reservation);
 
@@ -170,6 +195,12 @@ public class ParkingController {
         auditService.log(AuditAction.PARKING_RESERVATION_CANCEL, "ParkingReservation", reservation.getId(),
                 String.format("Annulation réservation parking: %s", reservation.getParkingSlot().getTitle()),
                 oldStatus, "CANCELLED", ipAddress);
+        return new CancellationResponse(
+                "CANCELLED",
+                decision.refundAmountCents(),
+                decision.refundPercent(),
+                decision.explanation()
+        );
     }
 }
 
