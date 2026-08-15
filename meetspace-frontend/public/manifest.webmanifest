@@ -1,0 +1,19 @@
+{
+  "name": "MeetSpace",
+  "short_name": "MeetSpace",
+  "description": "Salles, événements et parking à Bruxelles.",
+  "lang": "fr-BE",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f1eb",
+  "theme_color": "#103f37",
+  "icons": [
+    {
+      "src": "/meetspace.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
