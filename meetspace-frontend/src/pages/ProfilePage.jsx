@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { getMyProfile, updateMyProfile, changeMyPassword, requestAccountDeletion } from "../services/api";
+import { getMyProfile, updateMyProfile, changeMyPassword, requestAccountDeletion, requestEmailChange } from "../services/api";
 import { useTranslation } from "react-i18next";
-import { isStrongPassword } from "../utils/passwordPolicy";
+import { getPasswordChecks, isStrongPassword } from "../utils/passwordPolicy";
 import PageState from "../components/PageState";
+import WorkspaceNav from "../components/WorkspaceNav";
 import styles from "./ProfilePage.module.css";
 
 function profileFromUser(user) {
@@ -17,6 +19,7 @@ function profileFromUser(user) {
 export default function ProfilePage() {
   const { user, token, login, logout } = useAuth();
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const [profile, setProfile] = useState(() => profileFromUser(user));
   const [msg, setMsg] = useState("");
@@ -30,6 +33,14 @@ export default function ProfilePage() {
   const [newPassword2, setNewPassword2] = useState("");
   const [pwdMsg, setPwdMsg] = useState("");
   const [pwdError, setPwdError] = useState("");
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailPassword, setEmailPassword] = useState("");
+  const [emailMsg, setEmailMsg] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -57,6 +68,7 @@ export default function ProfilePage() {
     setMsg("");
     setError("");
 
+    setProfileSaving(true);
     try {
       const updated = await updateMyProfile(profile, token);
       setMsg(t("profile.updateSuccess"));
@@ -78,6 +90,8 @@ export default function ProfilePage() {
       } else {
         setError(t("profile.updateFailed"));
       }
+    } finally {
+      setProfileSaving(false);
     }
   };
 
@@ -96,6 +110,7 @@ export default function ProfilePage() {
       return;
     }
 
+    setPasswordSaving(true);
     try {
       await changeMyPassword(
         {
@@ -104,22 +119,27 @@ export default function ProfilePage() {
         },
         token
       );
-      setPwdMsg(t("profile.passwordUpdated"));
+      setPwdMsg(t("profile.passwordUpdatedReconnect"));
       setCurrentPassword("");
       setNewPassword("");
       setNewPassword2("");
+      await logout();
+      navigate("/login", { replace: true, state: { message: t("profile.passwordUpdatedReconnect") } });
     } catch (err) {
       if (err?.message === "PASSWORD_WEAK") {
         setPwdError(t("profile.passwordWeak"));
       } else {
         setPwdError(t("profile.passwordUpdateFailed"));
       }
+    } finally {
+      setPasswordSaving(false);
     }
   };
 
   const handleDeleteAccount = async () => {
     setDeleteMsg("");
     setDeleteError("");
+    setDeleteLoading(true);
     try {
       await requestAccountDeletion(token);
       setDeleteMsg(t("profile.deleteValidationEmailSent"));
@@ -133,6 +153,8 @@ export default function ProfilePage() {
       } else {
         setDeleteError(t("profile.deleteRequestFailed"));
       }
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -142,9 +164,38 @@ export default function ProfilePage() {
 
   const displayName = `${profile.firstName || user.firstName || ""} ${profile.lastName || user.lastName || ""}`.trim();
   const initials = `${profile.firstName || user.firstName || "M"}`.slice(0, 1).toUpperCase();
+  const passwordChecks = getPasswordChecks(newPassword);
+  const passwordRuleLabels = {
+    minLength: t("auth.passwordRuleMinLength"),
+    uppercase: t("auth.passwordRuleUppercase"),
+    lowercase: t("auth.passwordRuleLowercase"),
+    number: t("auth.passwordRuleNumber"),
+    special: t("auth.passwordRuleSpecial"),
+  };
+
+  const submitEmailChange = async (e) => {
+    e.preventDefault();
+    setEmailMsg("");
+    setEmailError("");
+    setEmailSaving(true);
+    try {
+      await requestEmailChange({ newEmail, currentPassword: emailPassword }, token);
+      setEmailMsg(t("profile.emailChangeSent"));
+      setNewEmail("");
+      setEmailPassword("");
+    } catch (err) {
+      if (err?.message === "EMAIL_ALREADY_EXISTS") setEmailError(t("profile.emailAlreadyExists"));
+      else if (err?.message?.includes("CURRENT_PASSWORD_INVALID")) setEmailError(t("profile.currentPasswordInvalid"));
+      else if (err?.message?.includes("EMAIL_SERVICE_UNAVAILABLE")) setEmailError(t("profile.emailServiceUnavailable"));
+      else setEmailError(t("profile.emailChangeFailed"));
+    } finally {
+      setEmailSaving(false);
+    }
+  };
 
   return (
     <div className={styles.container}>
+      <WorkspaceNav scope="account" />
       <section className={styles.hero}>
         <div>
           <p className={styles.kicker}>{t("profile.accountKicker")}</p>
@@ -165,6 +216,7 @@ export default function ProfilePage() {
       <div className={styles.formGrid}>
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
+            <span className={styles.sectionNumber}>01</span>
             <div>
               <p className={styles.kicker}>{t("profile.identity")}</p>
               <h2 className={styles.sectionTitle}>{t("profile.personalInfo")}</h2>
@@ -174,7 +226,7 @@ export default function ProfilePage() {
 
         <form onSubmit={submitProfile}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("auth.firstName")} :</label>
+            <label className={styles.label}>{t("auth.firstName")}</label>
             <input
               value={profile.firstName}
               onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
@@ -183,7 +235,7 @@ export default function ProfilePage() {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("auth.lastName")} :</label>
+            <label className={styles.label}>{t("auth.lastName")}</label>
             <input
               value={profile.lastName}
               onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
@@ -192,24 +244,47 @@ export default function ProfilePage() {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("auth.email")} :</label>
+            <label className={styles.label}>{t("auth.email")}</label>
             <input
               value={profile.email}
-              onChange={(e) => setProfile({ ...profile, email: e.target.value })}
               className={styles.input}
+              readOnly
+              aria-describedby="email-change-hint"
             />
           </div>
 
-          <button type="submit" className={styles.button}>
-            {t("common.save")}
+          <button type="submit" className={styles.button} disabled={profileSaving}>
+            {profileSaving ? t("common.loading") : t("common.save")}
           </button>
         </form>
         {msg && <p className={styles.success}>{msg}</p>}
         {error && <p className={styles.error}>{error}</p>}
+
+        <div className={styles.inlineDivider} />
+        <form onSubmit={submitEmailChange}>
+          <h3 className={styles.subsectionTitle}>{t("profile.changeEmail")}</h3>
+          <p id="email-change-hint" className={styles.formHint}>{t("profile.changeEmailHint")}</p>
+          <div className={styles.formGroup}>
+            <label className={styles.label} htmlFor="profile-new-email">{t("profile.newEmail")}</label>
+            <input id="profile-new-email" type="email" autoComplete="email" value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)} className={styles.input} required />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label} htmlFor="profile-email-password">{t("profile.currentPassword")}</label>
+            <input id="profile-email-password" type="password" autoComplete="current-password" value={emailPassword}
+              onChange={(e) => setEmailPassword(e.target.value)} className={styles.input} required />
+          </div>
+          <button type="submit" className={styles.secondaryButton} disabled={emailSaving}>
+            {emailSaving ? t("common.loading") : t("profile.sendEmailValidation")}
+          </button>
+        </form>
+        {emailMsg && <p className={styles.success}>{emailMsg}</p>}
+        {emailError && <p className={styles.error}>{emailError}</p>}
         </section>
 
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
+            <span className={styles.sectionNumber}>02</span>
             <div>
               <p className={styles.kicker}>{t("profile.security")}</p>
               <h2 className={styles.sectionTitle}>{t("profile.changePassword")}</h2>
@@ -219,7 +294,7 @@ export default function ProfilePage() {
 
         <form onSubmit={submitPassword}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("profile.currentPassword")} :</label>
+            <label className={styles.label}>{t("profile.currentPassword")}</label>
             <input
               type="password"
               value={currentPassword}
@@ -229,7 +304,7 @@ export default function ProfilePage() {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("profile.newPassword")} :</label>
+            <label className={styles.label}>{t("profile.newPassword")}</label>
             <input
               type="password"
               value={newPassword}
@@ -239,7 +314,7 @@ export default function ProfilePage() {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("profile.confirmPassword")} :</label>
+            <label className={styles.label}>{t("profile.confirmPassword")}</label>
             <input
               type="password"
               value={newPassword2}
@@ -248,8 +323,17 @@ export default function ProfilePage() {
             />
           </div>
 
-          <button type="submit" className={styles.button}>
-            {t("common.save")}
+          <ul className={styles.passwordRules} aria-label={t("auth.passwordRulesTitle")}>
+            {passwordChecks.map((check) => (
+              <li key={check.key} className={check.isValid ? styles.ruleValid : ""}>
+                <span aria-hidden="true">{check.isValid ? "✓" : "·"}</span>
+                {passwordRuleLabels[check.key]}
+              </li>
+            ))}
+          </ul>
+
+          <button type="submit" className={styles.button} disabled={passwordSaving}>
+            {passwordSaving ? t("common.loading") : t("common.save")}
           </button>
         </form>
         {pwdMsg && <p className={styles.success}>{pwdMsg}</p>}
@@ -258,8 +342,13 @@ export default function ProfilePage() {
       </div>
 
       <section className={`${styles.section} ${styles.dangerZone}`}>
-        <h2 className={styles.sectionTitle}>{t("profile.dangerZone")}</h2>
-        <p className={styles.dangerText}>{t("profile.deleteAccountWarning")}</p>
+        <div className={styles.dangerCopy}>
+          <span className={styles.sectionNumber}>03</span>
+          <div>
+            <h2 className={styles.sectionTitle}>{t("profile.dangerZone")}</h2>
+            <p className={styles.dangerText}>{t("profile.deleteAccountWarning")}</p>
+          </div>
+        </div>
 
         {!showDeleteConfirm ? (
           <button
@@ -281,8 +370,9 @@ export default function ProfilePage() {
                 type="button"
                 className={styles.dangerButton}
                 onClick={handleDeleteAccount}
+                disabled={deleteLoading}
               >
-                {t("common.confirm")}
+                {deleteLoading ? t("common.loading") : t("common.confirm")}
               </button>
               <button
                 type="button"

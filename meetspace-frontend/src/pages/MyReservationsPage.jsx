@@ -15,10 +15,42 @@ import PaymentForm from "../components/PaymentForm";
 import PageState from "../components/PageState";
 import { useFeedback } from "../context/FeedbackContext";
 import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
+import { downloadCalendarEvent } from "../utils/calendar";
 import { buildUserActivityItems, formatDate, formatTime, getDateKey, getStatusTone } from "../utils/userActivity";
 import styles from "./MyReservationsPage.module.css";
+import WorkspaceNav from "../components/WorkspaceNav";
 
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+
+function ReservationRecord({ eyebrow, title, details, amount, status, statusLabel, statusClass, action }) {
+  return (
+    <article className={styles.record}>
+      <div className={styles.recordIdentity}>
+        <span>{eyebrow}</span>
+        <strong>{title}</strong>
+      </div>
+      <dl className={styles.recordDetails}>
+        {details.map((detail) => (
+          <div key={`${detail.label}-${detail.value}`}>
+            <dt>{detail.label}</dt>
+            <dd>{detail.value}</dd>
+          </div>
+        ))}
+      </dl>
+      <div className={styles.recordOutcome}>
+        <strong>{amount}</strong>
+        <span className={`${styles.badge} ${statusClass}`}>{statusLabel || status}</span>
+      </div>
+      <div className={styles.recordAction}>{action}</div>
+    </article>
+  );
+}
+
+function getCancellationPreview(startsAt, amount = 0) {
+  const hours = (new Date(startsAt).getTime() - Date.now()) / 3_600_000;
+  const percent = hours >= 48 ? 100 : hours >= 24 ? 50 : 0;
+  return { percent, amount: Number(amount || 0) * percent / 100 };
+}
 
 export default function MyReservationsPage() {
   const { user, token } = useAuth();
@@ -42,6 +74,24 @@ export default function MyReservationsPage() {
   const [parkingReservations, setParkingReservations] = useState([]);
   const [selectedDay, setSelectedDay] = useState("");
   const locale = normalizeLocale(i18n.language);
+
+  const addToCalendar = ({ title, description, location = "MeetSpace Brussels", start, end }) => {
+    const created = downloadCalendarEvent({
+      title,
+      description,
+      location,
+      start,
+      end,
+      filename: `meetspace-${title}`,
+    });
+    if (created) {
+      notify({
+        type: "success",
+        title: t("detail.calendarReady", { defaultValue: "Calendrier prêt" }),
+        message: t("detail.calendarReadyHint", { defaultValue: "Le fichier peut être ouvert dans votre calendrier habituel." }),
+      });
+    }
+  };
 
   useEffect(() => {
     setSearchParams({ tab: activeTab });
@@ -110,16 +160,29 @@ export default function MyReservationsPage() {
     run();
   }, [fetchAllData, navigate, token, user]);
 
-  const handleCancelSpace = async (id) => {
+  const handleCancelSpace = async (reservation) => {
+    const preview = getCancellationPreview(reservation.startDateTime, reservation.totalPrice);
     const accepted = await confirm({
       title: t("reservation.confirmCancel"),
+      message: t("reservation.cancellationPreview", {
+        percent: preview.percent,
+        amount: formatMoney(preview.amount, locale),
+      }),
       confirmLabel: t("common.confirm", { defaultValue: "Confirmer" }),
       cancelLabel: t("common.cancel"),
       tone: "danger",
     });
     if (!accepted) return;
     try {
-      await cancelReservation(id, token);
+      const result = await cancelReservation(reservation.id, token);
+      notify({
+        type: "success",
+        title: t("reservation.cancellationConfirmed"),
+        message: t("reservation.refundConfirmed", {
+          percent: result?.refundPercent ?? 0,
+          amount: formatMoney((result?.refundedAmountCents || 0) / 100, locale),
+        }),
+      });
       fetchAllData();
     } catch (err) {
       notify({ type: "error", title: t("common.error"), message: err.message });
@@ -144,32 +207,59 @@ export default function MyReservationsPage() {
     }
   };
 
-  const handleCancelEvent = async (id) => {
+  const handleCancelEvent = async (registration) => {
+    const preview = getCancellationPreview(registration.eventStartDateTime, registration.totalPrice);
     const accepted = await confirm({
       title: t("events.confirmCancel"),
+      message: t("reservation.cancellationPreview", {
+        percent: preview.percent,
+        amount: formatMoney(preview.amount, locale),
+      }),
       confirmLabel: t("common.confirm", { defaultValue: "Confirmer" }),
       cancelLabel: t("common.cancel"),
       tone: "danger",
     });
     if (!accepted) return;
     try {
-      await cancelEventRegistration(id, token);
+      const result = await cancelEventRegistration(registration.id, token);
+      notify({
+        type: "success",
+        title: t("reservation.cancellationConfirmed"),
+        message: t("reservation.refundConfirmed", {
+          percent: result?.refundPercent ?? 0,
+          amount: formatMoney((result?.refundedAmountCents || 0) / 100, locale),
+        }),
+      });
       fetchAllData();
     } catch (err) {
       notify({ type: "error", title: t("common.error"), message: err.message });
     }
   };
 
-  const handleCancelParkingReservation = async (id) => {
+  const handleCancelParkingReservation = async (reservation) => {
+    const startsAt = `${reservation.slotDate}T${reservation.startTime || "00:00"}`;
+    const preview = getCancellationPreview(startsAt, reservation.totalPrice);
     const accepted = await confirm({
       title: t("parking.confirmCancel"),
+      message: t("reservation.cancellationPreview", {
+        percent: preview.percent,
+        amount: formatMoney(preview.amount, locale),
+      }),
       confirmLabel: t("common.confirm", { defaultValue: "Confirmer" }),
       cancelLabel: t("common.cancel"),
       tone: "danger",
     });
     if (!accepted) return;
     try {
-      await cancelParkingReservation(id, token);
+      const result = await cancelParkingReservation(reservation.id, token);
+      notify({
+        type: "success",
+        title: t("reservation.cancellationConfirmed"),
+        message: t("reservation.refundConfirmed", {
+          percent: result?.refundPercent ?? 0,
+          amount: formatMoney((result?.refundedAmountCents || 0) / 100, locale),
+        }),
+      });
       fetchAllData();
     } catch (err) {
       notify({ type: "error", title: t("common.error"), message: err.message });
@@ -222,6 +312,10 @@ export default function MyReservationsPage() {
   const otherSpaceReservations = spaceReservations.filter((r) => r.status !== "APPROVED");
   const totalReservations = spaceReservations.length + eventRegistrations.length + parkingReservations.length;
   const formattedTotalReservations = formatNumber(totalReservations, locale);
+  const activeReservations = dayItems.length;
+  const committedAmount = [...spaceReservations, ...eventRegistrations, ...parkingReservations]
+    .filter((reservation) => !["CANCELLED", "REJECTED"].includes(reservation.status))
+    .reduce((total, reservation) => total + Number(reservation.totalPrice || 0), 0);
   const nextActivity = dayItems[0];
   const activeTabError = partialErrors[activeTab];
 
@@ -271,31 +365,29 @@ export default function MyReservationsPage() {
 
   return (
     <div className={styles.container}>
+      <WorkspaceNav scope="account" />
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.kicker}>{t("reservation.workspaceKicker")}</p>
           <h1 className={styles.title}>{t("nav.myReservations")}</h1>
           <p>{t("reservation.workspaceSubtitle")}</p>
         </div>
-        <div className={styles.heroStats}>
-          <div className={styles.heroStat}>
-            <span>{t("reservation.totalItems")}</span>
-            <strong>{formattedTotalReservations}</strong>
-          </div>
-          <div className={styles.heroStat}>
-            <span>{t("reservation.pendingPayments")}</span>
-            <strong>{formatNumber(approvedSpaceReservations.length, locale)}</strong>
-          </div>
-          <div className={styles.heroNext}>
-            <span>{t("reservation.nextMarker")}</span>
-            <strong>
-              {nextActivity
-                ? `${formatTime(nextActivity.start)} - ${nextActivity.title}`
-                : t("notifications.emptyTitle", { defaultValue: "Tout est à jour" })}
-            </strong>
-          </div>
+        <div className={styles.nextActivity}>
+          <span>{t("reservation.nextMarker")}</span>
+          <strong>
+            {nextActivity
+              ? `${formatDate(nextActivity.start, locale)} · ${formatTime(nextActivity.start)} · ${nextActivity.title}`
+              : t("notifications.emptyTitle", { defaultValue: "Tout est à jour" })}
+          </strong>
         </div>
       </section>
+
+      <div className={styles.summaryStrip}>
+        <div><span>{t("reservation.totalItems")}</span><strong>{formattedTotalReservations}</strong></div>
+        <div><span>{t("reservation.activeItems", { defaultValue: "À venir" })}</span><strong>{formatNumber(activeReservations, locale)}</strong></div>
+        <div><span>{t("reservation.pendingPayments")}</span><strong>{formatNumber(approvedSpaceReservations.length, locale)}</strong></div>
+        <div><span>{t("reservation.committedAmount", { defaultValue: "Montant engagé" })}</span><strong>{formatMoney(committedAmount, locale)}</strong></div>
+      </div>
 
       <div className={styles.tabs}>
         {tabs.map((tab) => (
@@ -401,29 +493,29 @@ export default function MyReservationsPage() {
               <p className={styles.sectionDesc}>{t("reservation.awaitingPaymentDesc")}</p>
               <div className={styles.approvedList}>
                 {approvedSpaceReservations.map((r) => (
-                  <div key={r.id} className={styles.approvedCard}>
-                    <div className={styles.approvedHeader}>
-                      <h3 className={styles.approvedEspace}>{r.espace?.name}</h3>
-                      <span className={`${styles.badge} ${getStatusClass("APPROVED")}`}>{t("status.approved")}</span>
-                    </div>
-                    <div className={styles.approvedDetails}>
-                      <p>
-                        <strong>{t("common.date")} :</strong> {r.startDateTime.replace("T", " ")} -{" "}
-                        {r.endDateTime.split("T")[1]}
-                      </p>
-                      <p>
-                        <strong>{t("reservation.totalPrice")} :</strong> {formatMoney(r.totalPrice, locale)}
-                      </p>
-                    </div>
-                    <div className={styles.approvedActions}>
-                      <button onClick={() => setPayingReservation(r)} className={styles.payButton}>
-                        {t("reservation.payNow")}
-                      </button>
-                      <button onClick={() => handleCancelSpace(r.id)} className={styles.cancelButtonSmall}>
-                        {t("reservation.cancel")}
-                      </button>
-                    </div>
-                  </div>
+                  <ReservationRecord
+                    key={r.id}
+                    eyebrow={t("nav.spaces")}
+                    title={r.espace?.name || r.espaceName}
+                    details={[
+                      { label: t("common.date"), value: formatDate(new Date(r.startDateTime), locale) },
+                      { label: t("common.time"), value: `${formatTime(new Date(r.startDateTime))}–${formatTime(new Date(r.endDateTime))}` },
+                      ...(r.paymentDueAt ? [{
+                        label: t("reservation.paymentDeadline"),
+                        value: formatDate(new Date(r.paymentDueAt), locale, { dateStyle: "medium", timeStyle: "short" }),
+                      }] : []),
+                    ]}
+                    amount={formatMoney(r.totalPrice, locale)}
+                    status="APPROVED"
+                    statusLabel={t("status.approved")}
+                    statusClass={getStatusClass("APPROVED")}
+                    action={(
+                      <>
+                        <button onClick={() => setPayingReservation(r)} className={styles.payButton}>{t("reservation.payNow")}</button>
+                        <button onClick={() => handleCancelSpace(r)} className={styles.cancelButtonSmall}>{t("reservation.cancel")}</button>
+                      </>
+                    )}
+                  />
                 ))}
               </div>
             </div>
@@ -438,46 +530,48 @@ export default function MyReservationsPage() {
             />
           ) : (
             otherSpaceReservations.length > 0 && (
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>{t("spaces.space")}</th>
-                    <th>{t("reservation.startDate")}</th>
-                    <th>{t("reservation.endDate")}</th>
-                    <th>{t("common.total")}</th>
-                    <th>{t("common.status")}</th>
-                    <th>{t("common.actions")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {otherSpaceReservations.map((r) => {
-                    const isPast = new Date(r.startDateTime) < new Date();
-                    const canCancel = !isPast && r.status !== "CANCELLED" && r.status !== "REJECTED";
-                    return (
-                      <tr key={r.id}>
-                        <td>{r.espace?.name || r.espaceName}</td>
-                        <td>{r.startDateTime.replace("T", " ")}</td>
-                        <td>{r.endDateTime.replace("T", " ")}</td>
-                        <td>{formatMoney(r.totalPrice, locale)}</td>
-                        <td>
-                          <span className={`${styles.badge} ${getStatusClass(r.status)}`}>
-                            {t(`status.${r.status.toLowerCase()}`)}
-                          </span>
-                        </td>
-                        <td>
-                          {canCancel ? (
-                            <button onClick={() => handleCancelSpace(r.id)} className={styles.cancelButton}>
-                              {t("reservation.cancel")}
+              <div className={styles.recordList}>
+                {otherSpaceReservations.map((r) => {
+                  const isPast = new Date(r.startDateTime) < new Date();
+                  const canCancel = !isPast && r.status !== "CANCELLED" && r.status !== "REJECTED";
+                  return (
+                    <ReservationRecord
+                      key={r.id}
+                      eyebrow={t("nav.spaces")}
+                      title={r.espace?.name || r.espaceName}
+                      details={[
+                        { label: t("common.date"), value: formatDate(new Date(r.startDateTime), locale) },
+                        { label: t("common.time"), value: `${formatTime(new Date(r.startDateTime))}–${formatTime(new Date(r.endDateTime))}` },
+                      ]}
+                      amount={formatMoney(r.totalPrice, locale)}
+                      status={r.status}
+                      statusLabel={t(`status.${r.status.toLowerCase()}`)}
+                      statusClass={getStatusClass(r.status)}
+                      action={(
+                        <div className={styles.recordActionGroup}>
+                          {r.status === "CONFIRMED" && (
+                            <button
+                              type="button"
+                              className={styles.calendarButton}
+                              onClick={() => addToCalendar({
+                                title: r.espace?.name || r.espaceName,
+                                description: t("detail.roomCalendarDescription", { defaultValue: "Réservation de salle MeetSpace" }),
+                                start: r.startDateTime,
+                                end: r.endDateTime,
+                              })}
+                            >
+                              {t("detail.addToCalendar", { defaultValue: "Ajouter au calendrier" })}
                             </button>
-                          ) : (
-                            <span className={styles.disabledText}>{isPast ? t("reservation.passed") : "-"}</span>
                           )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          {canCancel
+                            ? <button onClick={() => handleCancelSpace(r)} className={styles.cancelButton}>{t("reservation.cancel")}</button>
+                            : <span className={styles.disabledText}>{isPast ? t("reservation.passed") : "-"}</span>}
+                        </div>
+                      )}
+                    />
+                  );
+                })}
+              </div>
             )
           )}
         </div>
@@ -493,46 +587,48 @@ export default function MyReservationsPage() {
               action={<Link to="/events">{t("home.eventsCta", { defaultValue: "Découvrir les événements" })}</Link>}
             />
           ) : (
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>{t("events.event")}</th>
-                  <th>{t("common.date")}</th>
-                  <th>{t("events.participants")}</th>
-                  <th>{t("common.total")}</th>
-                  <th>{t("common.status")}</th>
-                  <th>{t("common.actions")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {eventRegistrations.map((r) => {
-                  const isPast = new Date(r.eventStartDateTime) < new Date();
-                  const canCancel = !isPast && r.status !== "CANCELLED";
-                  return (
-                    <tr key={r.id}>
-                      <td>{r.eventTitle}</td>
-                      <td>{r.eventStartDateTime.replace("T", " ")}</td>
-                      <td>{r.numberOfParticipants}</td>
-                      <td>{r.totalPrice > 0 ? formatMoney(r.totalPrice, locale) : t("events.free")}</td>
-                      <td>
-                        <span className={`${styles.badge} ${getStatusClass(r.status)}`}>
-                          {t(`status.${r.status.toLowerCase()}`)}
-                        </span>
-                      </td>
-                      <td>
-                        {canCancel ? (
-                          <button onClick={() => handleCancelEvent(r.id)} className={styles.cancelButton}>
-                            {t("events.cancelRegistration")}
+            <div className={styles.recordList}>
+              {eventRegistrations.map((r) => {
+                const isPast = new Date(r.eventStartDateTime) < new Date();
+                const canCancel = !isPast && r.status !== "CANCELLED";
+                return (
+                  <ReservationRecord
+                    key={r.id}
+                    eyebrow={t("nav.events")}
+                    title={r.eventTitle}
+                    details={[
+                      { label: t("common.date"), value: formatDate(new Date(r.eventStartDateTime), locale) },
+                      { label: t("events.participants"), value: formatNumber(r.numberOfParticipants, locale) },
+                    ]}
+                    amount={r.totalPrice > 0 ? formatMoney(r.totalPrice, locale) : t("events.free")}
+                    status={r.status}
+                    statusLabel={t(`status.${r.status.toLowerCase()}`)}
+                    statusClass={getStatusClass(r.status)}
+                    action={(
+                      <div className={styles.recordActionGroup}>
+                        {r.status === "CONFIRMED" && (
+                          <button
+                            type="button"
+                            className={styles.calendarButton}
+                            onClick={() => addToCalendar({
+                              title: r.eventTitle,
+                              description: t("detail.eventCalendarDescription", { defaultValue: "Inscription à un événement MeetSpace" }),
+                              start: r.eventStartDateTime,
+                              end: r.eventEndDateTime,
+                            })}
+                          >
+                            {t("detail.addToCalendar", { defaultValue: "Ajouter au calendrier" })}
                           </button>
-                        ) : (
-                          <span className={styles.disabledText}>{isPast ? t("events.eventPassed") : "-"}</span>
                         )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        {canCancel
+                          ? <button onClick={() => handleCancelEvent(r)} className={styles.cancelButton}>{t("events.cancelRegistration")}</button>
+                          : <span className={styles.disabledText}>{isPast ? t("events.eventPassed") : "-"}</span>}
+                      </div>
+                    )}
+                  />
+                );
+              })}
+            </div>
           )}
         </div>
       )}
@@ -547,50 +643,49 @@ export default function MyReservationsPage() {
               action={<Link to="/parking">{t("home.parkingCta", { defaultValue: "Voir le parking" })}</Link>}
             />
           ) : (
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>{t("parking.session")}</th>
-                  <th>{t("common.date")}</th>
-                  <th>{t("common.time")}</th>
-                  <th>{t("parking.places")}</th>
-                  <th>{t("common.total")}</th>
-                  <th>{t("common.status")}</th>
-                  <th>{t("common.actions")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {parkingReservations.map((r) => {
-                  const isPast = new Date(r.slotDate) < new Date();
-                  const canCancel = !isPast && r.status !== "CANCELLED";
-                  return (
-                    <tr key={r.id}>
-                      <td>{r.parkingSlotTitle}</td>
-                      <td>{r.slotDate}</td>
-                      <td>
-                        {r.startTime} - {r.endTime}
-                      </td>
-                      <td>{formatNumber(r.reservedSpaces, locale)}</td>
-                      <td>{formatMoney(r.totalPrice, locale)}</td>
-                      <td>
-                        <span className={`${styles.badge} ${getStatusClass(r.status)}`}>
-                          {t(`status.${r.status.toLowerCase()}`)}
-                        </span>
-                      </td>
-                      <td>
-                        {canCancel ? (
-                          <button onClick={() => handleCancelParkingReservation(r.id)} className={styles.cancelButton}>
-                            {t("parking.cancelReservation")}
+            <div className={styles.recordList}>
+              {parkingReservations.map((r) => {
+                const isPast = new Date(r.slotDate) < new Date();
+                const canCancel = !isPast && r.status !== "CANCELLED";
+                return (
+                  <ReservationRecord
+                    key={r.id}
+                    eyebrow={t("nav.parking")}
+                    title={r.parkingSlotTitle}
+                    details={[
+                      { label: t("common.date"), value: formatDate(new Date(r.slotDate), locale) },
+                      { label: t("common.time"), value: `${r.startTime}–${r.endTime}` },
+                      { label: t("parking.places"), value: formatNumber(r.reservedSpaces, locale) },
+                    ]}
+                    amount={formatMoney(r.totalPrice, locale)}
+                    status={r.status}
+                    statusLabel={t(`status.${r.status.toLowerCase()}`)}
+                    statusClass={getStatusClass(r.status)}
+                    action={(
+                      <div className={styles.recordActionGroup}>
+                        {r.status === "CONFIRMED" && (
+                          <button
+                            type="button"
+                            className={styles.calendarButton}
+                            onClick={() => addToCalendar({
+                              title: r.parkingSlotTitle || t("nav.parking"),
+                              description: t("detail.parkingCalendarDescription", { defaultValue: "Réservation parking MeetSpace" }),
+                              start: `${r.slotDate}T${r.startTime}`,
+                              end: `${r.slotDate}T${r.endTime}`,
+                            })}
+                          >
+                            {t("detail.addToCalendar", { defaultValue: "Ajouter au calendrier" })}
                           </button>
-                        ) : (
-                          <span className={styles.disabledText}>{isPast ? t("parking.sessionPassed") : "-"}</span>
                         )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        {canCancel
+                          ? <button onClick={() => handleCancelParkingReservation(r)} className={styles.cancelButton}>{t("parking.cancelReservation")}</button>
+                          : <span className={styles.disabledText}>{isPast ? t("parking.sessionPassed") : "-"}</span>}
+                      </div>
+                    )}
+                  />
+                );
+              })}
+            </div>
           )}
         </div>
       )}

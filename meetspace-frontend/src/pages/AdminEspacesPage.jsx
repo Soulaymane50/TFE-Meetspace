@@ -10,6 +10,7 @@ import {
   adminApproveReservation,
 } from "../services/api";
 import PageState from "../components/PageState";
+import WorkspaceNav from "../components/WorkspaceNav";
 import SelectDropdown from "../components/SelectDropdown";
 import { useFeedback } from "../context/FeedbackContext";
 import { formatMoney, normalizeLocale } from "../utils/formatters";
@@ -157,15 +158,13 @@ export default function AdminEspacesPage() {
 
   return (
     <div className={styles.container}>
+      <WorkspaceNav scope="admin" />
       <div className={styles.header}>
         <div>
           <p className={styles.kicker}>Admin</p>
           <h1 className={styles.title}>{t("admin.spacesManagement")}</h1>
         </div>
         <div className={styles.headerActions}>
-          <Link to="/admin" className={styles.backLink}>
-            {t("admin.backToDashboard")}
-          </Link>
           <Link to="/admin/espaces/new" className={styles.btnPrimary}>
             + {t("admin.createSpace")}
           </Link>

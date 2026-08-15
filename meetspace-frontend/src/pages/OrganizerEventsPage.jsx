@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { organizerGetMyEvents, organizerCancelMyEvent, organizerGetFinanceSummary } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,8 @@ import PageState from "../components/PageState";
 import EventPlanningTimeline from "../components/EventPlanningTimeline";
 import { useFeedback } from "../context/FeedbackContext";
 import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
+import WorkspaceNav from "../components/WorkspaceNav";
+import FinanceLedger from "../components/FinanceLedger";
 import styles from "./OrganizerEventsPage.module.css";
 
 function OrganizerIcon({ type }) {
@@ -75,6 +77,7 @@ export default function OrganizerEventsPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { confirm, notify } = useFeedback();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const getDateLocale = () => {
     const locales = { fr: "fr-BE", nl: "nl-BE", en: "en-GB" };
@@ -84,7 +87,7 @@ export default function OrganizerEventsPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filter, setFilter] = useState("ALL");
+  const [filter, setFilter] = useState(() => searchParams.get("status") || "ALL");
   const [financeSummary, setFinanceSummary] = useState(null);
 
   const fetchEvents = useCallback(async () => {
@@ -108,6 +111,10 @@ export default function OrganizerEventsPage() {
       setLoading(false);
     }
   }, [token]);
+
+  useEffect(() => {
+    setSearchParams(filter === "ALL" ? {} : { status: filter }, { replace: true });
+  }, [filter, setSearchParams]);
 
   useEffect(() => {
     if (!user || (user.role !== "ORGANIZER" && user.role !== "ADMIN")) {
@@ -170,7 +177,6 @@ export default function OrganizerEventsPage() {
   const filteredCount = filteredEvents.length;
   const financeEvents = financeSummary?.events ?? [];
   const financeByEventId = new Map(financeEvents.map((item) => [item.eventId, item]));
-  const topFinanceEvents = financeEvents.slice(0, 3);
   const getStatusCount = (status) => (status === "ALL" ? stats.total : events.filter((e) => e.status === status).length);
   const formatDateTime = (value) => new Date(value).toLocaleString(getDateLocale(), {
     day: "2-digit",
@@ -189,6 +195,7 @@ export default function OrganizerEventsPage() {
 
   return (
     <div className={styles.container}>
+      <WorkspaceNav scope="organizer" />
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>{t("organizer.myEvents")}</h1>
@@ -250,52 +257,15 @@ export default function OrganizerEventsPage() {
             ))}
           </div>
 
-          {financeSummary && (
-            <div className={styles.financePanel}>
-              <div className={styles.financeHeader}>
-                <div>
-                  <p className={styles.financeEyebrow}>{t("finance.indicativeEstimate")}</p>
-                  <h3>{t("finance.organizerTitle")}</h3>
-                </div>
-                <span>{t("finance.commissionRate", { rate: Math.round((financeSummary.commissionRate || 0) * 100) })}</span>
-              </div>
-
-              <div className={styles.financeGrid}>
-                <div className={styles.financeMetric}>
-                  <span>{t("finance.confirmedRegistrations")}</span>
-                  <strong>{formatStat(financeSummary.confirmedRegistrations || 0)}</strong>
-                </div>
-                <div className={styles.financeMetric}>
-                  <span>{t("finance.grossRevenue")}</span>
-                  <strong>{formatEuro(financeSummary.eventGrossRevenue)}</strong>
-                </div>
-                <div className={styles.financeMetric}>
-                  <span>{t("finance.roomCost")}</span>
-                  <strong>{formatEuro(financeSummary.roomCostChargedToOrganizers)}</strong>
-                </div>
-                <div className={styles.financeMetric}>
-                  <span>{t("finance.meetSpaceCommission")}</span>
-                  <strong>{formatEuro(financeSummary.eventCommissionRevenue)}</strong>
-                </div>
-                <div className={styles.financeMetric}>
-                  <span>{t("finance.organizerNetEstimate")}</span>
-                  <strong>{formatEuro(financeSummary.organizerNetEstimate)}</strong>
-                </div>
-              </div>
-              <p className={styles.financeNote}>{t("finance.organizerHint")}</p>
-
-              {topFinanceEvents.length > 0 && (
-                <div className={styles.financeList}>
-                  {topFinanceEvents.map((eventFinance) => (
-                    <div key={eventFinance.eventId} className={styles.financeListItem}>
-                      <span>{eventFinance.eventTitle}</span>
-                      <strong>{formatEuro(eventFinance.organizerNetEstimate)}</strong>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          <FinanceLedger
+            summary={financeSummary}
+            variant="organizer"
+            formatMoney={formatEuro}
+            formatNumber={formatStat}
+            onPeriodChange={async (period) => {
+              setFinanceSummary(await organizerGetFinanceSummary(token, period));
+            }}
+          />
         </section>
 
         <aside className={styles.statusPanel}>
@@ -334,13 +304,15 @@ export default function OrganizerEventsPage() {
         ))}
       </div>
 
-      <EventPlanningTimeline
-        events={filteredEvents}
-        title={t("planning.organizerTitle")}
-        subtitle={t("planning.organizerSubtitle")}
-        getEventHref={(event) => `/organizer/events/edit/${event.id}`}
-        maxDays={4}
-      />
+      {filteredEvents.length > 0 && (
+        <EventPlanningTimeline
+          events={filteredEvents}
+          title={t("planning.organizerTitle")}
+          subtitle={t("planning.organizerSubtitle")}
+          getEventHref={(event) => `/organizer/events/edit/${event.id}`}
+          maxDays={4}
+        />
+      )}
 
       {filteredEvents.length === 0 ? (
         <div className={styles.emptyState}>
@@ -401,22 +373,28 @@ export default function OrganizerEventsPage() {
               {eventFinance && (
                 <div className={styles.eventFinanceStrip}>
                   <span>
-                    {t("finance.grossShort")}
-                    <strong>{formatEuro(eventFinance.grossRevenue)}</strong>
-                  </span>
-                  <span>
-                    {t("finance.commissionShort")}
-                    <strong>{formatEuro(eventFinance.meetSpaceCommission)}</strong>
-                  </span>
-                  <span>
-                    {t("finance.roomShort")}
-                    <strong>{formatEuro(eventFinance.roomCost)}</strong>
-                  </span>
-                  <span>
-                    {t("finance.netShort")}
+                    {t("finance.confirmedNetShort", { defaultValue: "Net confirmé" })}
                     <strong>{formatEuro(eventFinance.organizerNetEstimate)}</strong>
                   </span>
-                  <small>{formatStat(eventFinance.confirmedParticipants || 0)} {t("common.participants")}</small>
+                  <span>
+                    {t("finance.potentialNetShort", { defaultValue: "Net potentiel" })}
+                    <strong>{formatEuro(eventFinance.organizerPotentialNet ?? eventFinance.organizerNetEstimate)}</strong>
+                  </span>
+                  <span>
+                    {t("finance.occupancyShort", { defaultValue: "Remplissage" })}
+                    <strong>{formatStat(eventFinance.occupancyRate || 0)}%</strong>
+                  </span>
+                  <span>
+                    {t("finance.breakEvenShort", { defaultValue: "Seuil rentable" })}
+                    <strong>
+                      {eventFinance.breakEvenParticipants >= 0
+                        ? `${formatStat(eventFinance.breakEvenParticipants)} ${t("common.persons")}`
+                        : t("finance.notReachable", { defaultValue: "Non atteignable" })}
+                    </strong>
+                  </span>
+                  <small>
+                    {formatStat(eventFinance.confirmedParticipants || 0)} / {formatStat(eventFinance.eventCapacity || 0)} {t("common.participants")}
+                  </small>
                 </div>
               )}
 
@@ -430,8 +408,8 @@ export default function OrganizerEventsPage() {
                   </button>
                 )}
                 {e.status === "PUBLISHED" ? (
-                  <Link to={`/events/register/${e.id}`} className={styles.viewButton}>
-                    {t("common.view")}
+                  <Link to={`/events/${e.id}`} className={styles.viewButton}>
+                    {t("detail.viewDetails", { defaultValue: "Voir la fiche" })}
                   </Link>
                 ) : e.status === "PENDING_APPROVAL" ? (
                   <span className={styles.pendingNote}>{t("organizer.awaitingApproval")}</span>
@@ -443,27 +421,6 @@ export default function OrganizerEventsPage() {
         </div>
       )}
 
-      <div className={styles.legend}>
-        <h4 className={styles.legendTitle}>{t("common.legend")}</h4>
-        <div className={styles.legendGrid}>
-          <div className={styles.legendItem}>
-            <span className={`${styles.statusBadge} ${styles.statusPending}`}></span>
-            {t("organizer.pendingApproval")}
-          </div>
-          <div className={styles.legendItem}>
-            <span className={`${styles.statusBadge} ${styles.statusPublished}`}></span>
-            {t("organizer.publishedEvents")}
-          </div>
-          <div className={styles.legendItem}>
-            <span className={`${styles.statusBadge} ${styles.statusRejected}`}></span>
-            {t("organizer.rejectedEvents")}
-          </div>
-          <div className={styles.legendItem}>
-            <span className={`${styles.statusBadge} ${styles.statusCancelled}`}></span>
-            {t("status.cancelled")}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

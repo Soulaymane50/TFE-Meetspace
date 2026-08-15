@@ -8,6 +8,7 @@ import {
   adminGetParkingSlots,
 } from "../services/api";
 import PageState from "../components/PageState";
+import WorkspaceNav from "../components/WorkspaceNav";
 import SelectDropdown from "../components/SelectDropdown";
 import { useFeedback } from "../context/FeedbackContext";
 import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
@@ -100,15 +101,13 @@ export default function AdminParkingPage() {
 
   return (
     <div className={styles.container}>
+      <WorkspaceNav scope="admin" />
       <div className={styles.header}>
         <div>
           <p className={styles.kicker}>Admin</p>
           <h1 className={styles.title}>{t("admin.parkingManagement")}</h1>
         </div>
         <div className={styles.headerActions}>
-          <Link to="/admin" className={styles.backLink}>
-            {t("admin.backToDashboard")}
-          </Link>
           <Link to="/admin/parking/new" className={styles.btnPrimary}>
             + {t("admin.createSession")}
           </Link>

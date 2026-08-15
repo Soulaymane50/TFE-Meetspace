@@ -25,7 +25,16 @@
 }
 
 .alertBanner {
-  composes: alertBanner from "./AdminDashboard.module.css";
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  border-left: 4px solid var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 48%, var(--surface));
+  font-size: 0.8rem;
+  font-weight: 750;
 }
 
 .alertIcon {
@@ -33,7 +42,15 @@
 }
 
 .alertButton {
-  composes: alertButton from "./AdminDashboard.module.css";
+  min-height: 34px;
+  margin-left: auto;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
 .tabs {
@@ -49,8 +66,13 @@
 }
 
 .tabBadge {
-  composes: navBadge from "./AdminDashboard.module.css";
-  margin-top: 0;
+  min-width: 20px;
+  margin-left: 0.45rem;
+  padding: 0.08rem 0.3rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.65rem;
 }
 
 .section {
@@ -95,36 +117,47 @@
 .btnGhost,
 .btnDanger,
 .btnSuccess {
-  min-height: 44px;
-  padding: 0.7rem 1rem;
-  border-radius: 999px;
+  min-height: 38px;
+  padding: 0.48rem 0.72rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.72rem;
   font-weight: 800;
   box-shadow: none;
 }
 
+.btnPrimary {
+  min-height: 44px;
+  border-color: var(--brand-strong);
+  background: var(--brand-strong);
+  color: #fff;
+}
+
 .btnGhost {
-  background: rgba(27, 42, 64, 0.08);
-  color: var(--blue-dark);
+  background: var(--surface);
+  color: var(--text-primary);
 }
 
 .btnDanger {
-  background: rgba(220, 38, 38, 0.12);
-  color: #991b1b;
+  color: var(--danger);
 }
 
 .btnSuccess {
-  background: rgba(16, 185, 129, 0.12);
-  color: #047857;
+  color: var(--success);
 }
 
 .statusBadge,
 .badgePending {
   display: inline-flex;
   align-items: center;
-  min-height: 30px;
-  padding: 0.2rem 0.7rem;
-  border-radius: 999px;
-  font-size: 0.76rem;
+  min-height: 26px;
+  padding: 0.2rem 0.48rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  font-size: 0.68rem;
   font-weight: 800;
 }
 
@@ -153,21 +186,18 @@
 
 .cardsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1rem;
+  border-top: 1px solid var(--border);
 }
 
 .card {
-  padding: 1.25rem;
-  border-radius: 24px;
-  border: 1px solid rgba(27, 42, 64, 0.08);
-  background: rgba(27, 42, 64, 0.035);
+  padding: 1rem 0 1rem 1rem;
+  border-bottom: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  background: transparent;
 }
 
 .pendingReviewCard {
-  background:
-    radial-gradient(circle at top right, rgba(181, 138, 76, 0.1), transparent 34%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 245, 239, 0.86));
+  background: color-mix(in srgb, var(--accent-soft) 22%, transparent);
 }
 
 .cardHeader {
@@ -211,11 +241,10 @@
 .pendingDetails span {
   display: grid;
   gap: 0.25rem;
-  min-height: 86px;
-  padding: 0.85rem;
-  border-radius: 18px;
-  border: 1px solid rgba(27, 42, 64, 0.07);
-  background: rgba(255, 255, 255, 0.68);
+  min-height: 76px;
+  padding: 0.7rem 0 0.7rem 0.75rem;
+  border-left: 1px solid var(--border-strong);
+  background: transparent;
 }
 
 .pendingDetails small {
@@ -252,9 +281,9 @@
   gap: 0.9rem;
   flex-wrap: wrap;
   margin-bottom: 1rem;
-  padding: 1rem;
-  border-radius: 20px;
-  background: rgba(27, 42, 64, 0.045);
+  padding: 0.7rem 0;
+  border-block: 1px solid var(--border);
+  background: transparent;
 }
 
 .select {
@@ -274,13 +303,9 @@
   display: grid;
   gap: 1rem;
   margin-bottom: 1.2rem;
-  padding: 1rem;
-  border-radius: 28px;
-  border: 1px solid rgba(27, 42, 64, 0.08);
-  background:
-    radial-gradient(circle at top right, rgba(90, 124, 226, 0.12), transparent 34%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.9));
-  box-shadow: var(--shadow-soft);
+  padding: 1rem 0;
+  border-block: 1px solid var(--border);
+  background: transparent;
 }
 
 .roomPlannerHeader {
@@ -320,10 +345,10 @@
   min-width: 68px;
   min-height: 54px;
   padding: 0.55rem 0.7rem;
-  border-radius: 18px;
-  border: 1px solid rgba(27, 42, 64, 0.1);
-  background: rgba(255, 255, 255, 0.8);
-  color: var(--blue-dark);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
   box-shadow: none;
 }
 
@@ -339,8 +364,8 @@
 }
 
 .dayButtonActive {
-  border-color: rgba(27, 42, 64, 0.2);
-  background: linear-gradient(135deg, var(--brand-navy), #2d4266);
+  border-color: var(--brand-strong);
+  background: var(--brand-strong);
   color: #fff;
 }
 
@@ -351,15 +376,15 @@
 .roomColumns {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 0.8rem;
+  gap: 1px;
+  border: 1px solid var(--border);
+  background: var(--border);
 }
 
 .roomColumn {
   min-height: 280px;
   padding: 0.85rem;
-  border-radius: 24px;
-  border: 1px solid rgba(27, 42, 64, 0.08);
-  background: rgba(255, 255, 255, 0.74);
+  background: var(--surface);
 }
 
 .roomColumnHeader {
@@ -385,9 +410,9 @@
   place-items: center;
   width: 34px;
   height: 34px;
-  border-radius: 13px;
-  background: rgba(27, 42, 64, 0.08);
-  color: var(--blue-dark);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  color: var(--text-secondary);
 }
 
 .roomSchedule {
@@ -401,7 +426,7 @@
   gap: 0.3rem;
   min-height: 78px;
   padding: 0.75rem;
-  border-radius: 18px;
+  border-radius: var(--radius-sm);
 }
 
 .roomEmpty {
@@ -421,9 +446,9 @@
 }
 
 .roomBlock {
-  border: 1px solid rgba(90, 124, 226, 0.16);
-  background:
-    linear-gradient(135deg, rgba(90, 124, 226, 0.1), rgba(255, 255, 255, 0.7));
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--brand);
+  background: var(--surface-muted);
   color: var(--blue-darker);
   transition:
     transform 160ms ease,
@@ -432,9 +457,8 @@
 }
 
 .roomBlock:hover {
-  transform: translateY(-2px);
-  border-color: rgba(181, 138, 76, 0.3);
-  box-shadow: var(--shadow-soft);
+  border-color: var(--brand);
+  background: var(--surface-hover);
 }
 
 .roomTime {
@@ -452,7 +476,7 @@
 .roomBlock em {
   width: fit-content;
   padding: 0.2rem 0.5rem;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: rgba(220, 38, 38, 0.12);
   color: #991b1b;
   font-size: 0.7rem;
@@ -468,7 +492,10 @@
 }
 
 .error {
-  composes: error from "./AdminDashboard.module.css";
+  padding: 0.75rem 0.9rem;
+  border-left: 3px solid var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+  color: var(--danger);
 }
 
 [data-theme="dark"] .tableContainer,

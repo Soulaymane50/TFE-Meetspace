@@ -14,7 +14,7 @@ import {
   adminReactivateUser,
   adminGetUserDetails,
 } from "../services/api";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import styles from "./AdminDashboard.module.css";
 import AuditLogs from "../components/AuditLogs";
@@ -22,6 +22,8 @@ import PageState from "../components/PageState";
 import SelectDropdown from "../components/SelectDropdown";
 import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import { useFeedback } from "../context/FeedbackContext";
+import WorkspaceNav from "../components/WorkspaceNav";
+import FinanceLedger from "../components/FinanceLedger";
 
 function AdminIcon({ type }) {
   const icons = {
@@ -107,8 +109,12 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { confirm, notify } = useFeedback();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(() => searchParams.get("tab") || "overview");
+  const [userQuery, setUserQuery] = useState(() => searchParams.get("q") || "");
+  const [userRoleFilter, setUserRoleFilter] = useState(() => searchParams.get("role") || "ALL");
+  const [userStatusFilter, setUserStatusFilter] = useState(() => searchParams.get("status") || "ALL");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -184,6 +190,17 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   }, [logout, navigate, token]);
+
+  useEffect(() => {
+    const next = {};
+    if (activeTab !== "overview") next.tab = activeTab;
+    if (activeTab === "users") {
+      if (userQuery.trim()) next.q = userQuery.trim();
+      if (userRoleFilter !== "ALL") next.role = userRoleFilter;
+      if (userStatusFilter !== "ALL") next.status = userStatusFilter;
+    }
+    setSearchParams(next, { replace: true });
+  }, [activeTab, setSearchParams, userQuery, userRoleFilter, userStatusFilter]);
 
   useEffect(() => {
     if (!user || user.role !== "ADMIN") {
@@ -292,27 +309,27 @@ export default function AdminDashboard() {
   if (error) return <PageState type="error" title={t("common.error")} message={error} />;
 
   const totalPending = pendingEvents.length + pendingReservations.length;
-  const totalParkingSlots = stats?.totalParkingSlots ?? 0;
   const confirmedParkingReservations = stats?.confirmedParkingReservations ?? 0;
-  const parkingRevenue = stats?.parkingRevenue ?? 0;
   const userParkingReservations = userDetails?.parkingReservations ?? [];
   const locale = normalizeLocale(i18n.language);
   const formatEuro = (value) => formatMoney(value, locale);
   const formatStat = (value) => formatNumber(value, locale);
-  const totalRevenue = stats?.totalRevenue || 0;
-  const financeTotal = financeSummary?.meetSpaceEstimatedRevenue ?? totalRevenue;
-  const eventGrossRevenue = financeSummary?.eventGrossRevenue ?? stats?.eventRevenue ?? 0;
-  const eventCommissionRevenue = financeSummary?.eventCommissionRevenue ?? 0;
-  const directRoomRevenue = financeSummary?.directRoomRevenue ?? stats?.spaceRevenue ?? 0;
-  const organizerRoomCost = financeSummary?.roomCostChargedToOrganizers ?? 0;
-  const organizerNetEstimate = financeSummary?.organizerNetEstimate ?? 0;
-  const parkingFinanceRevenue = financeSummary?.parkingRevenue ?? parkingRevenue;
-  const getShare = (value, total = financeTotal) => (total > 0 ? Math.max(4, Math.round(((value || 0) / total) * 100)) : 0);
   const totalReservations =
     (stats?.confirmedSpaceReservations || 0) +
     (stats?.confirmedEventRegistrations || 0) +
     confirmedParkingReservations;
   const activeUsers = users.filter((u) => u.status === "ACTIVE").length;
+  const suspendedUsers = users.filter((u) => u.status === "BANNED").length;
+  const adminUsers = users.filter((u) => u.role === "ADMIN").length;
+  const normalizedUserQuery = userQuery.trim().toLocaleLowerCase(locale);
+  const filteredUsers = users.filter((entry) => {
+    const matchesQuery = !normalizedUserQuery || `${entry.firstName || ""} ${entry.lastName || ""} ${entry.email || ""}`
+      .toLocaleLowerCase(locale)
+      .includes(normalizedUserQuery);
+    const matchesRole = userRoleFilter === "ALL" || entry.role === userRoleFilter;
+    const matchesStatus = userStatusFilter === "ALL" || entry.status === userStatusFilter;
+    return matchesQuery && matchesRole && matchesStatus;
+  });
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const toDate = (value) => {
@@ -414,33 +431,6 @@ export default function AdminDashboard() {
     },
   ];
 
-  const revenueItems = [
-    {
-      label: t("finance.directRoomRevenue"),
-      value: directRoomRevenue,
-      share: getShare(directRoomRevenue),
-      tone: styles.barGold,
-    },
-    {
-      label: t("finance.parkingRevenue"),
-      value: parkingFinanceRevenue,
-      share: getShare(parkingFinanceRevenue),
-      tone: styles.barGreen,
-    },
-    {
-      label: t("finance.eventCommissions"),
-      value: eventCommissionRevenue,
-      share: getShare(eventCommissionRevenue),
-      tone: styles.barBlue,
-    },
-    {
-      label: t("finance.roomCostChargedToOrganizers"),
-      value: organizerRoomCost,
-      share: getShare(organizerRoomCost),
-      tone: styles.barViolet,
-    },
-  ];
-
   const priorityItems = [
     {
       icon: "pending",
@@ -468,67 +458,33 @@ export default function AdminDashboard() {
     },
   ];
 
-  const moduleCards = [
-    {
-      to: "/admin/espaces",
-      icon: "spaces",
-      label: t("admin.spacesManagement"),
-      value: stats?.totalEspaces ?? 0,
-      meta: pendingReservations.length > 0 ? `${pendingReservations.length} ${t("admin.pending")}` : t("admin.totalSpaces"),
-      tone: styles.moduleBlue,
-    },
-    {
-      to: "/admin/events",
-      icon: "events",
-      label: t("admin.eventsManagement"),
-      value: stats?.totalEvents ?? 0,
-      meta: pendingEvents.length > 0 ? `${pendingEvents.length} ${t("admin.pending")}` : t("status.published"),
-      tone: styles.moduleGreen,
-    },
-    {
-      to: "/admin/parking",
-      icon: "parking",
-      label: t("admin.parkingManagement"),
-      value: totalParkingSlots,
-      meta: `${confirmedParkingReservations} ${t("admin.confirmedParkingReservations").toLowerCase()}`,
-      tone: styles.moduleGold,
-    },
-  ];
-
   return (
     <div className={styles.container}>
+      <WorkspaceNav scope="admin" />
       <div className={styles.header}>
         <div>
           <p className={styles.kicker}>{t("admin.dashboardKicker")}</p>
           <h1 className={styles.title}>{t("admin.dashboard")}</h1>
           <p className={styles.subtitle}>{t("admin.dashboardSubtitle")}</p>
         </div>
-        <Link to="/" className={styles.backLink}>
-          {t("common.backToSite")}
+        <Link to="/admin/events/new" className={styles.backLink}>
+          {t("admin.createEvent")}
         </Link>
       </div>
 
-      {pendingEvents.length > 0 && (
-        <div className={styles.alertBanner}>
-          <span className={styles.alertIcon}>!</span>
-          <span>
-            {formatStat(pendingEvents.length)} {t("admin.eventsPendingApproval")}
-          </span>
-          <Link to="/admin/events" className={styles.alertButton}>
-            {t("common.view")}
-          </Link>
-        </div>
-      )}
-
-      {pendingReservations.length > 0 && (
-        <div className={styles.alertBanner}>
-          <span className={styles.alertIcon}>!</span>
-          <span>
-            {formatStat(pendingReservations.length)} {t("admin.premiumRoomReservationsPending")}
-          </span>
-          <Link to="/admin/espaces" className={styles.alertButton}>
-            {t("common.view")}
-          </Link>
+      {totalPending > 0 && (
+        <div className={styles.actionSummary}>
+          <div>
+            <span className={styles.alertIcon}>!</span>
+            <p>
+              <strong>{t("admin.actionsPending", { count: totalPending, defaultValue: `${formatStat(totalPending)} actions à traiter` })}</strong>
+              <small>{t("admin.actionsPendingHelp", { defaultValue: "Les validations sont regroupées ici par priorité." })}</small>
+            </p>
+          </div>
+          <div className={styles.actionSummaryLinks}>
+            {pendingEvents.length > 0 && <Link to="/admin/events">{formatStat(pendingEvents.length)} {t("nav.events")}</Link>}
+            {pendingReservations.length > 0 && <Link to="/admin/espaces">{formatStat(pendingReservations.length)} {t("nav.spaces")}</Link>}
+          </div>
         </div>
       )}
 
@@ -574,47 +530,15 @@ export default function AdminDashboard() {
           </div>
 
           <div className={styles.adminOverviewGrid}>
-            <div className={styles.financeOverviewPanel}>
-              <div className={styles.financeOverviewHeader}>
-                <div>
-                  <p className={styles.financeEyebrow}>{t("finance.indicativeEstimate")}</p>
-                  <h3>{t("admin.estimatedRevenueTitle")}</h3>
-                  <span>{t("finance.adminHint")}</span>
-                </div>
-                <div className={styles.financeTotalCard}>
-                  <span>{t("finance.meetSpaceEstimatedRevenue")}</span>
-                  <strong>{formatEuro(financeTotal)}</strong>
-                  <small>{t("admin.estimatedDisclaimer")}</small>
-                </div>
-              </div>
-
-              <div className={styles.financeBreakdownPanel}>
-                {revenueItems.map((item) => (
-                  <div key={item.label} className={styles.revenueRow}>
-                    <div className={styles.revenueRowHeader}>
-                      <span>{item.label}</span>
-                      <strong>{formatEuro(item.value)}</strong>
-                    </div>
-                    <div className={styles.revenueTrack}>
-                      <span className={item.tone} style={{ width: `${item.share}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className={styles.financeContextGrid}>
-                <div className={styles.financeContext}>
-                  <span>{t("admin.grossEventVolume")}</span>
-                  <strong>{formatEuro(eventGrossRevenue)}</strong>
-                  <small>{t("admin.grossEventVolumeHelp")}</small>
-                </div>
-                <div className={styles.financeContext}>
-                  <span>{t("finance.organizerNetTotal")}</span>
-                  <strong>{formatEuro(organizerNetEstimate)}</strong>
-                  <small>{t("admin.organizerNetHelp")}</small>
-                </div>
-              </div>
-            </div>
+            <FinanceLedger
+              summary={financeSummary}
+              variant="admin"
+              formatMoney={formatEuro}
+              formatNumber={formatStat}
+              onPeriodChange={async (period) => {
+                setFinanceSummary(await adminGetFinanceSummary(token, period));
+              }}
+            />
 
             <aside className={styles.statusConsole}>
               <div className={styles.statusHeader}>
@@ -716,27 +640,71 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className={styles.moduleGrid}>
-            {moduleCards.map((module) => (
-              <Link key={module.to} to={module.to} className={`${styles.moduleCard} ${module.tone}`}>
-                <div className={styles.moduleIcon}>
-                  <AdminIcon type={module.icon} />
-                </div>
-                <div>
-                  <span>{module.label}</span>
-                  <strong>{formatStat(module.value)}</strong>
-                  <small>{module.meta}</small>
-                </div>
-                <span className={styles.moduleArrow}>{"\u2192"}</span>
-              </Link>
-            ))}
-          </div>
         </section>
       )}
 
       {activeTab === "users" && (
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>{t("admin.usersManagement")}</h2>
+          <div className={styles.userSectionHeader}>
+            <div>
+              <p className={styles.sectionEyebrow}>{t("admin.usersManagement")}</p>
+              <h2 className={styles.sectionTitle}>{t("admin.usersManagement")}</h2>
+              <p className={styles.sectionIntro}>
+                {t("admin.usersManagementHint", { defaultValue: "Recherchez un compte, contrôlez son accès et attribuez les rôles depuis une seule vue." })}
+              </p>
+            </div>
+            <dl className={styles.userSummary}>
+              <div><dt>{t("admin.activeUsers")}</dt><dd>{formatStat(activeUsers)}</dd></div>
+              <div><dt>{t("admin.suspendedUsers", { defaultValue: "Suspendus" })}</dt><dd>{formatStat(suspendedUsers)}</dd></div>
+              <div><dt>{t("admin.roles.admin")}</dt><dd>{formatStat(adminUsers)}</dd></div>
+            </dl>
+          </div>
+
+          <div className={styles.userTools}>
+            <label className={styles.userSearch}>
+              <span>{t("common.search", { defaultValue: "Rechercher" })}</span>
+              <input
+                type="search"
+                value={userQuery}
+                onChange={(event) => setUserQuery(event.target.value)}
+                placeholder={t("admin.searchUsers", { defaultValue: "Nom ou adresse email" })}
+              />
+            </label>
+            <label>
+              <span>{t("admin.role")}</span>
+              <select value={userRoleFilter} onChange={(event) => setUserRoleFilter(event.target.value)}>
+                <option value="ALL">{t("common.all")}</option>
+                {roleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>{t("common.status")}</span>
+              <select value={userStatusFilter} onChange={(event) => setUserStatusFilter(event.target.value)}>
+                <option value="ALL">{t("common.all")}</option>
+                <option value="ACTIVE">{t("admin.userStatus.active", { defaultValue: "Actif" })}</option>
+                <option value="BANNED">{t("admin.userStatus.banned", { defaultValue: "Suspendu" })}</option>
+                <option value="INACTIVE">{t("admin.userStatus.inactive", { defaultValue: "Inactif" })}</option>
+              </select>
+            </label>
+            {(userQuery || userRoleFilter !== "ALL" || userStatusFilter !== "ALL") && (
+              <button
+                type="button"
+                className={styles.clearUserFilters}
+                onClick={() => {
+                  setUserQuery("");
+                  setUserRoleFilter("ALL");
+                  setUserStatusFilter("ALL");
+                }}
+              >
+                {t("common.reset", { defaultValue: "Réinitialiser" })}
+              </button>
+            )}
+          </div>
+
+          <div className={styles.userResultsMeta}>
+            <span>{t("admin.usersFound", { count: filteredUsers.length, defaultValue: `${filteredUsers.length} compte(s)` })}</span>
+          </div>
+
           <div className={styles.tableContainer}>
             <table className={styles.table}>
               <thead>
@@ -749,7 +717,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => (
+                {filteredUsers.map((u) => (
                   <tr key={u.id} className={u.status !== "ACTIVE" ? styles.inactiveRow : ""}>
                     <td>{u.firstName} {u.lastName}</td>
                     <td>{u.email}</td>

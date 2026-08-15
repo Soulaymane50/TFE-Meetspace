@@ -11,6 +11,7 @@ import {
   adminGetEspaces,
 } from "../services/api";
 import PageState from "../components/PageState";
+import WorkspaceNav from "../components/WorkspaceNav";
 import EventPlanningTimeline from "../components/EventPlanningTimeline";
 import SelectDropdown from "../components/SelectDropdown";
 import { useFeedback } from "../context/FeedbackContext";
@@ -255,15 +256,13 @@ export default function AdminEventsPage() {
 
   return (
     <div className={styles.container}>
+      <WorkspaceNav scope="admin" />
       <div className={styles.header}>
         <div>
           <p className={styles.kicker}>Admin</p>
           <h1 className={styles.title}>{t("admin.eventsManagement")}</h1>
         </div>
         <div className={styles.headerActions}>
-          <Link to="/admin" className={styles.backLink}>
-            {t("admin.backToDashboard")}
-          </Link>
           <Link to="/admin/events/new" className={styles.btnPrimary}>
             + {t("admin.createEvent")}
           </Link>
