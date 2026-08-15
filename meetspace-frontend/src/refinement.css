@@ -1,23 +1,65 @@
 /*
- * Cross-page refinement layer.
- * The legacy pages use CSS modules with many repeated visual patterns. These
- * selectors normalize those functional patterns without changing page logic.
+ * MeetSpace visual refinement layer.
+ * Existing page modules remain responsible for layout and behaviour; this file
+ * aligns recurring product patterns with the current design system.
  */
 
-/* Product workspaces: title band, metrics and side navigation. */
+/* Shared page introductions ------------------------------------------------ */
 html [class*="_heroPanel_"]:has([class*="_summaryGrid_"]) {
-  padding: clamp(1.5rem, 4vw, 3.25rem) 0 0 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  padding: clamp(1.6rem, 3.5vw, 2.75rem) !important;
   border: 0 !important;
-  border-top: 1px solid var(--border-strong) !important;
-  border-bottom: 1px solid var(--border-strong) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
+  border-radius: var(--radius-xl) !important;
+  background: var(--hero-bg) !important;
+  box-shadow: var(--shadow-medium) !important;
+  isolation: isolate !important;
+}
+
+html [class*="_heroPanel_"]:has([class*="_summaryGrid_"])::after {
+  content: "";
+  position: absolute;
+  right: -70px;
+  bottom: -125px;
+  z-index: -1;
+  width: 310px;
+  height: 310px;
+  border: 44px solid rgba(255, 255, 255, 0.055);
+  border-radius: 50%;
 }
 
 html [class*="_heroHeader_"]:has(+ [class*="_summaryGrid_"]) {
-  padding: 0 0 clamp(1.5rem, 3vw, 2.5rem) !important;
+  align-items: flex-end !important;
+  padding-bottom: clamp(1.35rem, 2.5vw, 2rem) !important;
+}
+
+html [class*="_heroPanel_"] [class*="_kicker_"],
+html [class*="_heroPanel_"] [class*="_title_"],
+html [class*="_heroPanel_"] [class*="_heroLead_"],
+html [class*="_heroPanel_"] [class*="_subtitle_"] {
+  color: #fff !important;
+}
+
+html [class*="_heroPanel_"] [class*="_kicker_"] {
+  color: #a9dacc !important;
+}
+
+html [class*="_heroPanel_"] [class*="_title_"] {
+  max-width: 16ch !important;
+  margin: 0.45rem 0 0 !important;
+  font-size: clamp(2.1rem, 4.2vw, 4rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.055em !important;
+}
+
+html [class*="_heroPanel_"] [class*="_heroLead_"],
+html [class*="_heroPanel_"] [class*="_subtitle_"] {
+  max-width: 64ch !important;
+  margin-top: 0.75rem !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  font-size: 0.95rem !important;
+  line-height: 1.65 !important;
 }
 
 html [class*="_kicker_"],
@@ -26,29 +68,35 @@ html [class*="_contentKicker_"],
 html [class*="_sidebarEyebrow_"],
 html [class*="_consoleEyebrow_"],
 html [class*="_financeEyebrow_"],
-html [class*="_sectionEyebrow_"] {
-  color: var(--cyan-deep) !important;
-  font-size: 0.65rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.11em !important;
+html [class*="_sectionEyebrow_"],
+html [class*="_dayLabel_"] {
+  color: var(--brand) !important;
+  font-size: 0.68rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.13em !important;
   text-transform: uppercase !important;
 }
 
 html [class*="_summaryGrid_"] {
   display: grid !important;
   gap: 0 !important;
-  border-top: 1px solid var(--border) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.16) !important;
   background: transparent !important;
 }
 
 html [class*="_summaryCard_"] {
-  padding: 1rem 1.1rem !important;
+  min-height: 78px !important;
+  padding: 1rem 1.1rem 0.15rem !important;
   border: 0 !important;
-  border-right: 1px solid var(--border) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.14) !important;
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
+}
+
+html [class*="_summaryCard_"]:first-child {
+  padding-left: 0 !important;
 }
 
 html [class*="_summaryCard_"]:last-child {
@@ -56,63 +104,82 @@ html [class*="_summaryCard_"]:last-child {
 }
 
 html [class*="_summaryValue_"] {
-  color: var(--ink) !important;
-  font-family: "IBM Plex Serif", serif !important;
-  font-size: clamp(1.35rem, 2.5vw, 2rem) !important;
-  font-weight: 500 !important;
+  color: #fff !important;
+  font-size: clamp(1.45rem, 2.4vw, 2rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
 }
 
 html [class*="_summaryLabel_"] {
-  color: var(--text-muted) !important;
-  font-size: 0.63rem !important;
-  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.58) !important;
+  font-size: 0.65rem !important;
+  font-weight: 700 !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
 }
 
-html [class*="_workspace_"] {
-  align-items: start !important;
-  gap: clamp(1.5rem, 4vw, 4rem) !important;
-  margin-top: clamp(2rem, 5vw, 4.5rem) !important;
+html [class*="_heroPanel_"] [class*="_linkGhost_"],
+html [class*="_heroPanel_"] [class*="_linkPrimary_"] {
+  min-height: 42px !important;
+  padding: 0.68rem 0.95rem !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: none !important;
+  clip-path: none !important;
 }
 
-html [class*="_workspace_"] > [class*="_content_"] {
-  border-radius: var(--radius-sm) !important;
-  background: var(--paper) !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
+html [class*="_heroPanel_"] [class*="_linkGhost_"] {
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  background: transparent !important;
+  color: #fff !important;
+}
+
+html [class*="_heroPanel_"] [class*="_linkGhost_"]:hover {
+  border-color: rgba(255, 255, 255, 0.52) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+html [class*="_heroPanel_"] [class*="_linkPrimary_"] {
+  border-color: var(--accent) !important;
+  background: var(--accent) !important;
+  color: #fff !important;
+}
+
+/* Catalog workspaces ------------------------------------------------------- */
+html [class*="_workspace_"] {
+  align-items: start !important;
+  gap: clamp(1rem, 2.2vw, 1.6rem) !important;
+  margin-top: clamp(0.25rem, 1vw, 0.75rem) !important;
 }
 
 html [class*="_sidebar_"] {
-  border: 0 !important;
-  border-top: 3px solid var(--ink) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-}
-
-html [class*="_content_"]:has(> [class*="_contentHeader_"]) {
-  padding: clamp(1.25rem, 3vw, 2rem) !important;
+  overflow: hidden !important;
+  padding: 1.15rem !important;
   border: 1px solid var(--border) !important;
-  border-radius: var(--radius-sm) !important;
+  border-radius: var(--radius-lg) !important;
   background: var(--paper) !important;
-  box-shadow: none !important;
+  box-shadow: var(--shadow-soft) !important;
   backdrop-filter: none !important;
 }
 
 html [class*="_sidebarSection_"] {
-  padding: 1rem 0 !important;
+  padding: 0 0 1rem !important;
   border-bottom: 1px solid var(--border) !important;
   border-radius: 0 !important;
   background: transparent !important;
 }
 
+html [class*="_sidebarSection_"]:last-child {
+  padding-bottom: 0 !important;
+  border-bottom: 0 !important;
+}
+
 html [class*="_sidebarTitle_"] {
+  margin: 0.35rem 0 0 !important;
   color: var(--ink) !important;
-  font-family: "IBM Plex Serif", serif !important;
-  font-size: 1.2rem !important;
-  font-weight: 500 !important;
+  font-size: 1.15rem !important;
+  font-weight: 700 !important;
+  line-height: 1.22 !important;
+  letter-spacing: -0.025em !important;
 }
 
 html [class*="_sidebarText_"],
@@ -121,22 +188,51 @@ html [class*="_contentMeta_"] {
   color: var(--text-secondary) !important;
 }
 
+html [class*="_content_"]:has(> [class*="_contentHeader_"]),
+html [class*="_daySection_"] {
+  padding: clamp(1rem, 2vw, 1.5rem) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--paper) !important;
+  box-shadow: var(--shadow-soft) !important;
+  backdrop-filter: none !important;
+}
+
+html [class*="_contentHeader_"],
+html [class*="_dayHeader_"] {
+  align-items: flex-end !important;
+  gap: 1rem !important;
+  padding-bottom: 1rem !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+html [class*="_contentTitle_"],
+html [class*="_dayTitle_"],
+html [class*="_sectionTitle_"] {
+  margin: 0.25rem 0 0 !important;
+  color: var(--ink) !important;
+  font-size: clamp(1.35rem, 2.5vw, 2rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.12 !important;
+  letter-spacing: -0.04em !important;
+}
+
 html [class*="_sidebarStats_"],
 html [class*="_metricGrid_"],
-html [class*="_metaGrid_"] {
-  gap: 0 !important;
-  border-top: 1px solid var(--border) !important;
-  border-bottom: 1px solid var(--border) !important;
+html [class*="_metaGrid_"],
+html [class*="_slotMetrics_"] {
+  gap: 0.55rem !important;
 }
 
 html [class*="_sidebarStat_"],
 html [class*="_metricCard_"],
-html [class*="_metaCard_"] {
+html [class*="_metaCard_"],
+html [class*="_selectedDayCard_"],
+html [class*="_sidebarNote_"] {
   padding: 0.75rem !important;
   border: 0 !important;
-  border-right: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--surface-muted) !important;
   box-shadow: none !important;
 }
 
@@ -144,100 +240,116 @@ html [class*="_metricValue_"],
 html [class*="_sidebarStatValue_"],
 html [class*="_metaValue_"] {
   color: var(--ink) !important;
-  font-weight: 600 !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
 }
 
 html [class*="_metricLabel_"],
 html [class*="_sidebarStatLabel_"],
 html [class*="_metaLabel_"] {
   color: var(--text-muted) !important;
-  font-size: 0.62rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.08em !important;
+  font-size: 0.63rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.07em !important;
   text-transform: uppercase !important;
 }
 
-/* Catalog entities retain imagery but lose decorative card treatment. */
+html [class*="_catalogItem_"] {
+  padding: 0.72rem 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Search, selectors and tabs ---------------------------------------------- */
+html [class*="_filterButtons_"],
+html [class*="_filterTabs_"],
+html [class*="_tabs_"]:not([class*="_table_"]),
+html [class*="_viewToggle_"] {
+  gap: 3px !important;
+  padding: 3px !important;
+  border: 0 !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--surface-muted) !important;
+  box-shadow: none !important;
+}
+
+html [class*="_filterButton_"],
+html [class*="_filterTab_"],
+html [class*="_tab_"],
+html [class*="_viewButton_"] {
+  min-height: 34px !important;
+  padding: 0.46rem 0.68rem !important;
+  border: 0 !important;
+  border-radius: calc(var(--radius-md) - 3px) !important;
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  box-shadow: none !important;
+  clip-path: none !important;
+  transform: none !important;
+}
+
+html [class*="_filterButton_"]:hover,
+html [class*="_filterTab_"]:hover,
+html [class*="_tab_"]:hover,
+html [class*="_viewButton_"]:hover,
+html [class*="_filterButton_"][class*="_active_"],
+html [class*="_filterTabActive_"],
+html [class*="_tabActive_"],
+html [class*="_viewButtonActive_"] {
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+  box-shadow: 0 1px 2px rgba(22, 33, 29, 0.08) !important;
+}
+
+html [class*="_dateSelector_"] {
+  gap: 0.4rem !important;
+}
+
+html [class*="_dateChip_"],
+html [class*="_dayButton_"],
+html [class*="_durationSwitch_"] button {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--paper) !important;
+  color: var(--text-secondary) !important;
+  box-shadow: none !important;
+}
+
+html [class*="_dateChipActive_"],
+html [class*="_dayButtonActive_"],
+html [class*="_durationActive_"] {
+  border-color: var(--brand) !important;
+  background: var(--brand-soft) !important;
+  color: var(--brand-strong) !important;
+}
+
+/* Real content cards ------------------------------------------------------- */
 html [class*="_eventBlock_"],
 html [class*="_studioCard_"],
 html [class*="_slotCard_"],
 html [class*="_premiumPanel_"],
-html [class*="_availabilityCard_"] {
+html [class*="_availabilityCard_"],
+html [class*="_approvedCard_"],
+html [class*="_paymentCard_"] {
   overflow: hidden !important;
   border: 1px solid var(--border) !important;
-  border-radius: var(--radius-sm) !important;
+  border-radius: var(--radius-lg) !important;
   background: var(--paper) !important;
-  box-shadow: none !important;
+  box-shadow: 0 1px 1px rgba(22, 33, 29, 0.02) !important;
   backdrop-filter: none !important;
-}
-
-html [class*="_availabilityPanel_"] {
-  padding: clamp(1.25rem, 3vw, 2rem) !important;
-  border: 1px solid var(--border) !important;
-  border-top: 4px solid var(--cyan) !important;
-  border-radius: var(--radius-sm) !important;
-  background: var(--paper) !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-}
-
-html [class*="_finder_"] {
-  padding: clamp(1.25rem, 3vw, 2rem) !important;
-  border: 1px solid var(--border) !important;
-  border-top: 4px solid var(--cyan) !important;
-  border-radius: var(--radius-sm) !important;
-  background: var(--paper) !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-}
-
-html [class*="_finder_"] [class*="_controls_"],
-html [class*="_finder_"] [class*="_signal_"] {
-  border: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-html [class*="_finder_"] [class*="_roomCard_"] {
-  border: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  background: var(--paper) !important;
-  box-shadow: none !important;
-}
-
-html [class*="_finder_"] [class*="_durationActive_"],
-html [class*="_finder_"] [class*="_presetActive_"],
-html [class*="_finder_"] [class*="_resetButton_"],
-html [class*="_finder_"] button:not([class*="_primary_"]) {
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  clip-path: none !important;
-}
-
-html [class*="_catalogItem_"],
-html [class*="_studioMetaBlock_"] {
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-html [class*="_availabilityStatus_"] {
-  min-width: auto !important;
-  min-height: auto !important;
-  padding: 0.7rem !important;
-  border: 1px solid var(--border) !important;
-  border-left: 3px solid var(--success) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal), transform var(--transition-normal) !important;
 }
 
 html [class*="_eventBlock_"]:hover,
 html [class*="_studioCard_"]:hover,
-html [class*="_slotCard_"]:hover {
-  transform: none !important;
-  border-color: var(--cyan) !important;
-  box-shadow: none !important;
+html [class*="_slotCard_"]:hover,
+html [class*="_premiumPanel_"]:hover {
+  border-color: var(--border-hover) !important;
+  box-shadow: var(--shadow-soft) !important;
+  transform: translateY(-2px) !important;
 }
 
 html [class*="_eventTopline_"],
@@ -253,97 +365,92 @@ html [class*="_studioImage_"],
 html [class*="_panelImage_"],
 html [class*="_slotImage_"] {
   border-radius: 0 !important;
-  filter: saturate(0.78) !important;
-  transition: filter var(--transition-normal) !important;
-}
-
-html [class*="_eventBlock_"]:hover [class*="_eventMedia_"],
-html [class*="_studioCard_"]:hover [class*="_studioImage_"],
-html [class*="_slotCard_"]:hover [class*="_slotImage_"] {
-  filter: saturate(1) !important;
+  filter: none !important;
   transform: none !important;
 }
 
-/* Status is information, not decoration. */
+html [class*="_studioMetaBlock_"] {
+  border-radius: var(--radius-md) !important;
+  background: var(--surface-muted) !important;
+  box-shadow: none !important;
+}
+
+html [class*="_availabilityPanel_"],
+html [class*="_finder_"] {
+  padding: clamp(1rem, 2.3vw, 1.65rem) !important;
+  border: 1px solid var(--border) !important;
+  border-top: 4px solid var(--accent) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--paper) !important;
+  box-shadow: var(--shadow-soft) !important;
+  backdrop-filter: none !important;
+}
+
+html [class*="_finder_"] [class*="_controls_"],
+html [class*="_finder_"] [class*="_signal_"],
+html [class*="_finder_"] [class*="_roomCard_"] {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--surface-muted) !important;
+  box-shadow: none !important;
+}
+
+html [class*="_availabilityStatus_"] {
+  min-width: auto !important;
+  min-height: auto !important;
+  padding: 0.75rem !important;
+  border: 0 !important;
+  border-left: 4px solid var(--success) !important;
+  border-radius: var(--radius-md) !important;
+  background: color-mix(in srgb, var(--success) 10%, var(--paper)) !important;
+  box-shadow: none !important;
+}
+
+/* Status and progress ------------------------------------------------------ */
 html [class*="_statusBadge_"],
 html [class*="_statusPill_"],
 html [class*="_roleChip_"],
 html [class*="_priceTag_"],
 html [class*="_parkingTag_"] {
-  min-height: 25px !important;
-  padding: 0.25rem 0.5rem !important;
-  border: 1px solid var(--border) !important;
-  border-left: 3px solid var(--cyan) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  color: var(--ink) !important;
+  min-height: 24px !important;
+  padding: 0.25rem 0.55rem !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--brand-soft) !important;
+  color: var(--brand-strong) !important;
   box-shadow: none !important;
   font-size: 0.65rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.04em !important;
+  font-weight: 750 !important;
+  letter-spacing: 0.02em !important;
 }
 
 html [class*="_statusFull_"],
 html [class*="_statusRejected_"],
 html [class*="_statusCancelled_"],
 html [class*="_statusBanned_"] {
-  border-left-color: var(--danger) !important;
-}
-
-html [class*="_statusAvailable_"],
-html [class*="_statusPublished_"],
-html [class*="_statusActive_"] {
-  border-left-color: var(--success) !important;
+  background: color-mix(in srgb, var(--danger) 13%, var(--paper)) !important;
+  color: var(--danger) !important;
 }
 
 html [class*="_statusPending_"],
 html [class*="_statusAlmostFull_"] {
-  border-left-color: var(--warning) !important;
+  background: color-mix(in srgb, var(--warning) 14%, var(--paper)) !important;
+  color: var(--warning) !important;
 }
 
-/* Filters and tabs use a baseline marker, never pill groups. */
-html [class*="_filterButtons_"],
-html [class*="_filterTabs_"],
-html [class*="_tabs_"]:not([class*="_table_"]),
-html [class*="_viewToggle_"] {
-  gap: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  border-bottom: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
+html [class*="_progressTrack_"] {
+  height: 6px !important;
+  overflow: hidden !important;
+  border-radius: 99px !important;
+  background: var(--surface-muted) !important;
 }
 
-html [class*="_filterButton_"],
-html [class*="_filterTab_"],
-html [class*="_tab_"],
-html [class*="_viewButton_"] {
-  min-height: 38px !important;
-  padding: 0.55rem 0.7rem !important;
-  border: 0 !important;
-  border-bottom: 3px solid transparent !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  color: var(--text-secondary) !important;
-  clip-path: none !important;
-  box-shadow: none !important;
-  transform: none !important;
+html [class*="_progressFill_"] {
+  border-radius: inherit !important;
+  background: var(--brand) !important;
 }
 
-html [class*="_filterButton_"]:hover,
-html [class*="_filterTab_"]:hover,
-html [class*="_tab_"]:hover,
-html [class*="_viewButton_"]:hover,
-html [class*="_filterTabActive_"],
-html [class*="_tabActive_"],
-html [class*="_viewButtonActive_"] {
-  border-bottom-color: var(--cyan) !important;
-  background: transparent !important;
-  color: var(--ink) !important;
-}
-
-/* Shared actions. */
+/* Shared actions ---------------------------------------------------------- */
 html [class*="_primaryButton_"],
 html [class*="_primaryAction_"],
 html [class*="_linkPrimary_"],
@@ -351,12 +458,12 @@ html [class*="_createButton_"],
 html [class*="_submitBtn_"],
 html [class*="_payButton_"],
 html [class*="_button_"]:not([class*="_dayButton_"]) {
-  border: 1px solid var(--ink) !important;
-  border-radius: var(--radius-sm) !important;
-  background: var(--ink) !important;
-  color: var(--paper) !important;
+  border: 1px solid var(--brand) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--brand) !important;
+  color: var(--cta-solid-fg) !important;
   box-shadow: none !important;
-  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%) !important;
+  clip-path: none !important;
   transform: none !important;
 }
 
@@ -367,9 +474,10 @@ html [class*="_createButton_"]:hover,
 html [class*="_submitBtn_"]:hover,
 html [class*="_payButton_"]:hover,
 html [class*="_button_"]:not([class*="_dayButton_"]):hover {
-  border-color: var(--cyan-deep) !important;
-  background: var(--cyan-deep) !important;
+  border-color: var(--brand-strong) !important;
+  background: var(--brand-strong) !important;
   color: #fff !important;
+  transform: translateY(-1px) !important;
 }
 
 html [class*="_secondaryButton_"],
@@ -378,25 +486,115 @@ html [class*="_linkGhost_"],
 html [class*="_cancelBtn_"],
 html [class*="_backLink_"],
 html [class*="_backButton_"],
-html [class*="_editButton_"] {
+html [class*="_editButton_"],
+html [class*="_resetButton_"] {
   border: 1px solid var(--border-strong) !important;
-  border-radius: var(--radius-sm) !important;
-  background: transparent !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--paper) !important;
   color: var(--ink) !important;
   box-shadow: none !important;
   clip-path: none !important;
   transform: none !important;
 }
 
-/* Admin and organizer consoles: dense, ruled and data-first. */
+html [class*="_secondaryButton_"]:hover,
+html [class*="_secondaryAction_"]:hover,
+html [class*="_linkGhost_"]:hover,
+html [class*="_resetButton_"]:hover {
+  border-color: var(--brand) !important;
+  color: var(--brand-strong) !important;
+}
+
+/* Forms, account and booking flows --------------------------------------- */
+html [class*="_label_"],
+html [class*="_filterLabel_"] {
+  color: var(--text-secondary) !important;
+  font-size: 0.68rem !important;
+  font-weight: 750 !important;
+  letter-spacing: 0.07em !important;
+  text-transform: uppercase !important;
+}
+
+html [class*="_formGrid_"] > [class*="_section_"],
+html [class*="_contentGrid_"] > [class*="_form_"],
+html [class*="_contentGrid_"] > [class*="_sidePanel_"],
+html [class*="_flowPanel_"],
+html [class*="_formContainer_"],
+html [class*="_form_"]:has(> [class*="_formGroup_"]),
+html [class*="_summaryPanel_"],
+html [class*="_previewPanel_"],
+html [class*="_advisorCard_"] {
+  padding: clamp(1.15rem, 2.6vw, 1.8rem) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--paper) !important;
+  box-shadow: var(--shadow-soft) !important;
+  backdrop-filter: none !important;
+}
+
+html [class*="_summaryPanel_"],
+html [class*="_previewPanel_"],
+html [class*="_advisorCard_"],
+html [class*="_contentGrid_"] > [class*="_sidePanel_"] {
+  border-top: 4px solid var(--accent) !important;
+}
+
+html [class*="_passwordRules_"],
+html [class*="_signupCallout_"],
+html [class*="_totalPanel_"],
+html [class*="_financePreview_"] {
+  border: 0 !important;
+  border-left: 4px solid var(--accent) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--accent-soft) !important;
+  box-shadow: none !important;
+}
+
+html [class*="_error_"],
+html [class*="_success_"],
+html [class*="_info_"],
+html [class*="_warningBox_"],
+html [class*="_notice_"] {
+  border-radius: var(--radius-md) !important;
+  box-shadow: none !important;
+}
+
+html [class*="_empty_"],
+html [class*="_emptyState_"] {
+  padding: clamp(1.5rem, 4vw, 2.5rem) !important;
+  border: 1px dashed var(--border-strong) !important;
+  border-radius: var(--radius-lg) !important;
+  background: color-mix(in srgb, var(--paper) 72%, transparent) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+html [class*="_avatar_"] {
+  border: 0 !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--hero-bg) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+html [class*="_accountCard_"] {
+  padding: 1rem !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--paper) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+/* Dense management spaces ------------------------------------------------- */
 html [class*="_commandDeck_"],
 html [class*="_commandGrid_"],
 html [class*="_dashboardConsole_"],
 html [class*="_controlCenter_"] {
-  gap: 1px !important;
-  border: 1px solid var(--border) !important;
+  gap: 0.75rem !important;
+  padding: 0 !important;
+  border: 0 !important;
   border-radius: 0 !important;
-  background: var(--border) !important;
+  background: transparent !important;
   box-shadow: none !important;
 }
 
@@ -410,10 +608,10 @@ html [class*="_financeOverviewPanel_"],
 html [class*="_financeBreakdownPanel_"],
 html [class*="_snapshotPanel_"],
 html [class*="_reviewPanel_"] {
-  border: 0 !important;
-  border-radius: 0 !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
   background: var(--paper) !important;
-  box-shadow: none !important;
+  box-shadow: var(--shadow-soft) !important;
   backdrop-filter: none !important;
 }
 
@@ -429,11 +627,9 @@ html [class*="_statCard_"],
 html [class*="_financeKpi_"],
 html [class*="_activityCard_"],
 html [class*="_cockpitItem_"] {
-  border: 0 !important;
-  border-right: 1px solid var(--border) !important;
-  border-bottom: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--paper) !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
   transform: none !important;
@@ -443,9 +639,9 @@ html [class*="_signalCard_"]:hover,
 html [class*="_moduleCard_"]:hover,
 html [class*="_navCard_"]:hover,
 html [class*="_cockpitItem_"]:hover {
-  border-color: var(--cyan) !important;
-  background: var(--cyan-pale) !important;
-  transform: none !important;
+  border-color: var(--brand) !important;
+  background: var(--surface-hover) !important;
+  transform: translateY(-1px) !important;
 }
 
 html [class*="_signalIcon_"],
@@ -455,42 +651,36 @@ html [class*="_statIcon_"],
 html [class*="_activityIcon_"],
 html [class*="_cockpitIcon_"] {
   border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  color: var(--cyan-deep) !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--brand-soft) !important;
+  color: var(--brand-strong) !important;
   box-shadow: none !important;
 }
 
 html [class*="_tableContainer_"] {
   overflow-x: auto !important;
   border: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--paper) !important;
   box-shadow: none !important;
 }
 
-/* Authentication pages: an editorial access page, not a floating glass card. */
-html [class*="_container_"]:has(> [class*="_ambient_"] > *) {
-  background: var(--canvas) !important;
-}
-
-html [class*="_container_"] > [class*="_ambient_"] {
-  background: transparent !important;
-}
-
+/* Authentication safety net for the shared registration composition. */
 html [class*="_shell_"]:has(> [class*="_introPanel_"]) {
+  overflow: hidden !important;
   gap: 0 !important;
-  border: 1px solid var(--border-strong) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-xl) !important;
   background: var(--paper) !important;
+  box-shadow: var(--shadow-medium) !important;
 }
 
 html [class*="_shell_"] > [class*="_introPanel_"] {
   min-height: 540px !important;
   padding: clamp(2rem, 5vw, 4rem) !important;
   border: 0 !important;
-  border-right: 1px solid var(--border) !important;
   border-radius: 0 !important;
-  background: var(--apricot) !important;
+  background: var(--hero-bg) !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
 }
@@ -498,29 +688,18 @@ html [class*="_shell_"] > [class*="_introPanel_"] {
 html [class*="_introPanel_"] [class*="_introTitle_"],
 html [class*="_introPanel_"] [class*="_introText_"],
 html [class*="_introPanel_"] [class*="_eyebrow_"] {
-  color: #10101a !important;
+  color: #fff !important;
 }
 
-html [class*="_featureList_"] {
-  display: grid !important;
-  gap: 0 !important;
-  border-top: 1px solid rgba(16, 16, 26, 0.4) !important;
+html [class*="_introPanel_"] [class*="_introText_"] {
+  color: rgba(255, 255, 255, 0.68) !important;
 }
 
 html [class*="_featurePill_"] {
-  min-height: auto !important;
-  padding: 0.65rem 0 !important;
-  border: 0 !important;
-  border-bottom: 1px solid rgba(16, 16, 26, 0.2) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  color: #10101a !important;
-}
-
-html [class*="_featurePill_"]::before {
-  content: "—";
-  margin-right: 0.55rem;
-  color: var(--cyan-deep);
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: var(--radius-sm) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #fff !important;
 }
 
 html [class*="_shell_"] > [class*="_card_"] {
@@ -536,261 +715,34 @@ html [class*="_shell_"] > [class*="_card_"] {
   backdrop-filter: none !important;
 }
 
-html [class*="_passwordRules_"],
-html [class*="_signupCallout_"] {
-  border: 0 !important;
-  border-left: 3px solid var(--cyan) !important;
-  border-radius: 0 !important;
-  background: var(--surface-muted) !important;
-  box-shadow: none !important;
-}
+@media (max-width: 980px) {
+  html [class*="_workspace_"] {
+    grid-template-columns: 1fr !important;
+  }
 
-/* Forms and feedback. */
-html [class*="_label_"] {
-  color: var(--text-secondary) !important;
-  font-size: 0.68rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.07em !important;
-  text-transform: uppercase !important;
-}
+  html [class*="_sidebar_"] {
+    position: static !important;
+  }
 
-html [class*="_error_"],
-html [class*="_success_"],
-html [class*="_info_"],
-html [class*="_warningBox_"],
-html [class*="_notice_"] {
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-html [class*="_empty_"] ,
-html [class*="_emptyState_"] {
-  padding: 1.5rem !important;
-  border: 0 !important;
-  border-top: 3px solid var(--ink) !important;
-  border-bottom: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-}
-
-html [class*="_empty_"] [class*="_marker_"],
-html [class*="_emptyState_"] [class*="_emptyIcon_"] {
-  border-radius: 0 !important;
-  background: transparent !important;
-  color: var(--cyan-deep) !important;
-  box-shadow: none !important;
-}
-
-html [class*="_error_"] {
-  border-left: 3px solid var(--danger) !important;
-}
-
-html [class*="_success_"] {
-  border-left: 3px solid var(--success) !important;
-}
-
-/* Calendar selectors stay compact and functional. */
-html [class*="_dateChip_"],
-html [class*="_dayButton_"],
-html [class*="_durationSwitch_"] button,
-html [class*="_progressStep_"] {
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-html [class*="_progressTrack_"] {
-  height: 4px !important;
-  border-radius: 0 !important;
-  background: var(--surface-muted) !important;
-}
-
-html [class*="_progressFill_"] {
-  border-radius: 0 !important;
-  background: var(--cyan) !important;
-}
-
-/* Account, contact and reservation pages. */
-html [class*="_hero_"]:has([class*="_accountCard_"]),
-html [class*="_hero_"]:has([class*="_heroStats_"]),
-html [class*="_page_"] > [class*="_hero_"]:has(+ [class*="_contentGrid_"]) {
-  padding: clamp(1.5rem, 4vw, 3rem) 0 !important;
-  border: 0 !important;
-  border-top: 1px solid var(--border-strong) !important;
-  border-bottom: 1px solid var(--border-strong) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-}
-
-html [class*="_accountCard_"] {
-  padding: 1rem 0 1rem 1.1rem !important;
-  border: 0 !important;
-  border-left: 4px solid var(--cyan) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-html [class*="_avatar_"] {
-  border: 1px solid var(--border-strong) !important;
-  border-radius: 0 !important;
-  background: var(--ink) !important;
-  color: var(--paper) !important;
-  box-shadow: none !important;
-}
-
-html [class*="_formGrid_"] > [class*="_section_"],
-html [class*="_container_"] > [class*="_section_"]:not([class*="_sectionHeader_"]) {
-  padding: clamp(1.25rem, 3vw, 1.8rem) !important;
-  border: 1px solid var(--border) !important;
-  border-top: 3px solid var(--ink) !important;
-  border-radius: 0 !important;
-  background: var(--paper) !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-}
-
-html [class*="_dangerZone_"] {
-  border-top-color: var(--danger) !important;
-  background: var(--paper) !important;
-}
-
-html [class*="_contentGrid_"] > [class*="_form_"],
-html [class*="_contentGrid_"] > [class*="_sidePanel_"] {
-  padding: clamp(1.25rem, 3vw, 2rem) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  background: var(--paper) !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-}
-
-html [class*="_contentGrid_"] > [class*="_sidePanel_"] {
-  border-top: 4px solid var(--apricot) !important;
-}
-
-html [class*="_heroStats_"] {
-  gap: 0 !important;
-  border-top: 1px solid var(--border) !important;
-  border-bottom: 1px solid var(--border) !important;
-}
-
-html [class*="_heroStat_"],
-html [class*="_heroNext_"] {
-  padding: 0.9rem !important;
-  border: 0 !important;
-  border-right: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-html [class*="_approvedCard_"],
-html [class*="_dayCard_"],
-html [class*="_paymentCard_"] {
-  border: 0 !important;
-  border-bottom: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-/* Booking and event forms use a strict working column plus a ruled summary. */
-html [class*="_flowPanel_"],
-html [class*="_formContainer_"],
-html [class*="_form_"]:has(> [class*="_formGroup_"]) {
-  border: 1px solid var(--border) !important;
-  border-top: 4px solid var(--ink) !important;
-  border-radius: 0 !important;
-  background: var(--paper) !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-}
-
-html [class*="_summaryPanel_"],
-html [class*="_previewPanel_"],
-html [class*="_advisorCard_"] {
-  border: 1px solid var(--border) !important;
-  border-top: 4px solid var(--cyan) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-}
-
-html [class*="_totalPanel_"],
-html [class*="_financePreview_"] {
-  border: 0 !important;
-  border-left: 4px solid var(--apricot) !important;
-  border-radius: 0 !important;
-  background: var(--apricot-pale) !important;
-  box-shadow: none !important;
-}
-
-html [class*="_trigger_"]:has([class*="_bellIcon_"]) {
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius-sm) !important;
-  background: transparent !important;
-  color: var(--ink) !important;
-  clip-path: none !important;
-  box-shadow: none !important;
-}
-
-html [class*="_panel_"]:has(> [class*="_panelHeader_"]) {
-  border: 1px solid var(--border-strong) !important;
-  border-top: 4px solid var(--cyan) !important;
-  border-radius: var(--radius-sm) !important;
-  background: var(--paper) !important;
-  box-shadow: var(--shadow-medium) !important;
-  backdrop-filter: none !important;
-}
-
-/* Organizer planning: remove the remaining presentation-style panels. */
-html [class*="_container_"] > [class*="_header_"],
-html [class*="_timeline_"],
-html [class*="_legend_"] {
-  border: 0 !important;
-  border-top: 3px solid var(--ink) !important;
-  border-bottom: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-}
-
-html [class*="_consoleMetric_"],
-html [class*="_nextEventPanel_"],
-html [class*="_statusRow_"] {
-  border: 0 !important;
-  border-bottom: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-@media (max-width: 920px) {
   html [class*="_shell_"]:has(> [class*="_introPanel_"]) {
-    border: 0 !important;
-    background: transparent !important;
+    grid-template-columns: 1fr !important;
   }
 
   html [class*="_shell_"] > [class*="_introPanel_"] {
     min-height: auto !important;
-    border-right: 0 !important;
-    border-bottom: 1px solid rgba(16, 16, 26, 0.28) !important;
-  }
-
-  html [class*="_shell_"] > [class*="_card_"] {
-    border-right: 1px solid var(--border-strong) !important;
-    border-bottom: 1px solid var(--border-strong) !important;
-    border-left: 1px solid var(--border-strong) !important;
   }
 }
 
 @media (max-width: 720px) {
+  html [class*="_heroPanel_"]:has([class*="_summaryGrid_"]) {
+    padding: 1.25rem !important;
+    border-radius: var(--radius-lg) !important;
+  }
+
+  html [class*="_heroPanel_"] [class*="_title_"] {
+    font-size: clamp(1.9rem, 10vw, 2.7rem) !important;
+  }
+
   html [class*="_summaryGrid_"] {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
@@ -800,22 +752,55 @@ html [class*="_statusRow_"] {
   }
 
   html [class*="_summaryCard_"]:nth-child(-n + 2) {
-    border-bottom: 1px solid var(--border) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
   }
 
-  html [class*="_workspace_"] {
-    margin-top: 2.5rem !important;
+  html [class*="_summaryCard_"]:nth-child(3) {
+    padding-left: 0 !important;
+  }
+
+  html [class*="_contentHeader_"],
+  html [class*="_dayHeader_"] {
+    align-items: flex-start !important;
   }
 
   html [class*="_filterTabs_"],
-  html [class*="_tabs_"] {
+  html [class*="_tabs_"],
+  html [class*="_viewToggle_"] {
     overflow-x: auto !important;
     flex-wrap: nowrap !important;
     scrollbar-width: none !important;
   }
 
   html [class*="_filterTab_"],
-  html [class*="_tab_"] {
+  html [class*="_tab_"],
+  html [class*="_viewButton_"] {
     flex: 0 0 auto !important;
+  }
+
+  html [class*="_slotGrid_"],
+  html [class*="_premiumGrid_"],
+  html [class*="_studioLane_"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  html [class*="_shell_"]:has(> [class*="_introPanel_"]) {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  html [class*="_shell_"] > [class*="_introPanel_"],
+  html [class*="_shell_"] > [class*="_card_"] {
+    padding: 1.25rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html [class*="_eventBlock_"],
+  html [class*="_studioCard_"],
+  html [class*="_slotCard_"],
+  html [class*="_premiumPanel_"] {
+    transition: none !important;
   }
 }

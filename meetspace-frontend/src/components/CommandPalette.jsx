@@ -1,8 +1,13 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
-import { COMMAND_PALETTE_EVENT } from "./commandPaletteBus";
+import {
+  closeCommandPalette,
+  COMMAND_PALETTE_EVENT,
+  getCommandPaletteSnapshot,
+  subscribeCommandPalette,
+} from "./commandPaletteBus";
 import styles from "./CommandPalette.module.css";
 
 function CommandIcon({ type }) {
@@ -64,8 +69,13 @@ export default function CommandPalette() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const inputRef = useRef(null);
-  const [open, setOpen] = useState(false);
+  const isOpen = useSyncExternalStore(
+    subscribeCommandPalette,
+    getCommandPaletteSnapshot,
+    () => false
+  );
   const [query, setQuery] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const deferredQuery = useDeferredValue(query);
 
   const commands = useMemo(() => {
@@ -125,69 +135,118 @@ export default function CommandPalette() {
 
   useEffect(() => {
     const handleOpen = () => {
-      setOpen(true);
       setQuery("");
-    };
-
-    const handleKeyDown = (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        handleOpen();
-      }
-
-      if (event.key === "Escape") {
-        setOpen(false);
-      }
+      setSelectedIndex(0);
     };
 
     window.addEventListener(COMMAND_PALETTE_EVENT, handleOpen);
-    window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener(COMMAND_PALETTE_EVENT, handleOpen);
-      window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
-  useEffect(() => {
-    if (!open) return;
-    const timer = window.setTimeout(() => inputRef.current?.focus(), 30);
-    return () => window.clearTimeout(timer);
-  }, [open]);
+  useLayoutEffect(() => {
+    if (!isOpen) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    inputRef.current?.focus({ preventScroll: true });
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
 
   const runCommand = (to) => {
     navigate(to);
-    setOpen(false);
+    closeCommandPalette();
+    setQuery("");
   };
 
-  if (!open) return null;
+  const moveSelection = (direction) => {
+    if (filteredCommands.length === 0) return;
+    setSelectedIndex((current) => {
+      const next = (current + direction + filteredCommands.length) % filteredCommands.length;
+      window.requestAnimationFrame(() => {
+        document.getElementById(`command-${filteredCommands[next].id}`)?.scrollIntoView({ block: "nearest" });
+      });
+      return next;
+    });
+  };
+
+  const handleSearchKeyDown = (event) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      moveSelection(1);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      moveSelection(-1);
+    } else if (event.key === "Enter" && filteredCommands.length > 0) {
+      event.preventDefault();
+      runCommand(filteredCommands[Math.min(selectedIndex, filteredCommands.length - 1)].to);
+    }
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <div className={styles.overlay} onMouseDown={() => setOpen(false)}>
-      <section className={styles.palette} onMouseDown={(event) => event.stopPropagation()}>
+    <div
+      id="meetspace-command-palette"
+      className={styles.overlay}
+      onMouseDown={closeCommandPalette}
+    >
+      <section
+        className={styles.palette}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="command-palette-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
         <div className={styles.header}>
           <div>
             <p>{t("command.eyebrow")}</p>
-            <h2>{t("command.title")}</h2>
+            <h2 id="command-palette-title">{t("command.title")}</h2>
           </div>
-          <span>{t("command.shortcut")}</span>
+          <div className={styles.headerActions}>
+            <kbd>{t("command.shortcut")}</kbd>
+            <button type="button" className={styles.closeButton} onClick={closeCommandPalette} aria-label={t("common.close", { defaultValue: "Fermer" })}>
+              ×
+            </button>
+          </div>
         </div>
 
         <label className={styles.searchBox}>
           <CommandIcon type="search" />
           <input
             ref={inputRef}
+            data-command-input
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setSelectedIndex(0);
+            }}
+            onKeyDown={handleSearchKeyDown}
             placeholder={t("command.placeholder")}
+            aria-controls="command-palette-list"
+            aria-activedescendant={filteredCommands.length > 0 ? `command-${filteredCommands[Math.min(selectedIndex, filteredCommands.length - 1)].id}` : undefined}
           />
         </label>
 
-        <div className={styles.commandList}>
+        <div className={styles.commandList} id="command-palette-list" role="listbox">
           {filteredCommands.length === 0 ? (
-            <p className={styles.empty}>{t("command.noResults")}</p>
+            <p className={styles.empty} role="status">{t("command.noResults")}</p>
           ) : (
-            filteredCommands.map((command) => (
-              <button key={command.id} type="button" className={styles.commandItem} onClick={() => runCommand(command.to)}>
+            filteredCommands.map((command, index) => (
+              <button
+                key={command.id}
+                id={`command-${command.id}`}
+                type="button"
+                role="option"
+                aria-selected={index === selectedIndex}
+                className={`${styles.commandItem} ${index === selectedIndex ? styles.selected : ""}`}
+                onMouseEnter={() => setSelectedIndex(index)}
+                onClick={() => runCommand(command.to)}
+              >
                 <span className={styles.commandIcon}>
                   <CommandIcon type={command.icon} />
                 </span>

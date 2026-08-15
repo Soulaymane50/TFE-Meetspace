@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./FeedbackContext.module.css";
 
 const FeedbackContext = createContext(null);
@@ -6,14 +6,19 @@ const FeedbackContext = createContext(null);
 export function FeedbackProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const [confirmState, setConfirmState] = useState(null);
+  const confirmButtonRef = useRef(null);
+
+  const removeToast = useCallback((id) => {
+    setToasts((current) => current.filter((toast) => toast.id !== id));
+  }, []);
 
   const notify = useCallback(({ type = "info", title, message }) => {
     const id = crypto.randomUUID();
     setToasts((current) => [...current, { id, type, title, message }]);
     window.setTimeout(() => {
-      setToasts((current) => current.filter((toast) => toast.id !== id));
+      removeToast(id);
     }, 4200);
-  }, []);
+  }, [removeToast]);
 
   const confirm = useCallback((options) => {
     return new Promise((resolve) => {
@@ -35,6 +40,22 @@ export function FeedbackProvider({ children }) {
     });
   }, []);
 
+  useEffect(() => {
+    if (!confirmState) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const timer = window.setTimeout(() => confirmButtonRef.current?.focus(), 40);
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") closeConfirm(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [closeConfirm, confirmState]);
+
   const value = useMemo(() => ({ notify, confirm }), [notify, confirm]);
 
   return (
@@ -43,19 +64,31 @@ export function FeedbackProvider({ children }) {
 
       <div className={styles.toastStack} aria-live="polite">
         {toasts.map((toast) => (
-          <div key={toast.id} className={`${styles.toast} ${styles[toast.type] || styles.info}`}>
-            {toast.title && <strong>{toast.title}</strong>}
-            {toast.message && <span>{toast.message}</span>}
+          <div key={toast.id} className={`${styles.toast} ${styles[toast.type] || styles.info}`} role="status">
+            <span className={styles.toastMarker} aria-hidden="true" />
+            <span className={styles.toastContent}>
+              {toast.title && <strong>{toast.title}</strong>}
+              {toast.message && <span>{toast.message}</span>}
+            </span>
+            <button type="button" className={styles.toastClose} onClick={() => removeToast(toast.id)} aria-label="Fermer la notification">
+              ×
+            </button>
           </div>
         ))}
       </div>
 
       {confirmState && (
-        <div className={styles.confirmOverlay} role="dialog" aria-modal="true">
-          <div className={styles.confirmBox}>
+        <div className={styles.confirmOverlay} onMouseDown={() => closeConfirm(false)}>
+          <div
+            className={styles.confirmBox}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="feedback-confirm-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
             <div>
               <p className={styles.confirmKicker}>Confirmation</p>
-              <h2>{confirmState.title}</h2>
+              <h2 id="feedback-confirm-title">{confirmState.title}</h2>
               {confirmState.message && <p>{confirmState.message}</p>}
             </div>
             <div className={styles.confirmActions}>
@@ -63,6 +96,7 @@ export function FeedbackProvider({ children }) {
                 {confirmState.cancelLabel}
               </button>
               <button
+                ref={confirmButtonRef}
                 type="button"
                 className={`${styles.confirmButton} ${confirmState.tone === "danger" ? styles.dangerButton : ""}`}
                 onClick={() => closeConfirm(true)}

@@ -2,163 +2,162 @@
   position: sticky;
   top: 0;
   z-index: 900;
-  padding: 0 clamp(1.25rem, 4vw, 4rem);
+  width: 100%;
   border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--canvas) 96%, transparent);
-  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--paper) 96%, transparent);
+  box-shadow: 0 3px 14px rgba(22, 33, 29, 0.035);
+  backdrop-filter: blur(10px);
 }
 
 .topShell {
-  display: grid;
-  grid-template-columns: minmax(210px, 0.8fr) auto minmax(310px, 1fr);
-  align-items: stretch;
-  gap: clamp(1rem, 3vw, 3rem);
-  max-width: 1480px;
+  position: relative;
+  width: min(1320px, calc(100% - 2.5rem));
   min-height: 72px;
   margin: 0 auto;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(1.25rem, 3vw, 3rem);
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.8rem;
-  min-width: 0;
-  text-decoration: none;
+  gap: 0.72rem;
+  min-width: max-content;
+  color: var(--ink);
 }
 
 .brand:hover {
-  text-decoration: none;
+  color: var(--ink);
 }
 
 .brandMark {
   position: relative;
+  width: 38px;
+  height: 38px;
   display: grid;
-  flex: 0 0 auto;
   place-items: center;
-  width: 35px;
-  height: 39px;
-  border-left: 5px solid var(--cyan);
-  border-bottom: 5px solid var(--apricot);
-  color: var(--ink);
-  font-family: "IBM Plex Serif", serif;
-  font-size: 1.2rem;
-  font-weight: 600;
-  line-height: 1;
+  border-radius: 11px;
+  background: var(--hero-bg);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+
+.brandMark::after {
+  content: "";
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--paper);
+  border-radius: 3px;
+  background: var(--accent);
 }
 
 .brandCopy {
-  display: flex;
-  flex-direction: column;
-  gap: 0.14rem;
-  min-width: 0;
+  display: grid;
+  gap: 0.05rem;
 }
 
 .brandName {
-  color: var(--ink);
-  font-family: "IBM Plex Serif", serif;
-  font-size: 1.15rem;
-  font-weight: 600;
-  line-height: 1;
+  font-size: 0.98rem;
+  font-weight: 800;
   letter-spacing: -0.035em;
+  line-height: 1.05;
 }
 
 .brandSub {
   color: var(--text-muted);
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.115em;
+  font-size: 0.57rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   line-height: 1.2;
   text-transform: uppercase;
-  white-space: nowrap;
+}
+
+.navRegion {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .productNav {
   display: flex;
   align-items: stretch;
-  justify-self: center;
-  gap: 1.35rem;
-  min-width: 0;
+  gap: 0.15rem;
+  align-self: stretch;
 }
 
 .productLink {
   position: relative;
+  min-height: 71px;
   display: inline-flex;
   align-items: center;
-  padding: 0.2rem 0;
+  padding: 0 0.8rem;
   color: var(--text-secondary);
-  font-size: 0.82rem;
-  font-weight: 500;
-  line-height: 1;
-  text-decoration: none;
-  white-space: nowrap;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .productLink::after {
   content: "";
   position: absolute;
-  right: 0;
+  left: 0.8rem;
+  right: 0.8rem;
   bottom: -1px;
-  left: 0;
   height: 3px;
-  background: var(--cyan);
+  border-radius: 3px 3px 0 0;
+  background: var(--brand);
   transform: scaleX(0);
-  transform-origin: left;
+  transform-origin: center;
   transition: transform var(--transition-normal);
 }
 
-.productLink:hover {
-  color: var(--ink);
-  text-decoration: none;
-}
-
-.productLink:hover::after {
-  transform: scaleX(0.34);
-}
-
+.productLink:hover,
 .productLinkActive {
   color: var(--ink);
-  font-weight: 600;
 }
 
+.productLink:hover::after,
 .productLinkActive::after {
   transform: scaleX(1);
 }
 
-.topUtilities {
-  position: relative;
-  z-index: 60;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  justify-self: stretch;
-  gap: 0.75rem;
-  min-width: 0;
-}
-
+.topUtilities,
 .controls,
 .authLinks {
-  position: relative;
-  z-index: 70;
   display: flex;
   align-items: center;
+}
+
+.topUtilities {
+  gap: 0.75rem;
+}
+
+.controls {
   gap: 0.4rem;
+}
+
+.authLinks {
+  gap: 0.3rem;
 }
 
 .utilityLink,
 .registerButton {
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 38px;
-  padding: 0.55rem 0.8rem;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  font-size: 0.78rem;
-  font-weight: 600;
-  line-height: 1;
-  text-align: center;
-  text-decoration: none;
-  white-space: nowrap;
+  padding: 0.55rem 0.78rem;
+  border-radius: 9px;
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
 .utilityLink {
@@ -167,97 +166,102 @@
 
 .utilityLink:hover,
 .utilityLinkActive {
-  color: var(--ink);
-  border-color: var(--border);
-  text-decoration: none;
+  color: var(--brand-strong);
+  background: var(--brand-soft);
 }
 
 .registerButton {
-  border-color: var(--ink);
-  background: var(--ink);
-  color: var(--paper);
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+  padding-inline: 1rem;
+  background: var(--brand);
+  color: #fff;
 }
 
 .registerButton:hover {
-  border-color: var(--cyan-deep);
-  background: var(--cyan-deep);
-  color: #fff;
-  text-decoration: none;
+  background: var(--brand);
+  color: var(--cta-solid-fg);
 }
 
 .accountMenu {
   position: relative;
-  flex: 0 0 auto;
 }
 
-.accountButton {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  min-height: 40px;
-  padding: 0.45rem 0.65rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--ink);
-  cursor: pointer;
+.accountMenu > summary {
   list-style: none;
 }
 
-.accountButton::-webkit-details-marker {
+.accountMenu > summary::-webkit-details-marker {
   display: none;
 }
 
-.accountButton::after {
-  content: "+";
-  color: var(--cyan-deep);
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 0;
+.accountButton {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.58rem;
+  padding: 0.35rem 0.55rem 0.35rem 0.38rem;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface);
+  cursor: pointer;
 }
 
-.accountMenu[open] .accountButton::after {
-  content: "−";
+.accountButton > span:last-child {
+  display: grid;
+  min-width: 74px;
 }
 
-.accountEyebrow {
+.accountButton small {
   color: var(--text-muted);
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.09em;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .accountButton strong {
-  font-size: 0.82rem;
+  overflow: hidden;
+  max-width: 110px;
+  color: var(--ink);
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accountAvatar {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 .accountPanel {
   position: absolute;
   top: calc(100% + 0.65rem);
   right: 0;
+  width: 230px;
   display: grid;
-  gap: 0;
-  min-width: 245px;
-  padding: 0.45rem;
-  border: 1px solid var(--border-strong);
-  border-top: 3px solid var(--cyan);
-  border-radius: var(--radius-sm);
+  gap: 0.18rem;
+  padding: 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 13px;
   background: var(--paper);
   box-shadow: var(--shadow-medium);
 }
 
 .accountHeader {
   display: grid;
-  gap: 0.1rem;
-  padding: 0.55rem 0.65rem 0.75rem;
+  padding: 0.65rem 0.7rem 0.75rem;
   border-bottom: 1px solid var(--border);
 }
 
 .accountHeader span {
   color: var(--text-muted);
-  font-size: 0.68rem;
+  font-size: 0.7rem;
 }
 
 .accountHeader strong {
@@ -267,129 +271,198 @@
 
 .menuLink,
 .menuLogout {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  min-height: 38px;
-  padding: 0.55rem 0.65rem;
+  min-height: 39px;
+  justify-content: flex-start;
+  padding: 0.58rem 0.7rem;
   border: 0;
-  border-bottom: 1px solid var(--border);
-  border-radius: 0;
+  border-radius: 8px;
   background: transparent;
   color: var(--text-secondary);
-  clip-path: none;
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 650;
+  box-shadow: none;
 }
 
 .menuLink:hover,
 .menuLinkActive,
 .menuLogout:hover {
-  padding-left: 0.85rem;
-  background: var(--surface-muted);
-  color: var(--ink);
-  text-decoration: none;
+  transform: none;
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  box-shadow: none;
 }
 
 .menuLogout {
-  border-bottom: 0;
+  width: 100%;
   color: var(--danger);
+  cursor: pointer;
 }
 
-@media (max-width: 1120px) {
+.menuToggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-color: var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.menuToggle span {
+  position: absolute;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ink);
+  transition: transform var(--transition-normal), opacity var(--transition-fast);
+}
+
+.menuToggle span:first-child {
+  transform: translateY(-6px);
+}
+
+.menuToggle span:last-child {
+  transform: translateY(6px);
+}
+
+.menuToggle:hover {
+  transform: none;
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  box-shadow: none;
+}
+
+.menuToggleOpen span:nth-child(2) {
+  opacity: 0;
+}
+
+.menuToggleOpen span:first-child {
+  transform: rotate(45deg);
+}
+
+.menuToggleOpen span:last-child {
+  transform: rotate(-45deg);
+}
+
+@media (max-width: 980px) {
   .topShell {
-    grid-template-columns: minmax(220px, 1fr) auto;
-    min-height: auto;
-    gap: 0 1rem;
+    width: min(100% - 1.5rem, 1320px);
+    min-height: 64px;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .brand,
-  .topUtilities {
-    min-height: 66px;
+  .menuToggle {
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+
+  .navRegion {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 0;
+    right: 0;
+    display: none;
+    padding: 0.8rem;
+    border: 1px solid var(--border);
+    border-top: 0;
+    border-radius: 0 0 15px 15px;
+    background: var(--paper);
+    box-shadow: var(--shadow-medium);
+  }
+
+  .navRegionOpen {
+    display: grid;
+    gap: 0.8rem;
+    animation: menuReveal 170ms ease-out;
   }
 
   .productNav {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: stretch;
-    justify-content: center;
-    min-height: 44px;
-    border-top: 1px solid var(--border);
-  }
-}
-
-@media (max-width: 720px) {
-  .header {
-    padding: 0 0.85rem 0 1rem;
-  }
-
-  .topShell {
-    grid-template-columns: 1fr auto;
-    gap: 0 0.5rem;
-  }
-
-  .brand,
-  .topUtilities {
-    min-height: 58px;
-  }
-
-  .brandMark {
-    width: 29px;
-    height: 33px;
-    border-left-width: 4px;
-    border-bottom-width: 4px;
-    font-size: 1rem;
-  }
-
-  .brandName {
-    font-size: 1rem;
-  }
-
-  .brandSub,
-  .accountEyebrow {
-    display: none;
-  }
-
-  .topUtilities {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.35rem;
   }
 
-  .controls {
-    gap: 0.2rem;
-  }
-
-  .authLinks .utilityLink {
-    display: none;
-  }
-
-  .registerButton {
-    min-height: 34px;
-    padding: 0.45rem 0.6rem;
-    font-size: 0.72rem;
-  }
-
-  .productNav {
-    justify-content: flex-start;
-    gap: 1.2rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .productNav::-webkit-scrollbar {
-    display: none;
-  }
-
   .productLink {
-    min-height: 44px;
-    flex: 0 0 auto;
-    font-size: 0.78rem;
+    min-height: 46px;
+    padding: 0.7rem 0.8rem;
+    border-radius: 9px;
+    background: var(--surface-muted);
+  }
+
+  .productLink::after {
+    left: 0;
+    top: 9px;
+    bottom: 9px;
+    width: 3px;
+    height: auto;
+    border-radius: 0 3px 3px 0;
+    transform: scaleY(0);
+  }
+
+  .productLink:hover::after,
+  .productLinkActive::after {
+    transform: scaleY(1);
+  }
+
+  .productLinkActive {
+    background: var(--brand-soft);
+    color: var(--brand-strong);
+  }
+
+  .topUtilities {
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--border);
   }
 
   .accountPanel {
-    min-width: min(260px, calc(100vw - 2rem));
+    position: fixed;
+    top: auto;
+    right: 0.75rem;
+    left: 0.75rem;
+    width: auto;
+  }
+
+}
+
+@media (max-width: 560px) {
+  .topShell {
+    width: calc(100% - 1rem);
+  }
+
+  .brandSub {
+    display: none;
+  }
+
+  .productNav {
+    grid-template-columns: 1fr;
+  }
+
+  .topUtilities {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .controls,
+  .authLinks {
+    justify-content: space-between;
+  }
+
+  .authLinks > * {
+    flex: 1;
+  }
+}
+
+@keyframes menuReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

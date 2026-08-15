@@ -1,31 +1,24 @@
 .toggle {
-  width: 36px;
-  height: 36px;
-  min-height: 36px;
+  width: 39px;
+  height: 39px;
+  min-height: 39px;
   padding: 0;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--ink);
-  clip-path: none;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink-soft);
   box-shadow: none;
 }
 
 .toggle:hover {
-  border-color: var(--cyan);
-  background: var(--cyan-pale);
-  color: var(--cyan-deep);
+  transform: none;
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand-strong);
   box-shadow: none;
 }
 
-.toggle:active {
-  transform: translateY(1px);
-}
-
 .toggle svg {
-  transition: transform var(--transition-normal);
-}
-
-.toggle:hover svg {
-  transform: rotate(12deg);
+  width: 17px;
+  height: 17px;
 }
