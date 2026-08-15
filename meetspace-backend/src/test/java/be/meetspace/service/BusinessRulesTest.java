@@ -24,4 +24,16 @@ class BusinessRulesTest {
     void commissionUsesCentralRate() {
         assertEquals(10D, BusinessRules.calculateMeetSpaceCommission(100D));
     }
+
+    @Test
+    void organizerNetUsesTheSameCommissionFormula() {
+        assertEquals(800D, BusinessRules.calculateOrganizerNet(1000D, 100D));
+    }
+
+    @Test
+    void breakEvenParticipantsIsEasyToExplain() {
+        assertEquals(12, BusinessRules.calculateBreakEvenParticipants(10D, 100D));
+        assertEquals(0, BusinessRules.calculateBreakEvenParticipants(10D, 0D));
+        assertEquals(-1, BusinessRules.calculateBreakEvenParticipants(0D, 100D));
+    }
 }

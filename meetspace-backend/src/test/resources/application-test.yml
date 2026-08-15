@@ -10,6 +10,8 @@ spring:
     show-sql: false
   mail:
     host: localhost
+  flyway:
+    enabled: false
 
 app:
   mail:
