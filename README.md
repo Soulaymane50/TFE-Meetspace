@@ -120,6 +120,8 @@ Tables principales :
 - `parking_reservation`
 - `utilisateur`
 
+Le dump initialise les donnees de demonstration. Au demarrage du backend, Flyway applique ensuite les migrations versionnees de `meetspace-backend/src/main/resources/db/migration`. Hibernate valide le schema et ne doit pas servir d'outil de migration en production.
+
 ## Lancement local
 
 Backend :
@@ -160,9 +162,10 @@ Pour un deploiement separe, le frontend doit recevoir `VITE_API_URL` au moment d
 GET /api/public/events
 GET /api/public/espaces
 GET /api/public/parking/sessions
+GET /actuator/health
 ```
 
-Les endpoints admin et organizer sont proteges par JWT et par role.
+Les endpoints admin et organizer sont proteges par JWT et par role. Chaque reponse backend expose un `X-Request-Id` utilisable pour retrouver la requete correspondante dans les journaux.
 
 ## Verification
 

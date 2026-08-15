@@ -9,7 +9,7 @@ export default defineConfig({
   fullyParallel: false,
   use: {
     baseURL: process.env.FRONT_URL || "http://localhost:5173",
-    headless: false,
+    headless: true,
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },

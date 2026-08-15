@@ -23,6 +23,20 @@ export async function loginToken(request: APIRequestContext, email: string, pass
   return json.token as string;
 }
 
+export async function registerMember(request: APIRequestContext, email: string, password: string) {
+  const res = await request.post(`${API_URL}/api/auth/register`, {
+    data: {
+      firstName: "API",
+      lastName: "Member",
+      email,
+      password,
+      confirmPassword: password,
+    },
+  });
+  await ensureOk(res);
+  return await res.json();
+}
+
 function authHeaders(token: string) {
   return { Authorization: `Bearer ${token}` };
 }

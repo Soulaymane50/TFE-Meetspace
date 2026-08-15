@@ -2,10 +2,12 @@ import { test, expect } from "@playwright/test";
 import { ensureLoggedOut, login, logout } from "./utils/helpers";
 
 const BASE_URL = process.env.FRONT_URL || "http://localhost:5173";
-const ADMIN_EMAIL = "TestAdmin@TestAdmin.TestAdmin";
-const ADMIN_PASSWORD = "123456@789";
+const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL || "";
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || "";
 
 test.describe.serial("E2E Admin Flows", () => {
+  test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, "Set E2E_ADMIN_EMAIL and E2E_ADMIN_PASSWORD to run admin browser flows.");
+
   test("Admin can access dashboard", async ({ page }) => {
     await ensureLoggedOut(page);
     await login(page, ADMIN_EMAIL, ADMIN_PASSWORD);
@@ -37,13 +39,8 @@ test.describe.serial("E2E Admin Flows", () => {
     await ensureLoggedOut(page);
     await login(page, ADMIN_EMAIL, ADMIN_PASSWORD);
 
-    await page.goto(`${BASE_URL}/admin`);
-
-    const spacesTab = page.getByRole('button', { name: /spaces|espaces/i }).first();
-    if (await spacesTab.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await spacesTab.click();
-      await page.waitForTimeout(500);
-    }
+    await page.goto(`${BASE_URL}/admin/espaces`);
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(/salles|spaces|rooms/i);
 
     await logout(page);
   });
@@ -52,13 +49,8 @@ test.describe.serial("E2E Admin Flows", () => {
     await ensureLoggedOut(page);
     await login(page, ADMIN_EMAIL, ADMIN_PASSWORD);
 
-    await page.goto(`${BASE_URL}/admin`);
-
-    const eventsTab = page.getByRole('button', { name: /events|événements/i }).first();
-    if (await eventsTab.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await eventsTab.click();
-      await page.waitForTimeout(500);
-    }
+    await page.goto(`${BASE_URL}/admin/events`);
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(/événements|events/i);
 
     await logout(page);
   });
@@ -67,7 +59,7 @@ test.describe.serial("E2E Admin Flows", () => {
     await ensureLoggedOut(page);
     await login(page, ADMIN_EMAIL, ADMIN_PASSWORD);
 
-    await page.goto(`${BASE_URL}/admin`);
+    await page.goto(`${BASE_URL}/admin/events`);
 
     const pendingTab = page.getByRole('button', { name: /pending|attente/i }).first();
     if (await pendingTab.isVisible({ timeout: 3000 }).catch(() => false)) {

@@ -9,7 +9,7 @@ test.describe.serial("E2E Navigation", () => {
 
     await page.goto(BASE_URL);
 
-    await expect(page.locator('nav')).toBeVisible();
+    await expect(page.locator('header nav').first()).toBeVisible();
   });
 
   test("Can navigate to events page via navbar", async ({ page }) => {
@@ -17,7 +17,7 @@ test.describe.serial("E2E Navigation", () => {
 
     await page.goto(BASE_URL);
 
-    const eventsLink = page.locator('nav').getByRole('link', { name: /^Events$/i }).first();
+    const eventsLink = page.locator('nav a[href="/events"]').first();
     await eventsLink.click();
 
     await expect(page).toHaveURL(/events/);
@@ -28,7 +28,7 @@ test.describe.serial("E2E Navigation", () => {
 
     await page.goto(BASE_URL);
 
-    const spacesLink = page.locator('nav').getByRole('link', { name: /^Spaces$/i }).first();
+    const spacesLink = page.locator('nav a[href="/espace"]').first();
     await spacesLink.click();
 
     await expect(page).toHaveURL(/espace/);
@@ -39,7 +39,7 @@ test.describe.serial("E2E Navigation", () => {
 
     await page.goto(BASE_URL);
 
-    const parkingLink = page.locator('nav').getByRole('link', { name: /^Parking$/i }).first();
+    const parkingLink = page.locator('nav a[href="/parking"]').first();
     await parkingLink.click();
 
     await expect(page).toHaveURL(/parking/);

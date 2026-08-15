@@ -12,10 +12,11 @@ import {
   loginToken,
 } from "./utils/api";
 
-const ADMIN_EMAIL = "TestAdmin@TestAdmin.TestAdmin";
-const ADMIN_PASSWORD = "123456@789";
+const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL || "";
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || "";
 
 test.describe("API Admin flows", () => {
+  test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, "Set E2E_ADMIN_EMAIL and E2E_ADMIN_PASSWORD to run admin API flows.");
   let adminToken: string;
 
   test.beforeAll(async ({ request }) => {

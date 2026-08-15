@@ -1,6 +1,23 @@
 import { Page, expect } from "@playwright/test";
 
 const BASE_URL = process.env.FRONT_URL || "http://localhost:5173";
+const API_URL = process.env.API_URL || "http://localhost:8080";
+
+export async function ensureMember(page: Page, email: string, password: string) {
+  const response = await page.request.post(`${API_URL}/api/auth/register`, {
+    data: {
+      firstName: "E2E",
+      lastName: "Member",
+      email,
+      password,
+      confirmPassword: password,
+    },
+  });
+
+  if (![200, 201, 409].includes(response.status())) {
+    throw new Error(`Unable to prepare E2E member (${response.status()}): ${await response.text()}`);
+  }
+}
 
 export async function ensureLoggedOut(page: Page) {
   await page.goto(BASE_URL);

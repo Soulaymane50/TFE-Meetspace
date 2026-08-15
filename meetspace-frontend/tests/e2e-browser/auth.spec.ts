@@ -1,13 +1,14 @@
 import { test, expect } from "@playwright/test";
-import { ensureLoggedOut, login, logout } from "./utils/helpers";
+import { ensureLoggedOut, ensureMember, login, logout } from "./utils/helpers";
 
 const BASE_URL = process.env.FRONT_URL || "http://localhost:5173";
-const USER_EMAIL = "TestUser@TestUser.TestUser";
-const USER_PASSWORD = "123456@789";
+const USER_EMAIL = `e2e.auth.${Date.now()}@example.invalid`;
+const USER_PASSWORD = "MeetSpace!E2E26";
 
 test.describe.serial("E2E Authentication", () => {
   test("User can login and logout", async ({ page }) => {
     await ensureLoggedOut(page);
+    await ensureMember(page, USER_EMAIL, USER_PASSWORD);
 
     await login(page, USER_EMAIL, USER_PASSWORD);
 

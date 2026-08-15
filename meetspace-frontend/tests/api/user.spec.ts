@@ -7,21 +7,24 @@ import {
   adminEnsureRole,
   isoDateTime,
   loginToken,
+  registerMember,
   userRegisterEvent,
 } from "./utils/api";
 
-const ADMIN_EMAIL = "TestAdmin@TestAdmin.TestAdmin";
-const ADMIN_PASSWORD = "123456@789";
-const USER_EMAIL = "TestUser@TestUser.TestUser";
-const USER_PASSWORD = "123456@789";
+const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL || "";
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || "";
+const USER_EMAIL = `e2e.api.user.${Date.now()}@example.invalid`;
+const USER_PASSWORD = "MeetSpace!E2E26";
 
 test.describe("API User flows", () => {
+  test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, "Set E2E_ADMIN_EMAIL and E2E_ADMIN_PASSWORD to run user API flows.");
   let adminToken: string;
   let userToken: string;
 
   test.beforeAll(async ({ request }) => {
     adminToken = await loginToken(request, ADMIN_EMAIL, ADMIN_PASSWORD);
     await adminEnsureRole(request, adminToken, ADMIN_EMAIL, "ADMIN");
+    await registerMember(request, USER_EMAIL, USER_PASSWORD);
     await adminEnsureRole(request, adminToken, USER_EMAIL, "MEMBER");
     userToken = await loginToken(request, USER_EMAIL, USER_PASSWORD);
   });
