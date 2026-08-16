@@ -4,6 +4,12 @@ export function authHeaders(token) {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+function enrichApiError(error, response) {
+  error.status = response.status;
+  error.requestId = response.headers.get("X-Request-Id") || "";
+  return error;
+}
+
 async function throwApiError(res, fallbackMessage) {
   const text = await res.text().catch(() => "");
   let message = fallbackMessage;
@@ -17,9 +23,7 @@ async function throwApiError(res, fallbackMessage) {
     }
   }
 
-  const error = new Error(message);
-  error.status = res.status;
-  throw error;
+  throw enrichApiError(new Error(message), res);
 }
 
 async function readApiErrorCode(res, fallbackMessage) {
@@ -38,40 +42,36 @@ async function throwAccountApiError(res, fallbackMessage) {
   const message = await readApiErrorCode(res, fallbackMessage);
 
   if (res.status === 409 || message.includes("EMAIL_ALREADY_EXISTS")) {
-    throw new Error("EMAIL_ALREADY_EXISTS");
+    throw enrichApiError(new Error("EMAIL_ALREADY_EXISTS"), res);
   }
 
   if (message.includes("PASSWORD_WEAK")) {
-    throw new Error("PASSWORD_WEAK");
+    throw enrichApiError(new Error("PASSWORD_WEAK"), res);
   }
 
   if (message.includes("PASSWORD_CONFIRMATION_MISMATCH")) {
-    throw new Error("PASSWORD_CONFIRMATION_MISMATCH");
+    throw enrichApiError(new Error("PASSWORD_CONFIRMATION_MISMATCH"), res);
   }
 
-  const error = new Error(message || fallbackMessage);
-  error.status = res.status;
-  throw error;
+  throw enrichApiError(new Error(message || fallbackMessage), res);
 }
 
 async function throwPasswordResetApiError(res, fallbackMessage) {
   const message = await readApiErrorCode(res, fallbackMessage);
 
   if (message.includes("PASSWORD_WEAK")) {
-    throw new Error("PASSWORD_WEAK");
+    throw enrichApiError(new Error("PASSWORD_WEAK"), res);
   }
 
   if (message.includes("PASSWORD_RESET_EXPIRED")) {
-    throw new Error("PASSWORD_RESET_EXPIRED");
+    throw enrichApiError(new Error("PASSWORD_RESET_EXPIRED"), res);
   }
 
   if (message.includes("PASSWORD_RESET_INVALID")) {
-    throw new Error("PASSWORD_RESET_INVALID");
+    throw enrichApiError(new Error("PASSWORD_RESET_INVALID"), res);
   }
 
-  const error = new Error(fallbackMessage);
-  error.status = res.status;
-  throw error;
+  throw enrichApiError(new Error(fallbackMessage), res);
 }
 
 function normalizeParkingSlot(slot) {
@@ -223,7 +223,7 @@ async function handleResponse(res, defaultMessage) {
     }
   }
 
-  throw new Error(message);
+  throw enrichApiError(new Error(message), res);
 }
 
 async function fetchParkingSlotsResponse() {
@@ -440,6 +440,25 @@ export async function getMyReservations(token) {
   return handleResponse(res, "Impossible de récupérer les réservations");
 }
 
+export async function getMyReservation(id, token) {
+  const res = await fetch(`${API_URL}/api/public/reservations/${id}`, {
+    headers: authHeaders(token),
+  });
+  return handleResponse(res, "Impossible de récupérer cette réservation");
+}
+
+export async function rescheduleReservation(id, payload, token) {
+  const res = await fetch(`${API_URL}/api/public/reservations/${id}/schedule`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(token),
+    },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res, "Impossible de modifier le créneau");
+}
+
 export async function createReservation(payload, token) {
   const res = await fetch(`${API_URL}/api/public/reservations`, {
     method: "POST",
@@ -519,6 +538,33 @@ export async function cancelEventRegistration(id, token) {
   return handleResponse(res, "Erreur lors de l'annulation");
 }
 
+export async function joinEventWaitlist(eventId, participantCount, token) {
+  const res = await fetch(`${API_URL}/api/public/events/waitlist/${eventId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(token),
+    },
+    body: JSON.stringify({ participantCount }),
+  });
+  return handleResponse(res, "Impossible de rejoindre la liste d'attente");
+}
+
+export async function getMyEventWaitlist(token) {
+  const res = await fetch(`${API_URL}/api/public/events/waitlist/me`, {
+    headers: authHeaders(token),
+  });
+  return handleResponse(res, "Impossible de charger la liste d'attente");
+}
+
+export async function leaveEventWaitlist(id, token) {
+  const res = await fetch(`${API_URL}/api/public/events/waitlist/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(token),
+  });
+  return handleResponse(res, "Impossible de quitter la liste d'attente");
+}
+
 export async function getParkingSlots() {
   const slots = await fetchParkingSlotsResponse();
   return slots.map(normalizeParkingSlot);
@@ -573,6 +619,29 @@ export async function changeMyPassword(data, token) {
     body: JSON.stringify(data),
   });
   if (!res.ok) await throwAccountApiError(res, "PASSWORD_CHANGE_FAILED");
+}
+
+export async function getMyNotifications(token, limit = 20) {
+  const res = await fetch(`${API_URL}/api/user/notifications?limit=${limit}`, {
+    headers: authHeaders(token),
+  });
+  return handleResponse(res, "Impossible de charger les notifications");
+}
+
+export async function markNotificationRead(id, token) {
+  const res = await fetch(`${API_URL}/api/user/notifications/${id}/read`, {
+    method: "PATCH",
+    headers: authHeaders(token),
+  });
+  return handleResponse(res, "Impossible de mettre à jour la notification");
+}
+
+export async function markAllNotificationsRead(token) {
+  const res = await fetch(`${API_URL}/api/user/notifications/read-all`, {
+    method: "PATCH",
+    headers: authHeaders(token),
+  });
+  return handleResponse(res, "Impossible de mettre à jour les notifications");
 }
 
 export async function requestEmailChange(data, token) {
@@ -764,6 +833,14 @@ export async function adminGetFinanceSummary(token, period) {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur recuperation revenus estimes");
+  return res.json();
+}
+
+export async function adminGetFinanceTrend(token, period) {
+  const res = await fetch(`${API_URL}/api/admin/finance/trend${financeQuery(period)}`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) await throwApiError(res, "Erreur récupération évolution financière");
   return res.json();
 }
 

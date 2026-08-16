@@ -133,6 +133,20 @@
   transform: translateY(-1px);
 }
 
+.markAllButton {
+  justify-self: start;
+  margin-top: 0.7rem;
+  padding: 0.35rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--brand);
+  border-radius: 0;
+  background: transparent;
+  color: var(--brand-strong);
+  box-shadow: none;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
 .state,
 .emptyState {
   display: grid;
@@ -341,4 +355,93 @@
     width: auto;
     max-height: calc(100vh - 7.5rem);
   }
+}
+
+/* Product finish: a compact activity ledger rather than a stack of cards. */
+.trigger {
+  border-color: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+}
+
+.trigger:hover,
+.triggerActive {
+  border-color: var(--brand);
+  background: var(--surface-hover);
+  transform: none;
+}
+
+.panel {
+  border-color: var(--border);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  box-shadow: var(--shadow-medium);
+  color: var(--ink);
+}
+
+.dayLink {
+  border-radius: var(--radius-sm);
+  background: var(--brand);
+}
+
+.state,
+.emptyState {
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+}
+
+.list {
+  gap: 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.item {
+  padding: 0.85rem 0.25rem;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.item:last-child {
+  border-bottom: 0;
+}
+
+.item:hover {
+  background: var(--surface-hover);
+  color: var(--ink);
+  transform: none;
+}
+
+.itemDot {
+  width: 3px;
+  height: 28px;
+  margin-top: 0.1rem;
+  border-radius: 0;
+}
+
+.nextBox {
+  border-radius: var(--radius-sm);
+  background: var(--hero-bg);
+}
+
+:global([data-theme="dark"]) .panel {
+  background: var(--paper);
+}
+
+:global([data-theme="dark"]) .dayLink {
+  background: var(--accent);
+}
+
+:global([data-theme="dark"]) .item {
+  border-color: var(--border);
+  background: transparent;
+}
+
+:global([data-theme="dark"]) .item:hover {
+  background: var(--surface-hover);
 }

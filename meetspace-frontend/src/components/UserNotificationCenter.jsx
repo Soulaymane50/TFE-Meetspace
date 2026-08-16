@@ -7,6 +7,9 @@ import {
   getMyEventRegistrations,
   getMyParkingReservations,
   getMyReservations,
+  getMyNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
   organizerGetMyEvents,
 } from "../services/api";
 import { formatNumber, normalizeLocale } from "../utils/formatters";
@@ -102,8 +105,11 @@ export default function UserNotificationCenter({ token, user }) {
   const [error, setError] = useState("");
   const [activity, setActivity] = useState({ spaces: [], events: [], parking: [] });
   const [roleNotifications, setRoleNotifications] = useState([]);
+  const [persistentNotifications, setPersistentNotifications] = useState([]);
   const [readIdsByKey, setReadIdsByKey] = useState({});
   const containerRef = useRef(null);
+  const triggerRef = useRef(null);
+  const panelRef = useRef(null);
   const locale = normalizeLocale(i18n.language);
   const role = normalizeRole(user?.role);
   const storageKey = `${READ_STORAGE_KEY}:${user?.email || user?.id || role || "user"}`;
@@ -129,6 +135,23 @@ export default function UserNotificationCenter({ token, user }) {
       setLoading(true);
       setError("");
       setRoleNotifications([]);
+
+      const persistentResult = await Promise.allSettled([getMyNotifications(token, 30)]);
+      if (cancelled) return;
+      if (persistentResult[0].status === "fulfilled") {
+        const items = persistentResult[0].value?.items || [];
+        setPersistentNotifications(items.map((notification) => ({
+          id: `persistent-${notification.id}`,
+          backendId: notification.id,
+          tone: notification.tone || "info",
+          badge: !notification.readAt,
+          title: notification.title,
+          message: notification.message,
+          date: new Date(notification.createdAt),
+          to: notification.path || "/my-reservations",
+          readAt: notification.readAt,
+        })));
+      }
 
       if (role === "ADMIN") {
         const [pendingEventsResult, pendingReservationsResult] = await Promise.allSettled([
@@ -207,43 +230,75 @@ export default function UserNotificationCenter({ token, user }) {
     };
 
     const handleKeyDown = (event) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
     };
 
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
+    const focusTimer = window.setTimeout(() => {
+      panelRef.current?.querySelector("a, button")?.focus();
+    }, 0);
     return () => {
+      window.clearTimeout(focusTimer);
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [open]);
 
   const notifications = useMemo(() => {
-    if (roleNotifications.length > 0) return roleNotifications;
+    const roleItems = roleNotifications;
     const items = buildUserActivityItems(activity);
-    return buildUserNotifications(items);
-  }, [activity, roleNotifications]);
+    const activityItems = roleItems.length === 0 && persistentNotifications.length === 0
+      ? buildUserNotifications(items)
+      : [];
+    return [...persistentNotifications, ...roleItems, ...activityItems]
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+  }, [activity, persistentNotifications, roleNotifications]);
 
   const urgentUnread = useMemo(
     () => notifications.filter((notification) => notification.badge && !readIds.includes(notification.id)),
     [notifications, readIds]
   );
 
-  useEffect(() => {
-    if (!open || urgentUnread.length === 0) return undefined;
+  const markOneRead = (notification) => {
+    if (notification.backendId && !notification.readAt) {
+      setPersistentNotifications((current) => current.map((item) =>
+        item.backendId === notification.backendId
+          ? { ...item, readAt: new Date().toISOString(), badge: false }
+          : item
+      ));
+      markNotificationRead(notification.backendId, token).catch(() => {});
+      return;
+    }
 
-    const timer = window.setTimeout(() => {
+    if (!notification.backendId && notification.badge) {
       setReadIds((current) => {
-        const next = Array.from(new Set([...current, ...urgentUnread.map((notification) => notification.id)])).slice(-80);
+        const next = Array.from(new Set([...current, notification.id])).slice(-80);
         localStorage.setItem(storageKey, JSON.stringify(next));
         return next;
       });
-    }, 120);
+    }
+  };
 
-    return () => window.clearTimeout(timer);
-  }, [open, setReadIds, storageKey, urgentUnread]);
+  const markAllRead = async () => {
+    const readAt = new Date().toISOString();
+    setPersistentNotifications((current) => current.map((item) => ({ ...item, readAt, badge: false })));
+    setReadIds((current) => {
+      const next = Array.from(new Set([...current, ...roleNotifications.map((notification) => notification.id)])).slice(-80);
+      localStorage.setItem(storageKey, JSON.stringify(next));
+      return next;
+    });
+    try {
+      await markAllNotificationsRead(token);
+    } catch {
+      // The next refresh will restore the authoritative unread state.
+    }
+  };
 
-  const visibleNotifications = notifications.slice(0, 4);
+  const visibleNotifications = notifications.slice(0, 6);
   const nextNotification = visibleNotifications[0];
   const footerLink =
     role === "ADMIN"
@@ -256,11 +311,14 @@ export default function UserNotificationCenter({ token, user }) {
     <div className={styles.wrapper} ref={containerRef}>
       <button
         type="button"
+        ref={triggerRef}
         className={`${styles.trigger} ${open ? styles.triggerActive : ""}`}
         onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
         aria-haspopup="dialog"
-        aria-label={t("notifications.title", { defaultValue: "Notifications" })}
+        aria-label={urgentUnread.length > 0
+          ? t("notifications.unreadLabel", { defaultValue: "Notifications, {{count}} non lue(s)", count: urgentUnread.length })
+          : t("notifications.title", { defaultValue: "Notifications" })}
       >
         <span className={styles.bellIcon} aria-hidden="true">
           <svg viewBox="0 0 24 24" focusable="false">
@@ -273,16 +331,28 @@ export default function UserNotificationCenter({ token, user }) {
       </button>
 
       {open && (
-        <div className={styles.panel}>
+        <div
+          className={styles.panel}
+          ref={panelRef}
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby="notification-center-title"
+        >
           <div className={styles.panelHeader}>
             <div>
               <p>{t("notifications.kicker", { defaultValue: "Centre utilisateur" })}</p>
-              <h2>{t("notifications.title", { defaultValue: "Notifications" })}</h2>
+              <h2 id="notification-center-title">{t("notifications.title", { defaultValue: "Notifications" })}</h2>
             </div>
             <Link to={footerLink.to} className={styles.dayLink} onClick={() => setOpen(false)}>
               {footerLink.label}
             </Link>
           </div>
+
+          {urgentUnread.length > 0 && (
+            <button type="button" className={styles.markAllButton} onClick={markAllRead}>
+              {t("notifications.markAllRead", { defaultValue: "Tout marquer comme lu" })}
+            </button>
+          )}
 
           {loading && (
             <div className={styles.state}>
@@ -311,9 +381,12 @@ export default function UserNotificationCenter({ token, user }) {
                   key={notification.id}
                   to={notification.to}
                   className={`${styles.item} ${styles[notification.tone] || ""}`}
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    markOneRead(notification);
+                    setOpen(false);
+                  }}
                 >
-                  <span className={styles.itemDot} />
+                  <span className={styles.itemDot} aria-hidden="true" />
                   <span>
                     <strong>{notification.title}</strong>
                     <small>{notification.message}</small>
