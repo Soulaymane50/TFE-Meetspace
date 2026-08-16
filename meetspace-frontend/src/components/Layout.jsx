@@ -3,7 +3,9 @@ import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Navbar from "./Navbar";
 import CommandPalette from "./CommandPalette";
+import ConnectionStatus from "./ConnectionStatus";
 import Footer from "./Footer";
+import PwaInstallPrompt from "./PwaInstallPrompt";
 import styles from "./Layout.module.css";
 
 function getPageTitle(pathname, t) {
@@ -22,17 +24,30 @@ function getPageTitle(pathname, t) {
   return "MeetSpace";
 }
 
+function getPageDescription(pathname, t) {
+  if (pathname === "/events") return t("meta.events", { defaultValue: "Découvrez et rejoignez les événements professionnels proposés à Bruxelles." });
+  if (pathname === "/espace") return t("meta.spaces", { defaultValue: "Comparez les salles MeetSpace et réservez le créneau adapté à votre activité." });
+  if (pathname === "/parking") return t("meta.parking", { defaultValue: "Réservez une place de parking liée à votre venue MeetSpace." });
+  if (pathname.startsWith("/my-reservations")) return t("meta.account", { defaultValue: "Suivez vos réservations, inscriptions, paiements et demandes en attente." });
+  return t("meta.home", { defaultValue: "MeetSpace simplifie la réservation de salles, d’événements et de parking à Bruxelles." });
+}
+
 function PageExperience() {
   const location = useLocation();
   const { t, i18n } = useTranslation();
   const pageTitle = getPageTitle(location.pathname, t);
+  const pageDescription = getPageDescription(location.pathname, t);
 
   useEffect(() => {
     const languageMap = { fr: "fr-BE", nl: "nl-BE", en: "en-GB" };
     document.title = pageTitle;
     document.documentElement.lang = languageMap[i18n.resolvedLanguage] || "fr-BE";
+    document.querySelector('meta[name="description"]')?.setAttribute("content", pageDescription);
+    document.querySelector('meta[property="og:title"]')?.setAttribute("content", pageTitle);
+    document.querySelector('meta[property="og:description"]')?.setAttribute("content", pageDescription);
+    document.querySelector('link[rel="canonical"]')?.setAttribute("href", window.location.origin + location.pathname);
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [location.pathname, location.search, pageTitle, i18n.language, i18n.resolvedLanguage]);
+  }, [location.pathname, location.search, pageDescription, pageTitle, i18n.language, i18n.resolvedLanguage]);
 
   return (
     <p className={styles.routeAnnouncement} aria-live="polite" aria-atomic="true">
@@ -76,11 +91,13 @@ export default function Layout({ children }) {
       <div className={styles.ambient} aria-hidden="true" />
       <PageExperience />
       <Navbar />
+      <ConnectionStatus />
       <CommandPalette />
       <main id="main-content" className={styles.main} tabIndex="-1">
         <div className={styles.shell}>{children}</div>
       </main>
       <Footer />
+      <PwaInstallPrompt />
       <BackToTop />
     </div>
   );

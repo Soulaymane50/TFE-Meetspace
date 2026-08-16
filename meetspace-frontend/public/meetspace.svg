@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="MeetSpace">
   <rect width="64" height="64" rx="12" fill="#103f37"/>
   <path d="M15 44V18h7l10 15 10-15h7v26h-7V29L32 43 22 29v15z" fill="#fffefb"/>
-  <rect x="47" y="47" width="9" height="9" rx="2" fill="#e56745"/>
+  <rect x="47" y="47" width="9" height="9" rx="2" fill="#bd482a"/>
 </svg>

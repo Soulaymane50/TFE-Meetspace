@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#103f37" />
+    <title>MeetSpace — Hors connexion</title>
+    <style>
+      :root { color-scheme: light dark; font-family: Manrope, system-ui, sans-serif; }
+      body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: #f3f1eb; color: #16211d; }
+      main { width: min(620px, calc(100% - 2rem)); border-left: 5px solid #bd482a; padding: 1.5rem; }
+      small { color: #176b5b; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+      h1 { margin: .45rem 0; font-size: clamp(2.2rem, 8vw, 4.5rem); letter-spacing: -.055em; }
+      p { max-width: 52ch; color: #53615c; line-height: 1.65; }
+      button { margin-top: 1rem; min-height: 44px; padding: .7rem 1rem; border: 0; background: #103f37; color: white; font: inherit; font-weight: 800; cursor: pointer; }
+      @media (prefers-color-scheme: dark) { body { background: #101714; color: #f4f1e9; } p { color: #aab6b0; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <small>MeetSpace</small>
+      <h1>Connexion interrompue.</h1>
+      <p>Cette page n’était pas encore disponible hors ligne. Vérifiez votre connexion, puis relancez le chargement.</p>
+      <button type="button" onclick="location.reload()">Réessayer</button>
+    </main>
+  </body>
+</html>

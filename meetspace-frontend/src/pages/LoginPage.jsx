@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [remember, setRemember] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -24,7 +25,7 @@ export default function LoginPage() {
     try {
       setIsSubmitting(true);
       const data = await loginRequest(email, password);
-      login(data.user, data.token);
+      login(data.user, data.token, { remember });
       navigate(location.state?.from || "/espace", { replace: true });
     } catch (err) {
       if (err.message === "ACCOUNT_BANNED") {
@@ -88,6 +89,17 @@ export default function LoginPage() {
                 required
               />
             </div>
+            <label className={styles.rememberRow}>
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(event) => setRemember(event.target.checked)}
+              />
+              <span>
+                <strong>{t("auth.rememberMe", { defaultValue: "Rester connecté sur cet appareil" })}</strong>
+                <small>{t("auth.rememberMeHint", { defaultValue: "À activer uniquement sur un appareil personnel." })}</small>
+              </span>
+            </label>
             <button type="submit" className={styles.button} disabled={isSubmitting}>
               {isSubmitting ? t("common.loading") : t("auth.loginButton")}
             </button>

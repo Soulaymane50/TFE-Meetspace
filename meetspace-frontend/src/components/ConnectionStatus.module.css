@@ -1,0 +1,58 @@
+.banner {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+  width: min(1320px, calc(100% - 2.5rem));
+  margin: 0.75rem auto 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--warning) 35%, var(--border));
+  border-left: 4px solid var(--warning);
+  background: color-mix(in srgb, var(--warning) 8%, var(--surface));
+  color: var(--text-primary);
+}
+
+.marker {
+  width: 8px;
+  height: 8px;
+  background: var(--warning);
+}
+
+.banner div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.banner strong {
+  font-size: 0.78rem;
+}
+
+.banner span {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.banner button {
+  min-height: 36px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  box-shadow: none;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+@media (max-width: 620px) {
+  .banner {
+    grid-template-columns: 10px minmax(0, 1fr);
+    width: calc(100% - 1rem);
+  }
+
+  .banner button {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

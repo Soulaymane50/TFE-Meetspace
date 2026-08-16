@@ -59,16 +59,21 @@ test.describe("Premium public experience", () => {
   });
 
   test("core public routes remain free of horizontal overflow", async ({ page }) => {
-    for (const viewport of [
-      { width: 390, height: 844 },
-      { width: 768, height: 900 },
-      { width: 1440, height: 1000 },
-    ]) {
-      await page.setViewportSize(viewport);
-      for (const route of ["/", "/events", "/espace", "/parking", "/contact"]) {
-        await page.goto(`${BASE_URL}${route}`);
-        const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-        expect(overflow, `${route} at ${viewport.width}px`).toBeLessThanOrEqual(1);
+    for (const theme of ["light", "dark"]) {
+      await page.goto(BASE_URL);
+      await page.evaluate((selectedTheme) => localStorage.setItem("theme", selectedTheme), theme);
+
+      for (const viewport of [
+        { width: 390, height: 844 },
+        { width: 768, height: 900 },
+        { width: 1440, height: 1000 },
+      ]) {
+        await page.setViewportSize(viewport);
+        for (const route of ["/", "/events", "/espace", "/parking", "/contact"]) {
+          await page.goto(`${BASE_URL}${route}`);
+          const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+          expect(overflow, `${route} in ${theme} mode at ${viewport.width}px`).toBeLessThanOrEqual(1);
+        }
       }
     }
   });

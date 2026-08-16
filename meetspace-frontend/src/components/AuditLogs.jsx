@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import PageState from "./PageState";
 import SelectDropdown from "./SelectDropdown";
 import styles from "./AuditLogs.module.css";
+import { downloadCsv } from "../utils/csv";
 
 const ACTION_LABELS = {
   LOGIN_SUCCESS: { label: "Connexion réussie", icon: "OK", color: "green" },
@@ -185,7 +186,28 @@ export default function AuditLogs() {
     <div className={styles.container}>
       <div className={styles.header}>
         <h2 className={styles.title}>{t("admin.auditLogs", "Logs d'audit")}</h2>
-        <span className={styles.count}>{totalElements} {t("admin.entries", "entrées")}</span>
+        <div className={styles.headerActions}>
+          <span className={styles.count}>{totalElements} {t("admin.entries", "entrées")}</span>
+          <button
+            type="button"
+            className={styles.exportButton}
+            disabled={logs.length === 0}
+            onClick={() => downloadCsv(`meetspace-audit-page-${page + 1}.csv`, [
+              { label: "Date", value: "timestamp" },
+              { label: "Utilisateur", value: "userName" },
+              { label: "Email", value: "userEmail" },
+              { label: "Action", value: "action" },
+              { label: "Type", value: "entityType" },
+              { label: "Identifiant", value: "entityId" },
+              { label: "Détails", value: "details" },
+              { label: "Ancienne valeur", value: "oldValue" },
+              { label: "Nouvelle valeur", value: "newValue" },
+              { label: "IP", value: "ipAddress" },
+            ], logs)}
+          >
+            {t("admin.exportCurrentPage", { defaultValue: "Exporter cette page" })}
+          </button>
+        </div>
       </div>
 
       <div className={styles.filters}>

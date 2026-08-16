@@ -5,11 +5,20 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import fr from './locales/fr.json';
 import en from './locales/en.json';
 import nl from './locales/nl.json';
+import enhancements from './locales/enhancements';
+
+function mergeTranslations(base, extra) {
+  return Object.entries(extra).reduce((result, [key, value]) => {
+    const nested = value && typeof value === 'object' && !Array.isArray(value);
+    result[key] = nested ? mergeTranslations(base[key] || {}, value) : value;
+    return result;
+  }, { ...base });
+}
 
 const resources = {
-  fr: { translation: fr },
-  en: { translation: en },
-  nl: { translation: nl },
+  fr: { translation: mergeTranslations(fr, enhancements.fr) },
+  en: { translation: mergeTranslations(en, enhancements.en) },
+  nl: { translation: mergeTranslations(nl, enhancements.nl) },
 };
 
 i18n

@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "icons:pwa": "node scripts/generate-pwa-icons.cjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "playwright test",
     "test:api": "playwright test --project=api",
     "test:e2e": "playwright test --project=e2e --headed",
+    "test:a11y": "playwright test tests/e2e-browser/accessibility.spec.ts --project=e2e",
     "test:all": "playwright test --headed"
   },
   "dependencies": {
@@ -24,6 +26,7 @@
     "react-router-dom": "^7.9.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^9.39.1",
     "@playwright/test": "^1.48.2",
     "@vitejs/plugin-react-swc": "^4.2.2",

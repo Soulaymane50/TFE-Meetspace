@@ -1,0 +1,77 @@
+.prompt {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 900;
+  width: min(520px, calc(100vw - 2rem));
+  display: grid;
+  grid-template-columns: 3px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.8rem 0.85rem 0.8rem 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  box-shadow: var(--shadow-medium);
+  color: var(--ink);
+}
+
+.rule {
+  align-self: stretch;
+  background: var(--accent);
+}
+
+.prompt strong,
+.prompt span {
+  display: block;
+}
+
+.prompt strong {
+  font-size: 0.86rem;
+}
+
+.prompt div span {
+  margin-top: 0.1rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.install,
+.dismiss {
+  min-height: 38px;
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+}
+
+.install {
+  padding: 0.55rem 0.75rem;
+  background: var(--brand);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.dismiss {
+  width: 38px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 1.3rem;
+}
+
+@media (max-width: 560px) {
+  .prompt {
+    grid-template-columns: 3px minmax(0, 1fr) auto;
+  }
+
+  .install {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .dismiss {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+}

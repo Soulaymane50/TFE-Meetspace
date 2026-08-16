@@ -190,6 +190,38 @@
   margin-top: 0.6rem;
 }
 
+.rememberRow {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: start;
+  margin: 0.25rem 0 0.7rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.rememberRow input {
+  width: 17px;
+  height: 17px;
+  margin-top: 0.1rem;
+  accent-color: var(--brand);
+}
+
+.rememberRow span {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.rememberRow strong {
+  color: var(--text-primary);
+  font-size: 0.74rem;
+}
+
+.rememberRow small {
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
 .forgotLink {
   margin-top: 0.85rem;
   text-align: right;

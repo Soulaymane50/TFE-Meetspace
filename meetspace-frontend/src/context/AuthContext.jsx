@@ -5,7 +5,7 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [auth, setAuth] = useState(() => {
-    const saved = localStorage.getItem("auth");
+    const saved = sessionStorage.getItem("auth") || localStorage.getItem("auth");
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -15,6 +15,7 @@ export function AuthProvider({ children }) {
     }
     return { user: null, token: null };
   });
+  const [rememberSession, setRememberSession] = useState(() => Boolean(localStorage.getItem("auth")));
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -25,14 +26,19 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!isLoading) {
       if (auth.token) {
-        localStorage.setItem("auth", JSON.stringify(auth));
+        const target = rememberSession ? localStorage : sessionStorage;
+        const other = rememberSession ? sessionStorage : localStorage;
+        target.setItem("auth", JSON.stringify(auth));
+        other.removeItem("auth");
       } else {
         localStorage.removeItem("auth");
+        sessionStorage.removeItem("auth");
       }
     }
-  }, [auth, isLoading]);
+  }, [auth, isLoading, rememberSession]);
 
-  const login = useCallback((user, token) => {
+  const login = useCallback((user, token, options = {}) => {
+    setRememberSession(Boolean(options.remember));
     setAuth({ user, token });
   }, []);
 
@@ -47,11 +53,12 @@ export function AuthProvider({ children }) {
     } finally {
       setAuth({ user: null, token: null });
       localStorage.removeItem("auth");
+      sessionStorage.removeItem("auth");
     }
   }, [auth.token]);
 
   return (
-    <AuthContext.Provider value={{ ...auth, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ ...auth, login, logout, isLoading, rememberSession }}>
       {children}
     </AuthContext.Provider>
   );

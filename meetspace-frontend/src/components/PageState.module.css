@@ -69,6 +69,10 @@
   min-height: 44px;
 }
 
+[data-theme="dark"] .action > button {
+  color: #0b2b24;
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
