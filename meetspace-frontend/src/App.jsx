@@ -18,6 +18,8 @@ const ParkingPage = lazy(() => import("./pages/ParkingPage"));
 const CatalogDetailPage = lazy(() => import("./pages/CatalogDetailPage"));
 const MyReservationsPage = lazy(() => import("./pages/MyReservationsPage"));
 const CreateReservationPage = lazy(() => import("./pages/CreateReservationPage"));
+const RescheduleReservationPage = lazy(() => import("./pages/RescheduleReservationPage"));
+const ReceiptPage = lazy(() => import("./pages/ReceiptPage"));
 const EventRegisterPage = lazy(() => import("./pages/EventRegisterPage"));
 const ParkingReservePage = lazy(() => import("./pages/ParkingReservePage"));
 const MyParkingReservationsPage = lazy(() => import("./pages/MyParkingReservationsPage"));
@@ -27,6 +29,7 @@ const ConfirmEmailChangePage = lazy(() => import("./pages/ConfirmEmailChangePage
 const OrganizerEventsPage = lazy(() => import("./pages/OrganizerEventsPage"));
 const OrganizerEventForm = lazy(() => import("./pages/OrganizerEventForm"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminFinancePage = lazy(() => import("./pages/AdminFinancePage"));
 const AdminEspaceForm = lazy(() => import("./pages/AdminEspaceForm"));
 const AdminEspacesPage = lazy(() => import("./pages/AdminEspacesPage"));
 const AdminEventsPage = lazy(() => import("./pages/AdminEventsPage"));
@@ -73,6 +76,8 @@ export default function App() {
         <Route path="/my-reservations" element={<PrivatePage><MyReservationsPage /></PrivatePage>} />
         <Route path="/my-day" element={<PrivatePage><Navigate to="/my-reservations?tab=day" replace /></PrivatePage>} />
         <Route path="/reservations/new/:espaceId" element={<PrivatePage><CreateReservationPage /></PrivatePage>} />
+        <Route path="/reservations/:id/edit" element={<PrivatePage><RescheduleReservationPage /></PrivatePage>} />
+        <Route path="/receipts/:type/:id" element={<PrivatePage><ReceiptPage /></PrivatePage>} />
         <Route path="/events/register/:id" element={<PrivatePage><EventRegisterPage /></PrivatePage>} />
         <Route path="/parking/reserve/:id" element={<PrivatePage><ParkingReservePage /></PrivatePage>} />
         <Route path="/my-parking-reservations" element={<PrivatePage><MyParkingReservationsPage /></PrivatePage>} />
@@ -93,6 +98,7 @@ export default function App() {
         />
 
         <Route path="/admin" element={<PrivatePage roles={["ADMIN"]}><AdminDashboard /></PrivatePage>} />
+        <Route path="/admin/finances" element={<PrivatePage roles={["ADMIN"]}><AdminFinancePage /></PrivatePage>} />
         <Route path="/admin/espaces" element={<PrivatePage roles={["ADMIN"]}><AdminEspacesPage /></PrivatePage>} />
         <Route path="/admin/espaces/new" element={<PrivatePage roles={["ADMIN"]}><AdminEspaceForm /></PrivatePage>} />
         <Route path="/admin/espaces/:id/edit" element={<PrivatePage roles={["ADMIN"]}><AdminEspaceForm /></PrivatePage>} />

@@ -71,6 +71,7 @@ public class FinanceTransactionMetricsService {
         long feeCents = 0L;
 
         for (PaymentRecord record : records) {
+            if (FinanceReportingPolicy.isTechnicalUser(record.getUser())) continue;
             if (!belongsToScope(record, organizerEventIds)) continue;
             if (isPaid(record.getStatus()) && inPeriod(transactionDate(record), from, to)) {
                 long amount = safe(record.getAmountCents());
@@ -87,6 +88,7 @@ public class FinanceTransactionMetricsService {
         if (organizerEventIds == null) {
             for (Reservation reservation : reservationRepository.findAll()) {
                 if (reservation.getStatus() == ReservationStatus.CONFIRMED
+                        && !FinanceReportingPolicy.isTechnicalUser(reservation.getUser())
                         && inPeriod(reservation.getCreatedAt(), from, to)
                         && isLegacy(reservation.getPaymentIntentId(), recordedIds)) {
                     long amount = toCents(reservation.getTotalPrice());
@@ -96,6 +98,7 @@ public class FinanceTransactionMetricsService {
             }
             for (ParkingReservation reservation : parkingReservationRepository.findAll()) {
                 if (reservation.getStatus() == ParkingReservationStatus.CONFIRMED
+                        && !FinanceReportingPolicy.isTechnicalUser(reservation.getUser())
                         && inPeriod(reservation.getCreatedAt(), from, to)
                         && isLegacy(reservation.getPaymentIntentId(), recordedIds)) {
                     long amount = toCents(reservation.getTotalPrice());
@@ -107,6 +110,7 @@ public class FinanceTransactionMetricsService {
 
         for (EventRegistration registration : eventRegistrationRepository.findAll()) {
             if (registration.getStatus() != EventRegistrationStatus.CONFIRMED
+                    || FinanceReportingPolicy.isTechnicalUser(registration.getUser())
                     || !inPeriod(registration.getCreatedAt(), from, to)
                     || !isLegacy(registration.getPaymentIntentId(), recordedIds)
                     || (organizerEventIds != null && !organizerEventIds.contains(registration.getEvent().getId()))) {
@@ -121,6 +125,7 @@ public class FinanceTransactionMetricsService {
         long receivablesCents = organizerEventIds == null
                 ? reservationRepository.findAll().stream()
                     .filter(reservation -> reservation.getStatus() == ReservationStatus.APPROVED)
+                    .filter(reservation -> !FinanceReportingPolicy.isTechnicalUser(reservation.getUser()))
                     .filter(reservation -> inPeriod(reservation.getApprovedAt(), from, to))
                     .mapToLong(reservation -> toCents(reservation.getTotalPrice()))
                     .sum()

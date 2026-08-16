@@ -10,6 +10,7 @@ export default function WorkspaceNav({ scope = "account" }) {
   const links = scope === "admin"
     ? [
         { to: "/admin", label: t("admin.overview"), end: true },
+        { to: "/admin/finances", label: t("adminFinance.navLabel") },
         { to: "/admin/espaces", label: t("nav.spaces") },
         { to: "/admin/events", label: t("nav.events") },
         { to: "/admin/parking", label: t("nav.parking") },

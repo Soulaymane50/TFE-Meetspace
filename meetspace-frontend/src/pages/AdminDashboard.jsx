@@ -7,6 +7,7 @@ import {
   adminGetPendingReservations,
   adminGetEvents,
   adminGetAllSpaceReservations,
+  adminGetAllReservations,
   adminGetParkingSlots,
   adminGetUsers,
   adminUpdateUserRole,
@@ -23,7 +24,7 @@ import SelectDropdown from "../components/SelectDropdown";
 import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import { useFeedback } from "../context/FeedbackContext";
 import WorkspaceNav from "../components/WorkspaceNav";
-import FinanceLedger from "../components/FinanceLedger";
+import { downloadCsv } from "../utils/csv";
 
 function AdminIcon({ type }) {
   const icons = {
@@ -124,6 +125,7 @@ export default function AdminDashboard() {
   const [pendingReservations, setPendingReservations] = useState([]);
   const [events, setEvents] = useState([]);
   const [spaceReservations, setSpaceReservations] = useState([]);
+  const [allReservations, setAllReservations] = useState([]);
   const [parkingSlots, setParkingSlots] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -141,6 +143,7 @@ export default function AdminDashboard() {
         pendingReservationsResult,
         eventsResult,
         spaceReservationsResult,
+        allReservationsResult,
         parkingSlotsResult,
         usersResult,
       ] = await Promise.allSettled([
@@ -150,6 +153,7 @@ export default function AdminDashboard() {
         adminGetPendingReservations(token),
         adminGetEvents(token),
         adminGetAllSpaceReservations(token),
+        adminGetAllReservations(token),
         adminGetParkingSlots(token),
         adminGetUsers(token),
       ]);
@@ -178,6 +182,7 @@ export default function AdminDashboard() {
       setPendingReservations(pendingReservationsResult.status === "fulfilled" ? pendingReservationsResult.value : []);
       setEvents(eventsResult.status === "fulfilled" ? eventsResult.value : []);
       setSpaceReservations(spaceReservationsResult.status === "fulfilled" ? spaceReservationsResult.value : []);
+      setAllReservations(allReservationsResult.status === "fulfilled" ? allReservationsResult.value : []);
       setParkingSlots(parkingSlotsResult.status === "fulfilled" ? parkingSlotsResult.value : []);
     } catch (err) {
       if (err.status === 401 || err.status === 403) {
@@ -458,6 +463,36 @@ export default function AdminDashboard() {
     },
   ];
 
+  const exportCurrentView = () => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (activeTab === "users") {
+      downloadCsv(`meetspace-utilisateurs-${stamp}.csv`, [
+        { label: "Identifiant", value: "id" },
+        { label: "Prénom", value: "firstName" },
+        { label: "Nom", value: "lastName" },
+        { label: "Email", value: "email" },
+        { label: "Rôle", value: "role" },
+        { label: "Statut", value: "status" },
+        { label: "Créé le", value: "createdAt" },
+      ], filteredUsers);
+      return;
+    }
+
+    downloadCsv(`meetspace-reservations-${stamp}.csv`, [
+      { label: "Identifiant", value: "id" },
+      { label: "Type", value: "typeName" },
+      { label: "Client", value: "userFullName" },
+      { label: "Email", value: "userEmail" },
+      { label: "Prestation", value: "itemName" },
+      { label: "Date", value: "dateInfo" },
+      { label: "Quantité", value: "quantity" },
+      { label: "Montant EUR", value: "totalPrice" },
+      { label: "Statut", value: "status" },
+      { label: "Payé", value: (row) => row.paid ? "Oui" : "Non" },
+      { label: "Créé le", value: "createdAt" },
+    ], allReservations);
+  };
+
   return (
     <div className={styles.container}>
       <WorkspaceNav scope="admin" />
@@ -467,9 +502,16 @@ export default function AdminDashboard() {
           <h1 className={styles.title}>{t("admin.dashboard")}</h1>
           <p className={styles.subtitle}>{t("admin.dashboardSubtitle")}</p>
         </div>
-        <Link to="/admin/events/new" className={styles.backLink}>
-          {t("admin.createEvent")}
-        </Link>
+        <div className={styles.headerActions}>
+          <button type="button" className={styles.exportButton} onClick={exportCurrentView}>
+            {activeTab === "users"
+              ? t("admin.exportUsers", { defaultValue: "Exporter les comptes" })
+              : t("admin.exportReservations", { defaultValue: "Exporter les réservations" })}
+          </button>
+          <Link to="/admin/events/new" className={styles.backLink}>
+            {t("admin.createEvent")}
+          </Link>
+        </div>
       </div>
 
       {totalPending > 0 && (
@@ -530,15 +572,33 @@ export default function AdminDashboard() {
           </div>
 
           <div className={styles.adminOverviewGrid}>
-            <FinanceLedger
-              summary={financeSummary}
-              variant="admin"
-              formatMoney={formatEuro}
-              formatNumber={formatStat}
-              onPeriodChange={async (period) => {
-                setFinanceSummary(await adminGetFinanceSummary(token, period));
-              }}
-            />
+            <section className={styles.financePreview}>
+              <div className={styles.financePreviewHeader}>
+                <div>
+                  <span>{t("adminFinance.kicker")}</span>
+                  <h3>{t("adminFinance.previewTitle")}</h3>
+                  <p>{t("adminFinance.previewHelp")}</p>
+                </div>
+                <Link to="/admin/finances">{t("adminFinance.openDashboard")}</Link>
+              </div>
+              {financeSummary && (
+                <div className={styles.financePreviewMetrics}>
+                  <div>
+                    <span>{t("finance.adminRevenueConfirmed")}</span>
+                    <strong>{formatEuro(financeSummary.meetSpaceEstimatedRevenue || 0)}</strong>
+                  </div>
+                  <div>
+                    <span>{t("finance.netCashFlow")}</span>
+                    <strong>{formatEuro(financeSummary.netCashFlow || 0)}</strong>
+                  </div>
+                  <div>
+                    <span>{t("finance.receivables")}</span>
+                    <strong>{formatEuro(financeSummary.outstandingReceivables || 0)}</strong>
+                  </div>
+                </div>
+              )}
+              <p className={styles.financePreviewNote}>{t("adminFinance.previewNote")}</p>
+            </section>
 
             <aside className={styles.statusConsole}>
               <div className={styles.statusHeader}>

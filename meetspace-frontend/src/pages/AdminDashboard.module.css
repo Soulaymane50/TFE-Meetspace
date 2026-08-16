@@ -50,6 +50,31 @@
   white-space: nowrap;
 }
 
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.exportButton {
+  min-height: 42px;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--brand-strong);
+  box-shadow: none;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.exportButton:hover,
+.exportButton:focus-visible {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
 .actionSummary {
   display: flex;
   justify-content: space-between;
@@ -280,6 +305,107 @@
   grid-template-columns: minmax(0, 2fr) minmax(260px, 0.7fr);
   gap: 1rem;
   margin-bottom: 1rem;
+}
+
+.financePreview {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--brand);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.financePreviewHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.2rem 1.3rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.financePreviewHeader span {
+  color: var(--brand-strong);
+  font-size: 0.65rem;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.financePreviewHeader h3 {
+  margin: 0.25rem 0 0;
+  font-size: 1.2rem;
+}
+
+.financePreviewHeader p {
+  max-width: 38rem;
+  margin: 0.35rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.financePreviewHeader > a {
+  flex: 0 0 auto;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--brand-strong);
+  color: var(--brand-strong);
+  font-size: 0.72rem;
+  font-weight: 820;
+}
+
+.financePreviewHeader > a:hover {
+  background: var(--brand-strong);
+  color: var(--cta-solid-fg);
+}
+
+.financePreviewMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.financePreviewMetrics > div {
+  display: grid;
+  min-width: 0;
+  min-height: 104px;
+  align-content: center;
+  gap: 0.25rem;
+  padding: 1rem 1.3rem;
+}
+
+.financePreviewMetrics > div + div {
+  border-left: 1px solid var(--border);
+}
+
+.financePreviewMetrics span {
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.financePreviewMetrics strong {
+  overflow: hidden;
+  font-size: clamp(1.15rem, 2.2vw, 1.7rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.financePreviewMetrics > div:first-child strong {
+  color: var(--brand-strong);
+}
+
+.financePreviewNote {
+  margin: 0;
+  padding: 0.7rem 1.3rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 0.69rem;
+  line-height: 1.4;
 }
 
 .statusConsole {
@@ -675,6 +801,34 @@
 
   .actionSummaryLinks {
     justify-content: flex-start;
+  }
+
+  .financePreviewHeader {
+    align-items: stretch;
+    flex-direction: column;
+    padding-inline: 1rem;
+  }
+
+  .financePreviewHeader > a {
+    text-align: center;
+  }
+
+  .financePreviewMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .financePreviewMetrics > div {
+    min-height: 82px;
+    padding-inline: 1rem;
+  }
+
+  .financePreviewMetrics > div + div {
+    border-top: 1px solid var(--border);
+    border-left: 0;
+  }
+
+  .financePreviewNote {
+    padding-inline: 1rem;
   }
 
   .activityGrid {

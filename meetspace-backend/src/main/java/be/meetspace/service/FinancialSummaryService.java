@@ -61,11 +61,22 @@ public class FinancialSummaryService {
     public FinanceSummaryDto getAdminSummary(LocalDate from, LocalDate to) {
         List<EventFinanceDto> eventFinances = eventRepository.findAllByOrderByCreatedAtDesc().stream()
                 .filter(this::isMeetSpaceRevenueRelevant)
-                .map(this::buildEventFinance)
+                .map(event -> buildEventFinance(event, from, to))
+                .filter(Objects::nonNull)
                 .toList();
 
-        double directRoomRevenue = valueOrZero(reservationRepository.sumTotalPriceByStatus(ReservationStatus.CONFIRMED));
-        double parkingRevenue = valueOrZero(parkingReservationRepository.sumTotalPriceByStatus(ParkingReservationStatus.CONFIRMED));
+        double directRoomRevenue = reservationRepository.findAll().stream()
+                .filter(reservation -> reservation.getStatus() == ReservationStatus.CONFIRMED)
+                .filter(reservation -> !FinanceReportingPolicy.isTechnicalUser(reservation.getUser()))
+                .filter(reservation -> inPeriod(reservation.getCreatedAt(), from, to))
+                .mapToDouble(reservation -> valueOrZero(reservation.getTotalPrice()))
+                .sum();
+        double parkingRevenue = parkingReservationRepository.findAll().stream()
+                .filter(reservation -> reservation.getStatus() == ParkingReservationStatus.CONFIRMED)
+                .filter(reservation -> !FinanceReportingPolicy.isTechnicalUser(reservation.getUser()))
+                .filter(reservation -> inPeriod(reservation.getCreatedAt(), from, to))
+                .mapToDouble(reservation -> valueOrZero(reservation.getTotalPrice()))
+                .sum();
         FinanceTransactionMetricsService.Metrics metrics = transactionMetricsService.forAdmin(from, to);
 
         return buildSummary(eventFinances, directRoomRevenue, parkingRevenue, metrics);
@@ -76,7 +87,8 @@ public class FinancialSummaryService {
         User organizer = findUser(email);
         List<EventFinanceDto> eventFinances = eventRepository.findByCreatedByIdOrderByCreatedAtDesc(organizer.getId()).stream()
                 .filter(this::isFinanciallyRelevant)
-                .map(this::buildEventFinance)
+                .map(event -> buildEventFinance(event, from, to))
+                .filter(Objects::nonNull)
                 .toList();
         FinanceTransactionMetricsService.Metrics metrics =
                 transactionMetricsService.forOrganizer(organizer.getId(), from, to);
@@ -159,9 +171,21 @@ public class FinancialSummaryService {
     }
 
     private EventFinanceDto buildEventFinance(Event event) {
+        return buildEventFinance(event, null, null);
+    }
+
+    private EventFinanceDto buildEventFinance(Event event, LocalDate from, LocalDate to) {
         List<EventRegistration> confirmedRegistrations = eventRegistrationRepository.findByEventId(event.getId()).stream()
                 .filter(registration -> registration.getStatus() == EventRegistrationStatus.CONFIRMED)
+                .filter(registration -> !FinanceReportingPolicy.isTechnicalUser(registration.getUser()))
+                .filter(registration -> inPeriod(registration.getCreatedAt(), from, to))
                 .toList();
+
+        boolean unrestrictedPeriod = from == null && to == null;
+        boolean eventCreatedInPeriod = inPeriod(event.getCreatedAt(), from, to);
+        if (!unrestrictedPeriod && !eventCreatedInPeriod && confirmedRegistrations.isEmpty()) {
+            return null;
+        }
 
         int registrationCount = confirmedRegistrations.size();
         int participantCount = confirmedRegistrations.stream()
@@ -216,7 +240,19 @@ public class FinancialSummaryService {
     }
 
     private boolean isMeetSpaceRevenueRelevant(Event event) {
-        return event.getStatus() == EventStatus.PUBLISHED;
+        return event.getStatus() == EventStatus.PUBLISHED
+                && !FinanceReportingPolicy.isTechnicalUser(event.getCreatedBy());
+    }
+
+    private static boolean inPeriod(LocalDateTime value, LocalDate from, LocalDate to) {
+        if (from == null && to == null) {
+            return true;
+        }
+        if (value == null) {
+            return false;
+        }
+        LocalDate date = value.toLocalDate();
+        return (from == null || !date.isBefore(from)) && (to == null || !date.isAfter(to));
     }
 
     private Event findEvent(Long eventId) {
