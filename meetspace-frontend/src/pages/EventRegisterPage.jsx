@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getPublicEvents, registerToEvent } from "../services/api";
+import { getPublicEvents, joinEventWaitlist, registerToEvent } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useFeedback } from "../context/FeedbackContext";
 import { useTranslation } from "react-i18next";
@@ -27,6 +27,7 @@ export default function EventRegisterPage() {
   const [error, setError] = useState("");
   const [isPaymentStepVisible, setIsPaymentStepVisible] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isJoiningWaitlist, setIsJoiningWaitlist] = useState(false);
 
   useEffect(() => {
     if (!user || !token) {
@@ -112,7 +113,20 @@ export default function EventRegisterPage() {
     e.preventDefault();
     setError("");
     if (maxParticipants <= 0) {
-      setError(t("events.full"));
+      setIsJoiningWaitlist(true);
+      try {
+        await joinEventWaitlist(parseInt(id, 10), numberOfParticipants, token);
+        notify({
+          type: "success",
+          title: t("events.waitlistJoinedTitle", { defaultValue: "Liste d’attente enregistrée" }),
+          message: t("events.waitlistJoinedMessage", { defaultValue: "Vous recevrez une notification dès qu’une place sera disponible." }),
+        });
+        navigate("/my-reservations?tab=events");
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsJoiningWaitlist(false);
+      }
       return;
     }
     if (numberOfParticipants > maxParticipants) {
@@ -265,13 +279,13 @@ export default function EventRegisterPage() {
                 max={maxParticipants || 1}
                 value={numberOfParticipants}
                 onChange={(e) => handleParticipantsChange(e.target.value)}
-                disabled={maxParticipants <= 0}
+                disabled={false}
                 className={styles.input}
               />
               <span className={styles.helperText}>
                 {maxParticipants > 0
                   ? t("events.remainingPlacesCount", { count: maxParticipants })
-                  : t("events.full")}
+                  : t("events.waitlistHint", { defaultValue: "Complet : indiquez le nombre souhaité pour rejoindre la liste d’attente." })}
               </span>
             </div>
           </div>
@@ -352,8 +366,14 @@ export default function EventRegisterPage() {
               <button type="button" onClick={() => navigate("/events")} className={styles.secondaryAction}>
                 {t("common.cancel")}
               </button>
-              <button type="submit" className={styles.primaryAction} disabled={isRegistering}>
-                {isRegistering ? t("common.loading") : requiresPayment ? t("reservation.proceedPayment") : t("events.confirmRegistration")}
+              <button type="submit" className={styles.primaryAction} disabled={isRegistering || isJoiningWaitlist}>
+                {isRegistering || isJoiningWaitlist
+                  ? t("common.loading")
+                  : maxParticipants <= 0
+                    ? t("events.joinWaitlist", { defaultValue: "Rejoindre la liste d’attente" })
+                    : requiresPayment
+                      ? t("reservation.proceedPayment")
+                      : t("events.confirmRegistration")}
               </button>
             </div>
           </div>

@@ -1004,9 +1004,46 @@
   .sidebar {
     position: static;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    align-items: start;
-    padding: 0.9rem;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 0.9rem 1rem;
+    align-items: stretch;
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .sidebarIntro {
+    grid-column: span 3;
+  }
+
+  .searchSection {
+    grid-column: span 5;
+  }
+
+  .sortSection {
+    grid-column: span 4;
+  }
+
+  .priceSection,
+  .availabilitySection,
+  .parkingSection,
+  .sidebarFoot {
+    grid-column: span 3;
+  }
+
+  .sidebarSection {
+    min-width: 0;
+  }
+
+  .filterButtons {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.3rem;
+  }
+
+  .filterButton {
+    min-width: 0;
+    padding-inline: 0.45rem;
+    line-height: 1.2;
   }
 
   .sidebarText {
@@ -1014,9 +1051,10 @@
   }
 
   .sidebarFoot {
-    grid-column: 1 / -1;
     margin-top: 0;
-    padding-top: 0.75rem;
+    padding: 0 0 0 1rem;
+    border-top: 0;
+    border-left: 1px solid rgba(20, 32, 51, 0.08);
   }
 
   .planningDay {
@@ -1032,6 +1070,31 @@
 }
 
 @media (max-width: 880px) {
+  .sidebarIntro {
+    grid-column: 1 / -1;
+  }
+
+  .searchSection {
+    grid-column: span 7;
+  }
+
+  .sortSection {
+    grid-column: span 5;
+  }
+
+  .priceSection,
+  .availabilitySection,
+  .parkingSection {
+    grid-column: span 4;
+  }
+
+  .sidebarFoot {
+    grid-column: 1 / -1;
+    padding: 0.75rem 0 0;
+    border-top: 1px solid rgba(20, 32, 51, 0.08);
+    border-left: 0;
+  }
+
   .summaryGrid,
   .metaGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1064,6 +1127,10 @@
   }
 
   .sidebar {
+    display: flex;
+  }
+
+  .filterButtons {
     display: flex;
   }
 

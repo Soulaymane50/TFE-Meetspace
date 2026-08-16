@@ -295,13 +295,13 @@ export default function EventsPage() {
 
       <div className={styles.workspace}>
         <aside className={styles.sidebar}>
-          <div className={styles.sidebarSection}>
+          <div className={[styles.sidebarSection, styles.sidebarIntro].join(" ")}>
             <p className={styles.sidebarEyebrow}>{t("events.filtersPanelLabel")}</p>
             <h2 className={styles.sidebarTitle}>{t("events.filtersPanelTitle")}</h2>
             <p className={styles.sidebarText}>{t("events.filtersPanelText")}</p>
           </div>
 
-          <div className={styles.sidebarSection}>
+          <div className={[styles.sidebarSection, styles.searchSection].join(" ")}>
             <label className={styles.filterLabel}>{t("events.searchPlaceholder")}</label>
             <input
               type="text"
@@ -312,7 +312,7 @@ export default function EventsPage() {
             />
           </div>
 
-          <div className={styles.sidebarSection}>
+          <div className={[styles.sidebarSection, styles.sortSection].join(" ")}>
             <label className={styles.filterLabel}>{t("events.sortBy")}</label>
             <SelectDropdown
               className={styles.sortSelect}
@@ -323,7 +323,7 @@ export default function EventsPage() {
             />
           </div>
 
-          <div className={styles.sidebarSection}>
+          <div className={[styles.sidebarSection, styles.priceSection].join(" ")}>
             <label className={styles.filterLabel}>{t("events.filterByPrice")}</label>
             <div className={styles.filterButtons}>
               <button
@@ -350,7 +350,7 @@ export default function EventsPage() {
             </div>
           </div>
 
-          <div className={styles.sidebarSection}>
+          <div className={[styles.sidebarSection, styles.availabilitySection].join(" ")}>
             <label className={styles.filterLabel}>{t("events.filterByAvailability")}</label>
             <div className={styles.filterButtons}>
               <button
@@ -377,7 +377,7 @@ export default function EventsPage() {
             </div>
           </div>
 
-          <div className={styles.sidebarSection}>
+          <div className={[styles.sidebarSection, styles.parkingSection].join(" ")}>
             <label className={styles.filterLabel}>{t("events.filterByParking")}</label>
             <div className={styles.filterButtons}>
               <button
@@ -426,6 +426,8 @@ export default function EventsPage() {
             <div className={styles.viewToggle} role="tablist" aria-label={t("events.viewMode")}>
               <button
                 type="button"
+                role="tab"
+                aria-selected={viewMode === "cards"}
                 className={`${styles.viewButton} ${viewMode === "cards" ? styles.viewButtonActive : ""}`}
                 onClick={() => setViewMode("cards")}
               >
@@ -433,6 +435,8 @@ export default function EventsPage() {
               </button>
               <button
                 type="button"
+                role="tab"
+                aria-selected={viewMode === "planning"}
                 className={`${styles.viewButton} ${viewMode === "planning" ? styles.viewButtonActive : ""}`}
                 onClick={() => setViewMode("planning")}
               >

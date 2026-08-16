@@ -9,6 +9,8 @@ import be.meetspace.service.AuditService;
 import be.meetspace.service.EmailService;
 import be.meetspace.service.PaymentLifecycleService;
 import be.meetspace.service.CancellationPolicyService;
+import be.meetspace.service.NotificationService;
+import be.meetspace.service.EventWaitlistService;
 import be.meetspace.web.dto.CancellationResponse;
 import be.meetspace.web.dto.EventRegistrationRequest;
 import be.meetspace.web.dto.EventRegistrationResponseDto;
@@ -35,6 +37,8 @@ public class EventRegistrationController {
     private final CancellationPolicyService cancellationPolicyService;
     private final AuditService auditService;
     private final EmailService emailService;
+    private final NotificationService notificationService;
+    private final EventWaitlistService eventWaitlistService;
 
     public EventRegistrationController(
             EventRegistrationRepository registrationRepository,
@@ -44,7 +48,9 @@ public class EventRegistrationController {
             PaymentLifecycleService paymentLifecycleService,
             CancellationPolicyService cancellationPolicyService,
             AuditService auditService,
-            EmailService emailService
+            EmailService emailService,
+            NotificationService notificationService,
+            EventWaitlistService eventWaitlistService
     ) {
         this.registrationRepository = registrationRepository;
         this.eventRepository = eventRepository;
@@ -54,6 +60,8 @@ public class EventRegistrationController {
         this.cancellationPolicyService = cancellationPolicyService;
         this.auditService = auditService;
         this.emailService = emailService;
+        this.notificationService = notificationService;
+        this.eventWaitlistService = eventWaitlistService;
     }
 
     @PostMapping("/register")
@@ -181,6 +189,11 @@ public class EventRegistrationController {
             emailService.sendParkingReservationConfirmation(savedParkingReservation);
         }
 
+        notificationService.create(user, NotificationTone.SUCCESS,
+                "Inscription confirmée",
+                "Votre inscription à " + event.getTitle() + " est confirmée.",
+                "/my-reservations?tab=events", "EventRegistration", saved.getId());
+        eventWaitlistService.markFulfilled(user, event);
         return EventRegistrationResponseDto.fromEntity(saved);
     }
 
@@ -250,6 +263,11 @@ public class EventRegistrationController {
         auditService.log(AuditAction.EVENT_REGISTRATION_CANCEL, "EventRegistration", registration.getId(),
                 String.format("Annulation inscription événement: %s", registration.getEvent().getTitle()),
                 oldStatus, "CANCELLED", ipAddress);
+        notificationService.create(user, NotificationTone.WARNING,
+                "Inscription annulée",
+                "Votre inscription à " + registration.getEvent().getTitle() + " a été annulée.",
+                "/my-reservations?tab=events", "EventRegistration", registration.getId());
+        eventWaitlistService.offerAvailablePlaces(registration.getEvent());
         return new CancellationResponse(
                 "CANCELLED",
                 decision.refundAmountCents(),
