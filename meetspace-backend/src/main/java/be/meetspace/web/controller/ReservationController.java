@@ -10,12 +10,14 @@ import be.meetspace.service.EmailService;
 import be.meetspace.service.PaymentLifecycleService;
 import be.meetspace.service.PaymentQuoteService;
 import be.meetspace.service.CancellationPolicyService;
+import be.meetspace.service.NotificationService;
 import be.meetspace.web.dto.CancellationResponse;
 import be.meetspace.web.dto.CalendarReservationDto;
 import be.meetspace.web.dto.CreateReservationRequest;
 import be.meetspace.web.dto.PayReservationRequest;
 import be.meetspace.web.dto.PremiumRoomReservationRequest;
 import be.meetspace.web.dto.ReservationResponseDto;
+import be.meetspace.web.dto.RescheduleReservationRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.List;
@@ -42,6 +45,7 @@ public class ReservationController {
     private final CancellationPolicyService cancellationPolicyService;
     private final AuditService auditService;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     public ReservationController(ReservationRepository reservationRepository,
                                  UserRepository userRepository,
@@ -51,7 +55,8 @@ public class ReservationController {
                                  PaymentQuoteService paymentQuoteService,
                                  CancellationPolicyService cancellationPolicyService,
                                  AuditService auditService,
-                                 EmailService emailService) {
+                                 EmailService emailService,
+                                 NotificationService notificationService) {
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
         this.espaceRepository = espaceRepository;
@@ -61,6 +66,7 @@ public class ReservationController {
         this.cancellationPolicyService = cancellationPolicyService;
         this.auditService = auditService;
         this.emailService = emailService;
+        this.notificationService = notificationService;
     }
 
     private void validateRoomWindow(Long espaceId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
@@ -148,6 +154,10 @@ public class ReservationController {
                 ipAddress);
 
         emailService.sendRoomReservationConfirmation(saved);
+        notificationService.create(user, NotificationTone.SUCCESS,
+                "Réservation confirmée",
+                "Votre réservation pour " + espace.getName() + " est confirmée.",
+                "/my-reservations?tab=spaces", "Reservation", saved.getId());
 
         return ReservationResponseDto.fromEntity(saved);
     }
@@ -202,6 +212,11 @@ public class ReservationController {
                         espace.getName(), espace.getId()),
                 ipAddress);
 
+        notificationService.create(user, NotificationTone.ACTION,
+                "Demande transmise",
+                "Votre demande pour " + espace.getName() + " attend la validation de l’administration.",
+                "/my-reservations?tab=spaces", "Reservation", saved.getId());
+
         return ReservationResponseDto.fromEntity(saved);
     }
 
@@ -250,6 +265,10 @@ public class ReservationController {
                 "APPROVED", "CONFIRMED", ipAddress);
 
         emailService.sendRoomReservationConfirmation(saved);
+        notificationService.create(user, NotificationTone.SUCCESS,
+                "Paiement confirmé",
+                "Votre réservation premium pour " + saved.getEspace().getName() + " est maintenant confirmée.",
+                "/my-reservations?tab=spaces", "Reservation", saved.getId());
 
         return ReservationResponseDto.fromEntity(saved);
     }
@@ -268,6 +287,84 @@ public class ReservationController {
         return reservations.stream()
                 .map(ReservationResponseDto::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping("/{id}")
+    public ReservationResponseDto getMyReservation(@PathVariable Long id, Authentication authentication) {
+        User user = requireCurrentUser(authentication);
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation introuvable"));
+
+        if (!reservation.getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acces refuse");
+        }
+        return ReservationResponseDto.fromEntity(reservation);
+    }
+
+    @PatchMapping("/{id}/schedule")
+    @Transactional
+    public ReservationResponseDto rescheduleReservation(
+            @PathVariable Long id,
+            @Valid @RequestBody RescheduleReservationRequest request,
+            Authentication authentication,
+            HttpServletRequest httpRequest
+    ) {
+        User user = requireCurrentUser(authentication);
+        Reservation reservation = reservationRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation introuvable"));
+
+        if (!reservation.getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vous ne pouvez pas modifier cette réservation");
+        }
+        if (reservation.getStatus() != ReservationStatus.CONFIRMED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Seule une réservation confirmée peut être modifiée");
+        }
+        if (reservation.getStartDateTime().isBefore(LocalDateTime.now().plusHours(24))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La modification est fermee moins de 24 heures avant le debut");
+        }
+        if (request.getStartDateTime().isBefore(LocalDateTime.now().plusHours(24))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Le nouveau creneau doit commencer dans plus de 24 heures");
+        }
+        if (!request.getEndDateTime().isAfter(request.getStartDateTime())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La date de fin doit etre apres la date de debut");
+        }
+
+        Duration previousDuration = Duration.between(reservation.getStartDateTime(), reservation.getEndDateTime());
+        Duration requestedDuration = Duration.between(request.getStartDateTime(), request.getEndDateTime());
+        if (!previousDuration.equals(requestedDuration)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La duree ne peut pas etre modifiee apres paiement");
+        }
+
+        boolean hasReservationOverlap = reservationRepository.existsOverlappingReservationExcludingId(
+                reservation.getEspace().getId(), reservation.getId(),
+                request.getStartDateTime(), request.getEndDateTime());
+        boolean hasEventOverlap = eventRepository.existsOverlappingEventForSpace(
+                reservation.getEspace().getId(), request.getStartDateTime(), request.getEndDateTime(), null);
+        if (hasReservationOverlap || hasEventOverlap) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cet espace est deja occupe sur ce creneau. Merci de choisir un autre horaire.");
+        }
+
+        LocalDateTime previousStart = reservation.getStartDateTime();
+        LocalDateTime previousEnd = reservation.getEndDateTime();
+        reservation.setStartDateTime(request.getStartDateTime());
+        reservation.setEndDateTime(request.getEndDateTime());
+        Reservation saved = reservationRepository.save(reservation);
+
+        String ipAddress = AuditService.getClientIpAddress(httpRequest);
+        auditService.log(AuditAction.RESERVATION_UPDATE, "Reservation", saved.getId(),
+                String.format("Creneau modifie: %s - %s vers %s - %s",
+                        previousStart, previousEnd, saved.getStartDateTime(), saved.getEndDateTime()),
+                ipAddress);
+        emailService.sendRoomReservationConfirmation(saved);
+        notificationService.create(user, NotificationTone.INFO,
+                "Créneau modifié",
+                "Le nouveau créneau de " + saved.getEspace().getName() + " a été enregistré.",
+                "/my-reservations?tab=spaces", "Reservation", saved.getId());
+        return ReservationResponseDto.fromEntity(saved);
     }
 
     @GetMapping("/user/{userId}")
@@ -380,12 +477,24 @@ public class ReservationController {
         auditService.log(AuditAction.RESERVATION_CANCEL, "Reservation", reservation.getId(),
                 String.format("Annulation reservation espace: %s", reservation.getEspace().getName()),
                 oldStatus, "CANCELLED", ipAddress);
+        notificationService.create(user, NotificationTone.WARNING,
+                "Réservation annulée",
+                "La réservation de " + reservation.getEspace().getName() + " a été annulée.",
+                "/my-reservations?tab=spaces", "Reservation", reservation.getId());
         return new CancellationResponse(
                 "CANCELLED",
                 decision.refundAmountCents(),
                 decision.refundPercent(),
                 decision.explanation()
         );
+    }
+
+    private User requireCurrentUser(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecte");
+        }
+        return userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
     }
 }
 

@@ -6,6 +6,7 @@ import be.meetspace.repository.ParkingReservationRepository;
 import be.meetspace.repository.ReservationRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
+import be.meetspace.service.NotificationService;
 import be.meetspace.web.dto.AdminReservationDto;
 import be.meetspace.web.dto.AdminSpaceReservationDto;
 import be.meetspace.web.dto.AdminEventRegistrationDto;
@@ -34,19 +35,22 @@ public class AdminReservationsController {
     private final ParkingReservationRepository parkingReservationRepository;
     private final UserRepository userRepository;
     private final AuditService auditService;
+    private final NotificationService notificationService;
 
     public AdminReservationsController(
             ReservationRepository reservationRepository,
             EventRegistrationRepository eventRegistrationRepository,
             ParkingReservationRepository parkingReservationRepository,
             UserRepository userRepository,
-            AuditService auditService
+            AuditService auditService,
+            NotificationService notificationService
     ) {
         this.reservationRepository = reservationRepository;
         this.eventRegistrationRepository = eventRegistrationRepository;
         this.parkingReservationRepository = parkingReservationRepository;
         this.userRepository = userRepository;
         this.auditService = auditService;
+        this.notificationService = notificationService;
     }
 
     @GetMapping("/all")
@@ -178,6 +182,17 @@ public class AdminReservationsController {
         }
 
         Reservation saved = reservationRepository.save(reservation);
+        if (request.getApproved()) {
+            notificationService.create(saved.getUser(), NotificationTone.ACTION,
+                    "Demande approuvée",
+                    "Votre demande pour " + saved.getEspace().getName() + " est approuvée. Le paiement reste à finaliser.",
+                    "/my-reservations?tab=spaces", "Reservation", saved.getId());
+        } else {
+            notificationService.create(saved.getUser(), NotificationTone.WARNING,
+                    "Demande refusée",
+                    "Votre demande pour " + saved.getEspace().getName() + " n’a pas été retenue.",
+                    "/my-reservations?tab=spaces", "Reservation", saved.getId());
+        }
         return ReservationResponseDto.fromEntity(saved);
     }
 }

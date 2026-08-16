@@ -481,7 +481,13 @@
   }
 
   .quantityPanel {
-    grid-template-columns: 1fr;
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
+    gap: 0.55rem;
+  }
+
+  .quantityButton {
+    min-width: 48px;
+    min-height: 48px;
   }
 
   .summaryImage {

@@ -268,12 +268,13 @@ export default function ParkingReservePage() {
               </button>
             </div>
 
-            <div className={styles.quickSelection} aria-label={t("parking.quickSelection")}>
+            <div className={styles.quickSelection} role="group" aria-label={t("parking.quickSelection")}>
               {quickSpaceOptions.map((option) => (
                 <button
                   type="button"
                   key={option}
                   className={reservedSpaces === option ? styles.quickSelectionActive : ""}
+                  aria-pressed={reservedSpaces === option}
                   onClick={() => handleReservedSpacesChange(option)}
                   disabled={maxReservableSpaces <= 0}
                 >

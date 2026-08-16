@@ -35,6 +35,7 @@ export default function RoomSchedulePicker({
   endDateTime,
   onChange,
   ignoreBlockId,
+  lockedDuration,
 }) {
   const { t, i18n } = useTranslation();
   const initialDate = startDateTime ? new Date(startDateTime) : new Date();
@@ -49,7 +50,8 @@ export default function RoomSchedulePicker({
   const selectedStartHour = getHourFromDateTime(startDateTime);
   const selectedEndHour = getHourFromDateTime(endDateTime);
   const selectedDate = startDateTime?.slice(0, 10) || manualSelectedDate;
-  const duration = durationOverride ?? getDuration(startDateTime, endDateTime);
+  const duration = lockedDuration ?? durationOverride ?? getDuration(startDateTime, endDateTime);
+  const durationOptions = lockedDuration ? [lockedDuration] : DURATIONS;
   const reservationKey = `${spaceId || "none"}-${year}-${month}`;
   const reservations = useMemo(
     () => (reservationBucket.key === reservationKey ? reservationBucket.items : []),
@@ -356,13 +358,13 @@ export default function RoomSchedulePicker({
           <div className={styles.durationGroup}>
             <span>{t("calendar.duration")}</span>
             <div>
-              {DURATIONS.map((item) => (
+              {durationOptions.map((item) => (
                 <button
                   type="button"
                   key={item}
                   className={item === duration ? styles.durationActive : ""}
                   disabled={!calendarReady}
-                  onClick={() => handleDurationChange(item)}
+                  onClick={() => !lockedDuration && handleDurationChange(item)}
                 >
                   {item}h
                 </button>

@@ -602,3 +602,45 @@
   border-color: var(--brand);
   background: var(--brand-soft);
 }
+
+.scheduleButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 38px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--brand);
+  border-radius: var(--radius-sm);
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.scheduleButton:hover,
+.scheduleButton:focus-visible {
+  background: var(--brand);
+  color: white;
+}
+
+.receiptButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 38px;
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.receiptButton:hover,
+.receiptButton:focus-visible {
+  border-color: var(--brand);
+  color: var(--brand-strong);
+}

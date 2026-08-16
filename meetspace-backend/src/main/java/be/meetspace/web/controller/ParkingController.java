@@ -8,6 +8,7 @@ import be.meetspace.service.AuditService;
 import be.meetspace.service.EmailService;
 import be.meetspace.service.PaymentLifecycleService;
 import be.meetspace.service.CancellationPolicyService;
+import be.meetspace.service.NotificationService;
 import be.meetspace.web.dto.CancellationResponse;
 import be.meetspace.web.dto.ParkingReservationRequest;
 import be.meetspace.web.dto.ParkingReservationResponseDto;
@@ -35,6 +36,7 @@ public class ParkingController {
     private final CancellationPolicyService cancellationPolicyService;
     private final AuditService auditService;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     public ParkingController(ParkingSlotRepository sessionRepository,
                               ParkingReservationRepository reservationRepository,
@@ -42,7 +44,8 @@ public class ParkingController {
                               PaymentLifecycleService paymentLifecycleService,
                               CancellationPolicyService cancellationPolicyService,
                               AuditService auditService,
-                              EmailService emailService) {
+                              EmailService emailService,
+                              NotificationService notificationService) {
         this.sessionRepository = sessionRepository;
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
@@ -50,6 +53,7 @@ public class ParkingController {
         this.cancellationPolicyService = cancellationPolicyService;
         this.auditService = auditService;
         this.emailService = emailService;
+        this.notificationService = notificationService;
     }
 
     @GetMapping("/sessions")
@@ -129,6 +133,10 @@ public class ParkingController {
 
         emailService.sendParkingReservationConfirmation(saved);
 
+        notificationService.create(user, NotificationTone.SUCCESS,
+                "Parking confirmé",
+                "Votre réservation parking pour " + session.getTitle() + " est confirmée.",
+                "/my-reservations?tab=parking", "ParkingReservation", saved.getId());
         return ParkingReservationResponseDto.fromEntity(saved);
     }
 
@@ -195,6 +203,10 @@ public class ParkingController {
         auditService.log(AuditAction.PARKING_RESERVATION_CANCEL, "ParkingReservation", reservation.getId(),
                 String.format("Annulation réservation parking: %s", reservation.getParkingSlot().getTitle()),
                 oldStatus, "CANCELLED", ipAddress);
+        notificationService.create(user, NotificationTone.WARNING,
+                "Parking annulé",
+                "Votre réservation parking pour " + reservation.getParkingSlot().getTitle() + " a été annulée.",
+                "/my-reservations?tab=parking", "ParkingReservation", reservation.getId());
         return new CancellationResponse(
                 "CANCELLED",
                 decision.refundAmountCents(),

@@ -6,6 +6,8 @@ import {
   payApprovedReservation,
   getMyEventRegistrations,
   cancelEventRegistration,
+  getMyEventWaitlist,
+  leaveEventWaitlist,
   getMyParkingReservations,
   cancelParkingReservation,
 } from "../services/api";
@@ -70,6 +72,7 @@ export default function MyReservationsPage() {
   const [processingPayment, setProcessingPayment] = useState(false);
 
   const [eventRegistrations, setEventRegistrations] = useState([]);
+  const [eventWaitlist, setEventWaitlist] = useState([]);
 
   const [parkingReservations, setParkingReservations] = useState([]);
   const [selectedDay, setSelectedDay] = useState("");
@@ -103,10 +106,11 @@ export default function MyReservationsPage() {
     setPartialErrors({});
 
     try {
-      const [spacesResult, eventsResult, parkingResult] = await Promise.allSettled([
+      const [spacesResult, eventsResult, parkingResult, waitlistResult] = await Promise.allSettled([
         getMyReservations(token),
         getMyEventRegistrations(token),
         getMyParkingReservations(token),
+        getMyEventWaitlist(token),
       ]);
 
       const nextErrors = {};
@@ -138,9 +142,15 @@ export default function MyReservationsPage() {
           t("reservation.loadParkingError", { defaultValue: "Impossible de charger les réservations parking." });
       }
 
+      if (waitlistResult.status === "fulfilled") {
+        setEventWaitlist(waitlistResult.value);
+      } else {
+        setEventWaitlist([]);
+      }
+
       setPartialErrors(nextErrors);
 
-      if ([spacesResult, eventsResult, parkingResult].every((result) => result.status === "rejected")) {
+      if ([spacesResult, eventsResult, parkingResult, waitlistResult].every((result) => result.status === "rejected")) {
         setError(t("reservation.loadAllError", { defaultValue: "Impossible de charger vos réservations." }));
       }
     } finally {
@@ -236,6 +246,30 @@ export default function MyReservationsPage() {
     }
   };
 
+  const handleLeaveWaitlist = async (entry) => {
+    const accepted = await confirm({
+      title: t("events.leaveWaitlistTitle", { defaultValue: "Quitter la liste d’attente ?" }),
+      message: t("events.leaveWaitlistMessage", { defaultValue: "Vous ne serez plus prévenu si une place se libère." }),
+      confirmLabel: t("events.leaveWaitlist", { defaultValue: "Quitter la liste" }),
+      cancelLabel: t("common.cancel"),
+      tone: "danger",
+    });
+    if (!accepted) return;
+    try {
+      await leaveEventWaitlist(entry.id, token);
+      setEventWaitlist((current) => current.map((item) =>
+        item.id === entry.id ? { ...item, status: "CANCELLED" } : item
+      ));
+      notify({
+        type: "success",
+        title: t("events.waitlistLeft", { defaultValue: "Liste d’attente quittée" }),
+        message: entry.eventTitle,
+      });
+    } catch (err) {
+      notify({ type: "error", title: t("common.error"), message: err.message });
+    }
+  };
+
   const handleCancelParkingReservation = async (reservation) => {
     const startsAt = `${reservation.slotDate}T${reservation.startTime || "00:00"}`;
     const preview = getCancellationPreview(startsAt, reservation.totalPrice);
@@ -270,6 +304,8 @@ export default function MyReservationsPage() {
     const map = {
       CONFIRMED: styles.statusConfirmed,
       PENDING_APPROVAL: styles.statusPending,
+      WAITING: styles.statusPending,
+      OFFERED: styles.statusApproved,
       APPROVED: styles.statusApproved,
       CANCELLED: styles.statusCancelled,
       REJECTED: styles.statusRejected,
@@ -310,7 +346,8 @@ export default function MyReservationsPage() {
   const activeDay = groupedDays.find((day) => day.dateKey === selectedDay) || groupedDays[0];
   const approvedSpaceReservations = spaceReservations.filter((r) => r.status === "APPROVED");
   const otherSpaceReservations = spaceReservations.filter((r) => r.status !== "APPROVED");
-  const totalReservations = spaceReservations.length + eventRegistrations.length + parkingReservations.length;
+  const activeEventWaitlist = eventWaitlist.filter((entry) => ["WAITING", "OFFERED"].includes(entry.status));
+  const totalReservations = spaceReservations.length + eventRegistrations.length + parkingReservations.length + activeEventWaitlist.length;
   const formattedTotalReservations = formatNumber(totalReservations, locale);
   const activeReservations = dayItems.length;
   const committedAmount = [...spaceReservations, ...eventRegistrations, ...parkingReservations]
@@ -389,10 +426,19 @@ export default function MyReservationsPage() {
         <div><span>{t("reservation.committedAmount", { defaultValue: "Montant engagé" })}</span><strong>{formatMoney(committedAmount, locale)}</strong></div>
       </div>
 
-      <div className={styles.tabs}>
+      <div
+        className={styles.tabs}
+        role="tablist"
+        aria-label={t("reservation.categories", { defaultValue: "Catégories de réservations" })}
+      >
         {tabs.map((tab) => (
           <button
+            type="button"
             key={tab.id}
+            id={`reservations-tab-${tab.id}`}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={`reservations-panel-${tab.id}`}
             className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ""}`}
             onClick={() => setActiveTab(tab.id)}
           >
@@ -410,7 +456,7 @@ export default function MyReservationsPage() {
       )}
 
       {activeTab === "day" && (
-        <div className={styles.tabContent}>
+        <div className={styles.tabContent} role="tabpanel" id="reservations-panel-day" aria-labelledby="reservations-tab-day" tabIndex={0}>
           {groupedDays.length === 0 ? (
             <PageState
               type="empty"
@@ -486,7 +532,7 @@ export default function MyReservationsPage() {
       )}
 
       {activeTab === "spaces" && (
-        <div className={styles.tabContent}>
+        <div className={styles.tabContent} role="tabpanel" id="reservations-panel-spaces" aria-labelledby="reservations-tab-spaces" tabIndex={0}>
           {approvedSpaceReservations.length > 0 && (
             <div className={styles.approvedSection}>
               <h2 className={styles.sectionTitle}>{t("reservation.awaitingPayment")}</h2>
@@ -534,6 +580,8 @@ export default function MyReservationsPage() {
                 {otherSpaceReservations.map((r) => {
                   const isPast = new Date(r.startDateTime) < new Date();
                   const canCancel = !isPast && r.status !== "CANCELLED" && r.status !== "REJECTED";
+                  const canReschedule = r.status === "CONFIRMED"
+                    && new Date(r.startDateTime).getTime() > Date.now() + 24 * 60 * 60 * 1000;
                   return (
                     <ReservationRecord
                       key={r.id}
@@ -549,19 +597,29 @@ export default function MyReservationsPage() {
                       statusClass={getStatusClass(r.status)}
                       action={(
                         <div className={styles.recordActionGroup}>
+                          {canReschedule && (
+                            <Link to={`/reservations/${r.id}/edit`} className={styles.scheduleButton}>
+                              {t("reservation.reschedule", { defaultValue: "Modifier le créneau" })}
+                            </Link>
+                          )}
                           {r.status === "CONFIRMED" && (
-                            <button
-                              type="button"
-                              className={styles.calendarButton}
-                              onClick={() => addToCalendar({
-                                title: r.espace?.name || r.espaceName,
-                                description: t("detail.roomCalendarDescription", { defaultValue: "Réservation de salle MeetSpace" }),
-                                start: r.startDateTime,
-                                end: r.endDateTime,
-                              })}
-                            >
-                              {t("detail.addToCalendar", { defaultValue: "Ajouter au calendrier" })}
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                className={styles.calendarButton}
+                                onClick={() => addToCalendar({
+                                  title: r.espace?.name || r.espaceName,
+                                  description: t("detail.roomCalendarDescription", { defaultValue: "Réservation de salle MeetSpace" }),
+                                  start: r.startDateTime,
+                                  end: r.endDateTime,
+                                })}
+                              >
+                                {t("detail.addToCalendar", { defaultValue: "Ajouter au calendrier" })}
+                              </button>
+                              <Link to={`/receipts/room/${r.id}`} className={styles.receiptButton}>
+                                {t("receipt.open", { defaultValue: "Ouvrir le justificatif" })}
+                              </Link>
+                            </>
                           )}
                           {canCancel
                             ? <button onClick={() => handleCancelSpace(r)} className={styles.cancelButton}>{t("reservation.cancel")}</button>
@@ -578,8 +636,36 @@ export default function MyReservationsPage() {
       )}
 
       {activeTab === "events" && (
-        <div className={styles.tabContent}>
-          {eventRegistrations.length === 0 ? (
+        <div className={styles.tabContent} role="tabpanel" id="reservations-panel-events" aria-labelledby="reservations-tab-events" tabIndex={0}>
+          {activeEventWaitlist.length > 0 && (
+            <section className={styles.approvedSection}>
+              <h2 className={styles.sectionTitle}>{t("events.waitlistTitle", { defaultValue: "Listes d’attente" })}</h2>
+              <p className={styles.sectionDesc}>{t("events.waitlistDescription", { defaultValue: "MeetSpace vous prévient dès qu’une place compatible avec votre demande se libère." })}</p>
+              <div className={styles.approvedList}>
+                {activeEventWaitlist.map((entry) => (
+                  <ReservationRecord
+                    key={`waitlist-${entry.id}`}
+                    eyebrow={t("events.waitlist", { defaultValue: "Liste d’attente" })}
+                    title={entry.eventTitle}
+                    details={[
+                      { label: t("common.date"), value: formatDate(new Date(entry.eventStartDateTime), locale) },
+                      { label: t("events.participants"), value: formatNumber(entry.participantCount, locale) },
+                    ]}
+                    amount="—"
+                    status={entry.status}
+                    statusLabel={entry.status === "OFFERED"
+                      ? t("events.placeAvailable", { defaultValue: "Place disponible" })
+                      : t("events.waiting", { defaultValue: "En attente" })}
+                    statusClass={getStatusClass(entry.status)}
+                    action={entry.status === "OFFERED"
+                      ? <Link to={`/events/register/${entry.eventId}`} className={styles.scheduleButton}>{t("events.completeRegistration", { defaultValue: "Finaliser l’inscription" })}</Link>
+                      : <button type="button" onClick={() => handleLeaveWaitlist(entry)} className={styles.cancelButton}>{t("events.leaveWaitlist", { defaultValue: "Quitter la liste" })}</button>}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+          {eventRegistrations.length === 0 && activeEventWaitlist.length === 0 ? (
             <PageState
               type="empty"
               title={t("events.noRegistrations")}
@@ -607,18 +693,23 @@ export default function MyReservationsPage() {
                     action={(
                       <div className={styles.recordActionGroup}>
                         {r.status === "CONFIRMED" && (
-                          <button
-                            type="button"
-                            className={styles.calendarButton}
-                            onClick={() => addToCalendar({
-                              title: r.eventTitle,
-                              description: t("detail.eventCalendarDescription", { defaultValue: "Inscription à un événement MeetSpace" }),
-                              start: r.eventStartDateTime,
-                              end: r.eventEndDateTime,
-                            })}
-                          >
-                            {t("detail.addToCalendar", { defaultValue: "Ajouter au calendrier" })}
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              className={styles.calendarButton}
+                              onClick={() => addToCalendar({
+                                title: r.eventTitle,
+                                description: t("detail.eventCalendarDescription", { defaultValue: "Inscription à un événement MeetSpace" }),
+                                start: r.eventStartDateTime,
+                                end: r.eventEndDateTime,
+                              })}
+                            >
+                              {t("detail.addToCalendar", { defaultValue: "Ajouter au calendrier" })}
+                            </button>
+                            <Link to={`/receipts/event/${r.id}`} className={styles.receiptButton}>
+                              {t("receipt.open", { defaultValue: "Ouvrir le justificatif" })}
+                            </Link>
+                          </>
                         )}
                         {canCancel
                           ? <button onClick={() => handleCancelEvent(r)} className={styles.cancelButton}>{t("events.cancelRegistration")}</button>
@@ -634,7 +725,7 @@ export default function MyReservationsPage() {
       )}
 
       {activeTab === "parking" && (
-        <div className={styles.tabContent}>
+        <div className={styles.tabContent} role="tabpanel" id="reservations-panel-parking" aria-labelledby="reservations-tab-parking" tabIndex={0}>
           {parkingReservations.length === 0 ? (
             <PageState
               type="empty"
@@ -664,18 +755,23 @@ export default function MyReservationsPage() {
                     action={(
                       <div className={styles.recordActionGroup}>
                         {r.status === "CONFIRMED" && (
-                          <button
-                            type="button"
-                            className={styles.calendarButton}
-                            onClick={() => addToCalendar({
-                              title: r.parkingSlotTitle || t("nav.parking"),
-                              description: t("detail.parkingCalendarDescription", { defaultValue: "Réservation parking MeetSpace" }),
-                              start: `${r.slotDate}T${r.startTime}`,
-                              end: `${r.slotDate}T${r.endTime}`,
-                            })}
-                          >
-                            {t("detail.addToCalendar", { defaultValue: "Ajouter au calendrier" })}
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              className={styles.calendarButton}
+                              onClick={() => addToCalendar({
+                                title: r.parkingSlotTitle || t("nav.parking"),
+                                description: t("detail.parkingCalendarDescription", { defaultValue: "Réservation parking MeetSpace" }),
+                                start: `${r.slotDate}T${r.startTime}`,
+                                end: `${r.slotDate}T${r.endTime}`,
+                              })}
+                            >
+                              {t("detail.addToCalendar", { defaultValue: "Ajouter au calendrier" })}
+                            </button>
+                            <Link to={`/receipts/parking/${r.id}`} className={styles.receiptButton}>
+                              {t("receipt.open", { defaultValue: "Ouvrir le justificatif" })}
+                            </Link>
+                          </>
                         )}
                         {canCancel
                           ? <button onClick={() => handleCancelParkingReservation(r)} className={styles.cancelButton}>{t("parking.cancelReservation")}</button>

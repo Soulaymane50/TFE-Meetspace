@@ -3,6 +3,7 @@ package be.meetspace.web.controller;
 import be.meetspace.entity.AuditAction;
 import be.meetspace.entity.Event;
 import be.meetspace.entity.EventStatus;
+import be.meetspace.entity.NotificationTone;
 import be.meetspace.entity.User;
 import be.meetspace.repository.EventRegistrationRepository;
 import be.meetspace.repository.EventRepository;
@@ -10,6 +11,7 @@ import be.meetspace.repository.ParkingReservationRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
 import be.meetspace.service.EventPlanningService;
+import be.meetspace.service.NotificationService;
 import be.meetspace.web.dto.EventApprovalDto;
 import be.meetspace.web.dto.EventRequestDto;
 import be.meetspace.web.dto.EventResponseDto;
@@ -34,6 +36,7 @@ public class AdminEventController {
     private final UserRepository userRepository;
     private final EventPlanningService eventPlanningService;
     private final AuditService auditService;
+    private final NotificationService notificationService;
 
     public AdminEventController(
             EventRepository eventRepository,
@@ -41,7 +44,8 @@ public class AdminEventController {
             ParkingReservationRepository parkingReservationRepository,
             UserRepository userRepository,
             EventPlanningService eventPlanningService,
-            AuditService auditService
+            AuditService auditService,
+            NotificationService notificationService
     ) {
         this.eventRepository = eventRepository;
         this.registrationRepository = registrationRepository;
@@ -49,6 +53,7 @@ public class AdminEventController {
         this.userRepository = userRepository;
         this.eventPlanningService = eventPlanningService;
         this.auditService = auditService;
+        this.notificationService = notificationService;
     }
 
     @GetMapping
@@ -163,6 +168,16 @@ public class AdminEventController {
                 ? String.format("Approbation événement: %s", saved.getTitle())
                 : String.format("Rejet événement: %s - Raison: %s", saved.getTitle(), dto.getRejectionReason());
         auditService.log(action, "Event", saved.getId(), details, oldStatus, saved.getStatus().name(), ipAddress);
+
+        if (saved.getCreatedBy() != null) {
+            notificationService.create(saved.getCreatedBy(),
+                    dto.isApproved() ? NotificationTone.SUCCESS : NotificationTone.WARNING,
+                    dto.isApproved() ? "Événement publié" : "Événement refusé",
+                    dto.isApproved()
+                            ? saved.getTitle() + " est maintenant visible dans le catalogue."
+                            : saved.getTitle() + " doit être corrigé avant publication.",
+                    "/organizer/events", "Event", saved.getId());
+        }
 
         int registered = registrationRepository.countTotalParticipantsByEventId(saved.getId());
         return EventResponseDto.fromEntity(event, registered);

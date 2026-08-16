@@ -1,0 +1,112 @@
+.container {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.65fr);
+  gap: 2rem;
+  align-items: end;
+  padding: 1rem 0 1.4rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+}
+
+.header p {
+  margin: 0 0 0.35rem;
+  color: var(--brand-strong);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  letter-spacing: -0.055em;
+}
+
+.header span {
+  display: block;
+  max-width: 62ch;
+  margin-top: 0.55rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.header dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-block: 1px solid var(--border);
+}
+
+.header dl div {
+  padding: 0.8rem;
+}
+
+.header dl div + div {
+  border-left: 1px solid var(--border);
+}
+
+.header dt {
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.header dd {
+  margin: 0.2rem 0 0;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.actions a,
+.actions button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.actions button {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: white;
+}
+
+@media (max-width: 800px) {
+  .header { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 620px) {
+  .container { width: calc(100% - 1rem); }
+  .header dl { grid-template-columns: 1fr; }
+  .header dl div + div { border-top: 1px solid var(--border); border-left: 0; }
+  .actions { display: grid; }
+  .actions a, .actions button { justify-content: center; }
+}
