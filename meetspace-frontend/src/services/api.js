@@ -1,3 +1,5 @@
+import { signalSessionExpired } from "../utils/authSession";
+
 const API_URL = import.meta.env.VITE_API_URL || "";
 
 export function authHeaders(token) {
@@ -7,6 +9,7 @@ export function authHeaders(token) {
 function enrichApiError(error, response) {
   error.status = response.status;
   error.requestId = response.headers.get("X-Request-Id") || "";
+  if (response.status === 401) signalSessionExpired();
   return error;
 }
 
@@ -262,7 +265,7 @@ async function fetchAdminParkingSlotsResponse(token) {
   const res = await fetch(`${API_URL}/api/admin/parking/sessions`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération sessions (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur récupération sessions (admin)");
   return res.json();
 }
 
@@ -270,7 +273,7 @@ async function fetchAdminParkingSlotResponse(id, token) {
   const res = await fetch(`${API_URL}/api/admin/parking/sessions/${id}`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Session introuvable");
+  if (!res.ok) await throwApiError(res, "Session introuvable");
   return res.json();
 }
 
@@ -283,7 +286,7 @@ async function postAdminParkingSlot(payload, token) {
     },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error("Erreur création session (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur création session (admin)");
   return res.json();
 }
 
@@ -296,7 +299,7 @@ async function putAdminParkingSlot(id, payload, token) {
     },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error("Erreur modification session (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur modification session (admin)");
   return res.json();
 }
 
@@ -305,14 +308,14 @@ async function deleteAdminParkingSlotRequest(id, token) {
     method: "DELETE",
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur suppression session (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur suppression session (admin)");
 }
 
 async function fetchAdminParkingReservationsResponse(token) {
   const res = await fetch(`${API_URL}/api/admin/reservations/parking`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération réservations parking (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur récupération réservations parking (admin)");
   return res.json();
 }
 
@@ -665,7 +668,7 @@ export async function adminGetEspaces(token) {
   const res = await fetch(`${API_URL}/api/admin/espaces`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération espaces (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur récupération espaces (admin)");
   return res.json();
 }
 
@@ -673,7 +676,7 @@ export async function adminGetEspace(id, token) {
   const res = await fetch(`${API_URL}/api/admin/espaces/${id}`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Espace introuvable");
+  if (!res.ok) await throwApiError(res, "Espace introuvable");
   return res.json();
 }
 
@@ -686,7 +689,7 @@ export async function adminCreateEspace(data, token) {
     },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Erreur création espace (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur création espace (admin)");
   return res.json();
 }
 
@@ -699,7 +702,7 @@ export async function adminUpdateEspace(id, data, token) {
     },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Erreur modification espace (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur modification espace (admin)");
   return res.json();
 }
 
@@ -708,14 +711,14 @@ export async function adminDeleteEspace(id, token) {
     method: "DELETE",
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur suppression espace (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur suppression espace (admin)");
 }
 
 export async function adminGetEvents(token) {
   const res = await fetch(`${API_URL}/api/admin/events`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération événements (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur récupération événements (admin)");
   const events = await res.json();
   return events.map(normalizeEvent);
 }
@@ -729,7 +732,7 @@ export async function adminCreateEvent(data, token) {
     },
     body: JSON.stringify(serializeEventPayload(data)),
   });
-  if (!res.ok) throw new Error("Erreur création événement (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur création événement (admin)");
   return res.json();
 }
 
@@ -742,7 +745,7 @@ export async function adminUpdateEvent(id, data, token) {
     },
     body: JSON.stringify(serializeEventPayload(data)),
   });
-  if (!res.ok) throw new Error("Erreur modification événement (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur modification événement (admin)");
   return res.json();
 }
 
@@ -751,7 +754,7 @@ export async function adminDeleteEvent(id, token) {
     method: "DELETE",
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur suppression événement (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur suppression événement (admin)");
 }
 
 export async function adminGetParkingSlots(token) {
@@ -780,7 +783,7 @@ export async function adminGetAllReservations(token) {
   const res = await fetch(`${API_URL}/api/admin/reservations/all`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération réservations (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur récupération réservations (admin)");
   return res.json();
 }
 
@@ -788,7 +791,7 @@ export async function adminGetAllSpaceReservations(token) {
   const res = await fetch(`${API_URL}/api/admin/reservations/spaces`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération réservations espaces (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur récupération réservations espaces (admin)");
   return res.json();
 }
 
@@ -796,7 +799,7 @@ export async function adminGetAllEventRegistrations(token) {
   const res = await fetch(`${API_URL}/api/admin/reservations/events`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération inscriptions événements (admin)");
+  if (!res.ok) await throwApiError(res, "Erreur récupération inscriptions événements (admin)");
   return res.json();
 }
 
@@ -890,7 +893,7 @@ export async function organizerGetMyEvents(token) {
   const res = await fetch(`${API_URL}/api/organizer/events/my`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération événements");
+  if (!res.ok) await throwApiError(res, "Erreur récupération événements");
   const events = await res.json();
   return events.map(normalizeEvent);
 }
@@ -915,7 +918,7 @@ export async function organizerGetMyEvent(id, token) {
   const res = await fetch(`${API_URL}/api/organizer/events/my/${id}`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Événement introuvable");
+  if (!res.ok) await throwApiError(res, "Événement introuvable");
   const event = await res.json();
   return normalizeEvent(event);
 }
@@ -941,7 +944,7 @@ export async function organizerCancelMyEvent(id, token) {
     method: "DELETE",
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur annulation événement");
+  if (!res.ok) await throwApiError(res, "Erreur annulation événement");
 }
 
 export async function adminGetPendingEvents(token) {
@@ -961,7 +964,7 @@ export async function adminApproveEvent(id, approved, rejectionReason, token) {
     },
     body: JSON.stringify({ approved, rejectionReason }),
   });
-  if (!res.ok) throw new Error("Erreur approbation événement");
+  if (!res.ok) await throwApiError(res, "Erreur approbation événement");
   return res.json();
 }
 
@@ -982,7 +985,7 @@ export async function adminUpdateUserRole(id, role, token) {
     },
     body: JSON.stringify({ role }),
   });
-  if (!res.ok) throw new Error("Erreur modification rôle utilisateur");
+  if (!res.ok) await throwApiError(res, "Erreur modification rôle utilisateur");
   return res.json();
 }
 
@@ -995,7 +998,7 @@ export async function adminUpdateUserStatus(id, status, token) {
     },
     body: JSON.stringify({ status }),
   });
-  if (!res.ok) throw new Error("Erreur modification statut utilisateur");
+  if (!res.ok) await throwApiError(res, "Erreur modification statut utilisateur");
   return res.json();
 }
 
@@ -1004,7 +1007,7 @@ export async function adminBanUser(id, token) {
     method: "POST",
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur lors du bannissement de l'utilisateur");
+  if (!res.ok) await throwApiError(res, "Erreur lors du bannissement de l'utilisateur");
   return res.json();
 }
 
@@ -1013,7 +1016,7 @@ export async function adminReactivateUser(id, token) {
     method: "POST",
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur lors de la réactivation de l'utilisateur");
+  if (!res.ok) await throwApiError(res, "Erreur lors de la réactivation de l'utilisateur");
   return res.json();
 }
 
@@ -1021,7 +1024,7 @@ export async function adminGetUserDetails(id, token) {
   const res = await fetch(`${API_URL}/api/admin/users/${id}/details`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération détails utilisateur");
+  if (!res.ok) await throwApiError(res, "Erreur récupération détails utilisateur");
   const userDetails = await res.json();
   return normalizeUserDetails(userDetails);
 }
@@ -1083,7 +1086,7 @@ export async function adminGetAuditLogs(token, page = 0, size = 20) {
   const res = await fetch(`${API_URL}/api/admin/audit?page=${page}&size=${size}`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération logs d'audit");
+  if (!res.ok) await throwApiError(res, "Erreur récupération logs d'audit");
   return res.json();
 }
 
@@ -1098,7 +1101,7 @@ export async function adminGetAuditLogsFiltered(token, filters = {}, page = 0, s
   const res = await fetch(`${API_URL}/api/admin/audit/filter?${params}`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération logs d'audit filtrés");
+  if (!res.ok) await throwApiError(res, "Erreur récupération logs d'audit filtrés");
   return res.json();
 }
 
@@ -1106,7 +1109,7 @@ export async function adminGetAuditActions(token) {
   const res = await fetch(`${API_URL}/api/admin/audit/actions`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération actions d'audit");
+  if (!res.ok) await throwApiError(res, "Erreur récupération actions d'audit");
   return res.json();
 }
 
@@ -1114,6 +1117,6 @@ export async function adminGetAuditEntityTypes(token) {
   const res = await fetch(`${API_URL}/api/admin/audit/entity-types`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Erreur récupération types d'entités");
+  if (!res.ok) await throwApiError(res, "Erreur récupération types d'entités");
   return res.json();
 }
