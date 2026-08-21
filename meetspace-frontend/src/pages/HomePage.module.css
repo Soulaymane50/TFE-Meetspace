@@ -114,12 +114,12 @@
 
 .hero .primaryCta {
   background: var(--accent);
-  color: #fff;
+  color: var(--text-on-accent);
 }
 
 .hero .primaryCta:hover {
-  background: #f17a57;
-  color: #fff;
+  background: var(--accent-strong);
+  color: var(--text-on-accent);
 }
 
 .hero .secondaryCta {
@@ -680,7 +680,7 @@
 
 .finalCta .primaryCta {
   background: var(--accent);
-  color: #fff;
+  color: var(--text-on-accent);
 }
 
 .finalCta .secondaryCta {
@@ -688,7 +688,11 @@
   color: var(--text-on-inverse);
 }
 
-.finalCta .primaryCta:hover,
+.finalCta .primaryCta:hover {
+  background: var(--accent-strong);
+  color: var(--text-on-accent);
+}
+
 .finalCta .secondaryCta:hover {
   color: #fff;
 }
