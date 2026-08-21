@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useTranslation } from "react-i18next";
+import { useTheme } from "../context/ThemeContext";
+import { signalSessionExpired } from "../utils/authSession";
+import { formatCardNumber, formatExpiry, isValidCardNumber, isValidExpiry } from "../utils/paymentValidation";
 import { formatMoney, normalizeLocale } from "../utils/formatters";
 import styles from "./PaymentForm.module.css";
 
@@ -14,24 +17,30 @@ function isValidStripePublicKey(key) {
   return typeof key === "string" && /^pk_(test|live)_/.test(key) && !key.includes("xxxx");
 }
 
-const cardStyle = {
-  hidePostalCode: true,
-  style: {
-    base: {
-      color: "#1e3455",
-      fontFamily: '"Poppins", "Segoe UI", system-ui, sans-serif',
-      fontSmoothing: "antialiased",
-      fontSize: "16px",
-      "::placeholder": {
-        color: "#a4a197",
+const stripePromises = new Map();
+
+function getStripePromise(key) {
+  if (!stripePromises.has(key)) stripePromises.set(key, loadStripe(key));
+  return stripePromises.get(key);
+}
+
+function createCardOptions(theme) {
+  const dark = theme === "dark";
+  return {
+    hidePostalCode: true,
+    style: {
+      base: {
+        color: dark ? "#f8fafc" : "#1e3455",
+        iconColor: dark ? "#cbd5e1" : "#1e3455",
+        fontFamily: '"Poppins", "Segoe UI", system-ui, sans-serif',
+        fontSmoothing: "antialiased",
+        fontSize: "16px",
+        "::placeholder": { color: dark ? "#94a3b8" : "#807d75" },
       },
+      invalid: { color: dark ? "#fca5a5" : "#b4532f", iconColor: dark ? "#fca5a5" : "#b4532f" },
     },
-    invalid: {
-      color: "#c27546",
-      iconColor: "#c27546",
-    },
-  },
-};
+  };
+}
 
 function CheckoutForm({ amount, description, reservationType, metadata, onSuccess, onCancel, token }) {
   const stripe = useStripe();
@@ -39,6 +48,8 @@ function CheckoutForm({ amount, description, reservationType, metadata, onSucces
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { t, i18n } = useTranslation();
+  const { theme } = useTheme();
+  const cardOptions = useMemo(() => createCardOptions(theme), [theme]);
   const formattedAmount = formatMoney(amount, normalizeLocale(i18n.language));
 
   const handleSubmit = async (e) => {
@@ -66,6 +77,7 @@ function CheckoutForm({ amount, description, reservationType, metadata, onSucces
       });
 
       if (!response.ok) {
+        if (response.status === 401) signalSessionExpired();
         let errorMessage = t("payment.error");
         const text = await response.text();
         try {
@@ -121,13 +133,13 @@ function CheckoutForm({ amount, description, reservationType, metadata, onSucces
       </div>
 
       <div className={styles.cardContainer}>
-        <label className={styles.label}>{t("payment.cardInfo")}</label>
-        <div className={styles.cardElement}>
-          <CardElement options={cardStyle} />
+        <span className={styles.label} id="card-element-label">{t("payment.cardInfo")}</span>
+        <div className={styles.cardElement} role="group" aria-labelledby="card-element-label">
+          <CardElement options={cardOptions} />
         </div>
       </div>
 
-      {error && <div className={styles.error}>{error}</div>}
+      {error && <div className={styles.error} role="alert">{error}</div>}
 
       <div className={styles.buttonGroup}>
         <button type="button" onClick={onCancel} className={styles.cancelButton}>
@@ -161,7 +173,7 @@ function LocalCheckoutForm({ amount, description, reservationType, metadata, onS
     e.preventDefault();
     setError("");
 
-    if (!cardHolder.trim() || cardNumber.replace(/\s/g, "").length < 12 || !expiry.trim() || cvc.trim().length < 3) {
+    if (cardHolder.trim().length < 2 || !isValidCardNumber(cardNumber) || !isValidExpiry(expiry) || !/^\d{3,4}$/.test(cvc)) {
       setError(t("payment.cardValidationError"));
       return;
     }
@@ -185,6 +197,7 @@ function LocalCheckoutForm({ amount, description, reservationType, metadata, onS
           }),
         });
         if (!response.ok) {
+          if (response.status === 401) signalSessionExpired();
           const payload = await response.json().catch(() => ({}));
           throw new Error(payload.message || payload.error || t("payment.error"));
         }
@@ -219,45 +232,65 @@ function LocalCheckoutForm({ amount, description, reservationType, metadata, onS
         <label className={styles.cardField}>
           <span>{t("payment.cardHolder")}</span>
           <input
+            name="cardholder"
             value={cardHolder}
-            onChange={(e) => setCardHolder(e.target.value)}
+            onChange={(e) => setCardHolder(e.target.value.slice(0, 100))}
             autoComplete="cc-name"
-            placeholder="Nom du titulaire"
+            maxLength={100}
+            required
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "local-payment-error" : undefined}
+            placeholder={t("payment.cardHolderPlaceholder")}
           />
         </label>
         <label className={styles.cardField}>
           <span>{t("payment.cardNumber")}</span>
           <input
+            name="cardnumber"
             value={cardNumber}
-            onChange={(e) => setCardNumber(e.target.value)}
+            onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
             inputMode="numeric"
             autoComplete="cc-number"
+            maxLength={23}
+            required
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "local-payment-error" : undefined}
             placeholder="1234 5678 9012 3456"
           />
         </label>
         <label className={styles.cardField}>
           <span>{t("payment.expiry")}</span>
           <input
+            name="expiry"
             value={expiry}
-            onChange={(e) => setExpiry(e.target.value)}
+            onChange={(e) => setExpiry(formatExpiry(e.target.value))}
             inputMode="numeric"
             autoComplete="cc-exp"
-            placeholder="MM/AA"
+            maxLength={5}
+            required
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "local-payment-error" : undefined}
+            placeholder={t("payment.expiryPlaceholder")}
           />
         </label>
         <label className={styles.cardField}>
           <span>{t("payment.cvc")}</span>
           <input
+            name="cvc"
             value={cvc}
-            onChange={(e) => setCvc(e.target.value)}
+            onChange={(e) => setCvc((e.target.value.match(/\d/g) || []).slice(0, 4).join(""))}
             inputMode="numeric"
             autoComplete="cc-csc"
-            placeholder="CVC"
+            maxLength={4}
+            required
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "local-payment-error" : undefined}
+            placeholder={t("payment.cvcPlaceholder")}
           />
         </label>
       </div>
 
-      {error && <div className={styles.error}>{error}</div>}
+      {error && <div className={styles.error} id="local-payment-error" role="alert">{error}</div>}
 
       <div className={styles.buttonGroup}>
         <button type="button" onClick={onCancel} className={styles.cancelButton}>
@@ -286,7 +319,7 @@ function PaymentUnavailable({ onCancel }) {
         <span className={styles.badge}>SSL</span>
       </div>
 
-      <div className={styles.error}>{t("payment.unavailableMessage")}</div>
+      <div className={styles.error} role="alert">{t("payment.unavailableMessage")}</div>
 
       <div className={styles.buttonGroup}>
         <button type="button" onClick={onCancel} className={styles.cancelButton}>
@@ -306,7 +339,7 @@ export default function PaymentForm({ stripePublicKey, token, ...props }) {
     return <PaymentUnavailable onCancel={props.onCancel} />;
   }
 
-  const stripePromise = loadStripe(stripePublicKey);
+  const stripePromise = getStripePromise(stripePublicKey);
 
   return (
     <Elements stripe={stripePromise}>
