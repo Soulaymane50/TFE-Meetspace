@@ -170,14 +170,15 @@ public class BookingHoldService {
         }
         ParkingSlot slot = parkingSlotRepository.findByIdForUpdate(request.getParkingSlotId())
                 .orElseThrow(() -> notFound("Creneau parking introuvable."));
-        if (slot.getStatus() != ParkingSlotStatus.OPEN || slot.getSessionDate().isBefore(java.time.LocalDate.now())) {
+        LocalDateTime startsAt = LocalDateTime.of(slot.getSessionDate(), slot.getStartTime());
+        if (slot.getStatus() != ParkingSlotStatus.OPEN || !startsAt.isAfter(LocalDateTime.now())) {
             throw badRequest("Ce creneau parking n'est plus disponible.");
         }
         validateParkingCapacity(slot, request.getReservedSpaces());
 
         BookingHold hold = baseHold(slot.getId(), amountCents);
         hold.setQuantity(request.getReservedSpaces());
-        hold.setStartAt(LocalDateTime.of(slot.getSessionDate(), slot.getStartTime()));
+        hold.setStartAt(startsAt);
         hold.setEndAt(LocalDateTime.of(slot.getSessionDate(), slot.getEndTime()));
         return hold;
     }

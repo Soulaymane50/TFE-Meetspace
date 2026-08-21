@@ -64,6 +64,7 @@ public class ParkingController {
                         LocalDate.now()
                 );
         return sessions.stream()
+                .filter(session -> !cancellationPolicyService.hasStarted(startsAt(session)))
                 .map(s -> {
                     Integer registeredCount = reservationRepository.countReservedSpacesByParkingSlotId(s.getId());
                     return ParkingSlotResponseDto.fromEntity(s, registeredCount);
@@ -93,6 +94,11 @@ public class ParkingController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session non ouverte à la réservation");
         }
 
+        LocalDateTime startsAt = startsAt(session);
+        if (cancellationPolicyService.hasStarted(startsAt)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce créneau parking a déjà commencé");
+        }
+
         int reservedSpaces = request.getReservedSpaces();
         if (reservedSpaces <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nombre de places invalide");
@@ -106,24 +112,35 @@ public class ParkingController {
         }
 
         double totalPrice = session.getParkingRate() * reservedSpaces;
-        paymentLifecycleService.consume(
-                request.getPaymentIntentId(),
-                user,
-                PaymentType.PARKING,
-                Math.round(totalPrice * 100D),
-                session.getId()
-        );
+        long totalAmountCents = Math.round(totalPrice * 100D);
+        String paymentIntentId = request.getPaymentIntentId();
+        if (totalAmountCents > 0) {
+            if (paymentIntentId == null || paymentIntentId.isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Paiement requis pour ce créneau parking");
+            }
+            paymentLifecycleService.consume(
+                    paymentIntentId,
+                    user,
+                    PaymentType.PARKING,
+                    totalAmountCents,
+                    session.getId()
+            );
+        } else {
+            paymentIntentId = null;
+        }
 
         ParkingReservation reservation = new ParkingReservation();
         reservation.setUser(user);
         reservation.setParkingSlot(session);
         reservation.setReservedSpaces(reservedSpaces);
         reservation.setTotalPrice(totalPrice);
-        reservation.setPaymentIntentId(request.getPaymentIntentId());
+        reservation.setPaymentIntentId(paymentIntentId);
         reservation.setStatus(ParkingReservationStatus.CONFIRMED);
 
         ParkingReservation saved = reservationRepository.save(reservation);
-        paymentLifecycleService.bindToBooking(request.getPaymentIntentId(), saved.getId());
+        if (paymentIntentId != null) {
+            paymentLifecycleService.bindToBooking(paymentIntentId, saved.getId());
+        }
 
         // Audit log
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
@@ -176,18 +193,16 @@ public class ParkingController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vous ne pouvez pas annuler cette réservation");
         }
 
-        if (reservation.getParkingSlot().getSessionDate().isBefore(java.time.LocalDate.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La session est déjà passée");
-        }
-
         if (reservation.getStatus() == ParkingReservationStatus.CANCELLED) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cette réservation est déjà annulée");
         }
 
+        LocalDateTime startsAt = startsAt(reservation.getParkingSlot());
+        if (cancellationPolicyService.hasStarted(startsAt)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce créneau parking a déjà commencé");
+        }
+
         String oldStatus = reservation.getStatus().name();
-        LocalDateTime startsAt = LocalDateTime.of(
-                reservation.getParkingSlot().getSessionDate(),
-                reservation.getParkingSlot().getStartTime());
         long paidAmountCents = Math.round((reservation.getTotalPrice() != null ? reservation.getTotalPrice() : 0D) * 100D);
         CancellationPolicyService.CancellationDecision decision = cancellationPolicyService.decide(startsAt, paidAmountCents);
         if (decision.refundAmountCents() > 0 && reservation.getPaymentIntentId() != null) {
@@ -213,6 +228,10 @@ public class ParkingController {
                 decision.refundPercent(),
                 decision.explanation()
         );
+    }
+
+    private static LocalDateTime startsAt(ParkingSlot session) {
+        return LocalDateTime.of(session.getSessionDate(), session.getStartTime());
     }
 }
 

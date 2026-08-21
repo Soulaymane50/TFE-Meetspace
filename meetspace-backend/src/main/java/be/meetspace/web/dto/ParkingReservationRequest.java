@@ -1,7 +1,6 @@
 package be.meetspace.web.dto;
 
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class ParkingReservationRequest {
@@ -13,7 +12,6 @@ public class ParkingReservationRequest {
     @Min(1)
     private Integer reservedSpaces;
 
-    @NotBlank
     private String paymentIntentId;
 
     public Long getParkingSlotId() { return parkingSlotId; }
