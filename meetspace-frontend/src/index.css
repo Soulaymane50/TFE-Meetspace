@@ -18,6 +18,7 @@
   --surface-hover: #f8faf7;
   --surface-inverse: #103f37;
   --text-on-inverse: #ffffff;
+  --text-on-accent: #ffffff;
   --text-on-inverse-muted: rgba(255, 255, 255, 0.72);
   --border: #d8ddd8;
   --border-strong: #aeb8b1;
@@ -111,6 +112,7 @@
   --surface-hover: #1c3029;
   --surface-inverse: #102b25;
   --text-on-inverse: #f7fbf8;
+  --text-on-accent: #102b25;
   --text-on-inverse-muted: rgba(247, 251, 248, 0.72);
   --border: #2e463e;
   --border-strong: #536b63;
