@@ -2,8 +2,11 @@ import { Page, expect } from "@playwright/test";
 
 const BASE_URL = process.env.FRONT_URL || "http://localhost:5173";
 const API_URL = process.env.API_URL || "http://localhost:8080";
+const preparedMembers = new Set<string>();
 
 export async function ensureMember(page: Page, email: string, password: string) {
+  if (preparedMembers.has(email)) return;
+
   const response = await page.request.post(`${API_URL}/api/auth/register`, {
     data: {
       firstName: "E2E",
@@ -17,6 +20,8 @@ export async function ensureMember(page: Page, email: string, password: string) 
   if (![200, 201, 409].includes(response.status())) {
     throw new Error(`Unable to prepare E2E member (${response.status()}): ${await response.text()}`);
   }
+
+  preparedMembers.add(email);
 }
 
 export async function ensureLoggedOut(page: Page) {
