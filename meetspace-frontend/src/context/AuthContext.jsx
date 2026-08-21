@@ -1,26 +1,56 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { logoutRequest } from "../services/api";
+import { getTokenExpiration, isTokenExpired, SESSION_EXPIRED_EVENT } from "../utils/authSession";
 
 const AuthContext = createContext(null);
+const EMPTY_AUTH = { user: null, token: null };
+
+function clearStoredAuth() {
+  localStorage.removeItem("auth");
+  sessionStorage.removeItem("auth");
+}
+
+function parseStoredAuth(value) {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value);
+    if (!parsed?.user || !parsed?.token) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function readInitialSession() {
+  const persistent = parseStoredAuth(localStorage.getItem("auth"));
+  const temporary = parseStoredAuth(sessionStorage.getItem("auth"));
+  const auth = temporary || persistent;
+  const expired = Boolean(auth?.token && isTokenExpired(auth.token));
+
+  if (!auth || expired) {
+    clearStoredAuth();
+    return { auth: EMPTY_AUTH, remember: false, expired };
+  }
+
+  return { auth, remember: !temporary && Boolean(persistent), expired: false };
+}
 
 export function AuthProvider({ children }) {
-  const [auth, setAuth] = useState(() => {
-    const saved = sessionStorage.getItem("auth") || localStorage.getItem("auth");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return { user: null, token: null };
-      }
-    }
-    return { user: null, token: null };
-  });
-  const [rememberSession, setRememberSession] = useState(() => Boolean(localStorage.getItem("auth")));
-
+  const [initialSession] = useState(readInitialSession);
+  const [auth, setAuth] = useState(initialSession.auth);
+  const [rememberSession, setRememberSession] = useState(initialSession.remember);
+  const [sessionExpired, setSessionExpired] = useState(initialSession.expired);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsLoading(false);
+  }, []);
+
+  const clearSession = useCallback((expired = false) => {
+    clearStoredAuth();
+    setAuth(EMPTY_AUTH);
+    setRememberSession(false);
+    setSessionExpired(expired);
   }, []);
 
   useEffect(() => {
@@ -31,14 +61,39 @@ export function AuthProvider({ children }) {
         target.setItem("auth", JSON.stringify(auth));
         other.removeItem("auth");
       } else {
-        localStorage.removeItem("auth");
-        sessionStorage.removeItem("auth");
+        clearStoredAuth();
       }
     }
   }, [auth, isLoading, rememberSession]);
 
+  useEffect(() => {
+    const expireSession = () => clearSession(true);
+    window.addEventListener(SESSION_EXPIRED_EVENT, expireSession);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, expireSession);
+  }, [clearSession]);
+
+  useEffect(() => {
+    if (!auth.token) return undefined;
+    const expiresAt = getTokenExpiration(auth.token);
+    if (expiresAt === null) return undefined;
+
+    let timer;
+    const scheduleExpiryCheck = () => {
+      const remaining = expiresAt - Date.now();
+      if (remaining <= 0) {
+        clearSession(true);
+        return;
+      }
+      timer = window.setTimeout(scheduleExpiryCheck, Math.min(remaining, 2_147_483_647));
+    };
+
+    scheduleExpiryCheck();
+    return () => window.clearTimeout(timer);
+  }, [auth.token, clearSession]);
+
   const login = useCallback((user, token, options = {}) => {
     setRememberSession(Boolean(options.remember));
+    setSessionExpired(false);
     setAuth({ user, token });
   }, []);
 
@@ -48,17 +103,21 @@ export function AuthProvider({ children }) {
         await logoutRequest(auth.token);
       }
     } catch (error) {
-      // Continue with logout even if API call fails
-      console.error("Logout API call failed:", error);
+      if (import.meta.env.DEV) console.error("Logout API call failed:", error);
     } finally {
-      setAuth({ user: null, token: null });
-      localStorage.removeItem("auth");
-      sessionStorage.removeItem("auth");
+      clearSession(false);
     }
-  }, [auth.token]);
+  }, [auth.token, clearSession]);
 
   return (
-    <AuthContext.Provider value={{ ...auth, login, logout, isLoading, rememberSession }}>
+    <AuthContext.Provider value={{
+      ...auth,
+      login,
+      logout,
+      isLoading,
+      rememberSession,
+      sessionExpired,
+    }}>
       {children}
     </AuthContext.Provider>
   );

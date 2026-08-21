@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Navigate, Routes, Route } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import Layout from "./components/Layout";
 import PageState from "./components/PageState";
@@ -49,9 +50,20 @@ function PrivatePage({ roles, children }) {
   );
 }
 
+function RouteFallback() {
+  const { t } = useTranslation();
+  return (
+    <PageState
+      type="loading"
+      title={t("system.interfaceLoadingTitle")}
+      message={t("system.interfaceLoadingMessage")}
+    />
+  );
+}
+
 export default function App() {
   return (
-    <Suspense fallback={<PageState type="loading" title="Chargement" message="Préparation de l’interface MeetSpace." />}>
+    <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path="/" element={<Shell><HomePage /></Shell>} />
         <Route path="/login" element={<LoginPage />} />

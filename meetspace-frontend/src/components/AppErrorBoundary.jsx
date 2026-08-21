@@ -1,4 +1,5 @@
 import { Component } from "react";
+import i18n from "../i18n";
 import styles from "./AppErrorBoundary.module.css";
 
 export default class AppErrorBoundary extends Component {
@@ -25,13 +26,13 @@ export default class AppErrorBoundary extends Component {
         <section className={styles.message} aria-labelledby="app-error-title">
           <span className={styles.marker} aria-hidden="true">!</span>
           <p>MeetSpace</p>
-          <h1 id="app-error-title">Cette page n’a pas pu s’afficher</h1>
+          <h1 id="app-error-title">{i18n.t("system.appErrorTitle")}</h1>
           <p className={styles.description}>
-            Vos données n’ont pas été modifiées. Rechargez la page pour reprendre votre parcours.
+            {i18n.t("system.appErrorMessage")}
           </p>
           <div className={styles.actions}>
-            <button type="button" onClick={() => window.location.reload()}>Recharger</button>
-            <a href="/">Retour à l’accueil</a>
+            <button type="button" onClick={() => window.location.reload()}>{i18n.t("system.reload")}</button>
+            <a href="/">{i18n.t("system.backHome")}</a>
           </div>
         </section>
       </main>

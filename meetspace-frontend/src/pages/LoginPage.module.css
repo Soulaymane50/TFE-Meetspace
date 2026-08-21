@@ -245,6 +245,16 @@
   font-size: 0.82rem;
 }
 
+.notice {
+  margin: 1rem 0;
+  padding: 0.85rem 0.95rem;
+  border-left: 3px solid var(--brand);
+  background: color-mix(in srgb, var(--brand) 8%, var(--paper));
+  color: var(--text);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
 .footer {
   margin-top: 1.35rem;
   padding-top: 1rem;

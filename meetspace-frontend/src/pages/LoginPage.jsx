@@ -7,7 +7,7 @@ import LanguageSwitcher from "../components/LanguageSwitcher";
 import styles from "./LoginPage.module.css";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, sessionExpired } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
@@ -66,6 +66,11 @@ export default function LoginPage() {
           <p className={styles.cardEyebrow}>{t("auth.loginCardEyebrow")}</p>
           <h2 className={styles.title}>{t("auth.login")}</h2>
           <p className={styles.subtitle}>{t("auth.loginSubtitle")}</p>
+          {(sessionExpired || location.state?.sessionExpired) && (
+            <p className={styles.notice} role="status">
+              {t("auth.sessionExpired")}
+            </p>
+          )}
           <form onSubmit={submit}>
             <div className={styles.formGroup}>
               <label className={styles.label}>{t("auth.email")}</label>

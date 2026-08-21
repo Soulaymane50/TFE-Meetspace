@@ -1,12 +1,18 @@
 export default {
   fr: {
     common: { checking: "Vérification…", retry: "Réessayer", saving: "Enregistrement…", back: "Retour", amount: "Montant", status: "Statut" },
+    auth: { sessionExpired: "Votre session a expiré. Reconnectez-vous pour reprendre exactement où vous vous étiez arrêté." },
+    payment: { cardHolderPlaceholder: "Nom indiqué sur la carte", expiryPlaceholder: "MM/AA", cvcPlaceholder: "CVC" },
     finance: {
       allHistory: "Historique complet", periodRange: "Du {{from}} au {{to}}", updating: "Mise à jour…",
       breakdownHelp: "Comparez le revenu confirmé au potentiel du portefeuille.", viewLabel: "Présentation du détail",
       tableView: "Tableau", chartView: "Graphique", chartDescription: "Comparaison des revenus confirmés et potentiels par source"
     },
     system: {
+      interfaceLoadingTitle: "Chargement", interfaceLoadingMessage: "Préparation de l’interface MeetSpace.",
+      sessionCheckTitle: "Vérification", sessionCheckMessage: "Validation de votre session en cours.",
+      appErrorTitle: "Cette page n’a pas pu s’afficher", appErrorMessage: "Vos données n’ont pas été modifiées. Rechargez la page pour reprendre votre parcours.",
+      reload: "Recharger", backHome: "Retour à l’accueil",
       offlineTitle: "Vous êtes hors connexion",
       offlineMessage: "Les pages déjà ouvertes restent consultables. Les actions seront disponibles au retour du réseau.",
       apiUnavailableTitle: "Service momentanément indisponible",
@@ -38,12 +44,18 @@ export default {
   },
   en: {
     common: { checking: "Checking…", retry: "Try again", saving: "Saving…", back: "Back", amount: "Amount", status: "Status" },
+    auth: { sessionExpired: "Your session has expired. Sign in again to continue exactly where you left off." },
+    payment: { cardHolderPlaceholder: "Name shown on card", expiryPlaceholder: "MM/YY", cvcPlaceholder: "CVC" },
     finance: {
       allHistory: "Full history", periodRange: "{{from}} to {{to}}", updating: "Updating…",
       breakdownHelp: "Compare confirmed revenue with the portfolio potential.", viewLabel: "Detail presentation",
       tableView: "Table", chartView: "Chart", chartDescription: "Comparison of confirmed and potential revenue by source"
     },
     system: {
+      interfaceLoadingTitle: "Loading", interfaceLoadingMessage: "Preparing the MeetSpace interface.",
+      sessionCheckTitle: "Checking", sessionCheckMessage: "Validating your session.",
+      appErrorTitle: "This page could not be displayed", appErrorMessage: "Your data has not been changed. Reload the page to continue.",
+      reload: "Reload", backHome: "Back to home",
       offlineTitle: "You are offline",
       offlineMessage: "Previously opened pages remain available. Actions will return when the network is restored.",
       apiUnavailableTitle: "Service temporarily unavailable",
@@ -74,12 +86,18 @@ export default {
   },
   nl: {
     common: { checking: "Controleren…", retry: "Opnieuw proberen", saving: "Opslaan…", back: "Terug", amount: "Bedrag", status: "Status" },
+    auth: { sessionExpired: "Uw sessie is verlopen. Meld u opnieuw aan om verder te gaan waar u gebleven was." },
+    payment: { cardHolderPlaceholder: "Naam op de kaart", expiryPlaceholder: "MM/JJ", cvcPlaceholder: "CVC" },
     finance: {
       allHistory: "Volledige geschiedenis", periodRange: "Van {{from}} tot {{to}}", updating: "Bijwerken…",
       breakdownHelp: "Vergelijk bevestigde inkomsten met het potentieel van de portefeuille.", viewLabel: "Detailweergave",
       tableView: "Tabel", chartView: "Grafiek", chartDescription: "Vergelijking van bevestigde en potentiële inkomsten per bron"
     },
     system: {
+      interfaceLoadingTitle: "Laden", interfaceLoadingMessage: "De MeetSpace-interface wordt voorbereid.",
+      sessionCheckTitle: "Controleren", sessionCheckMessage: "Uw sessie wordt gecontroleerd.",
+      appErrorTitle: "Deze pagina kon niet worden weergegeven", appErrorMessage: "Uw gegevens zijn niet gewijzigd. Laad de pagina opnieuw om verder te gaan.",
+      reload: "Opnieuw laden", backHome: "Terug naar home",
       offlineTitle: "U bent offline",
       offlineMessage: "Eerder geopende pagina’s blijven beschikbaar. Acties zijn opnieuw mogelijk zodra het netwerk terug is.",
       apiUnavailableTitle: "Dienst tijdelijk niet beschikbaar",
