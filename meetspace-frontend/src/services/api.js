@@ -228,8 +228,7 @@ async function handleResponse(res, defaultMessage) {
 
 async function fetchParkingSlotsResponse() {
   const res = await fetch(`${API_URL}/api/public/parking/sessions`);
-  if (!res.ok) throw new Error("Erreur lors du chargement des sessions");
-  return res.json();
+  return handleResponse(res, "Erreur lors du chargement des sessions parking");
 }
 
 async function postParkingReservation(payload, token) {
@@ -248,8 +247,7 @@ async function fetchMyParkingReservationsResponse(token) {
   const res = await fetch(`${API_URL}/api/public/parking/reservations/me`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Impossible de récupérer les réservations");
-  return res.json();
+  return handleResponse(res, "Impossible de récupérer les réservations parking");
 }
 
 async function deleteParkingReservationRequest(id, token) {
@@ -416,14 +414,12 @@ export async function logoutRequest(token) {
 
 export async function getEspaces() {
   const res = await fetch(`${API_URL}/api/public/espaces`);
-  if (!res.ok) throw new Error("Erreur lors du chargement des espaces");
-  return res.json();
+  return handleResponse(res, "Erreur lors du chargement des espaces");
 }
 
 export async function getEspaceReservationsForCalendar(espaceId, year, month) {
   const res = await fetch(`${API_URL}/api/public/reservations/espace/${espaceId}/calendar?year=${year}&month=${month}`);
-  if (!res.ok) throw new Error("Erreur lors du chargement des réservations");
-  return res.json();
+  return handleResponse(res, "Erreur lors du chargement des réservations");
 }
 
 export async function getReservationsByUser(id, token) {
@@ -505,8 +501,7 @@ export async function payApprovedReservation(id, paymentIntentId, token) {
 
 export async function getPublicEvents() {
   const res = await fetch(`${API_URL}/api/public/events`);
-  if (!res.ok) throw new Error("Erreur lors du chargement des événements");
-  const events = await res.json();
+  const events = await handleResponse(res, "Erreur lors du chargement des événements");
   return events.map(normalizeEvent);
 }
 
@@ -526,8 +521,7 @@ export async function getMyEventRegistrations(token) {
   const res = await fetch(`${API_URL}/api/public/events/registrations/me`, {
     headers: authHeaders(token),
   });
-  if (!res.ok) throw new Error("Impossible de récupérer les inscriptions");
-  return res.json();
+  return handleResponse(res, "Impossible de récupérer les inscriptions aux événements");
 }
 
 export async function cancelEventRegistration(id, token) {

@@ -133,17 +133,24 @@ export async function adminDeleteEvent(request: APIRequestContext, token: string
   await ensureOk(res);
 }
 
-export async function adminCreateParkingSlot(request: APIRequestContext, token: string, title: string, date: string) {
+export async function adminCreateParkingSlot(
+  request: APIRequestContext,
+  token: string,
+  title: string,
+  date: string,
+  options: { parkingRate?: number; startTime?: string; endTime?: string } = {}
+) {
+  const { parkingRate = 5.0, startTime = "09:00:00", endTime = "11:00:00" } = options;
   const res = await request.post(`${API_URL}/api/admin/parking/sessions`, {
     headers: authHeaders(token),
     data: {
       title,
       description: "E2E parking slot",
       slotDate: date,
-      startTime: "09:00:00",
-      endTime: "11:00:00",
+      startTime,
+      endTime,
       parkingCapacity: 30,
-      parkingRate: 5.0,
+      parkingRate,
       status: "OPEN",
     },
   });

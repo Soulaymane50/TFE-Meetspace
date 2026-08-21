@@ -22,7 +22,6 @@ const RescheduleReservationPage = lazy(() => import("./pages/RescheduleReservati
 const ReceiptPage = lazy(() => import("./pages/ReceiptPage"));
 const EventRegisterPage = lazy(() => import("./pages/EventRegisterPage"));
 const ParkingReservePage = lazy(() => import("./pages/ParkingReservePage"));
-const MyParkingReservationsPage = lazy(() => import("./pages/MyParkingReservationsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const ConfirmAccountDeletionPage = lazy(() => import("./pages/ConfirmAccountDeletionPage"));
 const ConfirmEmailChangePage = lazy(() => import("./pages/ConfirmEmailChangePage"));
@@ -80,7 +79,10 @@ export default function App() {
         <Route path="/receipts/:type/:id" element={<PrivatePage><ReceiptPage /></PrivatePage>} />
         <Route path="/events/register/:id" element={<PrivatePage><EventRegisterPage /></PrivatePage>} />
         <Route path="/parking/reserve/:id" element={<PrivatePage><ParkingReservePage /></PrivatePage>} />
-        <Route path="/my-parking-reservations" element={<PrivatePage><MyParkingReservationsPage /></PrivatePage>} />
+        <Route
+          path="/my-parking-reservations"
+          element={<PrivatePage><Navigate to="/my-reservations?tab=parking" replace /></PrivatePage>}
+        />
         <Route path="/profile" element={<PrivatePage><ProfilePage /></PrivatePage>} />
         <Route path="/confirm-account-deletion" element={<PrivatePage><ConfirmAccountDeletionPage /></PrivatePage>} />
 

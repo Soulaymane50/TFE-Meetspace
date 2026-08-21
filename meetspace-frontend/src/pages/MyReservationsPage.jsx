@@ -23,6 +23,8 @@ import styles from "./MyReservationsPage.module.css";
 import WorkspaceNav from "../components/WorkspaceNav";
 
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+const RESERVATION_TABS = new Set(["day", "spaces", "events", "parking"]);
+const getReservationTab = (searchParams) => RESERVATION_TABS.has(searchParams.get("tab")) ? searchParams.get("tab") : "spaces";
 
 function ReservationRecord({ eyebrow, title, details, amount, status, statusLabel, statusClass, action }) {
   return (
@@ -54,6 +56,22 @@ function getCancellationPreview(startsAt, amount = 0) {
   return { percent, amount: Number(amount || 0) * percent / 100 };
 }
 
+function orderByTimeline(records, getStart) {
+  const now = Date.now();
+  return [...records].sort((left, right) => {
+    const leftTime = new Date(getStart(left)).getTime();
+    const rightTime = new Date(getStart(right)).getTime();
+    if (!Number.isFinite(leftTime)) return 1;
+    if (!Number.isFinite(rightTime)) return -1;
+
+    const leftIsPast = leftTime <= now;
+    const rightIsPast = rightTime <= now;
+    if (leftIsPast !== rightIsPast) return leftIsPast ? 1 : -1;
+    if (leftTime !== rightTime) return leftIsPast ? rightTime - leftTime : leftTime - rightTime;
+    return Number(right.id || 0) - Number(left.id || 0);
+  });
+}
+
 export default function MyReservationsPage() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -61,8 +79,8 @@ export default function MyReservationsPage() {
   const { confirm, notify } = useFeedback();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const initialTab = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState(initialTab || "spaces");
+  const activeTab = getReservationTab(searchParams);
+  const setActiveTab = (tab) => setSearchParams({ tab: RESERVATION_TABS.has(tab) ? tab : "spaces" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [partialErrors, setPartialErrors] = useState({});
@@ -95,10 +113,6 @@ export default function MyReservationsPage() {
       });
     }
   };
-
-  useEffect(() => {
-    setSearchParams({ tab: activeTab });
-  }, [activeTab, setSearchParams]);
 
   const fetchAllData = useCallback(async () => {
     setLoading(true);
@@ -344,8 +358,20 @@ export default function MyReservationsPage() {
   }, [groupedDays, selectedDay]);
 
   const activeDay = groupedDays.find((day) => day.dateKey === selectedDay) || groupedDays[0];
-  const approvedSpaceReservations = spaceReservations.filter((r) => r.status === "APPROVED");
-  const otherSpaceReservations = spaceReservations.filter((r) => r.status !== "APPROVED");
+  const orderedSpaceReservations = useMemo(
+    () => orderByTimeline(spaceReservations, (reservation) => reservation.startDateTime),
+    [spaceReservations],
+  );
+  const orderedEventRegistrations = useMemo(
+    () => orderByTimeline(eventRegistrations, (registration) => registration.eventStartDateTime),
+    [eventRegistrations],
+  );
+  const orderedParkingReservations = useMemo(
+    () => orderByTimeline(parkingReservations, (reservation) => `${reservation.slotDate}T${reservation.startTime}`),
+    [parkingReservations],
+  );
+  const approvedSpaceReservations = orderedSpaceReservations.filter((r) => r.status === "APPROVED");
+  const otherSpaceReservations = orderedSpaceReservations.filter((r) => r.status !== "APPROVED");
   const activeEventWaitlist = eventWaitlist.filter((entry) => ["WAITING", "OFFERED"].includes(entry.status));
   const totalReservations = spaceReservations.length + eventRegistrations.length + parkingReservations.length + activeEventWaitlist.length;
   const formattedTotalReservations = formatNumber(totalReservations, locale);
@@ -674,7 +700,7 @@ export default function MyReservationsPage() {
             />
           ) : (
             <div className={styles.recordList}>
-              {eventRegistrations.map((r) => {
+              {orderedEventRegistrations.map((r) => {
                 const isPast = new Date(r.eventStartDateTime) < new Date();
                 const canCancel = !isPast && r.status !== "CANCELLED";
                 return (
@@ -735,8 +761,8 @@ export default function MyReservationsPage() {
             />
           ) : (
             <div className={styles.recordList}>
-              {parkingReservations.map((r) => {
-                const isPast = new Date(r.slotDate) < new Date();
+              {orderedParkingReservations.map((r) => {
+                const isPast = new Date(`${r.slotDate}T${r.startTime}`) <= new Date();
                 const canCancel = !isPast && r.status !== "CANCELLED";
                 return (
                   <ReservationRecord
@@ -744,7 +770,7 @@ export default function MyReservationsPage() {
                     eyebrow={t("nav.parking")}
                     title={r.parkingSlotTitle}
                     details={[
-                      { label: t("common.date"), value: formatDate(new Date(r.slotDate), locale) },
+                      { label: t("common.date"), value: formatDate(new Date(`${r.slotDate}T${r.startTime}`), locale) },
                       { label: t("common.time"), value: `${r.startTime}–${r.endTime}` },
                       { label: t("parking.places"), value: formatNumber(r.reservedSpaces, locale) },
                     ]}

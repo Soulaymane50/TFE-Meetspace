@@ -57,21 +57,7 @@ export default function ParkingReservePage() {
     setReservedSpaces(Math.min(Math.max(safeNumber, 1), maxReservableSpaces || 1));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError("");
-    if (maxReservableSpaces <= 0) {
-      setError(t("parking.full"));
-      return;
-    }
-    if (reservedSpaces > maxReservableSpaces) {
-      setError(t("parking.capacityExceeded", { count: maxReservableSpaces }));
-      return;
-    }
-    setIsPaymentStepVisible(true);
-  };
-
-  const handlePaymentSuccess = async (paymentIntentId) => {
+  const finalizeReservation = async (paymentIntentId = null) => {
     setIsCreatingReservation(true);
     setError("");
 
@@ -86,18 +72,42 @@ export default function ParkingReservePage() {
       );
       notify({
         type: "success",
-        title: t("payment.successTitle", { defaultValue: "Paiement validé" }),
+        title: totalAmount > 0
+          ? t("payment.successTitle", { defaultValue: "Paiement validé" })
+          : t("reservation.confirmedTitle", { defaultValue: "Réservation confirmée" }),
         message: t("payment.parkingSuccessMessage", {
           defaultValue: "Votre réservation parking est confirmée. Un email de confirmation vous est envoyé si le service email est disponible.",
         }),
       });
-      navigate("/my-parking-reservations");
+      navigate("/my-reservations?tab=parking");
     } catch (err) {
       setError(err.message);
       setIsPaymentStepVisible(false);
     } finally {
       setIsCreatingReservation(false);
     }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (maxReservableSpaces <= 0) {
+      setError(t("parking.full"));
+      return;
+    }
+    if (reservedSpaces > maxReservableSpaces) {
+      setError(t("parking.capacityExceeded", { count: maxReservableSpaces }));
+      return;
+    }
+    if (totalAmount <= 0) {
+      await finalizeReservation();
+    } else {
+      setIsPaymentStepVisible(true);
+    }
+  };
+
+  const handlePaymentSuccess = async (paymentIntentId) => {
+    await finalizeReservation(paymentIntentId);
   };
 
   if (loading) {
@@ -308,8 +318,10 @@ export default function ParkingReservePage() {
               <button type="button" onClick={() => navigate("/parking")} className={styles.secondaryAction}>
                 {t("common.cancel")}
               </button>
-              <button type="submit" className={styles.primaryAction} disabled={maxReservableSpaces <= 0}>
-                {t("reservation.proceedPayment")}
+              <button type="submit" className={styles.primaryAction} disabled={maxReservableSpaces <= 0 || isCreatingReservation}>
+                {isCreatingReservation
+                  ? t("reservation.creating")
+                  : totalAmount > 0 ? t("reservation.proceedPayment") : t("common.confirm")}
               </button>
             </div>
           </div>
