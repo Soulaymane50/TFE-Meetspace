@@ -1,6 +1,7 @@
 package be.meetspace.config;
 
 import jakarta.servlet.DispatcherType;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -49,13 +50,25 @@ public class SecurityConfig {
                         .permissionsPolicyHeader(permissions -> permissions
                                 .policy("camera=(), microphone=(), geolocation=()")))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, exception) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication required"))
+                        .accessDeniedHandler((request, response, exception) ->
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied")))
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers("/error", "/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/actuator/prometheus").hasRole("ADMIN")
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/public/events",
+                                "/api/public/events/{id}",
+                                "/api/public/espaces",
+                                "/api/public/parking/sessions",
+                                "/api/public/reservations/check-availability",
+                                "/api/public/reservations/espace/{espaceId}/calendar").permitAll()
+                        .requestMatchers("/api/public/**").authenticated()
                         .requestMatchers("/api/support/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/payments/webhook").permitAll()
                         .requestMatchers("/api/payments/**").authenticated()
