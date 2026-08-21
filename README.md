@@ -1,91 +1,92 @@
 # MeetSpace
 
-MeetSpace est une application web de reservation pour un centre de conferences : salles professionnelles, evenements B2B et parking associe.
+MeetSpace est une plateforme de réservation pour un centre de conférences à Bruxelles. Elle réunit dans une même application les salles professionnelles, les événements B2B et le parking associé.
 
-Le projet couvre le parcours complet d'un visiteur, d'un client connecte, d'un organisateur et d'un administrateur. L'objectif est de proposer une plateforme claire pour consulter les disponibilites, reserver une salle, s'inscrire a un evenement, gerer des places de parking et suivre l'activite du centre.
+Le produit couvre quatre usages distincts : la consultation publique, la réservation par un client, l’organisation d’événements et l’administration opérationnelle et financière de la plateforme.
 
-## Fonctionnalites principales
+## Fonctionnalités
 
-- consultation publique des salles, evenements et creneaux de parking ;
-- reservation de salles avec planning de disponibilite ;
-- inscription a des evenements professionnels ;
-- reservation de parking liee aux venues ;
-- authentification JWT et gestion des roles ;
-- espace client pour les reservations, inscriptions et profil ;
-- espace organisateur pour creer et suivre des evenements ;
-- dashboard admin pour valider, superviser et analyser les donnees ;
-- paiement Stripe avec configuration locale securisee ;
-- interface multilingue FR / EN / NL ;
-- theme clair / sombre responsive.
+- catalogue public des salles, événements et créneaux de parking ;
+- disponibilité des salles et réservation par créneau ;
+- inscription aux événements, capacité, liste d’attente et parking lié ;
+- demandes de salles premium avec validation et échéance de paiement ;
+- espace client pour les réservations, paiements, annulations et profil ;
+- espace organisateur pour créer, soumettre et suivre ses événements ;
+- administration des utilisateurs, espaces, événements, parkings et validations ;
+- suivi financier distinct pour l’administrateur et l’organisateur ;
+- authentification JWT, révocation des sessions et états de compte ;
+- paiement Stripe avec mode local strictement réservé au développement ;
+- notifications persistantes, e-mails configurables et journal d’audit ;
+- interface responsive en français, anglais et néerlandais, avec thèmes clair et sombre.
 
-## Roles
+## Rôles
 
-| Role | Objectif |
+| Rôle | Responsabilités |
 | --- | --- |
-| Visiteur | Consulter les salles, evenements et parkings disponibles |
-| Client | Reserver une salle, s'inscrire a un evenement, reserver du parking |
-| Organisateur | Creer et suivre des evenements professionnels |
-| Admin | Valider, gerer la plateforme et analyser l'activite |
+| Visiteur | Consulter le catalogue et les disponibilités |
+| Client | Réserver, s’inscrire, payer et gérer ses demandes |
+| Organisateur | Créer des événements et suivre inscriptions et revenus |
+| Administrateur | Valider, superviser, administrer et analyser la plateforme |
 
-## Stack technique
+## Architecture
 
-| Partie | Technologies |
+| Couche | Technologies |
 | --- | --- |
-| Backend | Java 17, Spring Boot, Spring Security, Spring Data JPA |
+| Backend | Java 17, Spring Boot, Spring Security, Spring Data JPA, Flyway |
 | Frontend | React 19, Vite, React Router, i18next |
-| Base de donnees | MySQL 8 |
+| Base de données | MySQL 8 |
 | Paiement | Stripe |
-| Tests frontend | ESLint, Playwright |
-| Conteneurs | Docker Compose |
-
-## Structure du projet
+| Qualité | JUnit, Mockito, ESLint, Playwright, axe-core |
+| Exécution | Docker Compose, Vercel, Railway |
 
 ```text
 .
-├── init/
-│   └── Dump_meetspace.sql
+├── .github/workflows/ci.yml
 ├── meetspace-backend/
-│   ├── src/
-│   ├── .env.example
-│   └── pom.xml
+│   ├── src/main/java/
+│   ├── src/main/resources/db/migration/
+│   ├── src/main/resources/demo/seed-data.sql
+│   └── src/test/
 ├── meetspace-frontend/
 │   ├── src/
-│   ├── .env.example
-│   └── package.json
+│   ├── tests/api/
+│   └── tests/e2e-browser/
 ├── docker-compose.yml
 └── README.md
 ```
 
-## Prerequis
+## Prérequis
 
-- Java 17
-- Node.js 20+
-- MySQL 8
-- Maven Wrapper fourni avec le backend
-- Docker Desktop, optionnel
+- Java 17 ou plus récent ;
+- Node.js 20 ou plus récent ;
+- MySQL 8 ;
+- Maven, ou le wrapper fourni avec le backend ;
+- Docker Desktop si le lancement conteneurisé est utilisé.
 
 ## Configuration locale
 
-Creer les fichiers d'environnement a partir des exemples :
+Copier les exemples sans jamais versionner les fichiers réels :
 
 ```bat
 copy meetspace-backend\.env.example meetspace-backend\.env
 copy meetspace-frontend\.env.example meetspace-frontend\.env
 ```
 
-Variables importantes cote backend :
+Le backend local utilise notamment :
 
 ```env
-SPRING_PROFILES_ACTIVE=prod
+SPRING_PROFILES_ACTIVE=dev
 DB_URL=jdbc:mysql://localhost:3306/meetspace?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Brussels
 DB_USERNAME=root
 DB_PASSWORD=
 JWT_SECRET=votre-cle-secrete-minimum-32-caracteres-ici
-CORS_ALLOWED_ORIGINS=http://localhost:5174
-APP_TESTING_ALLOWFAKEPAYMENTS=false
+CORS_ALLOWED_ORIGINS=http://localhost:5174,http://127.0.0.1:5174
+APP_DEMO_SEED_ENABLED=true
+APP_MAIL_ENABLED=false
+APP_TESTING_ALLOWFAKEPAYMENTS=true
 ```
 
-Variables importantes cote frontend :
+Le frontend local utilise :
 
 ```env
 VITE_API_URL=http://localhost:8080
@@ -93,36 +94,37 @@ VITE_STRIPE_PUBLIC_KEY=
 VITE_ALLOW_LOCAL_PAYMENTS=true
 ```
 
-Les vrais fichiers `.env` ne doivent jamais etre versionnes.
+## Base de données
 
-## Base de donnees
+Flyway est l’unique source de vérité du schéma. Une base MySQL vide est automatiquement reconstruite par les migrations de `meetspace-backend/src/main/resources/db/migration` ; Hibernate valide ensuite le résultat avec `ddl-auto=validate`.
 
-Le dump de demonstration se trouve dans :
+Le jeu de démonstration est séparé dans `meetspace-backend/src/main/resources/demo/seed-data.sql`. Il est :
 
-```text
-init/Dump_meetspace.sql
-```
+- idempotent ;
+- désactivé par défaut ;
+- chargé uniquement si `APP_DEMO_SEED_ENABLED=true` ;
+- impossible à charger avec le profil `prod` ;
+- composé de comptes réservés au domaine `meetspace-demo.test`.
 
-Import local :
+Il contient 31 comptes, 27 événements répartis de janvier à décembre 2026, 8 salles, des créneaux de parking, des réservations, des inscriptions, des paiements, quelques remboursements de démonstration, des notifications et des éléments en attente de validation.
+
+Comptes locaux principaux :
+
+| Rôle | Adresse | Mot de passe |
+| --- | --- | --- |
+| Administrateur | `admin.demo@meetspace-demo.test` | `MeetSpaceDemo!2026` |
+| Organisateur | `ines.peeters@meetspace-demo.test` | `MeetSpaceDemo!2026` |
+| Client | `alice.moreau@meetspace-demo.test` | `MeetSpaceDemo!2026` |
+
+Ces identifiants sont exclusivement destinés au développement et à la démonstration locale.
+
+## Lancement
+
+Créer une base vide une seule fois :
 
 ```bat
-mysql -h 127.0.0.1 -P 3306 -u root -e "DROP DATABASE IF EXISTS meetspace; CREATE DATABASE meetspace CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -h 127.0.0.1 -P 3306 -u root meetspace < init\Dump_meetspace.sql
+mysql -h 127.0.0.1 -P 3306 -u root -e "CREATE DATABASE IF NOT EXISTS meetspace CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
-
-Tables principales :
-
-- `event`
-- `event_registration`
-- `espace`
-- `espace_reservation`
-- `parking_slot`
-- `parking_reservation`
-- `utilisateur`
-
-Le dump initialise les donnees de demonstration. Au demarrage du backend, Flyway applique ensuite les migrations versionnees de `meetspace-backend/src/main/resources/db/migration`. Hibernate valide le schema et ne doit pas servir d'outil de migration en production.
-
-## Lancement local
 
 Backend :
 
@@ -139,41 +141,29 @@ npm install
 npm run dev -- --port 5174
 ```
 
-URLs locales :
+Accès locaux :
 
 ```text
-Frontend : http://localhost:5174 avec la commande Vite ci-dessus
+Frontend : http://localhost:5174
 Backend  : http://localhost:8080
+Santé    : http://localhost:8080/actuator/health
 ```
 
-## Lancement avec Docker
+## Docker Compose
 
 ```bat
 docker compose up --build
 ```
 
-Docker Compose lance MySQL, le backend et le frontend sur `http://localhost:5173`. Le dump SQL du dossier `init/` est importe automatiquement au premier demarrage du volume MySQL.
+Docker Compose crée une base vide, laisse Flyway construire le schéma et active le seed local. Le frontend est exposé sur `http://localhost:5173`. Aucun dump SQL manuel n’est nécessaire.
 
-Pour un deploiement separe, le frontend doit recevoir `VITE_API_URL` au moment du build (URL publique du backend Railway). Le backend doit recevoir `APP_FRONTEND_URL` et `CORS_ALLOWED_ORIGINS` avec l'URL publique exacte du frontend, actuellement `https://tfe-meetspace.vercel.app`.
-
-## Endpoints utiles
-
-```text
-GET /api/public/events
-GET /api/public/espaces
-GET /api/public/parking/sessions
-GET /actuator/health
-```
-
-Les endpoints admin et organizer sont proteges par JWT et par role. Chaque reponse backend expose un `X-Request-Id` utilisable pour retrouver la requete correspondante dans les journaux.
-
-## Verification
+## Vérification
 
 Backend :
 
 ```bat
 cd meetspace-backend
-mvnw.cmd -DskipTests compile
+mvnw.cmd test
 ```
 
 Frontend :
@@ -184,28 +174,45 @@ npm run lint
 npm run build
 ```
 
-Tests Playwright :
+Recette API, navigateur et accessibilité :
 
 ```bat
 cd meetspace-frontend
-npm run test
+set FRONT_URL=http://127.0.0.1:5174
+set API_URL=http://127.0.0.1:8080
+set E2E_ADMIN_EMAIL=admin.demo@meetspace-demo.test
+set E2E_ADMIN_PASSWORD=MeetSpaceDemo!2026
+npm test
 ```
 
-## Notes de securite
+La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et 37 parcours Playwright.
 
-- aucune vraie cle Stripe, JWT ou base de donnees ne doit etre committee ;
-- le mode fake payment doit rester reserve au local/test ;
-- en production, `APP_TESTING_ALLOWFAKEPAYMENTS=false` ;
-- le backend utilise `ddl-auto=validate` et `show-sql=false` via configuration d'environnement ;
-- les fichiers generes (`node_modules`, `dist`, `target`, logs, caches) sont exclus du versionnement.
+## Déploiement
 
-## Objectif produit
+Frontend prévu : [tfe-meetspace.vercel.app](https://tfe-meetspace.vercel.app)
 
-MeetSpace doit rester une plateforme simple a comprendre :
+Backend Railway configuré : `https://tfe-meetspace-production.up.railway.app`
 
-- un client reserve ou participe ;
-- un organisateur cree des evenements ;
-- un administrateur valide, controle et analyse ;
-- le parking reste un service complementaire lie aux venues.
+Le service Railway est actuellement laissé hors ligne. Lors de sa réactivation, utiliser au minimum :
 
-La logique economique affichee dans l'application est indicative : elle sert au suivi et a la demonstration, sans remplacer une comptabilite officielle.
+```env
+SPRING_PROFILES_ACTIVE=prod
+APP_DEMO_SEED_ENABLED=false
+APP_TESTING_ALLOWFAKEPAYMENTS=false
+APP_FRONTEND_URL=https://tfe-meetspace.vercel.app
+CORS_ALLOWED_ORIGINS=https://tfe-meetspace.vercel.app
+```
+
+Ajouter ensuite les valeurs réelles de connexion MySQL, JWT, Stripe et SMTP dans les variables privées de la plateforme. Le build Vercel doit recevoir `VITE_API_URL` avec l’URL Railway active.
+
+## Sécurité et règles de dépôt
+
+- aucun secret, fichier `.env`, log, sauvegarde locale ou résultat de test ne doit être versionné ;
+- les routes de catalogue sont publiques, les réservations et données personnelles exigent un JWT valide ;
+- les routes organisateur et administrateur vérifient le rôle ;
+- le seed et les faux paiements restent interdits en production ;
+- Swagger est désactivé avec le profil `prod` ;
+- les montants de paiement sont calculés côté serveur et stockés en centimes dans le registre de paiement ;
+- les contraintes MySQL protègent capacités, périodes, quantités et montants négatifs.
+
+Les indicateurs financiers servent au pilotage et à la démonstration. Ils ne remplacent pas une comptabilité légale.
