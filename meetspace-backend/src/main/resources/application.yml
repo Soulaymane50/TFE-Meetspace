@@ -75,6 +75,9 @@ logging:
 
 app:
   frontend-url: ${APP_FRONTEND_URL:http://localhost:5174}
+  demo:
+    seed:
+      enabled: ${APP_DEMO_SEED_ENABLED:false}
   mail:
     enabled: ${APP_MAIL_ENABLED:false}
     from: ${SMTP_FROM:${APP_MAIL_FROM:no-reply@meetspace.local}}
