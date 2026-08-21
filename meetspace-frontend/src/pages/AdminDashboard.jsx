@@ -26,6 +26,10 @@ import { useFeedback } from "../context/FeedbackContext";
 import WorkspaceNav from "../components/WorkspaceNav";
 import { downloadCsv } from "../utils/csv";
 
+const ADMIN_TABS = new Set(["overview", "users", "audit"]);
+const USER_ROLES = new Set(["ALL", "MEMBER", "ORGANIZER", "ADMIN"]);
+const USER_STATUSES = new Set(["ALL", "ACTIVE", "BANNED", "INACTIVE"]);
+
 function AdminIcon({ type }) {
   const icons = {
     spaces: (
@@ -112,10 +116,36 @@ export default function AdminDashboard() {
   const { confirm, notify } = useFeedback();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState(() => searchParams.get("tab") || "overview");
-  const [userQuery, setUserQuery] = useState(() => searchParams.get("q") || "");
-  const [userRoleFilter, setUserRoleFilter] = useState(() => searchParams.get("role") || "ALL");
-  const [userStatusFilter, setUserStatusFilter] = useState(() => searchParams.get("status") || "ALL");
+  const activeTab = ADMIN_TABS.has(searchParams.get("tab")) ? searchParams.get("tab") : "overview";
+  const userQuery = searchParams.get("q") || "";
+  const userRoleFilter = USER_ROLES.has(searchParams.get("role")) ? searchParams.get("role") : "ALL";
+  const userStatusFilter = USER_STATUSES.has(searchParams.get("status")) ? searchParams.get("status") : "ALL";
+
+  const setActiveTab = (tab) => {
+    const nextTab = ADMIN_TABS.has(tab) ? tab : "overview";
+    const next = new URLSearchParams();
+    if (nextTab !== "overview") next.set("tab", nextTab);
+    setSearchParams(next, { replace: true });
+  };
+  const setUserFilter = (key, value, defaultValue) => {
+    const next = new URLSearchParams(searchParams);
+    next.set("tab", "users");
+    if (!value || value === defaultValue) next.delete(key);
+    else next.set(key, value);
+    setSearchParams(next, { replace: true });
+  };
+  const setUserQuery = (value) => setUserFilter("q", value, "");
+  const setUserRoleFilter = (value) => setUserFilter(
+    "role",
+    USER_ROLES.has(value) ? value : "ALL",
+    "ALL",
+  );
+  const setUserStatusFilter = (value) => setUserFilter(
+    "status",
+    USER_STATUSES.has(value) ? value : "ALL",
+    "ALL",
+  );
+  const clearUserFilters = () => setSearchParams({ tab: "users" }, { replace: true });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -195,17 +225,6 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   }, [logout, navigate, token]);
-
-  useEffect(() => {
-    const next = {};
-    if (activeTab !== "overview") next.tab = activeTab;
-    if (activeTab === "users") {
-      if (userQuery.trim()) next.q = userQuery.trim();
-      if (userRoleFilter !== "ALL") next.role = userRoleFilter;
-      if (userStatusFilter !== "ALL") next.status = userStatusFilter;
-    }
-    setSearchParams(next, { replace: true });
-  }, [activeTab, setSearchParams, userQuery, userRoleFilter, userStatusFilter]);
 
   useEffect(() => {
     if (!user || user.role !== "ADMIN") {
@@ -530,10 +549,13 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div className={styles.tabs}>
+      <div className={styles.tabs} role="tablist" aria-label={t("admin.dashboardNavigation", { defaultValue: "Sections du tableau de bord" })}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab.id}
             className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ""}`}
             onClick={() => setActiveTab(tab.id)}
           >
@@ -750,11 +772,7 @@ export default function AdminDashboard() {
               <button
                 type="button"
                 className={styles.clearUserFilters}
-                onClick={() => {
-                  setUserQuery("");
-                  setUserRoleFilter("ALL");
-                  setUserStatusFilter("ALL");
-                }}
+                onClick={clearUserFilters}
               >
                 {t("common.reset", { defaultValue: "Réinitialiser" })}
               </button>

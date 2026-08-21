@@ -56,4 +56,23 @@ test.describe.serial("E2E User Flows", () => {
 
     await logout(page);
   });
+
+  test("Legacy parking reservations route opens the consolidated parking tab", async ({ page }) => {
+    await ensureLoggedOut(page);
+    await login(page, USER_EMAIL, USER_PASSWORD);
+
+    await page.goto(`${BASE_URL}/my-parking-reservations`);
+
+    await expect(page).toHaveURL(/\/my-reservations\?tab=parking$/);
+    await expect(page.getByRole("tab", { name: /parking/i })).toHaveAttribute("aria-selected", "true");
+  });
+
+  test("Unknown reservations tab falls back to room reservations", async ({ page }) => {
+    await ensureLoggedOut(page);
+    await login(page, USER_EMAIL, USER_PASSWORD);
+
+    await page.goto(`${BASE_URL}/my-reservations?tab=unknown`);
+
+    await expect(page.getByRole("tab", { name: /salles|rooms/i })).toHaveAttribute("aria-selected", "true");
+  });
 });

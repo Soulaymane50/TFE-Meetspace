@@ -11,6 +11,8 @@ import WorkspaceNav from "../components/WorkspaceNav";
 import FinanceLedger from "../components/FinanceLedger";
 import styles from "./OrganizerEventsPage.module.css";
 
+const ORGANIZER_STATUS_FILTERS = ["ALL", "PENDING_APPROVAL", "PUBLISHED", "REJECTED", "CANCELLED"];
+
 function OrganizerIcon({ type }) {
   const icons = {
     events: (
@@ -87,7 +89,13 @@ export default function OrganizerEventsPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filter, setFilter] = useState(() => searchParams.get("status") || "ALL");
+  const filter = ORGANIZER_STATUS_FILTERS.includes(searchParams.get("status"))
+    ? searchParams.get("status")
+    : "ALL";
+  const setFilter = (status) => setSearchParams(
+    status === "ALL" || !ORGANIZER_STATUS_FILTERS.includes(status) ? {} : { status },
+    { replace: true },
+  );
   const [financeSummary, setFinanceSummary] = useState(null);
 
   const fetchEvents = useCallback(async () => {
@@ -111,10 +119,6 @@ export default function OrganizerEventsPage() {
       setLoading(false);
     }
   }, [token]);
-
-  useEffect(() => {
-    setSearchParams(filter === "ALL" ? {} : { status: filter }, { replace: true });
-  }, [filter, setSearchParams]);
 
   useEffect(() => {
     if (!user || (user.role !== "ORGANIZER" && user.role !== "ADMIN")) {
@@ -156,7 +160,6 @@ export default function OrganizerEventsPage() {
     return `${styles.statusBadge} ${map[status] || styles.statusCancelled}`;
   };
 
-  const filteredEvents = filter === "ALL" ? events : events.filter((e) => e.status === filter);
   const locale = normalizeLocale(i18n.language);
   const formatEuro = (value) => formatMoney(value, locale);
   const formatStat = (value) => formatNumber(value, locale);
@@ -168,8 +171,17 @@ export default function OrganizerEventsPage() {
     rejected: events.filter((e) => e.status === "REJECTED").length,
     cancelled: events.filter((e) => e.status === "CANCELLED").length,
   };
-  const statusFilters = ["ALL", "PENDING_APPROVAL", "PUBLISHED", "REJECTED", "CANCELLED"];
-  const sortedEvents = [...events].sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime));
+  const statusFilters = ORGANIZER_STATUS_FILTERS;
+  const now = Date.now();
+  const sortedEvents = [...events].sort((a, b) => {
+    const aTime = new Date(a.startDateTime).getTime();
+    const bTime = new Date(b.startDateTime).getTime();
+    const aIsPast = aTime <= now;
+    const bIsPast = bTime <= now;
+    if (aIsPast !== bIsPast) return aIsPast ? 1 : -1;
+    return aIsPast ? bTime - aTime : aTime - bTime;
+  });
+  const filteredEvents = filter === "ALL" ? sortedEvents : sortedEvents.filter((event) => event.status === filter);
   const upcomingEvents = sortedEvents.filter((event) => new Date(event.endDateTime) >= new Date());
   const nextEvent = upcomingEvents[0] || sortedEvents[0];
   const publicationRate = stats.total > 0 ? Math.round((stats.published / stats.total) * 100) : 0;
@@ -279,6 +291,7 @@ export default function OrganizerEventsPage() {
                 key={status}
                 type="button"
                 className={`${styles.statusRow} ${filter === status ? styles.statusRowActive : ""}`}
+                aria-pressed={filter === status}
                 onClick={() => setFilter(status)}
               >
                 <span className={statusClass(status)}>{t(`status.${status.toLowerCase()}`)}</span>
@@ -289,11 +302,13 @@ export default function OrganizerEventsPage() {
         </aside>
       </div>
 
-      <div className={styles.filterTabs}>
+      <div className={styles.filterTabs} role="group" aria-label={t("organizer.filterByStatus", { defaultValue: "Filtrer les événements par statut" })}>
         {statusFilters.map((status) => (
           <button
             key={status}
+            type="button"
             onClick={() => setFilter(status)}
+            aria-pressed={filter === status}
             className={`${styles.filterTab} ${filter === status ? styles.filterTabActive : ""}`}
           >
             {t(status === "ALL" ? "common.all" : `status.${status.toLowerCase()}`)}
