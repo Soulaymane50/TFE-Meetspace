@@ -103,12 +103,12 @@ Le jeu de démonstration est séparé dans `meetspace-backend/src/main/resources
 - idempotent ;
 - désactivé par défaut ;
 - chargé uniquement si `APP_DEMO_SEED_ENABLED=true` ;
-- impossible à charger avec le profil `prod` ;
+- refusé par le chargeur automatique avec le profil `prod` ;
 - composé de comptes réservés au domaine `meetspace-demo.test`.
 
 Il contient 31 comptes, 27 événements répartis de janvier à décembre 2026, 8 salles, des créneaux de parking, des réservations, des inscriptions, des paiements, quelques remboursements de démonstration, des notifications et des éléments en attente de validation.
 
-Comptes locaux principaux :
+### Comptes du seed local étendu
 
 | Rôle | Adresse | Mot de passe |
 | --- | --- | --- |
@@ -117,6 +117,12 @@ Comptes locaux principaux :
 | Client | `alice.moreau@meetspace-demo.test` | `MeetSpaceDemo!2026` |
 
 Ces identifiants sont exclusivement destinés au développement et à la démonstration locale.
+
+### Comptes officiels de présentation
+
+Trois comptes actifs couvrent les rôles client, organisateur et administrateur pendant la soutenance. Leur connexion a été vérifiée sur le frontend et l’API de production.
+
+Les identifiants et le mot de passe commun sont consignés dans le manuel d’utilisation remis avec le projet. Ils sont volontairement absents du dépôt public et ne doivent être diffusés que dans le cadre de la démonstration.
 
 ## Lancement
 
@@ -185,32 +191,40 @@ set E2E_ADMIN_PASSWORD=MeetSpaceDemo!2026
 npm test
 ```
 
-La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et 37 parcours Playwright.
+La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La dernière validation complète comporte 28 tests backend et 42 scénarios API, navigateur et accessibilité ; une recette complémentaire de 15 scénarios a également été exécutée sur la production.
 
 ## Déploiement
 
-Frontend prévu : [tfe-meetspace.vercel.app](https://tfe-meetspace.vercel.app)
+| Service | URL |
+| --- | --- |
+| Frontend Vercel | [tfe-meetspace.vercel.app](https://tfe-meetspace.vercel.app) |
+| Backend Railway | [tfe-meetspace-production.up.railway.app](https://tfe-meetspace-production.up.railway.app) |
+| Santé backend | [actuator/health](https://tfe-meetspace-production.up.railway.app/actuator/health) |
 
-Backend Railway configuré : `https://tfe-meetspace-production.up.railway.app`
+État vérifié le 22 août 2026 : frontend accessible, backend `UP`, schéma Flyway validé et communication Vercel-Railway opérationnelle.
 
-Le service Railway est actuellement laissé hors ligne. Lors de sa réactivation, utiliser au minimum :
+La production utilise au minimum les garde-fous suivants :
 
 ```env
 SPRING_PROFILES_ACTIVE=prod
+DDL_AUTO=validate
 APP_DEMO_SEED_ENABLED=false
 APP_TESTING_ALLOWFAKEPAYMENTS=false
+APP_MAIL_ENABLED=false
 APP_FRONTEND_URL=https://tfe-meetspace.vercel.app
 CORS_ALLOWED_ORIGINS=https://tfe-meetspace.vercel.app
 ```
 
-Ajouter ensuite les valeurs réelles de connexion MySQL, JWT, Stripe et SMTP dans les variables privées de la plateforme. Le build Vercel doit recevoir `VITE_API_URL` avec l’URL Railway active.
+Les valeurs MySQL, JWT, Stripe et SMTP restent exclusivement dans les variables privées des plateformes. Le build Vercel reçoit `VITE_API_URL` avec l’URL Railway active ; aucune valeur sensible n’est stockée dans le dépôt.
+
+Lors de la dernière vérification, les catalogues publics de production exposaient 8 espaces, 15 événements futurs et 10 sessions de parking.
 
 ## Sécurité et règles de dépôt
 
 - aucun secret, fichier `.env`, log, sauvegarde locale ou résultat de test ne doit être versionné ;
 - les routes de catalogue sont publiques, les réservations et données personnelles exigent un JWT valide ;
 - les routes organisateur et administrateur vérifient le rôle ;
-- le seed et les faux paiements restent interdits en production ;
+- le chargement automatique du seed et les faux paiements restent interdits en production ;
 - Swagger est désactivé avec le profil `prod` ;
 - les montants de paiement sont calculés côté serveur et stockés en centimes dans le registre de paiement ;
 - les contraintes MySQL protègent capacités, périodes, quantités et montants négatifs.
