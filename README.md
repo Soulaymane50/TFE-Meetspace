@@ -90,10 +90,11 @@ Le frontend local utilise :
 
 ```env
 VITE_API_URL=http://localhost:8080
-VITE_STRIPE_PUBLIC_KEY=
 VITE_ALLOW_LOCAL_PAYMENTS=true
 ```
 
+
+La clé publique Stripe est fournie à l’exécution par le backend authentifié. Le frontend ne conserve donc aucune clé Stripe figée dans son build.
 ## Base de données
 
 Flyway est l’unique source de vérité du schéma. Une base MySQL vide est automatiquement reconstruite par les migrations de `meetspace-backend/src/main/resources/db/migration` ; Hibernate valide ensuite le résultat avec `ddl-auto=validate`.
@@ -210,12 +211,29 @@ SPRING_PROFILES_ACTIVE=prod
 DDL_AUTO=validate
 APP_DEMO_SEED_ENABLED=false
 APP_TESTING_ALLOWFAKEPAYMENTS=false
-APP_MAIL_ENABLED=false
+APP_MAIL_ENABLED=true
 APP_FRONTEND_URL=https://tfe-meetspace.vercel.app
 CORS_ALLOWED_ORIGINS=https://tfe-meetspace.vercel.app
-```
+STRIPE_SECRET_KEY=<clé privée Stripe>
+STRIPE_PUBLIC_KEY=<clé publique Stripe du même mode>
+STRIPE_WEBHOOK_SECRET=<secret du webhook Railway>
+SMTP_HOST=<serveur SMTP>
+SMTP_PORT=587
+SMTP_USERNAME=<compte SMTP>
+SMTP_PASSWORD=<mot de passe d’application>
+SMTP_FROM=<adresse d’expédition vérifiée>
 
-Les valeurs MySQL, JWT, Stripe et SMTP restent exclusivement dans les variables privées des plateformes. Le build Vercel reçoit `VITE_API_URL` avec l’URL Railway active ; aucune valeur sensible n’est stockée dans le dépôt.
+```
+Les valeurs MySQL, JWT, Stripe et SMTP restent exclusivement dans les variables privées des plateformes. Le build Vercel reçoit uniquement `VITE_API_URL` avec l’URL Railway active ; aucune valeur sensible n’est stockée dans le dépôt.
+
+Points de contrôle après chaque déploiement :
+
+- les clés Stripe publique et privée appartiennent au même mode (`test` ou `live`) ;
+- le webhook Stripe cible `https://tfe-meetspace-production.up.railway.app/api/payments/webhook` ;
+- `APP_MAIL_ENABLED=true` n’est activé qu’avec une configuration SMTP complète ;
+- `SMTP_FROM` correspond à une adresse autorisée par le fournisseur SMTP ;
+- les comptes de démonstration en `.test` ne reçoivent volontairement aucun e-mail ;
+- le frontend charge la configuration de paiement depuis `GET /api/payments/config` après connexion.
 
 Lors de la dernière vérification, les catalogues publics de production exposaient 8 espaces, 15 événements futurs et 10 sessions de parking.
 

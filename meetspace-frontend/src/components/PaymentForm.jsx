@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useTranslation } from "react-i18next";
@@ -330,8 +330,68 @@ function PaymentUnavailable({ onCancel }) {
   );
 }
 
+function PaymentConfigurationLoading() {
+  const { t } = useTranslation();
+
+  return (
+    <div className={styles.form} aria-live="polite" aria-busy="true">
+      <div className={styles.formHeader}>
+        <div>
+          <p className={styles.kicker}>{t("payment.secure")}</p>
+          <h2 className={styles.title}>{t("payment.cardInfo")}</h2>
+        </div>
+        <span className={styles.badge}>SSL</span>
+      </div>
+      <div className={styles.summary}>
+        <p className={styles.description}>{t("common.loading")}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function PaymentForm({ stripePublicKey, token, ...props }) {
-  if (!isValidStripePublicKey(stripePublicKey)) {
+  const initialKey = isValidStripePublicKey(stripePublicKey) ? stripePublicKey.trim() : "";
+  const [runtimeConfiguration, setRuntimeConfiguration] = useState({ publicKey: "", loaded: false });
+
+  useEffect(() => {
+    if (initialKey) {
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    fetch(`${API_URL}/payments/config`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (response.status === 401) signalSessionExpired();
+        if (!response.ok) return null;
+        return response.json();
+      })
+      .then((configuration) => {
+        const runtimeKey = configuration?.enabled ? configuration.publicKey : "";
+        setRuntimeConfiguration({
+          publicKey: isValidStripePublicKey(runtimeKey) ? runtimeKey.trim() : "",
+          loaded: true,
+        });
+      })
+      .catch((error) => {
+        if (error.name !== "AbortError") {
+          setRuntimeConfiguration({ publicKey: "", loaded: true });
+        }
+      });
+
+    return () => controller.abort();
+  }, [initialKey, token]);
+
+  const resolvedPublicKey = initialKey || runtimeConfiguration.publicKey;
+  const loadingConfiguration = !initialKey && !runtimeConfiguration.loaded;
+
+  if (loadingConfiguration) {
+    return <PaymentConfigurationLoading />;
+  }
+
+  if (!isValidStripePublicKey(resolvedPublicKey)) {
     if (ALLOW_LOCAL_PAYMENTS) {
       return <LocalCheckoutForm {...props} token={token} />;
     }
@@ -339,10 +399,10 @@ export default function PaymentForm({ stripePublicKey, token, ...props }) {
     return <PaymentUnavailable onCancel={props.onCancel} />;
   }
 
-  const stripePromise = getStripePromise(stripePublicKey);
+  const stripePromise = getStripePromise(resolvedPublicKey);
 
   return (
-    <Elements stripe={stripePromise}>
+    <Elements stripe={stripePromise} key={resolvedPublicKey}>
       <CheckoutForm {...props} token={token} />
     </Elements>
   );

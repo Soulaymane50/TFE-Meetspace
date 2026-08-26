@@ -10,7 +10,6 @@ import { getEventImage } from "../utils/mediaAssets";
 import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./EventRegisterPage.module.css";
 
-const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
 
 export default function EventRegisterPage() {
   const { id } = useParams();
@@ -199,7 +198,6 @@ export default function EventRegisterPage() {
               </div>
             ) : (
               <PaymentForm
-                stripePublicKey={STRIPE_PUBLIC_KEY}
                 token={token}
                 amount={totalAmount}
                 description={`${t("events.registration")}: ${event.title} - ${numberOfParticipants} ${t("events.participant", { count: numberOfParticipants })}`}

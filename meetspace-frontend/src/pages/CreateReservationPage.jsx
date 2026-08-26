@@ -12,7 +12,6 @@ import { calculateRoomPrice } from "../utils/businessRules";
 import { formatMoney, normalizeLocale } from "../utils/formatters";
 import styles from "./CreateReservationPage.module.css";
 
-const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
 const BOOKING_DURATIONS = [1, 2, 3, 4, 6, 8];
 
 function getBookingPrefill(searchParams) {
@@ -289,7 +288,6 @@ export default function CreateReservationPage() {
               </div>
             ) : (
               <PaymentForm
-                stripePublicKey={STRIPE_PUBLIC_KEY}
                 token={token}
                 amount={totalPrice}
                 description={`${t("reservation.newReservation")}: ${espace.name} - ${selectedDate} ${startTime} ${t("common.to").toLowerCase()} ${endTime}`}
