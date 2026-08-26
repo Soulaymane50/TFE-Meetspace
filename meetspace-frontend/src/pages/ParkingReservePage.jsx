@@ -10,7 +10,6 @@ import { PARKING_IMAGE } from "../utils/mediaAssets";
 import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./ParkingReservePage.module.css";
 
-const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
 
 export default function ParkingReservePage() {
   const { id } = useParams();
@@ -158,7 +157,6 @@ export default function ParkingReservePage() {
               </div>
             ) : (
               <PaymentForm
-                stripePublicKey={STRIPE_PUBLIC_KEY}
                 token={token}
                 amount={totalAmount}
                 description={`${t("parking.session")}: ${parkingSlot.title} - ${reservedSpaces} ${t("parking.places")}`}

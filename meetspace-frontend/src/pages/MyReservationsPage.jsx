@@ -22,7 +22,6 @@ import { buildUserActivityItems, formatDate, formatTime, getDateKey, getStatusTo
 import styles from "./MyReservationsPage.module.css";
 import WorkspaceNav from "../components/WorkspaceNav";
 
-const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
 const RESERVATION_TABS = new Set(["day", "spaces", "events", "parking"]);
 const getReservationTab = (searchParams) => RESERVATION_TABS.has(searchParams.get("tab")) ? searchParams.get("tab") : "spaces";
 
@@ -405,7 +404,6 @@ export default function MyReservationsPage() {
           </div>
         ) : (
           <PaymentForm
-            stripePublicKey={STRIPE_PUBLIC_KEY}
             token={token}
             amount={payingReservation.totalPrice}
             description={`${t("reservation.payReservation")}: ${payingReservation.espace?.name}`}

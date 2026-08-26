@@ -45,6 +45,9 @@ public class PaymentController {
     @Value("${stripe.public-key:}")
     private String publicKey;
 
+    @Value("${stripe.secret-key:}")
+    private String secretKey;
+
     public PaymentController(UserRepository userRepository,
                              PaymentQuoteService quoteService,
                              BookingHoldService holdService,
@@ -61,6 +64,20 @@ public class PaymentController {
         this.rateLimitService = rateLimitService;
     }
 
+    @GetMapping("/config")
+    public ResponseEntity<Map<String, Object>> paymentConfig(Authentication authentication) {
+        authenticatedUser(authentication);
+        boolean enabled = isStripeConfigured();
+        Map<String, Object> response = new HashMap<>();
+        response.put("enabled", enabled);
+        response.put("currency", "eur");
+        response.put("provider", "stripe");
+        if (enabled) {
+            response.put("publicKey", publicKey.trim());
+        }
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/create-payment-intent")
     public PaymentResponse createPaymentIntent(@Valid @RequestBody PaymentRequest request,
                                                Authentication authentication,
@@ -68,6 +85,7 @@ public class PaymentController {
         User user = authenticatedUser(authentication);
         rateLimitService.check("payment", user.getId() + ":" + AuditService.getClientIpAddress(httpRequest),
                 30, Duration.ofMinutes(5));
+        ensureStripeConfigured();
         PaymentQuoteService.PaymentQuote quote = quoteService.quote(request, user);
         BookingHold hold = holdService.createHold(request, user, quote.type(), quote.amountCents());
 
@@ -151,6 +169,36 @@ public class PaymentController {
                         label, paymentIntentId, quote.amountCents() / 100D, quote.type().name()),
                 AuditService.getClientIpAddress(request)
         );
+    }
+
+    private void ensureStripeConfigured() {
+        if (!isStripeConfigured()) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Le paiement en ligne est temporairement indisponible. Réessayez dans quelques instants.");
+        }
+    }
+
+    private boolean isStripeConfigured() {
+        if (!isValidPublicKey(publicKey) || !isValidSecretKey(secretKey)) {
+            return false;
+        }
+        String publicMode = publicKey.trim().startsWith("pk_live_") ? "live" : "test";
+        String secretMode = secretKey.trim().startsWith("sk_live_") ? "live" : "test";
+        return publicMode.equals(secretMode);
+    }
+
+    private static boolean isValidPublicKey(String key) {
+        if (key == null) return false;
+        String normalized = key.trim();
+        return (normalized.startsWith("pk_test_") || normalized.startsWith("pk_live_"))
+                && normalized.length() > 16;
+    }
+
+    private static boolean isValidSecretKey(String key) {
+        if (key == null) return false;
+        String normalized = key.trim();
+        return (normalized.startsWith("sk_test_") || normalized.startsWith("sk_live_"))
+                && normalized.length() > 16;
     }
 
     private static String safeDescription(String description) {
