@@ -217,21 +217,23 @@ CORS_ALLOWED_ORIGINS=https://tfe-meetspace.vercel.app
 STRIPE_SECRET_KEY=<clé privée Stripe>
 STRIPE_PUBLIC_KEY=<clé publique Stripe du même mode>
 STRIPE_WEBHOOK_SECRET=<secret du webhook Railway>
-SMTP_HOST=<serveur SMTP>
-SMTP_PORT=587
-SMTP_USERNAME=<compte SMTP>
-SMTP_PASSWORD=<mot de passe d’application>
-SMTP_FROM=<adresse d’expédition vérifiée>
+RESEND_API_KEY=<clé privée Resend>
+RESEND_FROM=<expéditeur vérifié>
+SUPPORT_ADMIN_EMAIL=<adresse qui reçoit les demandes du formulaire Contact>
 
 ```
-Les valeurs MySQL, JWT, Stripe et SMTP restent exclusivement dans les variables privées des plateformes. Le build Vercel reçoit uniquement `VITE_API_URL` avec l’URL Railway active ; aucune valeur sensible n’est stockée dans le dépôt.
+En production Railway, l’envoi passe en priorité par l’API HTTPS de Resend. Une configuration SMTP complète reste disponible comme solution de repli en local ou sur une offre autorisant SMTP.
+
+Les valeurs MySQL, JWT, Stripe, Resend et SMTP restent exclusivement dans les variables privées des plateformes. Le build Vercel reçoit uniquement `VITE_API_URL` avec l’URL Railway active ; aucune valeur sensible n’est stockée dans le dépôt.
 
 Points de contrôle après chaque déploiement :
 
 - les clés Stripe publique et privée appartiennent au même mode (`test` ou `live`) ;
 - le webhook Stripe cible `https://tfe-meetspace-production.up.railway.app/api/payments/webhook` ;
-- `APP_MAIL_ENABLED=true` n’est activé qu’avec une configuration SMTP complète ;
-- `SMTP_FROM` correspond à une adresse autorisée par le fournisseur SMTP ;
+- `APP_MAIL_ENABLED=true` n’est activé qu’avec une configuration Resend ou SMTP complète ;
+- `RESEND_FROM` correspond à une adresse ou un domaine autorisé par Resend ;
+- `SUPPORT_ADMIN_EMAIL` contient une adresse distribuable ;
+- SMTP n’est utilisé que si Resend n’est pas configuré ;
 - les comptes de démonstration en `.test` ne reçoivent volontairement aucun e-mail ;
 - le frontend charge la configuration de paiement depuis `GET /api/payments/config` après connexion.
 
