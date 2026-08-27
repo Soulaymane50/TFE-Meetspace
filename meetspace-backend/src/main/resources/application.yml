@@ -81,6 +81,11 @@ app:
   mail:
     enabled: ${APP_MAIL_ENABLED:false}
     from: ${SMTP_FROM:${APP_MAIL_FROM:no-reply@meetspace.local}}
+    brevo:
+      api-key: ${BREVO_API_KEY:}
+      from-email: ${BREVO_FROM_EMAIL:}
+      from-name: ${BREVO_FROM_NAME:MeetSpace}
+      api-url: ${BREVO_API_URL:https://api.brevo.com/v3/smtp/email}
     resend:
       api-key: ${RESEND_API_KEY:}
       from: ${RESEND_FROM:}

@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -21,12 +22,16 @@ class EmailDeliveryService {
     private static final Logger LOGGER = LoggerFactory.getLogger(EmailDeliveryService.class);
 
     private final JavaMailSender mailSender;
-    private final RestClient restClient;
+    private final RestClient brevoRestClient;
+    private final RestClient resendRestClient;
     private final boolean enabled;
     private final String smtpHost;
     private final String smtpUsername;
     private final String smtpPassword;
     private final String smtpFrom;
+    private final String brevoApiKey;
+    private final String brevoFromEmail;
+    private final String brevoFromName;
     private final String resendApiKey;
     private final String resendFrom;
 
@@ -36,6 +41,10 @@ class EmailDeliveryService {
                          @Value("${spring.mail.username:}") String smtpUsername,
                          @Value("${spring.mail.password:}") String smtpPassword,
                          @Value("${app.mail.from:}") String smtpFrom,
+                         @Value("${app.mail.brevo.api-key:}") String brevoApiKey,
+                         @Value("${app.mail.brevo.from-email:}") String brevoFromEmail,
+                         @Value("${app.mail.brevo.from-name:MeetSpace}") String brevoFromName,
+                         @Value("${app.mail.brevo.api-url:https://api.brevo.com/v3/smtp/email}") String brevoApiUrl,
                          @Value("${app.mail.resend.api-key:}") String resendApiKey,
                          @Value("${app.mail.resend.from:}") String resendFrom,
                          @Value("${app.mail.resend.api-url:https://api.resend.com/emails}") String resendApiUrl) {
@@ -45,18 +54,24 @@ class EmailDeliveryService {
         this.smtpUsername = clean(smtpUsername);
         this.smtpPassword = smtpPassword == null ? "" : smtpPassword.replaceAll("\\s+", "");
         this.smtpFrom = clean(smtpFrom);
+        this.brevoApiKey = clean(brevoApiKey);
+        this.brevoFromEmail = clean(brevoFromEmail);
+        this.brevoFromName = clean(brevoFromName);
         this.resendApiKey = clean(resendApiKey);
         this.resendFrom = clean(resendFrom);
-        this.restClient = RestClient.builder().baseUrl(resendApiUrl).build();
+        this.brevoRestClient = RestClient.builder().baseUrl(brevoApiUrl).build();
+        this.resendRestClient = RestClient.builder().baseUrl(resendApiUrl).build();
     }
 
     boolean canSend() {
-        return enabled && (resendReady() || smtpReady());
+        return enabled && (brevoReady() || resendReady() || smtpReady());
     }
 
     String configurationStatus() {
         return "enabled=" + enabled
                 + ", provider=" + provider()
+                + ", brevoKey=" + presence(brevoApiKey)
+                + ", brevoFrom=" + presence(brevoFromEmail)
                 + ", resendKey=" + presence(resendApiKey)
                 + ", resendFrom=" + presence(resendFrom)
                 + ", smtpHost=" + presence(smtpHost)
@@ -72,11 +87,43 @@ class EmailDeliveryService {
         if (!canSend()) {
             throw new IllegalStateException("Service email non configure");
         }
+        if (brevoReady()) {
+            sendWithBrevo(to, subject, content, replyTo);
+            return;
+        }
         if (resendReady()) {
             sendWithResend(to, subject, content, replyTo);
             return;
         }
         sendWithSmtp(to, subject, content, replyTo);
+    }
+
+    private void sendWithBrevo(String to,
+                               String subject,
+                               EmailTemplateRenderer.EmailContent content,
+                               String replyTo) {
+        Map<String, Object> sender = new LinkedHashMap<>();
+        sender.put("email", brevoFromEmail);
+        if (StringUtils.hasText(brevoFromName)) {
+            sender.put("name", brevoFromName);
+        }
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("sender", sender);
+        body.put("to", List.of(Map.of("email", to)));
+        body.put("subject", subject);
+        body.put("htmlContent", content.html());
+        if (StringUtils.hasText(replyTo)) {
+            body.put("replyTo", Map.of("email", replyTo.trim()));
+        }
+
+        brevoRestClient.post()
+                .header("api-key", brevoApiKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body)
+                .retrieve()
+                .toBodilessEntity();
+        LOGGER.debug("Email accepted by Brevo for {}", maskEmail(to));
     }
 
     private void sendWithResend(String to,
@@ -93,7 +140,7 @@ class EmailDeliveryService {
             body.put("reply_to", replyTo.trim());
         }
 
-        restClient.post()
+        resendRestClient.post()
                 .header("Authorization", "Bearer " + resendApiKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(body)
@@ -122,6 +169,10 @@ class EmailDeliveryService {
         }
     }
 
+    private boolean brevoReady() {
+        return StringUtils.hasText(brevoApiKey) && StringUtils.hasText(brevoFromEmail);
+    }
+
     private boolean resendReady() {
         return StringUtils.hasText(resendApiKey) && StringUtils.hasText(resendFrom);
     }
@@ -135,6 +186,7 @@ class EmailDeliveryService {
 
     private String provider() {
         if (!enabled) return "disabled";
+        if (brevoReady()) return "brevo";
         if (resendReady()) return "resend";
         if (smtpReady()) return "smtp";
         return "missing";
