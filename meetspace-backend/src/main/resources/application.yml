@@ -81,8 +81,12 @@ app:
   mail:
     enabled: ${APP_MAIL_ENABLED:false}
     from: ${SMTP_FROM:${APP_MAIL_FROM:no-reply@meetspace.local}}
+    resend:
+      api-key: ${RESEND_API_KEY:}
+      from: ${RESEND_FROM:}
+      api-url: ${RESEND_API_URL:https://api.resend.com/emails}
   support:
-    admin-email: ${SUPPORT_ADMIN_EMAIL:}
+    admin-email: ${SUPPORT_ADMIN_EMAIL:${APP_SUPPORT_ADMIN_EMAIL:}}
   password-reset:
     log-reset-link-when-email-disabled: ${APP_PASSWORD_RESET_LOG_LINK:false}
   account-deletion:

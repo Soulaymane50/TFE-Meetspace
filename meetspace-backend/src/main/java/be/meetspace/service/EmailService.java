@@ -9,14 +9,10 @@ import be.meetspace.entity.Reservation;
 import be.meetspace.entity.User;
 import be.meetspace.web.dto.SupportContactRequest;
 import jakarta.annotation.PostConstruct;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
@@ -42,22 +38,7 @@ public class EmailService {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     private static final Set<String> NON_DELIVERABLE_TLDS = Set.of("local", "invalid", "test", "example", "admin");
 
-    private final JavaMailSender mailSender;
-
-    @Value("${app.mail.enabled:false}")
-    private boolean enabled;
-
-    @Value("${spring.mail.host:}")
-    private String host;
-
-    @Value("${spring.mail.username:}")
-    private String username;
-
-    @Value("${spring.mail.password:}")
-    private String password;
-
-    @Value("${app.mail.from:}")
-    private String from;
+    private final EmailDeliveryService mailDelivery;
 
     @Value("${app.support.admin-email:}")
     private String supportAdminEmail;
@@ -65,8 +46,8 @@ public class EmailService {
     @Value("${app.frontend-url:http://localhost:5174}")
     private String frontendUrl;
 
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+    public EmailService(EmailDeliveryService mailDelivery) {
+        this.mailDelivery = mailDelivery;
     }
 
     @PostConstruct
@@ -82,28 +63,21 @@ public class EmailService {
         ensureMailConfigured();
         ensureDeliverableRecipient(to);
 
+        EmailTemplateRenderer.EmailContent content = EmailTemplateRenderer.render(
+                "Réinitialisez votre mot de passe",
+                "Une demande de nouveau mot de passe a été effectuée pour votre compte.",
+                greeting(firstName),
+                Map.of(),
+                "Choisir un nouveau mot de passe",
+                resetUrl,
+                "Ce lien est personnel et expire dans 30 minutes. Si vous n'êtes pas à l'origine de cette demande, aucune action n'est nécessaire."
+        );
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(from);
-            helper.setTo(to);
-            helper.setSubject("Réinitialisation de votre mot de passe MeetSpace");
-            EmailTemplateRenderer.EmailContent content = EmailTemplateRenderer.render(
-                    "Réinitialisez votre mot de passe",
-                    "Une demande de nouveau mot de passe a été effectuée pour votre compte.",
-                    greeting(firstName),
-                    Map.of(),
-                    "Choisir un nouveau mot de passe",
-                    resetUrl,
-                    "Ce lien est personnel et expire dans 30 minutes. Si vous n'êtes pas à l'origine de cette demande, aucune action n'est nécessaire."
-            );
-            helper.setText(content.text(), content.html());
-            mailSender.send(message);
+            mailDelivery.send(to, "Réinitialisation de votre mot de passe MeetSpace", content, null);
             LOGGER.info("Password reset email sent to {}", maskEmail(to));
-        } catch (MessagingException ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Impossible de préparer l'email de récupération", ex);
-        } catch (RuntimeException ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Impossible d'envoyer l'email de récupération", ex);
+        } catch (RuntimeException exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Impossible d'envoyer l'email de récupération", exception);
         }
     }
 
@@ -134,28 +108,21 @@ public class EmailService {
         ensureMailConfigured();
         ensureDeliverableRecipient(to);
 
+        EmailTemplateRenderer.EmailContent content = EmailTemplateRenderer.render(
+                "Confirmez la suppression de votre compte",
+                "Une demande de suppression définitive vient d'être lancée.",
+                greeting(firstName),
+                Map.of(),
+                "Confirmer la suppression",
+                confirmationUrl,
+                "Ce lien expire automatiquement. Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre compte restera actif."
+        );
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(from);
-            helper.setTo(to);
-            helper.setSubject("Validation de suppression de votre compte MeetSpace");
-            EmailTemplateRenderer.EmailContent content = EmailTemplateRenderer.render(
-                    "Confirmez la suppression de votre compte",
-                    "Une demande de suppression définitive vient d'être lancée.",
-                    greeting(firstName),
-                    Map.of(),
-                    "Confirmer la suppression",
-                    confirmationUrl,
-                    "Ce lien expire automatiquement. Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre compte restera actif."
-            );
-            helper.setText(content.text(), content.html());
-            mailSender.send(message);
+            mailDelivery.send(to, "Validation de suppression de votre compte MeetSpace", content, null);
             LOGGER.info("Account deletion confirmation email sent to {}", maskEmail(to));
-        } catch (MessagingException ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Impossible de preparer l'email de validation", ex);
-        } catch (RuntimeException ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Impossible d'envoyer l'email de validation", ex);
+        } catch (RuntimeException exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Impossible d'envoyer l'email de validation", exception);
         }
     }
 
@@ -177,7 +144,7 @@ public class EmailService {
         details.put("Paiement", formatPaymentState(reservation.getTotalPrice()));
         details.put("Référence", reference);
 
-        sendTransactionalEmail(
+        sendTransactionalEmailAsync(
                 "room-reservation",
                 reservation.getUser().getEmail(),
                 "Confirmation de votre réservation MeetSpace",
@@ -208,7 +175,7 @@ public class EmailService {
         details.put("Paiement", formatPaymentState(registration.getTotalPrice()));
         details.put("Référence", reference);
 
-        sendTransactionalEmail(
+        sendTransactionalEmailAsync(
                 "event-registration",
                 registration.getUser().getEmail(),
                 "Confirmation de votre inscription MeetSpace",
@@ -238,7 +205,7 @@ public class EmailService {
         details.put("Paiement", formatPaymentState(reservation.getTotalPrice()));
         details.put("Référence", reference);
 
-        sendTransactionalEmail(
+        sendTransactionalEmailAsync(
                 "parking-reservation",
                 reservation.getUser().getEmail(),
                 "Confirmation de votre parking MeetSpace",
@@ -255,45 +222,39 @@ public class EmailService {
         Map<String, String> details = new LinkedHashMap<>();
         details.put("Nom", request.name());
         details.put("Email", request.email());
-        details.put("Categorie", formatSupportCategory(request.category()));
+        details.put("Catégorie", formatSupportCategory(request.category()));
         details.put("Sujet", request.subject());
         details.put("Message", request.message());
-        details.put("Reference reservation", StringUtils.hasText(request.reservationReference()) ? request.reservationReference() : "Non precisee");
-        details.put("Date de reception", receivedAt == null ? "Non precisee" : receivedAt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+        details.put("Référence réservation", StringUtils.hasText(request.reservationReference()) ? request.reservationReference() : "Non précisée");
+        details.put("Date de réception", receivedAt == null ? "Non précisée" : receivedAt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
 
         if (!StringUtils.hasText(recipient)) {
             LOGGER.info("Support request received but no admin email is configured: {} from {}", request.category(), maskEmail(request.email()));
             return;
         }
-
         if (!canSendMail()) {
-            LOGGER.info("Support request would be sent to {} but SMTP is not configured: {} from {}", maskEmail(recipient), request.category(), maskEmail(request.email()));
+            LOGGER.info("Support request would be sent to {} but email delivery is not configured: {} from {}",
+                    maskEmail(recipient), request.category(), maskEmail(request.email()));
             return;
         }
 
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(from);
-            helper.setTo(recipient);
-            helper.setReplyTo(request.email());
-            helper.setSubject("[MeetSpace Support] " + request.subject());
-            EmailTemplateRenderer.EmailContent content = EmailTemplateRenderer.render(
-                    "Nouvelle demande au support", "Une demande a été envoyée depuis le formulaire Contact.",
-                    null, details, null, null, "Répondez directement à ce message pour contacter la personne."
-            );
-            helper.setText(content.text(), content.html());
-            mailSender.send(message);
-            LOGGER.info("Support email sent to {}", maskEmail(recipient));
-        } catch (MessagingException ex) {
-            LOGGER.warn("Support email could not be prepared for {}", maskEmail(recipient), ex);
-        } catch (RuntimeException ex) {
-            LOGGER.warn("Support email could not be sent to {}", maskEmail(recipient), ex);
-        }
-    }
-
-    private void sendTransactionalEmail(String type, String to, String subject, String title, String intro, Map<String, String> details) {
-        sendTransactionalEmail(type, to, subject, title, intro, details, null, null);
+        EmailTemplateRenderer.EmailContent content = EmailTemplateRenderer.render(
+                "Nouvelle demande au support",
+                "Une demande a été envoyée depuis le formulaire Contact.",
+                null,
+                details,
+                null,
+                null,
+                "Répondez directement à ce message pour contacter la personne."
+        );
+        CompletableFuture.runAsync(() -> {
+            try {
+                mailDelivery.send(recipient, "[MeetSpace Support] " + request.subject(), content, request.email());
+                LOGGER.info("Support email sent to {}", maskEmail(recipient));
+            } catch (RuntimeException exception) {
+                LOGGER.warn("Support email could not be sent to {}", maskEmail(recipient), exception);
+            }
+        });
     }
 
     private void sendTransactionalEmail(String type,
@@ -308,59 +269,49 @@ public class EmailService {
             LOGGER.info("Transactional email skipped: missing recipient for {}", type);
             return;
         }
-
         if (!canSendMail()) {
-            LOGGER.info("Transactional email skipped because SMTP is not configured: {} for {}", type, maskEmail(to));
+            LOGGER.info("Transactional email skipped because delivery is not configured: {} for {}", type, maskEmail(to));
             return;
         }
-
         if (!isDeliverableRecipient(to)) {
             LOGGER.info("Transactional email skipped for non-deliverable demo recipient: {} for {}", type, maskEmail(to));
             return;
         }
 
+        EmailTemplateRenderer.EmailContent content = EmailTemplateRenderer.render(
+                title,
+                intro,
+                null,
+                details,
+                actionLabel,
+                actionUrl,
+                "Conservez ce message : la référence permet au support de retrouver rapidement votre demande."
+        );
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(from);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            EmailTemplateRenderer.EmailContent content = EmailTemplateRenderer.render(
-                    title, intro, null, details, actionLabel, actionUrl,
-                    "Conservez ce message : la référence permet au support de retrouver rapidement votre demande."
-            );
-            helper.setText(content.text(), content.html());
-            mailSender.send(message);
+            mailDelivery.send(to, subject, content, null);
             LOGGER.info("Transactional email sent: {} for {}", type, maskEmail(to));
-        } catch (MessagingException ex) {
-            LOGGER.warn("Transactional email could not be prepared: {} for {}", type, maskEmail(to), ex);
-        } catch (RuntimeException ex) {
-            LOGGER.warn("Transactional email could not be sent: {} for {}", type, maskEmail(to), ex);
+        } catch (RuntimeException exception) {
+            LOGGER.warn("Transactional email could not be sent: {} for {}", type, maskEmail(to), exception);
         }
     }
 
     public void sendEmailChangeConfirmation(String to, String firstName, String confirmationUrl) {
         ensureMailConfigured();
         ensureDeliverableRecipient(to);
+
+        EmailTemplateRenderer.EmailContent content = EmailTemplateRenderer.render(
+                "Confirmez votre nouvelle adresse e-mail",
+                "Validez cette adresse pour terminer la modification de votre compte.",
+                greeting(firstName),
+                Map.of(),
+                "Confirmer mon adresse",
+                confirmationUrl,
+                "Ce lien expire dans 30 minutes. Si vous n'avez pas demandé ce changement, conservez votre adresse actuelle et contactez le support."
+        );
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(from);
-            helper.setTo(to);
-            helper.setSubject("Confirmez votre nouvelle adresse MeetSpace");
-            EmailTemplateRenderer.EmailContent content = EmailTemplateRenderer.render(
-                    "Confirmez votre nouvelle adresse e-mail",
-                    "Validez cette adresse pour terminer la modification de votre compte.",
-                    greeting(firstName),
-                    Map.of(),
-                    "Confirmer mon adresse",
-                    confirmationUrl,
-                    "Ce lien expire dans 30 minutes. Si vous n'avez pas demandé ce changement, conservez votre adresse actuelle et contactez le support."
-            );
-            helper.setText(content.text(), content.html());
-            mailSender.send(message);
+            mailDelivery.send(to, "Confirmez votre nouvelle adresse MeetSpace", content, null);
             LOGGER.info("Email change confirmation sent to {}", maskEmail(to));
-        } catch (MessagingException | RuntimeException exception) {
+        } catch (RuntimeException exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Impossible d'envoyer la confirmation de changement d'email", exception);
         }
@@ -376,8 +327,8 @@ public class EmailService {
                                              String actionUrl) {
         CompletableFuture.runAsync(() -> sendTransactionalEmail(
                         type, to, subject, title, intro, details, actionLabel, actionUrl))
-                .exceptionally(ex -> {
-                    LOGGER.warn("Transactional email async task failed: {} for {}", type, maskEmail(to), ex);
+                .exceptionally(exception -> {
+                    LOGGER.warn("Transactional email async task failed: {} for {}", type, maskEmail(to), exception);
                     return null;
                 });
     }
@@ -391,36 +342,17 @@ public class EmailService {
 
     private void ensureMailConfigured() {
         if (!canSendMail()) {
-            LOGGER.warn("Email send blocked because SMTP configuration is incomplete: {}", mailConfigurationStatus());
+            LOGGER.warn("Email send blocked because delivery configuration is incomplete: {}", mailConfigurationStatus());
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Service email non configuré");
         }
     }
 
     public boolean canSendMail() {
-        return enabled
-                && StringUtils.hasText(host)
-                && StringUtils.hasText(username)
-                && StringUtils.hasText(normalizedPassword())
-                && StringUtils.hasText(from);
-    }
-
-    private String normalizedPassword() {
-        if (password == null) {
-            return "";
-        }
-        return password.replaceAll("\\s+", "");
+        return mailDelivery.canSend();
     }
 
     private String mailConfigurationStatus() {
-        return "enabled=" + enabled
-                + ", host=" + presence(host)
-                + ", username=" + presence(username)
-                + ", password=" + presence(normalizedPassword())
-                + ", from=" + presence(from);
-    }
-
-    private String presence(String value) {
-        return StringUtils.hasText(value) ? "present" : "missing";
+        return mailDelivery.configurationStatus();
     }
 
     private boolean isDeliverableRecipient(String email) {
@@ -450,102 +382,6 @@ public class EmailService {
         return StringUtils.hasText(firstName)
                 ? "Bonjour " + firstName.trim() + ","
                 : "Bonjour,";
-    }
-
-    private String buildPasswordResetText(String resetUrl) {
-        return "Bonjour,\n\n"
-                + "Vous avez demandé la réinitialisation de votre mot de passe MeetSpace.\n"
-                + "Cliquez sur le lien suivant pour choisir un nouveau mot de passe :\n"
-                + resetUrl + "\n\n"
-                + "Ce lien expire automatiquement. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.\n\n"
-                + "MeetSpace";
-    }
-
-    private String buildPasswordResetHtml(String resetUrl) {
-        return """
-                <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #111827;">
-                  <p style="font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #64748b;">MeetSpace</p>
-                  <h2 style="margin: 0 0 16px;">Réinitialisation de votre mot de passe</h2>
-                  <p>Vous avez demandé la réinitialisation de votre mot de passe MeetSpace.</p>
-                  <p>
-                    <a href="%s" style="display: inline-block; padding: 12px 18px; border-radius: 12px; background: #10213f; color: #ffffff; text-decoration: none;">
-                      Choisir un nouveau mot de passe
-                    </a>
-                  </p>
-                  <p style="color: #64748b;">Ce lien expire automatiquement. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
-                </div>
-                """.formatted(escapeHtml(resetUrl));
-    }
-
-    private String buildAccountDeletionText(String firstName, String confirmationUrl) {
-        String greeting = StringUtils.hasText(firstName) ? "Bonjour " + firstName + "," : "Bonjour,";
-        return greeting + "\n\n"
-                + "Une demande de suppression de compte MeetSpace vient d'etre lancee.\n"
-                + "Pour confirmer cette action, ouvrez le lien suivant :\n"
-                + confirmationUrl + "\n\n"
-                + "Ce lien expire automatiquement. Si vous n'etes pas a l'origine de cette demande, ignorez cet email et votre compte restera actif.\n\n"
-                + "MeetSpace";
-    }
-
-    private String buildAccountDeletionHtml(String firstName, String confirmationUrl) {
-        String greeting = StringUtils.hasText(firstName) ? "Bonjour " + firstName + "," : "Bonjour,";
-        return """
-                <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #111827;">
-                  <p style="font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #64748b;">MeetSpace</p>
-                  <h2 style="margin: 0 0 16px;">Validation de suppression de compte</h2>
-                  <p>%s</p>
-                  <p>Une demande de suppression de compte MeetSpace vient d'etre lancee.</p>
-                  <p>
-                    <a href="%s" style="display: inline-block; padding: 12px 18px; border-radius: 12px; background: #10213f; color: #ffffff; text-decoration: none;">
-                      Confirmer la suppression
-                    </a>
-                  </p>
-                  <p style="color: #64748b;">Ce lien expire automatiquement. Si vous n'etes pas a l'origine de cette demande, ignorez cet email et votre compte restera actif.</p>
-                </div>
-                """.formatted(escapeHtml(greeting), escapeHtml(confirmationUrl));
-    }
-
-    private String buildTransactionalText(String title, String intro, Map<String, String> details) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("MeetSpace\n\n")
-                .append(title).append("\n")
-                .append(intro).append("\n\n");
-
-        details.forEach((label, value) -> builder
-                .append("- ")
-                .append(label)
-                .append(" : ")
-                .append(value)
-                .append("\n"));
-
-        builder.append("\nEn cas de question, contactez le support MeetSpace en indiquant votre référence.\n\n")
-                .append("MeetSpace");
-        return builder.toString();
-    }
-
-    private String buildTransactionalHtml(String title, String intro, Map<String, String> details) {
-        StringBuilder rows = new StringBuilder();
-        details.forEach((label, value) -> rows.append("""
-                <tr>
-                  <td style="padding: 10px 0; color: #64748b; border-bottom: 1px solid #e5e7eb;">%s</td>
-                  <td style="padding: 10px 0; color: #111827; font-weight: 700; text-align: right; border-bottom: 1px solid #e5e7eb;">%s</td>
-                </tr>
-                """.formatted(escapeHtml(label), escapeHtml(value))));
-
-        return """
-                <div style="font-family: Arial, sans-serif; max-width: 620px; margin: 0 auto; color: #111827; background: #ffffff;">
-                  <div style="padding: 28px; border: 1px solid #e5e7eb; border-radius: 20px;">
-                    <p style="margin: 0 0 10px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #64748b;">MeetSpace</p>
-                    <h2 style="margin: 0 0 12px; font-size: 26px; line-height: 1.2;">%s</h2>
-                    <p style="margin: 0 0 22px; color: #475569; line-height: 1.6;">%s</p>
-                    <table style="width: 100%%; border-collapse: collapse;">%s</table>
-                    <p style="margin: 24px 0 0; color: #64748b; line-height: 1.6;">
-                      En cas de question, contactez le support MeetSpace en indiquant votre référence.
-                    </p>
-                    <p style="margin: 18px 0 0; font-weight: 700;">MeetSpace</p>
-                  </div>
-                </div>
-                """.formatted(escapeHtml(title), escapeHtml(intro), rows);
     }
 
     private String eventLocation(Event event) {
@@ -648,8 +484,8 @@ public class EmailService {
         }
         return switch (category) {
             case "account" -> "Compte";
-            case "room_reservation" -> "Reservation salle";
-            case "event" -> "Evenement";
+            case "room_reservation" -> "Réservation salle";
+            case "event" -> "Événement";
             case "parking" -> "Parking";
             case "payment" -> "Paiement";
             default -> "Autre";
@@ -663,17 +499,5 @@ public class EmailService {
         String[] parts = email.split("@", 2);
         String prefix = parts[0].length() <= 2 ? parts[0] : parts[0].substring(0, 2) + "***";
         return prefix + "@" + parts[1];
-    }
-
-    private String escapeHtml(String value) {
-        if (value == null) {
-            return "";
-        }
-        return value
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&#39;");
     }
 }
