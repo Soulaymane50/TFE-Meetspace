@@ -8,10 +8,10 @@ Le produit couvre quatre usages distincts : la consultation publique, la réserv
 
 - catalogue public des salles, événements et créneaux de parking ;
 - disponibilité des salles et réservation par créneau ;
-- inscription aux événements, capacité, liste d’attente et parking lié ;
+- inscription aux événements, capacité, liste d’attente, ticket QR et parking lié ;
 - demandes de salles premium avec validation et échéance de paiement ;
 - espace client pour les réservations, paiements, annulations et profil ;
-- espace organisateur pour créer, soumettre et suivre ses événements ;
+- espace organisateur pour créer, soumettre et suivre ses événements, leurs participants et les entrées ;
 - administration des utilisateurs, espaces, événements, parkings et validations ;
 - suivi financier distinct pour l’administrateur et l’organisateur ;
 - authentification JWT, révocation des sessions et états de compte ;
@@ -107,7 +107,7 @@ Le jeu de démonstration est séparé dans `meetspace-backend/src/main/resources
 - refusé par le chargeur automatique avec le profil `prod` ;
 - composé de comptes réservés au domaine `meetspace-demo.test`.
 
-Il contient 31 comptes, 27 événements répartis de janvier à décembre 2026, 8 salles, des créneaux de parking, des réservations, des inscriptions, des paiements, quelques remboursements de démonstration, des notifications et des éléments en attente de validation.
+Il contient 31 comptes, 35 événements répartis de janvier à décembre 2026, 8 salles, des créneaux de parking, des réservations, des inscriptions, des paiements, quelques remboursements de démonstration, des notifications et des éléments en attente de validation. Plusieurs événements partagent une même date dans des salles différentes afin de représenter une programmation réaliste et de vérifier les conflits de planning.
 
 ### Comptes du seed local étendu
 
@@ -192,7 +192,7 @@ set E2E_ADMIN_PASSWORD=MeetSpaceDemo!2026
 npm test
 ```
 
-La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La dernière validation complète comporte 28 tests backend et 42 scénarios API, navigateur et accessibilité ; une recette complémentaire de 15 scénarios a également été exécutée sur la production.
+La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La dernière validation complète comporte 41 tests backend et 44 scénarios API, navigateur et accessibilité ; une recette complémentaire de 15 scénarios a également été exécutée sur la production.
 
 ## Déploiement
 
@@ -202,7 +202,7 @@ La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstru
 | Backend Railway | [tfe-meetspace-production.up.railway.app](https://tfe-meetspace-production.up.railway.app) |
 | Santé backend | [actuator/health](https://tfe-meetspace-production.up.railway.app/actuator/health) |
 
-État vérifié le 22 août 2026 : frontend accessible, backend `UP`, schéma Flyway validé et communication Vercel-Railway opérationnelle.
+État vérifié le 28 août 2026 : frontend accessible, backend `UP`, schéma Flyway validé et communication Vercel-Railway opérationnelle.
 
 La production utilise au minimum les garde-fous suivants :
 
@@ -228,6 +228,8 @@ Les valeurs MySQL, JWT, Stripe, Brevo, Resend et SMTP restent exclusivement dans
 
 Points de contrôle après chaque déploiement :
 
+- Flyway applique la migration `V6__event_check_in.sql` et renseigne un jeton unique pour chaque inscription existante ;
+- Vercel autorise la caméra pour le contrôle des billets (`Permissions-Policy: camera=(self)`) ;
 - les clés Stripe publique et privée appartiennent au même mode (`test` ou `live`) ;
 - le webhook Stripe cible `https://tfe-meetspace-production.up.railway.app/api/payments/webhook` ;
 - `APP_MAIL_ENABLED=true` n’est activé qu’avec une configuration Brevo, Resend ou SMTP complète ;
@@ -236,9 +238,10 @@ Points de contrôle après chaque déploiement :
 - Brevo est prioritaire, puis Resend, puis SMTP ;
 - une configuration Resend sans domaine vérifié reste limitée à l’adresse du compte Resend ;
 - les comptes de démonstration en `.test` ne reçoivent volontairement aucun e-mail ;
-- le frontend charge la configuration de paiement depuis `GET /api/payments/config` après connexion.
+- le frontend charge la configuration de paiement depuis `GET /api/payments/config` après connexion ;
+- un même billet peut être scanné plusieurs fois sans créer plusieurs entrées : le contrôle est idempotent.
 
-Lors de la dernière vérification, les catalogues publics de production exposaient 8 espaces, 15 événements futurs et 10 sessions de parking.
+Lors de la dernière vérification, les catalogues publics de production exposaient 8 espaces, 23 événements futurs et 15 sessions de parking. Les quatre dates de démonstration enrichies comportent chacune trois événements dans trois salles différentes. Aucun chevauchement salle-événement ni salle-réservation n’a été détecté.
 
 ## Sécurité et règles de dépôt
 
@@ -248,6 +251,7 @@ Lors de la dernière vérification, les catalogues publics de production exposai
 - le chargement automatique du seed et les faux paiements restent interdits en production ;
 - Swagger est désactivé avec le profil `prod` ;
 - les montants de paiement sont calculés côté serveur et stockés en centimes dans le registre de paiement ;
+- la création, la modification, la validation et le déplacement d’un événement verrouillent la salle avant de contrôler les chevauchements ;
 - les contraintes MySQL protègent capacités, périodes, quantités et montants négatifs.
 
 Les indicateurs financiers servent au pilotage et à la démonstration. Ils ne remplacent pas une comptabilité légale.
