@@ -423,6 +423,11 @@ export default function OrganizerEventsPage() {
                   </button>
                 )}
                 {e.status === "PUBLISHED" ? (
+                  <Link to={`/organizer/events/${e.id}/check-in`} className={styles.checkInButton}>
+                    {t("checkIn.openConsole")}
+                  </Link>
+                ) : null}
+                {e.status === "PUBLISHED" ? (
                   <Link to={`/events/${e.id}`} className={styles.viewButton}>
                     {t("detail.viewDetails", { defaultValue: "Voir la fiche" })}
                   </Link>

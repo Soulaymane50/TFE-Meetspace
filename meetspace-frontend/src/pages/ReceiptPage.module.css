@@ -19,6 +19,19 @@
 .booking dl div { padding: .9rem 0; }
 .booking dl div + div { padding-left: 1rem; border-left: 1px solid var(--border); }
 .booking dd { margin: .25rem 0 0; font-size: .82rem; font-weight: 750; }
+.ticket { display: grid; grid-template-columns: minmax(0, 1fr) 240px; border-top: 1px solid var(--border); background: var(--surface-muted); }
+.ticketCopy { display: grid; align-content: start; gap: .55rem; padding: 1.5rem; }
+.ticketCopy > p { margin: 0; color: var(--accent-strong); font-size: .62rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.ticketCopy h2 { margin: 0; font-size: clamp(1.35rem, 3vw, 2rem); letter-spacing: -.035em; }
+.ticketCopy > span { max-width: 52ch; color: var(--text-secondary); font-size: .8rem; line-height: 1.55; }
+.checkedStatus { justify-self: start; padding: .45rem .65rem; border-left: 3px solid var(--brand); background: color-mix(in srgb, var(--brand) 9%, transparent); color: var(--brand-strong); font-size: .72rem; }
+.ticketCode { display: grid; gap: .35rem; margin-top: .45rem; padding-top: .9rem; border-top: 1px solid var(--border); }
+.ticketCode small { color: var(--text-muted); font-size: .58rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.ticketCode code { overflow-wrap: anywhere; color: var(--text-primary); font-family: "SFMono-Regular", Consolas, monospace; font-size: .78rem; font-weight: 700; letter-spacing: .06em; }
+.ticketCode button { justify-self: start; min-height: 36px; padding: .45rem .65rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-primary); font-size: .68rem; font-weight: 800; }
+.qrPanel { display: grid; place-items: center; align-content: center; gap: .55rem; padding: 1rem; border-left: 1px solid var(--border); background: #fffdf8; color: #31453f; }
+.qrPanel img { display: block; width: min(100%, 190px); aspect-ratio: 1; }
+.qrPanel small { max-width: 22ch; text-align: center; font-size: .62rem; line-height: 1.35; }
 .amountLine { display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1.2rem 1.5rem; border-top: 1px solid var(--border); background: var(--surface-muted); }
 .amountLine div { display: grid; }
 .amountLine small { color: var(--text-muted); }
@@ -33,6 +46,8 @@
   .brandHeader p { grid-column: 1 / -1; justify-self: start; }
   .identity, .booking dl { grid-template-columns: 1fr; }
   .identity > div + div, .booking dl div + div { border-top: 1px solid var(--border); border-left: 0; padding-left: 1.5rem; }
+  .ticket { grid-template-columns: 1fr; }
+  .qrPanel { border-top: 1px solid var(--border); border-left: 0; }
   .footer { display: grid; }
 }
 
@@ -41,4 +56,8 @@
   .page { width: 100%; }
   .screenActions { display: none; }
   .document { border-color: #ccd3cf; color: #16211d; }
+  .ticket { break-inside: avoid; background: #f3f2ed; }
+  .ticketCopy { color: #16211d; }
+  .ticketCopy > span, .ticketCode small { color: #51615b; }
+  .ticketCode code { color: #16211d; }
 }

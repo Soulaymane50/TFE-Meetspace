@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import QRCode from "qrcode";
 import PageState from "../components/PageState";
 import { useAuth } from "../context/AuthContext";
 import { getMyEventRegistrations, getMyParkingReservations, getMyReservations } from "../services/api";
@@ -45,6 +46,8 @@ export default function ReceiptPage() {
   const [record, setRecord] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [qrCode, setQrCode] = useState("");
+  const [copied, setCopied] = useState(false);
   const locale = normalizeLocale(i18n.language);
   const loader = LOADERS[type];
 
@@ -87,6 +90,29 @@ export default function ReceiptPage() {
     };
   }, [record, t, type]);
 
+  const ticketPayload = useMemo(() => {
+    if (type !== "event" || !record?.ticketToken) return "";
+    return `MS-CHECKIN:${record.eventId}:${record.ticketToken}`;
+  }, [record, type]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!ticketPayload) return undefined;
+    QRCode.toDataURL(ticketPayload, {
+      width: 280,
+      margin: 1,
+      errorCorrectionLevel: "M",
+      color: { dark: "#0d3b33", light: "#fffdf8" },
+    }).then((dataUrl) => !cancelled && setQrCode(dataUrl));
+    return () => { cancelled = true; };
+  }, [ticketPayload]);
+
+  const copyTicket = async () => {
+    await navigator.clipboard.writeText(record.ticketToken);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1800);
+  };
+
   if (!loader) return <PageState type="error" title={t("receipt.notFound", { defaultValue: "Justificatif introuvable" })} message={t("receipt.notFoundHint", { defaultValue: "Cette réservation n’existe pas dans votre compte." })} action={<Link to="/my-reservations">{t("common.back", { defaultValue: "Retour" })}</Link>} />;
   if (loading) return <PageState type="loading" title={t("common.loading")} message={t("receipt.title", { defaultValue: "Justificatif" })} />;
   if (error || !record || !details) return <PageState type="error" title={t("receipt.notFound", { defaultValue: "Justificatif introuvable" })} message={error || t("receipt.notFoundHint", { defaultValue: "Cette réservation n’existe pas dans votre compte." })} action={<Link to="/my-reservations">{t("common.back", { defaultValue: "Retour" })}</Link>} />;
@@ -121,6 +147,30 @@ export default function ReceiptPage() {
             <div><dt>{t("common.status", { defaultValue: "Statut" })}</dt><dd>{t(`status.${String(record.status).toLowerCase()}`, { defaultValue: record.status })}</dd></div>
           </dl>
         </section>
+
+        {type === "event" && record.ticketToken ? (
+          <section className={styles.ticket} aria-labelledby="event-ticket-title">
+            <div className={styles.ticketCopy}>
+              <p>{t("checkIn.ticketKicker")}</p>
+              <h2 id="event-ticket-title">{t("checkIn.ticketTitle")}</h2>
+              <span>{t("checkIn.ticketHelp")}</span>
+              {record.checkedInAt ? (
+                <strong className={styles.checkedStatus}>
+                  {t("checkIn.checkedAt", { date: formatReceiptDate(record.checkedInAt, locale), time: formatReceiptTime(record.checkedInAt, locale) })}
+                </strong>
+              ) : null}
+              <div className={styles.ticketCode}>
+                <small>{t("checkIn.ticketCode")}</small>
+                <code>{record.ticketToken.match(/.{1,4}/g)?.join(" ") || record.ticketToken}</code>
+                <button type="button" onClick={copyTicket}>{copied ? t("checkIn.copied") : t("checkIn.copyCode")}</button>
+              </div>
+            </div>
+            <div className={styles.qrPanel}>
+              {qrCode ? <img src={qrCode} alt={t("checkIn.qrAlt", { event: details.title })} /> : <span>{t("common.loading")}</span>}
+              <small>{t("checkIn.presentQr")}</small>
+            </div>
+          </section>
+        ) : null}
 
         <section className={styles.amountLine}>
           <div><span>{details.quantity}</span><small>{t("receipt.serviceDeliveredBy", { defaultValue: "Service MeetSpace Brussels" })}</small></div>

@@ -32,6 +32,7 @@
 .createButton,
 .createButtonSmall,
 .editButton,
+.checkInButton,
 .viewButton,
 .cancelButton {
   display: inline-flex;
@@ -50,6 +51,12 @@
 
 .createButton,
 .createButtonSmall {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--cta-solid-fg);
+}
+
+.checkInButton {
   border-color: var(--brand);
   background: var(--brand);
   color: var(--cta-solid-fg);
