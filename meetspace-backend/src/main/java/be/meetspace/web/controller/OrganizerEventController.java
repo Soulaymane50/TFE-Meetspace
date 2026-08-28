@@ -2,6 +2,7 @@ package be.meetspace.web.controller;
 
 import be.meetspace.entity.AuditAction;
 import be.meetspace.entity.Event;
+import be.meetspace.entity.EventRegistration;
 import be.meetspace.entity.EventStatus;
 import be.meetspace.entity.User;
 import be.meetspace.repository.EventRepository;
@@ -9,12 +10,16 @@ import be.meetspace.repository.EventRegistrationRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
 import be.meetspace.service.EventPlanningService;
+import be.meetspace.web.dto.AdminEventRegistrationDto;
+import be.meetspace.web.dto.EventCheckInRequest;
+import be.meetspace.web.dto.EventCheckInResponseDto;
 import be.meetspace.web.dto.EventRequestDto;
 import be.meetspace.web.dto.EventResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -46,6 +51,7 @@ public class OrganizerEventController {
     }
 
     @PostMapping
+    @Transactional
     public EventResponseDto createEvent(@Valid @RequestBody EventRequestDto dto, Authentication authentication, HttpServletRequest httpRequest) {
         User organizer = getAuthenticatedUser(authentication);
 
@@ -92,6 +98,54 @@ public class OrganizerEventController {
                 .toList();
     }
 
+    @GetMapping("/my/{id}/attendees")
+    @Transactional(readOnly = true)
+    public List<AdminEventRegistrationDto> getEventAttendees(@PathVariable Long id, Authentication authentication) {
+        User organizer = getAuthenticatedUser(authentication);
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Événement introuvable"));
+        ensureCanManage(event, organizer);
+        return registrationRepository.findByEventId(id).stream()
+                .map(AdminEventRegistrationDto::fromEntity)
+                .toList();
+    }
+
+    @PostMapping("/my/{id}/check-in")
+    @Transactional
+    public EventCheckInResponseDto checkInAttendee(
+            @PathVariable Long id,
+            @Valid @RequestBody EventCheckInRequest request,
+            Authentication authentication,
+            HttpServletRequest httpRequest
+    ) {
+        User organizer = getAuthenticatedUser(authentication);
+        Event event = eventRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Événement introuvable"));
+        ensureCanManage(event, organizer);
+
+        String ticketToken = normalizeTicket(request.getTicket(), id);
+        EventRegistration registration = registrationRepository.findByTicketTokenForUpdate(ticketToken)
+                .filter(candidate -> candidate.getEvent().getId().equals(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Billet invalide pour cet événement"));
+
+        if (registration.getStatus() != be.meetspace.entity.EventRegistrationStatus.CONFIRMED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ce billet n'est plus actif");
+        }
+
+        boolean alreadyCheckedIn = registration.getCheckedInAt() != null;
+        if (!alreadyCheckedIn) {
+            registration.setCheckedInAt(LocalDateTime.now());
+            registration.setCheckedInBy(organizer);
+            registrationRepository.save(registration);
+            auditService.log(AuditAction.EVENT_CHECK_IN, "EventRegistration", registration.getId(),
+                    String.format("Contrôle d'accès: %s (%d participant(s))",
+                            event.getTitle(), registration.getNumberOfParticipants()),
+                    AuditService.getClientIpAddress(httpRequest));
+        }
+
+        return EventCheckInResponseDto.fromEntity(registration, alreadyCheckedIn);
+    }
+
     @GetMapping("/my/{id}")
     public EventResponseDto getMyEvent(@PathVariable Long id, Authentication authentication) {
         User organizer = getAuthenticatedUser(authentication);
@@ -108,10 +162,11 @@ public class OrganizerEventController {
     }
 
     @PutMapping("/my/{id}")
+    @Transactional
     public EventResponseDto updateMyEvent(@PathVariable Long id, @Valid @RequestBody EventRequestDto dto, Authentication authentication, HttpServletRequest httpRequest) {
         User organizer = getAuthenticatedUser(authentication);
 
-        Event event = eventRepository.findById(id)
+        Event event = eventRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Événement introuvable"));
 
         if (!event.getCreatedBy().getId().equals(organizer.getId())) {
@@ -147,10 +202,11 @@ public class OrganizerEventController {
     }
 
     @DeleteMapping("/my/{id}")
+    @Transactional
     public void cancelMyEvent(@PathVariable Long id, Authentication authentication, HttpServletRequest httpRequest) {
         User organizer = getAuthenticatedUser(authentication);
 
-        Event event = eventRepository.findById(id)
+        Event event = eventRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Événement introuvable"));
 
         if (!event.getCreatedBy().getId().equals(organizer.getId())) {
@@ -166,6 +222,28 @@ public class OrganizerEventController {
         auditService.log(AuditAction.EVENT_CANCEL, "Event", event.getId(),
                 String.format("Annulation événement par organisateur: %s", event.getTitle()),
                 oldStatus, "CANCELLED", ipAddress);
+    }
+
+    private void ensureCanManage(Event event, User organizer) {
+        boolean isAdmin = organizer.getRole().name().equals("ADMIN");
+        boolean isOwner = event.getCreatedBy() != null && event.getCreatedBy().getId().equals(organizer.getId());
+        if (!isAdmin && !isOwner) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vous ne pouvez pas gérer cet événement");
+        }
+    }
+
+    private String normalizeTicket(String rawTicket, Long eventId) {
+        String value = rawTicket == null ? "" : rawTicket.trim();
+        String prefix = "MS-CHECKIN:" + eventId + ":";
+        if (value.regionMatches(true, 0, prefix, 0, prefix.length())) {
+            value = value.substring(prefix.length());
+        } else if (value.regionMatches(true, 0, "MS-CHECKIN:", 0, 11)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce billet correspond à un autre événement");
+        }
+        if (!value.matches("[A-Za-z0-9]{24,64}")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Format de billet invalide");
+        }
+        return value;
     }
 
     private User getAuthenticatedUser(Authentication authentication) {

@@ -85,6 +85,7 @@ public class AdminEventController {
     }
 
     @PostMapping
+    @Transactional
     public EventResponseDto createEvent(@Valid @RequestBody EventRequestDto dto, Authentication authentication, HttpServletRequest httpRequest) {
         User admin = getAuthenticatedAdmin(authentication);
 
@@ -110,8 +111,9 @@ public class AdminEventController {
     }
 
     @PutMapping("/{id}")
+    @Transactional
     public EventResponseDto updateEvent(@PathVariable Long id, @Valid @RequestBody EventRequestDto dto, HttpServletRequest httpRequest) {
-        Event event = eventRepository.findById(id)
+        Event event = eventRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evenement introuvable"));
 
         eventPlanningService.applyAndValidate(
@@ -132,6 +134,7 @@ public class AdminEventController {
     }
 
     @PostMapping("/{id}/approve")
+    @Transactional
     public EventResponseDto approveOrRejectEvent(
             @PathVariable Long id,
             @RequestBody EventApprovalDto dto,
@@ -140,7 +143,7 @@ public class AdminEventController {
     ) {
         User admin = getAuthenticatedAdmin(authentication);
 
-        Event event = eventRepository.findById(id)
+        Event event = eventRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evenement introuvable"));
 
         if (event.getStatus() != EventStatus.PENDING_APPROVAL) {
@@ -150,6 +153,7 @@ public class AdminEventController {
         String oldStatus = event.getStatus().name();
 
         if (dto.isApproved()) {
+            eventPlanningService.validateAvailabilityForPublication(event);
             event.setStatus(EventStatus.PUBLISHED);
             event.setApprovedAt(LocalDateTime.now());
             event.setApprovedBy(admin);
@@ -184,16 +188,20 @@ public class AdminEventController {
     }
 
     @PatchMapping("/{id}/status")
+    @Transactional
     public EventResponseDto updateStatus(@PathVariable Long id, @RequestParam String status, Authentication authentication, HttpServletRequest httpRequest) {
         User admin = getAuthenticatedAdmin(authentication);
 
-        Event event = eventRepository.findById(id)
+        Event event = eventRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evenement introuvable"));
 
         String oldStatus = event.getStatus().name();
 
         try {
             EventStatus newStatus = EventStatus.valueOf(status.toUpperCase());
+            if (newStatus == EventStatus.PUBLISHED && event.getStatus() != EventStatus.PUBLISHED) {
+                eventPlanningService.validateAvailabilityForPublication(event);
+            }
             event.setStatus(newStatus);
 
             if (newStatus == EventStatus.PUBLISHED && event.getApprovedAt() == null) {

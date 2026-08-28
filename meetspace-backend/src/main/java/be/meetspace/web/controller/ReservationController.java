@@ -338,6 +338,9 @@ public class ReservationController {
                     "La duree ne peut pas etre modifiee apres paiement");
         }
 
+        espaceRepository.findByIdForUpdate(reservation.getEspace().getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Espace introuvable"));
+
         boolean hasReservationOverlap = reservationRepository.existsOverlappingReservationExcludingId(
                 reservation.getEspace().getId(), reservation.getId(),
                 request.getStartDateTime(), request.getEndDateTime());

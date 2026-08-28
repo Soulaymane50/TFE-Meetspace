@@ -180,10 +180,10 @@ public class EmailService {
                 registration.getUser().getEmail(),
                 "Confirmation de votre inscription MeetSpace",
                 "Inscription événement confirmée",
-                "Votre inscription est confirmée. Retrouvez les informations pratiques ci-dessous.",
+                "Votre inscription est confirmée. Votre billet avec QR code est prêt pour l’accueil de l’événement.",
                 details,
-                "Voir mes inscriptions",
-                frontendPath("/my-reservations?tab=events")
+                "Afficher mon billet",
+                frontendPath("/receipts/event/" + registration.getId())
         );
     }
 
