@@ -13,6 +13,12 @@ const LOCAL_PAYMENT_DELAY_MS = 700;
 const ALLOW_LOCAL_PAYMENTS =
   import.meta.env.DEV && import.meta.env.VITE_ALLOW_LOCAL_PAYMENTS !== "false";
 
+const STRIPE_TEST_CARDS = [
+  { id: "success", labelKey: "payment.testCardSuccess", number: "4242 4242 4242 4242" },
+  { id: "authentication", labelKey: "payment.testCardAuthentication", number: "4000 0025 0000 3155" },
+  { id: "declined", labelKey: "payment.testCardDeclined", number: "4000 0000 0000 9995" },
+];
+
 function isValidStripePublicKey(key) {
   return typeof key === "string" && /^pk_(test|live)_/.test(key) && !key.includes("xxxx");
 }
@@ -30,27 +36,39 @@ function createCardOptions(theme) {
     hidePostalCode: true,
     style: {
       base: {
-        color: dark ? "#f8fafc" : "#1e3455",
-        iconColor: dark ? "#cbd5e1" : "#1e3455",
-        fontFamily: '"Poppins", "Segoe UI", system-ui, sans-serif',
+        color: dark ? "#f2f7f3" : "#16211d",
+        iconColor: dark ? "#59c2a5" : "#176b5b",
+        fontFamily: '"Manrope", "Segoe UI", system-ui, sans-serif',
         fontSmoothing: "antialiased",
         fontSize: "16px",
-        "::placeholder": { color: dark ? "#94a3b8" : "#807d75" },
+        "::placeholder": { color: dark ? "#91a39c" : "#68756f" },
       },
-      invalid: { color: dark ? "#fca5a5" : "#b4532f", iconColor: dark ? "#fca5a5" : "#b4532f" },
+      invalid: { color: dark ? "#ff8787" : "#ad3030", iconColor: dark ? "#ff8787" : "#ad3030" },
     },
   };
 }
 
-function CheckoutForm({ amount, description, reservationType, metadata, onSuccess, onCancel, token }) {
+function CheckoutForm({ amount, description, reservationType, metadata, onSuccess, onCancel, token, testMode = false }) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [copiedCard, setCopiedCard] = useState("");
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const cardOptions = useMemo(() => createCardOptions(theme), [theme]);
   const formattedAmount = formatMoney(amount, normalizeLocale(i18n.language));
+
+  const copyTestCard = async (card) => {
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("clipboard-unavailable");
+      await navigator.clipboard.writeText(card.number.replace(/\s/g, ""));
+      setCopiedCard(card.id);
+      setError(null);
+    } catch {
+      setError(t("payment.copyFailed"));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -131,6 +149,32 @@ function CheckoutForm({ amount, description, reservationType, metadata, onSucces
           {formattedAmount}
         </p>
       </div>
+
+      {testMode && (
+        <aside className={styles.testGuide} aria-label={t("payment.testMode")}>
+          <div className={styles.testGuideHeader}>
+            <div>
+              <p>{t("payment.testMode")}</p>
+              <strong>{t("payment.testModeHelp")}</strong>
+            </div>
+            <span className={styles.testModeBadge}>TEST</span>
+          </div>
+          <div className={styles.testCardList}>
+            {STRIPE_TEST_CARDS.map((card) => (
+              <button key={card.id} type="button" className={styles.testCard} onClick={() => copyTestCard(card)}>
+                <span>
+                  <small>{t(card.labelKey)}</small>
+                  <code>{card.number}</code>
+                </span>
+                <span className={styles.testCardAction}>
+                  {copiedCard === card.id ? t("payment.testCardCopied") : t("payment.copyTestCard")}
+                </span>
+              </button>
+            ))}
+          </div>
+          <p className={styles.testCardDetails}>{t("payment.testCardDetails")}</p>
+        </aside>
+      )}
 
       <div className={styles.cardContainer}>
         <span className={styles.label} id="card-element-label">{t("payment.cardInfo")}</span>
@@ -403,7 +447,7 @@ export default function PaymentForm({ stripePublicKey, token, ...props }) {
 
   return (
     <Elements stripe={stripePromise} key={resolvedPublicKey}>
-      <CheckoutForm {...props} token={token} />
+      <CheckoutForm {...props} token={token} testMode={resolvedPublicKey.startsWith("pk_test_")} />
     </Elements>
   );
 }

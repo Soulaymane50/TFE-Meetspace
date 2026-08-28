@@ -541,13 +541,25 @@ html [class*="_contentGrid_"] > [class*="_sidePanel_"] {
 
 html [class*="_passwordRules_"],
 html [class*="_signupCallout_"],
-html [class*="_totalPanel_"],
 html [class*="_financePreview_"] {
   border: 0 !important;
   border-left: 4px solid var(--accent) !important;
   border-radius: var(--radius-md) !important;
   background: var(--accent-soft) !important;
   box-shadow: none !important;
+}
+
+html [class*="_totalPanel_"] {
+  border: 0 !important;
+  border-left: 4px solid var(--accent-strong) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--accent) !important;
+  color: var(--text-on-accent) !important;
+  box-shadow: none !important;
+}
+
+html [class*="_totalPanel_"] * {
+  color: inherit !important;
 }
 
 html [class*="_error_"],

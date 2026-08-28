@@ -865,7 +865,16 @@
     "successTitle": "Payment confirmed",
     "spaceSuccessMessage": "Your room reservation is confirmed. A confirmation email is sent if the email service is available.",
     "eventSuccessMessage": "Your event registration is confirmed. A confirmation email is sent if the email service is available.",
-    "parkingSuccessMessage": "Your parking reservation is confirmed. A confirmation email is sent if the email service is available."
+    "parkingSuccessMessage": "Your parking reservation is confirmed. A confirmation email is sent if the email service is available.",
+    "testMode": "Stripe demonstration mode",
+    "testModeHelp": "These cards simulate payment. No real charge is made.",
+    "testCardSuccess": "Successful payment",
+    "testCardAuthentication": "3D Secure authentication",
+    "testCardDeclined": "Declined payment",
+    "testCardDetails": "Expiry: 12/34 · CVC: 123 · Name: any value",
+    "copyTestCard": "Copy",
+    "testCardCopied": "Copied",
+    "copyFailed": "Unable to copy the number. Select it manually."
   },
 
   "profile": {

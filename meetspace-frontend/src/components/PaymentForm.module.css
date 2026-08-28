@@ -4,7 +4,7 @@
   padding: 2rem;
   border-radius: 30px;
   border: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.96) 100%);
+  background: var(--paper);
   box-shadow: var(--shadow-strong);
 }
 
@@ -38,31 +38,32 @@
   min-width: 56px;
   min-height: 40px;
   padding: 0.35rem 0.8rem;
-  border-radius: 999px;
-  background: rgba(27, 42, 64, 0.08);
-  border: 1px solid rgba(27, 42, 64, 0.08);
-  color: var(--blue-darker);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  color: var(--brand-strong);
   font-weight: 800;
 }
 
 .summary {
   margin-bottom: 1.5rem;
   padding: 1.15rem 1.2rem;
-  border-radius: 24px;
-  background: linear-gradient(135deg, rgba(11, 18, 32, 0.95) 0%, rgba(34, 52, 79, 0.95) 58%, rgba(181, 138, 76, 0.95) 160%);
-  color: #f8f5ef;
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--hero-bg);
+  color: var(--text-on-inverse);
 }
 
 .description {
   margin: 0;
-  color: rgba(248, 245, 239, 0.78);
+  color: var(--text-on-inverse-muted);
 }
 
 .amount {
   margin: 0.4rem 0 0;
   font-size: clamp(1.7rem, 3vw, 2.5rem);
   font-weight: 800;
-  color: #fff;
+  color: var(--text-on-inverse);
 }
 
 .cardContainer {
@@ -83,8 +84,113 @@
   padding: 1rem 1rem;
   border-radius: 22px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.testGuide {
+  margin-bottom: 1.4rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--brand);
+  border-radius: var(--radius-md);
+  background: var(--brand-soft);
+}
+
+.testGuideHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+}
+
+.testGuideHeader p,
+.testGuideHeader strong {
+  margin: 0;
+}
+
+.testGuideHeader p {
+  color: var(--brand-strong);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.testGuideHeader strong {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.testModeBadge {
+  padding: 0.25rem 0.45rem;
+  border: 1px solid var(--brand);
+  border-radius: var(--radius-sm);
+  color: var(--brand-strong);
+  font-size: 0.66rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+}
+
+.testCardList {
+  border-top: 1px solid var(--border);
+}
+
+.testCard {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  box-shadow: none;
+}
+
+.testCard:hover {
+  background: transparent;
+  color: var(--brand-strong);
+  transform: none;
+  box-shadow: none;
+}
+
+.testCard small,
+.testCard code {
+  display: block;
+}
+
+.testCard small {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.testCard code {
+  margin-top: 0.12rem;
+  color: currentColor;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.88rem;
+  font-weight: 750;
+}
+
+.testCardAction {
+  color: var(--brand-strong);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.testCardDetails {
+  margin: 0.75rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
 }
 
 .cardFieldsGrid {
@@ -117,12 +223,12 @@
   min-height: 52px;
   border-radius: 18px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--surface);
   color: var(--blue-darker);
   font: inherit;
   font-weight: 700;
   padding: 0 1rem;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  box-shadow: none;
 }
 
 .error {
@@ -148,9 +254,9 @@
 }
 
 .cancelButton {
-  border: 1px solid rgba(27, 42, 64, 0.14);
-  background: rgba(255, 255, 255, 0.8);
-  color: var(--blue-dark);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-primary);
   box-shadow: none;
 }
 
@@ -163,38 +269,38 @@
 }
 
 [data-theme="dark"] .form {
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(2, 6, 23, 0.94) 100%);
-  border-color: rgba(148, 163, 184, 0.22);
+  background: var(--paper);
+  border-color: var(--border);
 }
 
 [data-theme="dark"] .title,
 [data-theme="dark"] .label,
 [data-theme="dark"] .cardField span {
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 [data-theme="dark"] .kicker,
 [data-theme="dark"] .securityBadge {
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 [data-theme="dark"] .badge,
 [data-theme="dark"] .cancelButton {
-  background: rgba(15, 23, 42, 0.88);
-  border-color: rgba(148, 163, 184, 0.28);
-  color: #f8fafc;
+  background: var(--surface-muted);
+  border-color: var(--border);
+  color: var(--text-primary);
 }
 
 [data-theme="dark"] .cardElement,
 [data-theme="dark"] .cardField input {
-  background: rgba(15, 23, 42, 0.9);
-  border-color: rgba(148, 163, 184, 0.28);
-  color: #f8fafc;
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text-primary);
   box-shadow: none;
 }
 
 [data-theme="dark"] .cardField input::placeholder {
-  color: rgba(203, 213, 225, 0.58);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .error {
