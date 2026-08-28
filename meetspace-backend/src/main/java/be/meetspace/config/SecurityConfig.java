@@ -48,7 +48,7 @@ public class SecurityConfig {
                         .referrerPolicy(referrer -> referrer
                                 .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
                         .permissionsPolicyHeader(permissions -> permissions
-                                .policy("camera=(), microphone=(), geolocation=()")))
+                                .policy("camera=(self), microphone=(), geolocation=()")))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, exception) ->

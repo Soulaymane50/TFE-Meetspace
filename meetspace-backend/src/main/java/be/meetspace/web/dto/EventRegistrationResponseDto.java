@@ -16,6 +16,8 @@ public class EventRegistrationResponseDto {
     private Double totalPrice;
     private EventRegistrationStatus status;
     private LocalDateTime createdAt;
+    private String ticketToken;
+    private LocalDateTime checkedInAt;
 
     public static EventRegistrationResponseDto fromEntity(EventRegistration registration) {
         EventRegistrationResponseDto dto = new EventRegistrationResponseDto();
@@ -28,6 +30,8 @@ public class EventRegistrationResponseDto {
         dto.totalPrice = registration.getTotalPrice();
         dto.status = registration.getStatus();
         dto.createdAt = registration.getCreatedAt();
+        dto.ticketToken = registration.getTicketToken();
+        dto.checkedInAt = registration.getCheckedInAt();
         return dto;
     }
 
@@ -40,5 +44,7 @@ public class EventRegistrationResponseDto {
     public Double getTotalPrice() { return totalPrice; }
     public EventRegistrationStatus getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public String getTicketToken() { return ticketToken; }
+    public LocalDateTime getCheckedInAt() { return checkedInAt; }
 }
 

@@ -15,6 +15,7 @@ public class AdminEventRegistrationDto {
     private Double totalPrice;
     private String status;
     private LocalDateTime createdAt;
+    private LocalDateTime checkedInAt;
 
     public static AdminEventRegistrationDto fromEntity(EventRegistration r) {
         AdminEventRegistrationDto dto = new AdminEventRegistrationDto();
@@ -27,6 +28,7 @@ public class AdminEventRegistrationDto {
         dto.totalPrice = r.getTotalPrice();
         dto.status = r.getStatus().name();
         dto.createdAt = r.getCreatedAt();
+        dto.checkedInAt = r.getCheckedInAt();
         return dto;
     }
 
@@ -39,4 +41,5 @@ public class AdminEventRegistrationDto {
     public Double getTotalPrice() { return totalPrice; }
     public String getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getCheckedInAt() { return checkedInAt; }
 }

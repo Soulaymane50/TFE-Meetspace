@@ -72,29 +72,8 @@ public class EventPlanningService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Un espace existant doit être sélectionné");
             }
 
-            Espace espace = espaceRepository.findById(data.spaceId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Espace introuvable pour l'événement"));
-
-            if (espace.getStatus() != EspaceStatus.AVAILABLE) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Espace non disponible");
-            }
-
-            if (data.capacity() > espace.getCapacity()) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "La capacité de l'événement ne peut pas dépasser la capacité de la salle (" + espace.getCapacity() + " personnes)"
-                );
-            }
-
-            if (reservationRepository.existsOverlappingReservation(
-                    espace.getId(), data.startDateTime(), data.endDateTime())) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "L'espace sélectionné est déjà réservé sur ce créneau");
-            }
-
-            if (eventRepository.existsOverlappingEventForSpace(
-                    espace.getId(), data.startDateTime(), data.endDateTime(), excludeEventId)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Un autre événement occupe déjà cet espace sur ce créneau");
-            }
+            Espace espace = lockAndValidateExistingSpace(
+                    data.spaceId(), data.startDateTime(), data.endDateTime(), data.capacity(), excludeEventId);
 
             event.setSpace(espace);
             event.setLocation(espace.getName());
@@ -115,6 +94,45 @@ public class EventPlanningService {
         }
 
         syncParkingSlot(event, data);
+    }
+
+    public void validateAvailabilityForPublication(Event event) {
+        if (event.getLocationType() != EventLocationType.EXISTING_SPACE || event.getSpace() == null) {
+            return;
+        }
+        lockAndValidateExistingSpace(
+                event.getSpace().getId(),
+                event.getStartDateTime(),
+                event.getEndDateTime(),
+                event.getCapacity(),
+                event.getId()
+        );
+    }
+
+    private Espace lockAndValidateExistingSpace(Long spaceId,
+                                                LocalDateTime start,
+                                                LocalDateTime end,
+                                                Integer eventCapacity,
+                                                Long excludeEventId) {
+        Espace espace = espaceRepository.findByIdForUpdate(spaceId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Espace introuvable pour l'événement"));
+
+        if (espace.getStatus() != EspaceStatus.AVAILABLE) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Espace non disponible");
+        }
+        if (eventCapacity > espace.getCapacity()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La capacité de l'événement ne peut pas dépasser la capacité de la salle (" + espace.getCapacity() + " personnes)"
+            );
+        }
+        if (reservationRepository.existsOverlappingReservation(espace.getId(), start, end)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "L'espace sélectionné est déjà réservé sur ce créneau");
+        }
+        if (eventRepository.existsOverlappingEventForSpace(espace.getId(), start, end, excludeEventId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Un autre événement occupe déjà cet espace sur ce créneau");
+        }
+        return espace;
     }
 
     private void validateDates(LocalDateTime start, LocalDateTime end) {

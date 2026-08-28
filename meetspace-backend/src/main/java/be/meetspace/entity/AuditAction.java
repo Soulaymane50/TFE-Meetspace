@@ -52,6 +52,7 @@ public enum AuditAction {
 
     // Event registration
     EVENT_REGISTRATION_CREATE,
-    EVENT_REGISTRATION_CANCEL
+    EVENT_REGISTRATION_CANCEL,
+    EVENT_CHECK_IN
 }
 

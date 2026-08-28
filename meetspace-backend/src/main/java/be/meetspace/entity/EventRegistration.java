@@ -2,6 +2,7 @@ package be.meetspace.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "event_registration")
@@ -35,12 +36,25 @@ public class EventRegistration {
     @Column(name = "payment_intent_id")
     private String paymentIntentId;
 
+    @Column(name = "ticket_token", nullable = false, unique = true, length = 64)
+    private String ticketToken;
+
+    @Column(name = "checked_in_at")
+    private LocalDateTime checkedInAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "checked_in_by")
+    private User checkedInBy;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     public void prePersist() {
         createdAt = LocalDateTime.now();
+        if (ticketToken == null || ticketToken.isBlank()) {
+            ticketToken = UUID.randomUUID().toString().replace("-", "");
+        }
     }
 
     public Long getId() { return id; }
@@ -63,6 +77,15 @@ public class EventRegistration {
 
     public String getPaymentIntentId() { return paymentIntentId; }
     public void setPaymentIntentId(String paymentIntentId) { this.paymentIntentId = paymentIntentId; }
+
+    public String getTicketToken() { return ticketToken; }
+    public void setTicketToken(String ticketToken) { this.ticketToken = ticketToken; }
+
+    public LocalDateTime getCheckedInAt() { return checkedInAt; }
+    public void setCheckedInAt(LocalDateTime checkedInAt) { this.checkedInAt = checkedInAt; }
+
+    public User getCheckedInBy() { return checkedInBy; }
+    public void setCheckedInBy(User checkedInBy) { this.checkedInBy = checkedInBy; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
 }

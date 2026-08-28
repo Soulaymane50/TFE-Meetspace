@@ -33,8 +33,12 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
     @Query("SELECT er FROM EventRegistration er JOIN FETCH er.event JOIN FETCH er.user WHERE er.user.id = :userId")
     List<EventRegistration> findByUserId(@Param("userId") Long userId);
 
-    @Query("SELECT er FROM EventRegistration er JOIN FETCH er.user WHERE er.event.id = :eventId")
+    @Query("SELECT er FROM EventRegistration er JOIN FETCH er.user JOIN FETCH er.event WHERE er.event.id = :eventId ORDER BY er.createdAt")
     List<EventRegistration> findByEventId(@Param("eventId") Long eventId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT er FROM EventRegistration er JOIN FETCH er.user JOIN FETCH er.event WHERE er.ticketToken = :ticketToken")
+    Optional<EventRegistration> findByTicketTokenForUpdate(@Param("ticketToken") String ticketToken);
 
     Optional<EventRegistration> findByUserAndEvent(User user, Event event);
 
