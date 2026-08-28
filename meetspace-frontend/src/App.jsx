@@ -28,6 +28,7 @@ const ConfirmAccountDeletionPage = lazy(() => import("./pages/ConfirmAccountDele
 const ConfirmEmailChangePage = lazy(() => import("./pages/ConfirmEmailChangePage"));
 const OrganizerEventsPage = lazy(() => import("./pages/OrganizerEventsPage"));
 const OrganizerEventForm = lazy(() => import("./pages/OrganizerEventForm"));
+const OrganizerCheckInPage = lazy(() => import("./pages/OrganizerCheckInPage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminFinancePage = lazy(() => import("./pages/AdminFinancePage"));
 const AdminEspaceForm = lazy(() => import("./pages/AdminEspaceForm"));
@@ -109,6 +110,10 @@ export default function App() {
         <Route
           path="/organizer/events/edit/:id"
           element={<PrivatePage roles={["ORGANIZER", "ADMIN"]}><OrganizerEventForm /></PrivatePage>}
+        />
+        <Route
+          path="/organizer/events/:id/check-in"
+          element={<PrivatePage roles={["ORGANIZER", "ADMIN"]}><OrganizerCheckInPage /></PrivatePage>}
         />
 
         <Route path="/admin" element={<PrivatePage roles={["ADMIN"]}><AdminDashboard /></PrivatePage>} />
