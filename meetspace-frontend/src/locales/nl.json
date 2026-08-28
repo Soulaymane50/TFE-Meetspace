@@ -855,7 +855,16 @@
                     "successTitle": "Betaling bevestigd",
                     "spaceSuccessMessage": "Uw zaalreservatie is bevestigd. Er wordt een bevestigingsmail verzonden als de e-mailservice beschikbaar is.",
                     "eventSuccessMessage": "Uw inschrijving voor het evenement is bevestigd. Er wordt een bevestigingsmail verzonden als de e-mailservice beschikbaar is.",
-                    "parkingSuccessMessage": "Uw parkingreservatie is bevestigd. Er wordt een bevestigingsmail verzonden als de e-mailservice beschikbaar is."
+                    "parkingSuccessMessage": "Uw parkingreservatie is bevestigd. Er wordt een bevestigingsmail verzonden als de e-mailservice beschikbaar is.",
+                    "testMode": "Stripe-demomodus",
+                    "testModeHelp": "Deze kaarten simuleren een betaling. Er wordt niets echt aangerekend.",
+                    "testCardSuccess": "Betaling geslaagd",
+                    "testCardAuthentication": "3D Secure-authenticatie",
+                    "testCardDeclined": "Betaling geweigerd",
+                    "testCardDetails": "Vervaldatum: 12/34 · CVC: 123 · Naam: vrije keuze",
+                    "copyTestCard": "Kopiëren",
+                    "testCardCopied": "Gekopieerd",
+                    "copyFailed": "Het nummer kan niet worden gekopieerd. Selecteer het handmatig."
                 },
     "profile":  {
                     "title":  "Mijn profiel",

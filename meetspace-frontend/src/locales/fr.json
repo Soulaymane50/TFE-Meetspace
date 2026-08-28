@@ -852,7 +852,16 @@
         "successTitle": "Paiement validé",
         "spaceSuccessMessage": "Votre réservation de salle est confirmée. Un email de confirmation vous est envoyé si le service email est disponible.",
         "eventSuccessMessage": "Votre inscription à l'événement est confirmée. Un email de confirmation vous est envoyé si le service email est disponible.",
-        "parkingSuccessMessage": "Votre réservation parking est confirmée. Un email de confirmation vous est envoyé si le service email est disponible."
+        "parkingSuccessMessage": "Votre réservation parking est confirmée. Un email de confirmation vous est envoyé si le service email est disponible.",
+        "testMode": "Mode démonstration Stripe",
+        "testModeHelp": "Ces cartes simulent le paiement. Aucun débit réel n'est effectué.",
+        "testCardSuccess": "Paiement accepté",
+        "testCardAuthentication": "Authentification 3D Secure",
+        "testCardDeclined": "Paiement refusé",
+        "testCardDetails": "Expiration : 12/34 · CVC : 123 · Nom : au choix",
+        "copyTestCard": "Copier",
+        "testCardCopied": "Copié",
+        "copyFailed": "Impossible de copier le numéro. Sélectionnez-le manuellement."
     },
     "profile": {
         "title": "Mon profil",
