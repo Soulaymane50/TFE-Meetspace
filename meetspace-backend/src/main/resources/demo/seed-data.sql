@@ -89,6 +89,14 @@ INSERT INTO event (
     (9522, 'Product Strategy 2027', 'Construire une stratégie produit lisible avant la planification annuelle.', '2026-12-03 09:00:00', '2026-12-03 17:00:00', 'Auditorium Europe', 'EXISTING_SPACE', 8, NULL, 215, 105.00, 'PUBLISHED', 0, 9013, '2026-08-12 10:00:00', '2026-08-13 11:00:00', 9001, NULL, 1),
     (9523, 'MeetSpace Year End Forum', 'Bilan de l année et perspectives 2027 avec les communautés professionnelles.', '2026-12-10 15:00:00', '2026-12-10 21:00:00', 'Salle Premium Orion', 'EXISTING_SPACE', 1, NULL, 490, 80.00, 'PUBLISHED', 0, 9014, '2026-08-14 10:00:00', '2026-08-15 11:00:00', 9001, NULL, 1),
     (9524, 'Innovation Procurement Lab', 'Atelier pour mieux acheter, tester et déployer des solutions innovantes.', '2026-12-17 09:30:00', '2026-12-17 16:30:00', 'Atelier Canal', 'EXISTING_SPACE', 7, NULL, 58, 49.00, 'PUBLISHED', 0, 9015, '2026-08-16 10:00:00', '2026-08-17 11:00:00', 9001, NULL, 0),
+    (9528, 'Design Systems Clinic', 'Atelier pratique consacré aux composants, aux règles d interface et à la collaboration produit.', '2026-09-10 09:30:00', '2026-09-10 12:30:00', 'Atelier Canal', 'EXISTING_SPACE', 7, NULL, 50, 35.00, 'PUBLISHED', 0, 9012, '2026-08-20 09:00:00', '2026-08-20 10:00:00', 9001, NULL, 0),
+    (9529, 'Data Governance Roundtable', 'Échanges en petit comité sur la qualité, la responsabilité et le pilotage des données.', '2026-09-10 14:00:00', '2026-09-10 17:00:00', 'Salle Conseil Executive', 'EXISTING_SPACE', 5, NULL, 20, 75.00, 'PUBLISHED', 0, 9013, '2026-08-20 09:10:00', '2026-08-20 10:10:00', 9001, NULL, 1),
+    (9530, 'Brussels Accessibility Lab', 'Laboratoire gratuit pour tester des parcours numériques plus accessibles.', '2026-10-15 09:00:00', '2026-10-15 12:30:00', 'Studio Sablon', 'EXISTING_SPACE', 6, NULL, 26, 0.00, 'PUBLISHED', 0, 9014, '2026-08-21 09:00:00', '2026-08-21 10:00:00', 9001, NULL, 0),
+    (9531, 'B2B Revenue Operations', 'Cas pratiques sur l alignement marketing, ventes, données et prévisions.', '2026-10-15 14:00:00', '2026-10-15 18:00:00', 'Salle Atlas', 'EXISTING_SPACE', 3, NULL, 90, 59.00, 'PUBLISHED', 0, 9015, '2026-08-21 09:10:00', '2026-08-21 10:10:00', 9001, NULL, 1),
+    (9532, 'Responsible AI Legal Clinic', 'Questions juridiques et opérationnelles autour des systèmes d intelligence artificielle.', '2026-11-12 09:30:00', '2026-11-12 12:30:00', 'Studio Sablon', 'EXISTING_SPACE', 6, NULL, 28, 49.00, 'PUBLISHED', 0, 9010, '2026-08-22 09:00:00', '2026-08-22 10:00:00', 9001, NULL, 0),
+    (9533, 'Tech Talent Meetup', 'Rencontre de fin de journée pour recruteurs, responsables techniques et candidats.', '2026-11-12 18:30:00', '2026-11-12 21:00:00', 'Salle Atlas', 'EXISTING_SPACE', 3, NULL, 95, 15.00, 'PUBLISHED', 0, 9011, '2026-08-22 09:10:00', '2026-08-22 10:10:00', 9001, NULL, 1),
+    (9534, 'Customer Success Forum', 'Méthodes concrètes pour suivre l adoption, la satisfaction et la fidélisation.', '2026-12-10 09:00:00', '2026-12-10 13:00:00', 'Salle Atlas', 'EXISTING_SPACE', 3, NULL, 90, 52.00, 'PUBLISHED', 0, 9012, '2026-08-23 09:00:00', '2026-08-23 10:00:00', 9001, NULL, 1),
+    (9535, 'Open Source Brussels', 'Contributions, maintenance et modèles économiques autour des logiciels libres.', '2026-12-10 14:00:00', '2026-12-10 18:00:00', 'Auditorium Europe', 'EXISTING_SPACE', 8, NULL, 200, 25.00, 'PUBLISHED', 0, 9013, '2026-08-23 09:10:00', '2026-08-23 10:10:00', 9001, NULL, 1),
     (9525, 'Mobility Data Exchange', 'Proposition d événement autour des données de mobilité, à valider par MeetSpace.', '2026-12-08 09:30:00', '2026-12-08 16:00:00', 'Salle Atlas', 'EXISTING_SPACE', 3, NULL, 90, 62.00, 'PENDING_APPROVAL', 0, 9010, '2026-08-18 10:00:00', NULL, NULL, NULL, 1),
     (9526, 'Web3 Corporate Briefing', 'Proposition refusée car le contenu et le format n étaient pas assez détaillés.', '2026-11-30 14:00:00', '2026-11-30 17:00:00', 'Studio Sablon', 'EXISTING_SPACE', 6, NULL, 25, 120.00, 'REJECTED', 0, 9011, '2026-08-10 12:00:00', NULL, 9001, 'Programme insuffisamment détaillé pour publication.', 0),
     (9527, 'Retail Data Breakfast', 'Édition annulée et conservée pour illustrer le suivi historique.', '2026-07-22 08:30:00', '2026-07-22 11:00:00', 'Salle Horizon', 'EXISTING_SPACE', 4, NULL, 40, 30.00, 'CANCELLED', 0, 9012, '2026-05-15 10:00:00', '2026-05-16 11:00:00', 9001, NULL, 0)
@@ -120,7 +128,7 @@ SELECT
     END,
     'OPEN', 0, DATE_SUB(e.created_at, INTERVAL 1 DAY), e.id
 FROM event e
-WHERE e.id BETWEEN 9501 AND 9524
+WHERE e.id BETWEEN 9501 AND 9535
   AND e.status = 'PUBLISHED'
   AND e.parking_required = TRUE
 ON DUPLICATE KEY UPDATE
