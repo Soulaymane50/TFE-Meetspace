@@ -1451,6 +1451,7 @@
         "ticketCode": "Reservecode",
         "copyCode": "Code kopiëren",
         "copied": "Code gekopieerd",
+        "copyFailed": "Kopiëren mislukt. Selecteer de code handmatig.",
         "checkedAt": "Toegang bevestigd op {{date}} om {{time}}",
         "qrAlt": "QR-toegangscode voor {{event}}",
         "presentQr": "Toon deze code bij het onthaal"

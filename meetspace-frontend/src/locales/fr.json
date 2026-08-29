@@ -1448,6 +1448,7 @@
         "ticketCode": "Code de secours",
         "copyCode": "Copier le code",
         "copied": "Code copié",
+        "copyFailed": "Copie impossible. Sélectionnez le code manuellement.",
         "checkedAt": "Entrée validée le {{date}} à {{time}}",
         "qrAlt": "QR code d’accès pour {{event}}",
         "presentQr": "Présentez ce code à l’accueil"

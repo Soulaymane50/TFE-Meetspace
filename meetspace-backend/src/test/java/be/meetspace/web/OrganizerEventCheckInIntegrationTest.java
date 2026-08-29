@@ -107,6 +107,20 @@ class OrganizerEventCheckInIntegrationTest {
     }
 
     @Test
+    void organizerCanUseTheHumanReadableGroupedTicketCode() {
+        EventCheckInRequest request = new EventCheckInRequest();
+        String groupedTicket = registration.getTicketToken().replaceAll("(.{4})(?!$)", "$1 ");
+        request.setTicket(groupedTicket);
+
+        EventCheckInResponseDto response = controller.checkInAttendee(
+                event.getId(), request, authentication(organizer), new MockHttpServletRequest());
+
+        assertFalse(response.isAlreadyCheckedIn());
+        assertEquals(registration.getId(), response.getRegistrationId());
+        assertNotNull(registrationRepository.findById(registration.getId()).orElseThrow().getCheckedInAt());
+    }
+
+    @Test
     void anotherOrganizerCannotAccessTheAttendeeListOrValidateTheTicket() {
         User outsider = userRepository.save(user("other.organizer@meetspace.test", Role.ORGANIZER));
         EventCheckInRequest request = new EventCheckInRequest();

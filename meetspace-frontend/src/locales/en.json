@@ -1477,6 +1477,7 @@
     "ticketCode": "Backup code",
     "copyCode": "Copy code",
     "copied": "Code copied",
+    "copyFailed": "Copy failed. Select the code manually.",
     "checkedAt": "Checked in on {{date}} at {{time}}",
     "qrAlt": "Entry QR code for {{event}}",
     "presentQr": "Show this code at reception"
