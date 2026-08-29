@@ -565,19 +565,34 @@
                                                         "description":  "Grote premium zaal voor strategische seminars, professionele conferenties en presentaties met hoge inzet.",
                                                         "bestFor":  "Premium seminars, conferenties, strategische presentaties"
                                                     },
+                                      "auditorium":  {
+                                                           "label":  "Grote conferentiezaal",
+                                                           "description":  "Grote vlakke zaal met 220 verplaatsbare stoelen, twee gangpaden en een laag podium voor comfortabele presentaties.",
+                                                           "bestFor":  "Conferenties, vergaderingen, plenaire presentaties"
+                                                       },
                                       "atlas":  {
                                                     "label":  "Grote polyvalente zaal",
                                                     "description":  "Grote standaardzaal voor opleidingen, businessseminars en gestructureerde workshops tot 100 personen.",
                                                     "bestFor":  "Opleidingen, seminars, workshops"
                                                 },
+                                      "atelier":  {
+                                                       "label":  "Groot modulair atelier",
+                                                       "description":  "Zaal met 60 plaatsen in rechthoekige verrijdbare tafeleilanden, met een centraal gangpad en mobiele borden.",
+                                                       "bestFor":  "Workshops, participatieve opleidingen, groepswerk"
+                                                   },
                                       "horizon":  {
                                                       "label":  "Workshopzaal",
-                                                      "description":  "Middelgrote modulaire zaal voor workshops, rondetafelgesprekken en gerichte teammeetings.",
-                                                      "bestFor":  "Workshops, rondetafels, teammeetings"
+                                                      "description":  "Middelgrote modulaire zaal met 50 plaatsen in rechthoekige tafeleilanden voor teamwerk.",
+                                                      "bestFor":  "Workshops, opleidingen, teammeetings"
+                                                  },
+                                      "studio":  {
+                                                     "label":  "Collaboratieve studio",
+                                                     "description":  "Compacte zaal met 30 plaatsen, modulaire tafels, mobiele borden en een opstelling voor kleine groepen.",
+                                                     "bestFor":  "Korte opleidingen, gerichte workshops, projectmeetings"
                                                   },
                                       "boardroom":  {
                                                         "label":  "Premium boardroom",
-                                                        "description":  "Premium boardroom voor directiecomités, vertrouwelijke meetings en bestuursbeslissingen.",
+                                                        "description":  "Boardroom met 20 plaatsen en een lange uitgeruste tafel voor vertrouwelijke meetings en bestuursbeslissingen.",
                                                         "bestFor":  "Directiecomités, vertrouwelijke meetings, raden"
                                                     }
                                   }

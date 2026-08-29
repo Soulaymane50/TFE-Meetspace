@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
 import { formatMoney, formatNumber } from "../utils/formatters";
 import { MEETSPACE_TOTAL_PARKING_SPACES } from "../utils/businessRules";
+import { PARKING_IMAGE } from "../utils/mediaAssets";
 import styles from "./ParkingPage.module.css";
 
 const getDateLocale = (lang) => {
@@ -139,7 +140,7 @@ export default function ParkingPage() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} style={{ "--parking-image": `url(${PARKING_IMAGE})` }}>
       <section className={styles.heroPanel}>
         <div className={styles.heroHeader}>
           <div className={styles.heroText}>
