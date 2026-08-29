@@ -681,8 +681,8 @@
                      "november":  "November",
                      "december":  "December",
                      "available":  "Beschikbaar",
-                     "partial":  "Gedeeltelijk gereserveerd",
-                     "full":  "Volledig gereserveerd",
+                     "partial":  "Beperkte tijdsloten",
+                     "full":  "Niet beschikbaar",
                      "reserved":  "Gereserveerd",
                      "selected":  "Geselecteerd",
                      "selectDate":  "Selecteer een datum",
@@ -703,10 +703,12 @@
                      "selectedDay": "Geselecteerde dag",
                      "chooseDay": "Kies een dag",
                      "availableHours": "vrije uren",
-                     "occupiedBlocks": "bezette blokken",
+                     "availableStarts": "mogelijke starts van {{duration}} u",
+                     "occupiedBlocks": "bezette periodes",
                      "duration": "Duur",
                      "selectedSlot": "Gekozen tijdslot",
-                     "noSlotSelected": "Geen tijdslot geselecteerd"
+                     "noSlotSelected": "Kies een begintijd voor {{duration}} u",
+                     "statusForDuration": "De kalenderstatus wordt berekend voor de gekozen duur: {{duration}} u."
                  },
     "events":  {
                    "kicker": "MeetSpace • Reservatieplatform",
