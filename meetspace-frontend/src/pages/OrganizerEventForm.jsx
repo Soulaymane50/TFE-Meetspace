@@ -544,7 +544,11 @@ export default function OrganizerEventForm() {
                 </span>
                 <span>
                   {t("finance.organizerNetEstimate")}
-                  <strong>{formatMoney(organizerNetEstimate, locale)}</strong>
+                  <strong
+                    className={organizerNetEstimate < 0 ? styles.negativeValue : styles.positiveValue}
+                  >
+                    {formatMoney(organizerNetEstimate, locale)}
+                  </strong>
                 </span>
               </div>
               <p className={styles.financePreviewNote}>

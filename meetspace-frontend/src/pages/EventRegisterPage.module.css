@@ -5,16 +5,18 @@
 }
 
 .heroPanel {
+  display: flex;
+  align-items: flex-end;
+  min-height: 300px;
   padding: 1.9rem;
-  border-radius: 30px;
+  border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--border));
+  border-radius: var(--radius-lg);
   background:
-    linear-gradient(135deg, rgba(11, 18, 32, 0.9) 0%, rgba(26, 39, 58, 0.84) 55%, rgba(181, 138, 76, 0.66) 180%),
-    var(--hero-image),
-    radial-gradient(circle at top right, rgba(181, 138, 76, 0.18), transparent 28%),
-    linear-gradient(135deg, rgba(11, 18, 32, 0.98) 0%, rgba(26, 39, 58, 0.98) 55%, rgba(181, 138, 76, 0.88) 180%);
+    linear-gradient(90deg, rgba(7, 40, 34, 0.9) 0%, rgba(15, 76, 67, 0.66) 54%, rgba(15, 76, 67, 0.2) 100%),
+    var(--hero-image);
   background-position: center;
   background-size: cover;
-  box-shadow: 0 28px 54px rgba(11, 18, 32, 0.16);
+  box-shadow: var(--shadow-strong);
 }
 
 .heroText {
@@ -73,7 +75,7 @@
 
 .panelTitle {
   margin: 0;
-  color: var(--blue-darker);
+  color: var(--text-primary);
 }
 
 .summaryImage {
@@ -82,8 +84,8 @@
   border-radius: 22px;
   overflow: hidden;
   background:
-    linear-gradient(135deg, rgba(11, 18, 32, 0.22), rgba(181, 138, 76, 0.16)),
-    linear-gradient(135deg, rgba(25, 39, 59, 0.96), rgba(59, 74, 96, 0.9));
+    linear-gradient(135deg, rgba(15, 76, 67, 0.18), rgba(189, 72, 42, 0.12)),
+    linear-gradient(135deg, var(--brand-strong), var(--brand));
   background-position: center;
   background-size: cover;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
@@ -107,13 +109,13 @@
   gap: 0.35rem;
   padding: 0.95rem 1rem;
   border-radius: 20px;
-  background: rgba(27, 42, 64, 0.04);
+  background: var(--surface-muted);
 }
 
 .metricLabel,
 .label,
 .sectionTitle {
-  color: var(--blue-darker);
+  color: var(--text-primary);
   font-size: 0.78rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -121,7 +123,7 @@
 }
 
 .metricValue {
-  color: var(--blue-darker);
+  color: var(--text-primary);
   font-size: 0.92rem;
   font-weight: 700;
 }
@@ -209,7 +211,7 @@
 
 .serviceLabel {
   font-weight: 700;
-  color: var(--blue-darker);
+  color: var(--text-primary);
 }
 
 .servicePrice {
@@ -224,8 +226,9 @@
   gap: 1rem;
   padding: 1.15rem 1.25rem;
   border-radius: 22px;
-  background: linear-gradient(135deg, rgba(11, 18, 32, 0.95) 0%, rgba(34, 52, 79, 0.95) 60%, rgba(181, 138, 76, 0.95) 160%);
-  color: #f8f5ef;
+  border-left: 4px solid var(--accent);
+  background: linear-gradient(135deg, var(--brand-strong), var(--brand));
+  color: var(--text-on-inverse);
 }
 
 .totalPanel strong {
@@ -253,9 +256,9 @@
 }
 
 .secondaryAction {
-  border: 1px solid rgba(27, 42, 64, 0.14);
-  background: rgba(255, 255, 255, 0.8);
-  color: var(--blue-dark);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-primary);
   box-shadow: none;
 }
 
@@ -266,26 +269,23 @@
 }
 
 :global([data-theme="light"]) .heroPanel {
-  border: 1px solid rgba(20, 32, 51, 0.075);
   background:
-    radial-gradient(circle at 78% 18%, rgba(181, 138, 76, 0.18), transparent 28%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 249, 253, 0.84) 58%, rgba(244, 235, 222, 0.78) 100%),
+    linear-gradient(90deg, rgba(7, 40, 34, 0.88) 0%, rgba(15, 76, 67, 0.58) 52%, rgba(15, 76, 67, 0.16) 100%),
     var(--hero-image);
   background-position: center;
   background-size: cover;
-  box-shadow: 0 30px 70px rgba(11, 18, 32, 0.12);
 }
 
 :global([data-theme="light"]) .kicker {
-  color: rgba(181, 138, 76, 0.88);
+  color: color-mix(in srgb, var(--sun) 86%, white);
 }
 
 :global([data-theme="light"]) .title {
-  color: var(--blue-darker);
+  color: #fff;
 }
 
 :global([data-theme="light"]) .subtitle {
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 [data-theme="dark"] .summaryPanel,
