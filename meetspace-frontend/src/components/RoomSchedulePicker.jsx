@@ -108,7 +108,11 @@ export default function RoomSchedulePicker({
 
     return reservations
       .filter((reservation) => {
-        if (ignoreBlockId && Number(reservation.id) === Number(ignoreBlockId)) return false;
+        if (
+          ignoreBlockId &&
+          reservation.blockType === "EVENT" &&
+          Number(reservation.id) === Number(ignoreBlockId)
+        ) return false;
         const start = new Date(reservation.startDateTime);
         const end = new Date(reservation.endDateTime);
         return start < dayEnd && end > dayStart;
@@ -125,39 +129,27 @@ export default function RoomSchedulePicker({
     return getBlocksForDate(dateKey).some((block) => block.start < slotEnd && block.end > slotStart);
   };
 
-  const isPastRange = (dateKey, hour, slotDuration) => {
-    const slotEnd = new Date(`${dateKey}T${pad(hour + slotDuration)}:00:00`);
-    return slotEnd <= new Date();
+  const isPastRange = (dateKey, hour) => {
+    const slotStart = new Date(`${dateKey}T${pad(hour)}:00:00`);
+    return slotStart <= new Date();
   };
 
   const isSlotAvailable = (dateKey, hour, slotDuration = duration) => {
     if (!calendarReady || !dateKey || hour < OPENING_HOUR || hour + slotDuration > CLOSING_HOUR) return false;
-    return !isPastRange(dateKey, hour, slotDuration) && !isRangeBlocked(dateKey, hour, slotDuration);
+    return !isPastRange(dateKey, hour) && !isRangeBlocked(dateKey, hour, slotDuration);
   };
 
-  const getFirstAvailableStart = (dateKey, slotDuration = duration) => {
-    for (let hour = OPENING_HOUR; hour <= CLOSING_HOUR - slotDuration; hour += 1) {
-      if (isSlotAvailable(dateKey, hour, slotDuration)) return hour;
-    }
-    return null;
-  };
+  const getAvailableStarts = (dateKey, slotDuration = duration) =>
+    Array.from({ length: CLOSING_HOUR - OPENING_HOUR - slotDuration + 1 }, (_, index) => OPENING_HOUR + index)
+      .filter((hour) => isSlotAvailable(dateKey, hour, slotDuration));
 
   const getDayStatus = (dateKey) => {
     if (!calendarReady) return "loading";
 
-    let availableHours = 0;
-    let blockedHours = 0;
-
-    for (let hour = OPENING_HOUR; hour < CLOSING_HOUR; hour += 1) {
-      if (isSlotAvailable(dateKey, hour, 1)) {
-        availableHours += 1;
-      } else {
-        blockedHours += 1;
-      }
-    }
-
-    if (availableHours === 0) return "full";
-    if (blockedHours === 0) return "available";
+    const possibleStarts = CLOSING_HOUR - OPENING_HOUR - duration + 1;
+    const availableStarts = getAvailableStarts(dateKey, duration).length;
+    if (availableStarts === 0) return "full";
+    if (availableStarts === possibleStarts) return "available";
     return "partial";
   };
 
@@ -173,40 +165,19 @@ export default function RoomSchedulePicker({
   };
 
   const handleDaySelect = (dateKey) => {
-    const preferredHour =
-      selectedStartHour !== null && isSlotAvailable(dateKey, selectedStartHour, duration)
-        ? selectedStartHour
-        : getFirstAvailableStart(dateKey, duration);
-
     setManualSelectedDate(dateKey);
-    if (preferredHour !== null) {
-      applySlot(dateKey, preferredHour, duration);
-    } else {
-      onChange({
-        startDateTime: "",
-        endDateTime: "",
-        available: false,
-      });
-    }
+    onChange({ startDateTime: "", endDateTime: "", available: false });
   };
 
   const handleDurationChange = (nextDuration) => {
     setDurationOverride(nextDuration);
     if (!calendarReady || !selectedDate) return;
 
-    const preferredHour =
-      selectedStartHour !== null && isSlotAvailable(selectedDate, selectedStartHour, nextDuration)
-        ? selectedStartHour
-        : getFirstAvailableStart(selectedDate, nextDuration);
-
-    if (preferredHour !== null) {
-      applySlot(selectedDate, preferredHour, nextDuration);
+    if (selectedStartHour !== null && isSlotAvailable(selectedDate, selectedStartHour, nextDuration)) {
+      applySlot(selectedDate, selectedStartHour, nextDuration);
     } else {
-      onChange({
-        startDateTime: "",
-        endDateTime: "",
-        available: false,
-      });
+      setManualSelectedDate(selectedDate);
+      onChange({ startDateTime: "", endDateTime: "", available: false });
     }
   };
 
@@ -224,11 +195,7 @@ export default function RoomSchedulePicker({
   ];
 
   const selectedBlocks = selectedDate ? getBlocksForDate(selectedDate) : [];
-  const selectedAvailableCount = selectedDate
-    ? Array.from({ length: CLOSING_HOUR - OPENING_HOUR }, (_, index) => OPENING_HOUR + index).filter((hour) =>
-        isSlotAvailable(selectedDate, hour, 1),
-      ).length
-    : 0;
+  const selectedAvailableCount = selectedDate ? getAvailableStarts(selectedDate, duration).length : 0;
 
   useEffect(() => {
     if (!calendarReady || !startDateTime || !endDateTime || selectedStartHour === null || selectedEndHour === null) return;
@@ -236,7 +203,11 @@ export default function RoomSchedulePicker({
     const slotStart = new Date(`${selectedDate}T${pad(selectedStartHour)}:00:00`);
     const slotEnd = new Date(`${selectedDate}T${pad(selectedEndHour)}:00:00`);
     const blocked = reservations.some((reservation) => {
-      if (ignoreBlockId && Number(reservation.id) === Number(ignoreBlockId)) return false;
+      if (
+        ignoreBlockId &&
+        reservation.blockType === "EVENT" &&
+        Number(reservation.id) === Number(ignoreBlockId)
+      ) return false;
       const start = new Date(reservation.startDateTime);
       const end = new Date(reservation.endDateTime);
       return start < slotEnd && end > slotStart;
@@ -332,6 +303,9 @@ export default function RoomSchedulePicker({
               <i className={styles.dotFull} /> {t("calendar.full")}
             </span>
           </div>
+          <p className={styles.durationLegend}>
+            {t("calendar.statusForDuration", { duration })}
+          </p>
         </div>
 
         <aside className={styles.slotPanel}>
@@ -347,7 +321,7 @@ export default function RoomSchedulePicker({
           <div className={styles.statsRow}>
             <div>
               <strong>{selectedAvailableCount}</strong>
-              <span>{t("calendar.availableHours")}</span>
+              <span>{t("calendar.availableStarts", { duration })}</span>
             </div>
             <div>
               <strong>{selectedBlocks.length}</strong>
@@ -400,7 +374,7 @@ export default function RoomSchedulePicker({
             <strong>
               {startDateTime && endDateTime
                 ? `${startDateTime.replace("T", " ")} → ${endDateTime.slice(11, 16)}`
-                : t("calendar.noSlotSelected")}
+                : t("calendar.noSlotSelected", { duration })}
             </strong>
           </div>
         </aside>

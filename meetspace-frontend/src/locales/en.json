@@ -688,8 +688,8 @@
     "november": "November",
     "december": "December",
     "available": "Available",
-    "partial": "Partially booked",
-    "full": "Fully booked",
+    "partial": "Limited slots",
+    "full": "Unavailable",
     "reserved": "Reserved",
     "selected": "Selected",
     "selectDate": "Select a date",
@@ -710,10 +710,12 @@
     "selectedDay": "Selected day",
     "chooseDay": "Choose a day",
     "availableHours": "available hours",
-    "occupiedBlocks": "occupied blocks",
+    "availableStarts": "possible {{duration}}h starts",
+    "occupiedBlocks": "occupied periods",
     "duration": "Duration",
     "selectedSlot": "Selected slot",
-    "noSlotSelected": "No slot selected"
+    "noSlotSelected": "Choose a start time for {{duration}}h",
+    "statusForDuration": "Calendar statuses are calculated for the selected duration: {{duration}}h."
   },
 
   "events": {

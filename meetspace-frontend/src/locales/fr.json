@@ -678,8 +678,8 @@
         "november": "Novembre",
         "december": "Décembre",
         "available": "Disponible",
-        "partial": "Partiellement réservé",
-        "full": "Complet",
+        "partial": "Créneaux limités",
+        "full": "Indisponible",
         "reserved": "Réservé",
         "selected": "Sélectionné",
         "selectDate": "Sélectionnez une date",
@@ -700,10 +700,12 @@
         "selectedDay": "Jour sélectionné",
         "chooseDay": "Choisir un jour",
         "availableHours": "heures libres",
-        "occupiedBlocks": "blocs occupés",
+        "availableStarts": "départs possibles de {{duration}} h",
+        "occupiedBlocks": "périodes occupées",
         "duration": "Durée",
         "selectedSlot": "Créneau choisi",
-        "noSlotSelected": "Aucun créneau sélectionné"
+        "noSlotSelected": "Choisissez une heure de début pour {{duration}} h",
+        "statusForDuration": "Les statuts du calendrier sont calculés pour la durée sélectionnée : {{duration}} h."
     },
     "events": {
         "kicker": "MeetSpace • Plateforme de réservation",
