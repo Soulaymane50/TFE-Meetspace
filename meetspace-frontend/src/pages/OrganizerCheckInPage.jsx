@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import jsQR from "jsqr";
 import PageState from "../components/PageState";
 import WorkspaceNav from "../components/WorkspaceNav";
 import { useAuth } from "../context/AuthContext";
@@ -10,6 +11,15 @@ import styles from "./OrganizerCheckInPage.module.css";
 
 function participantTotal(rows) {
   return rows.reduce((total, row) => total + (Number(row.numberOfParticipants) || 0), 0);
+}
+
+function normalizeTicketValue(rawTicket) {
+  const value = String(rawTicket || "").trim().replace(/[\u200B-\u200D\uFEFF]/g, "");
+  const payload = value.match(/^MS-CHECKIN:(\d+):(.+)$/i);
+  if (payload) {
+    return `MS-CHECKIN:${payload[1]}:${payload[2].replace(/[\s-]+/g, "")}`;
+  }
+  return value.replace(/[\s-]+/g, "");
 }
 
 export default function OrganizerCheckInPage() {
@@ -27,6 +37,7 @@ export default function OrganizerCheckInPage() {
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraMessage, setCameraMessage] = useState("");
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const frameRef = useRef(null);
   const cameraRunningRef = useRef(false);
@@ -65,7 +76,7 @@ export default function OrganizerCheckInPage() {
   useEffect(() => () => stopCamera(), [stopCamera]);
 
   const validateTicket = useCallback(async (rawTicket) => {
-    const value = String(rawTicket || "").trim();
+    const value = normalizeTicketValue(rawTicket);
     if (!value || checking) return;
     setChecking(true);
     setError("");
@@ -89,20 +100,22 @@ export default function OrganizerCheckInPage() {
   const startCamera = async () => {
     setCameraMessage("");
     setResult(null);
-    if (!("BarcodeDetector" in window)) {
-      setCameraMessage(t("checkIn.cameraUnsupported"));
-      return;
-    }
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraMessage(t("checkIn.cameraUnsupported"));
       return;
     }
 
     try {
-      const supported = await window.BarcodeDetector.getSupportedFormats?.();
-      if (supported && !supported.includes("qr_code")) {
-        setCameraMessage(t("checkIn.cameraUnsupported"));
-        return;
+      let detector = null;
+      if ("BarcodeDetector" in window) {
+        try {
+          const supported = await window.BarcodeDetector.getSupportedFormats?.();
+          if (!supported || supported.includes("qr_code")) {
+            detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+          }
+        } catch {
+          detector = null;
+        }
       }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: "environment" } },
@@ -114,13 +127,29 @@ export default function OrganizerCheckInPage() {
       await videoRef.current.play();
       cameraRunningRef.current = true;
       setCameraActive(true);
-      const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
 
       const scanFrame = async () => {
         if (!cameraRunningRef.current || !videoRef.current) return;
         try {
-          const codes = await detector.detect(videoRef.current);
-          const value = codes[0]?.rawValue;
+          let value = "";
+          if (detector) {
+            const codes = await detector.detect(videoRef.current);
+            value = codes[0]?.rawValue || "";
+          } else if (videoRef.current.readyState >= 2 && canvasRef.current) {
+            const canvas = canvasRef.current;
+            const width = videoRef.current.videoWidth;
+            const height = videoRef.current.videoHeight;
+            if (width > 0 && height > 0) {
+              canvas.width = width;
+              canvas.height = height;
+              const context = canvas.getContext("2d", { willReadFrequently: true });
+              if (context) {
+                context.drawImage(videoRef.current, 0, 0, width, height);
+                const frame = context.getImageData(0, 0, width, height);
+                value = jsQR(frame.data, width, height, { inversionAttempts: "attemptBoth" })?.data || "";
+              }
+            }
+          }
           if (value && !scanLockRef.current) {
             scanLockRef.current = true;
             stopCamera();
@@ -186,6 +215,7 @@ export default function OrganizerCheckInPage() {
 
           <div className={styles.cameraFrame} data-active={cameraActive}>
             <video ref={videoRef} muted playsInline aria-label={t("checkIn.cameraPreview")} />
+            <canvas ref={canvasRef} className={styles.scanCanvas} aria-hidden="true" />
             {!cameraActive ? <div><strong>{t("checkIn.cameraReady")}</strong><span>{t("checkIn.cameraReadyHint")}</span></div> : null}
           </div>
           <button type="button" className={styles.cameraButton} onClick={cameraActive ? stopCamera : startCamera}>

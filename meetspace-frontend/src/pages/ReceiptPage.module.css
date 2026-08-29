@@ -29,6 +29,7 @@
 .ticketCode small { color: var(--text-muted); font-size: .58rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
 .ticketCode code { overflow-wrap: anywhere; color: var(--text-primary); font-family: "SFMono-Regular", Consolas, monospace; font-size: .78rem; font-weight: 700; letter-spacing: .06em; }
 .ticketCode button { justify-self: start; min-height: 36px; padding: .45rem .65rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-primary); font-size: .68rem; font-weight: 800; }
+.copyError { color: var(--danger); font-size: .72rem; font-weight: 700; }
 .qrPanel { display: grid; place-items: center; align-content: center; gap: .55rem; padding: 1rem; border-left: 1px solid var(--border); background: #fffdf8; color: #31453f; }
 .qrPanel img { display: block; width: min(100%, 190px); aspect-ratio: 1; }
 .qrPanel small { max-width: 22ch; text-align: center; font-size: .62rem; line-height: 1.35; }

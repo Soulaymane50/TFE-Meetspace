@@ -22,6 +22,7 @@
 .cameraFrame::after { right: 1.1rem; bottom: 1.1rem; border-right: 3px solid var(--accent); border-bottom: 3px solid var(--accent); }
 .cameraFrame video { display: none; width: 100%; max-height: 360px; object-fit: cover; }
 .cameraFrame[data-active="true"] video { display: block; }
+.scanCanvas { display: none; }
 .cameraFrame > div { display: grid; gap: .35rem; max-width: 28ch; padding: 2rem; text-align: center; }
 .cameraFrame > div strong { font-size: 1.05rem; }
 .cameraFrame > div span { color: rgba(255,255,255,.68); font-size: .75rem; line-height: 1.5; }

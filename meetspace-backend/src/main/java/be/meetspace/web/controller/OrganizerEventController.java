@@ -240,6 +240,7 @@ public class OrganizerEventController {
         } else if (value.regionMatches(true, 0, "MS-CHECKIN:", 0, 11)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce billet correspond à un autre événement");
         }
+        value = value.replaceAll("[\\s-]+", "");
         if (!value.matches("[A-Za-z0-9]{24,64}")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Format de billet invalide");
         }

@@ -39,6 +39,23 @@ function formatReceiptTime(value, locale) {
     : "—";
 }
 
+async function copyText(value) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+  const input = document.createElement("textarea");
+  input.value = value;
+  input.setAttribute("readonly", "");
+  input.style.position = "fixed";
+  input.style.opacity = "0";
+  document.body.appendChild(input);
+  input.select();
+  const copied = document.execCommand("copy");
+  input.remove();
+  if (!copied) throw new Error("copy-failed");
+}
+
 export default function ReceiptPage() {
   const { type, id } = useParams();
   const { token, user } = useAuth();
@@ -47,7 +64,7 @@ export default function ReceiptPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [qrCode, setQrCode] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [copyStatus, setCopyStatus] = useState("");
   const locale = normalizeLocale(i18n.language);
   const loader = LOADERS[type];
 
@@ -108,9 +125,13 @@ export default function ReceiptPage() {
   }, [ticketPayload]);
 
   const copyTicket = async () => {
-    await navigator.clipboard.writeText(record.ticketToken);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+    try {
+      await copyText(record.ticketToken);
+      setCopyStatus("copied");
+    } catch {
+      setCopyStatus("error");
+    }
+    window.setTimeout(() => setCopyStatus(""), 2400);
   };
 
   if (!loader) return <PageState type="error" title={t("receipt.notFound", { defaultValue: "Justificatif introuvable" })} message={t("receipt.notFoundHint", { defaultValue: "Cette réservation n’existe pas dans votre compte." })} action={<Link to="/my-reservations">{t("common.back", { defaultValue: "Retour" })}</Link>} />;
@@ -162,7 +183,10 @@ export default function ReceiptPage() {
               <div className={styles.ticketCode}>
                 <small>{t("checkIn.ticketCode")}</small>
                 <code>{record.ticketToken.match(/.{1,4}/g)?.join(" ") || record.ticketToken}</code>
-                <button type="button" onClick={copyTicket}>{copied ? t("checkIn.copied") : t("checkIn.copyCode")}</button>
+                <button type="button" onClick={copyTicket}>{copyStatus === "copied" ? t("checkIn.copied") : t("checkIn.copyCode")}</button>
+                {copyStatus === "error" ? (
+                  <span className={styles.copyError} role="status">{t("checkIn.copyFailed")}</span>
+                ) : null}
               </div>
             </div>
             <div className={styles.qrPanel}>
