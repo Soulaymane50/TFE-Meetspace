@@ -565,19 +565,34 @@
                 "description": "Grande salle premium pour séminaires stratégiques, conférences professionnelles et présentations à fort enjeu.",
                 "bestFor": "Séminaires premium, conférences, présentations stratégiques"
             },
+            "auditorium": {
+                "label": "Grande salle de conférence",
+                "description": "Grande salle plate de 220 places avec rangées de chaises mobiles, deux allées et scène basse pour des présentations confortables.",
+                "bestFor": "Conférences, assemblées, présentations plénières"
+            },
             "atlas": {
                 "label": "Grande salle polyvalente",
                 "description": "Grande salle standard pour formations, séminaires métier et workshops structurés jusqu'à 100 personnes.",
                 "bestFor": "Formations, séminaires, workshops"
             },
+            "atelier": {
+                "label": "Grand atelier modulable",
+                "description": "Salle de 60 places organisée en îlots rectangulaires sur roulettes, avec circulation centrale et tableaux mobiles.",
+                "bestFor": "Ateliers, formations participatives, travail en groupes"
+            },
             "horizon": {
                 "label": "Salle atelier",
-                "description": "Salle moyenne et modulable pour ateliers, tables rondes et réunions d'équipe à taille humaine.",
-                "bestFor": "Ateliers, tables rondes, réunions d'équipe"
+                "description": "Salle moyenne et modulable de 50 places, aménagée en îlots rectangulaires pour travailler en équipe.",
+                "bestFor": "Ateliers, formations, réunions d'équipe"
+            },
+            "studio": {
+                "label": "Studio collaboratif",
+                "description": "Salle compacte de 30 places avec tables modulaires, tableaux mobiles et configuration adaptée aux petits groupes.",
+                "bestFor": "Formations courtes, ateliers ciblés, réunions de projet"
             },
             "boardroom": {
-                "label": "Boardroom premium",
-                "description": "Boardroom premium pour comités de direction, réunions confidentielles et décisions exécutives.",
+                "label": "Salle de conseil",
+                "description": "Salle de conseil de 20 places avec longue table équipée pour les réunions confidentielles et décisions exécutives.",
                 "bestFor": "Comités de direction, réunions confidentielles, conseils"
             }
         }

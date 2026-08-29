@@ -568,19 +568,34 @@
         "description": "Large premium room for strategic seminars, professional conferences and high-stakes presentations.",
         "bestFor": "Premium seminars, conferences, strategic presentations"
       },
+      "auditorium": {
+        "label": "Large conference hall",
+        "description": "Large flat-floor 220-seat hall with rows of movable chairs, two aisles and a low stage for comfortable presentations.",
+        "bestFor": "Conferences, assemblies, plenary presentations"
+      },
       "atlas": {
         "label": "Large multipurpose room",
         "description": "Large standard room for training sessions, business seminars and structured workshops up to 100 people.",
         "bestFor": "Training, seminars, workshops"
       },
+      "atelier": {
+        "label": "Large modular workshop",
+        "description": "60-seat room arranged in rectangular mobile table islands, with a central aisle and movable boards.",
+        "bestFor": "Workshops, participatory training, group work"
+      },
       "horizon": {
         "label": "Workshop room",
-        "description": "Medium modular room for workshops, roundtables and focused team meetings.",
-        "bestFor": "Workshops, roundtables, team meetings"
+        "description": "Medium modular 50-seat room arranged in rectangular table islands for team work.",
+        "bestFor": "Workshops, training, team meetings"
+      },
+      "studio": {
+        "label": "Collaborative studio",
+        "description": "Compact 30-seat room with modular tables, movable boards and a layout suited to small groups.",
+        "bestFor": "Short training, focused workshops, project meetings"
       },
       "boardroom": {
         "label": "Premium boardroom",
-        "description": "Premium boardroom for executive committees, confidential meetings and senior decisions.",
+        "description": "20-seat boardroom with a long equipped table for confidential meetings and senior decisions.",
         "bestFor": "Executive committees, confidential meetings, boards"
       }
     }
