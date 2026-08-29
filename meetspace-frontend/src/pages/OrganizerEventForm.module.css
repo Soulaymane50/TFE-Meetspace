@@ -76,7 +76,7 @@
   width: 42px;
   height: 42px;
   border-radius: 14px;
-  background: rgba(11, 18, 32, 0.92);
+  background: var(--brand-strong);
   color: #fff;
   font-size: 0.72rem;
   font-weight: 800;
@@ -198,10 +198,10 @@
   margin-bottom: 1rem;
   padding: 1rem;
   border-radius: 22px;
-  border: 1px solid rgba(27, 42, 64, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 24%, var(--border));
   background:
-    radial-gradient(circle at top right, rgba(90, 124, 226, 0.1), transparent 34%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(246, 249, 253, 0.78));
+    radial-gradient(circle at top right, color-mix(in srgb, var(--brand-soft) 78%, transparent), transparent 38%),
+    var(--surface);
 }
 
 .advisorKicker {
@@ -219,7 +219,7 @@
 }
 
 .advisorCard h3 {
-  color: var(--blue-darker);
+  color: var(--text-primary);
 }
 
 .advisorCard p {
@@ -237,14 +237,15 @@
   gap: 0.2rem;
   padding: 0.8rem;
   border-radius: 18px;
-  background: rgba(27, 42, 64, 0.055);
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
   color: var(--text-secondary);
   font-size: 0.78rem;
   font-weight: 800;
 }
 
 .advisorMetrics strong {
-  color: var(--blue-darker);
+  color: var(--brand-strong);
   font-size: 1.1rem;
 }
 
@@ -264,15 +265,15 @@
 }
 
 .advisorGhost {
-  color: var(--blue-dark);
-  background: rgba(255, 255, 255, 0.74);
-  border: 1px solid rgba(27, 42, 64, 0.12);
+  color: var(--text-primary);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
   box-shadow: none;
 }
 
 .advisorPrimary {
-  color: #f8f5ef;
-  background: linear-gradient(135deg, var(--brand-navy), #33476a);
+  color: var(--text-on-inverse);
+  background: linear-gradient(135deg, var(--brand-strong), var(--brand));
 }
 
 .financePreview {
@@ -281,8 +282,10 @@
   margin-bottom: 1rem;
   padding: 1rem;
   border-radius: 22px;
-  border: 1px solid rgba(27, 42, 64, 0.08);
-  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid color-mix(in srgb, var(--brand) 25%, var(--border));
+  border-top: 4px solid var(--brand);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
 }
 
 .financePreviewHeader {
@@ -298,15 +301,15 @@
 }
 
 .financePreviewHeader h3 {
-  color: var(--blue-darker);
+  color: var(--text-primary);
 }
 
 .financePreviewHeader > span {
   flex: 0 0 auto;
   padding: 0.45rem 0.7rem;
   border-radius: 999px;
-  background: rgba(207, 162, 101, 0.14);
-  color: var(--orange-dark);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
   font-size: 0.75rem;
   font-weight: 900;
 }
@@ -323,21 +326,40 @@
   min-height: 86px;
   padding: 0.8rem;
   border-radius: 18px;
-  background: rgba(27, 42, 64, 0.055);
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
   color: var(--text-secondary);
   font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
 }
 
+.financePreviewGrid span:nth-child(2) {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--accent-soft) 48%, var(--surface));
+}
+
+.financePreviewGrid span:nth-child(4) {
+  border-color: color-mix(in srgb, var(--brand) 30%, var(--border));
+  background: color-mix(in srgb, var(--brand-soft) 58%, var(--surface));
+}
+
 .financePreviewGrid strong {
   align-self: end;
-  color: var(--blue-darker);
+  color: var(--text-primary);
   font-size: clamp(1rem, 2vw, 1.25rem);
   line-height: 1.1;
   text-transform: none;
 }
 
+
+.financePreviewGrid .positiveValue {
+  color: var(--success);
+}
+
+.financePreviewGrid .negativeValue {
+  color: var(--danger);
+}
 .financePreviewNote {
   color: var(--text-secondary);
   font-size: 0.86rem;
@@ -530,8 +552,26 @@
 }
 
 [data-theme="dark"] .financePreviewHeader > span {
-  background: rgba(207, 162, 101, 0.18);
-  color: #f4d7a8;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+[data-theme="dark"] .financePreviewGrid span:nth-child(2) {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--accent-soft) 64%, var(--surface));
+}
+
+[data-theme="dark"] .financePreviewGrid span:nth-child(4) {
+  border-color: color-mix(in srgb, var(--brand) 38%, var(--border));
+  background: color-mix(in srgb, var(--brand-soft) 72%, var(--surface));
+}
+
+[data-theme="dark"] .financePreviewGrid .positiveValue {
+  color: var(--success);
+}
+
+[data-theme="dark"] .financePreviewGrid .negativeValue {
+  color: var(--danger);
 }
 
 [data-theme="dark"] .select {
