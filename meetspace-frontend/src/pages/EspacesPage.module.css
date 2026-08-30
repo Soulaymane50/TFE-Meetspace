@@ -13,7 +13,7 @@
   background:
     linear-gradient(135deg, rgba(11, 18, 32, 0.9) 0%, rgba(26, 39, 58, 0.86) 55%, rgba(90, 124, 226, 0.66) 180%),
     radial-gradient(circle at top right, rgba(90, 124, 226, 0.18), transparent 28%),
-    url("/images/room-premium-executive-300.webp") center / cover,
+    url("/images/room-premium-executive-300-v5.webp") center / cover,
     linear-gradient(135deg, rgba(11, 18, 32, 0.98) 0%, rgba(26, 39, 58, 0.98) 55%, rgba(90, 124, 226, 0.88) 180%);
   box-shadow: 0 28px 54px rgba(11, 18, 32, 0.16);
 }
@@ -635,7 +635,7 @@
   background:
     radial-gradient(circle at 78% 18%, rgba(90, 124, 226, 0.1), transparent 28%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 249, 253, 0.92) 58%, rgba(238, 242, 250, 0.84) 100%),
-    url("/images/room-premium-executive-300.webp") center / cover;
+    url("/images/room-premium-executive-300-v5.webp") center / cover;
   box-shadow: 0 22px 48px rgba(11, 18, 32, 0.09);
 }
 
