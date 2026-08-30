@@ -156,7 +156,7 @@ export default function EventRegisterPage() {
     return <PageState type="error" title={t("common.error")} message={error} />;
   }
 
-  const eventImage = event ? getEventImage(event) : "/images/room-premium-orion-500.webp";
+  const eventImage = event ? getEventImage(event) : "/images/room-premium-orion-500-v5.webp";
 
   if (isPaymentStepVisible && requiresPayment) {
     return (

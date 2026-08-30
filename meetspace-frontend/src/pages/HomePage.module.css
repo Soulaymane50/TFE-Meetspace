@@ -149,7 +149,7 @@
 
 .heroPanelImage {
   min-height: 290px;
-  background: url("/images/room-premium-executive-300.webp") center / cover no-repeat;
+  background: url("/images/room-premium-executive-300-v5.webp") center / cover no-repeat;
   transition: transform 500ms ease;
 }
 

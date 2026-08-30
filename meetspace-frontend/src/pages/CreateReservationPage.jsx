@@ -246,7 +246,7 @@ export default function CreateReservationPage() {
 
   const selectedRange = selectedDate && startTime && endTime ? `${selectedDate} - ${startTime} - ${endTime}` : t("calendar.selectTime");
   const displaySelectedRange = selectedRange;
-  const spaceImage = espace ? getSpaceImage(espace) : "/images/room-atlas-100.webp";
+  const spaceImage = espace ? getSpaceImage(espace) : "/images/room-atlas-100-v5.webp";
 
   if (showPayment) {
     return (

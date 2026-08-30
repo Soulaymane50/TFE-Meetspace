@@ -13,7 +13,7 @@
   background:
     linear-gradient(135deg, rgba(9, 15, 28, 0.94) 0%, rgba(20, 30, 46, 0.9) 58%, rgba(31, 47, 70, 0.88) 100%),
     radial-gradient(circle at top right, rgba(202, 163, 102, 0.26), transparent 30%),
-    url("/images/room-premium-orion-500.webp") center / cover,
+    url("/images/room-premium-orion-500-v5.webp") center / cover,
     linear-gradient(135deg, rgba(9, 15, 28, 0.99) 0%, rgba(20, 30, 46, 0.98) 58%, rgba(31, 47, 70, 0.95) 100%);
   box-shadow: 0 30px 60px rgba(10, 18, 31, 0.18);
 }
@@ -805,7 +805,7 @@
   background:
     radial-gradient(circle at 78% 16%, rgba(181, 138, 76, 0.12), transparent 28%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 249, 253, 0.92) 58%, rgba(242, 237, 228, 0.84) 100%),
-    url("/images/room-premium-orion-500.webp") center / cover;
+    url("/images/room-premium-orion-500-v5.webp") center / cover;
   box-shadow: 0 22px 48px rgba(11, 18, 32, 0.09);
 }
 
