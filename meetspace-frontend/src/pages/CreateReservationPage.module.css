@@ -84,8 +84,8 @@
   min-height: 34px;
   padding: 0.3rem 0.75rem;
   border-radius: 999px;
-  background: rgba(90, 124, 226, 0.1);
-  color: #314fb3;
+  background: rgba(14, 116, 97, 0.11);
+  color: var(--brand-strong);
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -208,9 +208,9 @@
 }
 
 .progressStepActive {
-  background: linear-gradient(135deg, rgba(27, 42, 64, 0.96), rgba(47, 74, 112, 0.92));
+  background: linear-gradient(135deg, var(--brand-strong), var(--brand));
   color: #fff;
-  box-shadow: 0 14px 32px rgba(27, 42, 64, 0.18);
+  box-shadow: 0 14px 32px rgba(7, 65, 56, 0.16);
 }
 
 .progressStepActive strong {
@@ -349,8 +349,7 @@
 :global([data-theme="light"]) .heroPanel {
   border: 1px solid rgba(20, 32, 51, 0.075);
   background:
-    radial-gradient(circle at 78% 18%, rgba(181, 138, 76, 0.18), transparent 28%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 249, 253, 0.84) 58%, rgba(244, 235, 222, 0.78) 100%),
+    linear-gradient(90deg, rgba(7, 65, 56, 0.88) 0%, rgba(7, 65, 56, 0.64) 48%, rgba(7, 65, 56, 0.24) 100%),
     var(--hero-image);
   background-position: center;
   background-size: cover;
@@ -358,15 +357,15 @@
 }
 
 :global([data-theme="light"]) .kicker {
-  color: rgba(181, 138, 76, 0.88);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 :global([data-theme="light"]) .title {
-  color: var(--blue-darker);
+  color: #fff;
 }
 
 :global([data-theme="light"]) .subtitle {
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 [data-theme="dark"] .summaryPanel,
@@ -418,7 +417,7 @@
 }
 
 [data-theme="dark"] .progressStepActive {
-  background: linear-gradient(135deg, rgba(47, 74, 112, 0.98), rgba(181, 138, 76, 0.9));
+  background: linear-gradient(135deg, var(--brand-strong), var(--brand));
   color: #fff;
 }
 
@@ -429,8 +428,8 @@
 }
 
 [data-theme="dark"] .spaceBadge {
-  background: rgba(137, 163, 255, 0.18);
-  color: #d8e2ff;
+  background: rgba(56, 189, 158, 0.16);
+  color: #a7f3d0;
 }
 
 @media (max-width: 1080px) {

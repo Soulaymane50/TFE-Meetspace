@@ -1243,7 +1243,7 @@
     "financePreviewScheduleHint": "Choose a time slot to include the room cost. Indicative, non-accounting projection.",
     "advisorKicker": "Configuration assistant",
     "advisorTitle": "MeetSpace recommendation",
-    "advisorText": "The suggestion includes room cost, commission, a 15% target margin, realistic attendance and parking.",
+    "advisorText": "The suggestion includes room cost, the 10% commission, a 15% target margin and realistic attendance. Parking is allocated automatically.",
     "advisorCapacity": "recommended capacity",
     "advisorPrice": "recommended profitable price",
     "advisorScheduleRequired": "Choose a time slot first",

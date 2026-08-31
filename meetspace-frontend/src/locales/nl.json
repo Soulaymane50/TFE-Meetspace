@@ -1219,7 +1219,7 @@
                       "financePreviewScheduleHint": "Kies een tijdslot om de zaalkost mee te nemen. Indicatieve, niet-boekhoudkundige projectie.",
                       "advisorKicker": "Configuratie-assistent",
                       "advisorTitle": "MeetSpace-aanbeveling",
-                      "advisorText": "De suggestie houdt rekening met de zaalkost, commissie, een doelmarge van 15%, realistische bezetting en parking.",
+                      "advisorText": "De suggestie houdt rekening met de zaalkost, de commissie van 10%, een doelmarge van 15% en realistische bezetting. Parking wordt automatisch toegewezen.",
                       "advisorCapacity": "aanbevolen capaciteit",
                       "advisorPrice": "aanbevolen rendabele prijs",
                       "advisorScheduleRequired": "Kies eerst een tijdslot",

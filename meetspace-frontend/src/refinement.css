@@ -551,10 +551,10 @@ html [class*="_financePreview_"] {
 
 html [class*="_totalPanel_"] {
   border: 0 !important;
-  border-left: 4px solid var(--accent-strong) !important;
+  border-left: 4px solid var(--accent) !important;
   border-radius: var(--radius-md) !important;
-  background: var(--accent) !important;
-  color: var(--text-on-accent) !important;
+  background: var(--brand-strong) !important;
+  color: var(--text-on-inverse) !important;
   box-shadow: none !important;
 }
 
