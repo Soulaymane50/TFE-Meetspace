@@ -12,7 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/public/events")
@@ -37,24 +40,39 @@ public class EventController {
 
     @GetMapping
     public List<EventResponseDto> getPublishedEvents() {
-        return eventRepository.findByStatusAndStartDateTimeAfterOrderByStartDateTimeAsc(
+        List<Event> events = eventRepository.findByStatusAndStartDateTimeAfterOrderByStartDateTimeAsc(
                 EventStatus.PUBLISHED, 
                 LocalDateTime.now()
-        ).stream()
-        .map(e -> {
-            int registered = registrationRepository.countTotalParticipantsByEventId(e.getId());
-            int parkingReserved = e.getParkingSlot() != null
-                    ? parkingReservationRepository.countReservedSpacesByParkingSlotId(e.getParkingSlot().getId())
-                    : 0;
-            EventResponseDto dto = EventResponseDto.fromEntity(e, registered, parkingReserved);
-            if (e.getParkingSlot() != null) {
-                ParkingCapacityService.CapacitySnapshot capacity = parkingCapacityService.snapshot(e.getParkingSlot());
+        );
+        if (events.isEmpty()) return List.of();
+
+        List<Long> eventIds = events.stream().map(Event::getId).toList();
+        Map<Long, Integer> participantsByEvent = new HashMap<>();
+        for (var row : registrationRepository.sumParticipantsByEventIds(eventIds)) {
+            participantsByEvent.put(row.getEventId(), Math.toIntExact(row.getParticipantCount()));
+        }
+
+        var parkingSlots = events.stream()
+                .map(Event::getParkingSlot)
+                .filter(Objects::nonNull)
+                .toList();
+        Map<Long, ParkingCapacityService.CapacitySnapshot> parkingCapacities =
+                parkingCapacityService.snapshots(parkingSlots);
+
+        return events.stream().map(event -> {
+            int registered = participantsByEvent.getOrDefault(event.getId(), 0);
+            var parkingSlot = event.getParkingSlot();
+            ParkingCapacityService.CapacitySnapshot capacity = parkingSlot != null
+                    ? parkingCapacities.get(parkingSlot.getId())
+                    : null;
+            int parkingReserved = capacity != null ? capacity.reservedForSlot() : 0;
+            EventResponseDto dto = EventResponseDto.fromEntity(event, registered, parkingReserved);
+            if (capacity != null) {
                 dto.applyParkingCapacity(capacity.allocatedSpaces(), capacity.availableSpaces(),
                         capacity.physicalCapacity(), capacity.globalRemainingSpaces());
             }
             return dto;
-        })
-        .toList();
+        }).toList();
     }
 
     @GetMapping("/{id}")
