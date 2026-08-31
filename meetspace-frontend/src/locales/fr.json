@@ -1216,7 +1216,7 @@
         "financePreviewScheduleHint": "Choisissez un creneau pour integrer le cout de salle. Projection indicative, non comptable.",
         "advisorKicker": "Assistant de configuration",
         "advisorTitle": "Recommandation MeetSpace",
-        "advisorText": "La suggestion intègre le coût de la salle, la commission, une marge cible de 15 %, un remplissage réaliste et le parking.",
+        "advisorText": "La suggestion intègre le coût de la salle, la commission de 10 %, une marge cible de 15 % et un remplissage réaliste. Le parking est attribué automatiquement.",
         "advisorCapacity": "capacité conseillée",
         "advisorPrice": "prix rentable conseillé",
         "advisorScheduleRequired": "Choisissez d’abord un créneau",

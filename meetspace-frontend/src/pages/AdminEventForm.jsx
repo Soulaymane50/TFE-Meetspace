@@ -299,9 +299,6 @@ export default function AdminEventForm() {
       ...prev,
       capacity: String(recommendedCapacity),
       price: String(recommendedPrice),
-      parkingRequired: true,
-      parkingPrice: String(recommendedParkingPrice),
-      parkingCapacity: String(Math.min(recommendedParkingCapacity, recommendedCapacity)),
     }));
     setError("");
   };
@@ -413,10 +410,6 @@ export default function AdminEventForm() {
                     : t("organizer.advisorScheduleRequired")}
                 </strong>
                 {t("organizer.advisorPrice")}
-              </span>
-              <span>
-                <strong>{recommendedParkingCapacity}</strong>
-                {t("organizer.advisorParking")}
               </span>
             </div>
             <div className={styles.advisorActions}>

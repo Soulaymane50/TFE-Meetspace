@@ -31,7 +31,6 @@ public class ParkingAccessService {
                     ? ParkingAccessPassStatus.CANCELLED : ParkingAccessPassStatus.ACTIVE);
             passes.add(passRepository.save(pass));
         }
-        reservation.setAccessPasses(passes);
         return passes;
     }
 
@@ -40,6 +39,5 @@ public class ParkingAccessService {
         passes.stream().filter(pass -> pass.getStatus() != ParkingAccessPassStatus.CANCELLED)
                 .forEach(pass -> pass.setStatus(ParkingAccessPassStatus.CANCELLED));
         passRepository.saveAll(passes);
-        reservation.setAccessPasses(passes);
     }
 }
