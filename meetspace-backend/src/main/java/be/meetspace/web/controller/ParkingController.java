@@ -25,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import org.springframework.transaction.annotation.Transactional;
 
 @RestController
@@ -65,18 +66,21 @@ public class ParkingController {
     }
 
     @GetMapping("/sessions")
+    @Transactional(readOnly = true)
     public List<ParkingSlotResponseDto> listOpenSessions() {
         List<ParkingSlot> sessions =
                 sessionRepository.findByStatusAndSessionDateGreaterThanEqualOrderBySessionDateAsc(
                         ParkingSlotStatus.OPEN,
                         LocalDate.now()
-                );
-        return sessions.stream()
+                ).stream()
                 .filter(session -> !cancellationPolicyService.hasStarted(startsAt(session)))
+                .toList();
+        Map<Long, ParkingCapacityService.CapacitySnapshot> capacities =
+                parkingCapacityService.snapshots(sessions);
+        return sessions.stream()
                 .map(s -> {
-                    Integer registeredCount = reservationRepository.countReservedSpacesByParkingSlotId(s.getId());
-                    ParkingCapacityService.CapacitySnapshot capacity = parkingCapacityService.snapshot(s);
-                    return ParkingSlotResponseDto.fromEntity(s, registeredCount, capacity.allocatedSpaces(),
+                    ParkingCapacityService.CapacitySnapshot capacity = capacities.get(s.getId());
+                    return ParkingSlotResponseDto.fromEntity(s, capacity.reservedForSlot(), capacity.allocatedSpaces(),
                             capacity.availableSpaces(), capacity.physicalCapacity(),
                             capacity.globalRemainingSpaces());
                 })

@@ -89,13 +89,20 @@ export default function OrganizerEventForm() {
   const recommendedCapacity = selectedCapacity
     ? Math.min(selectedCapacity, Math.max(12, Math.round(selectedCapacity * 0.75)))
     : 0;
-  const recommendedPrice = getRecommendedTicketPrice(selectedCapacity);
+  const recommendedPrice = scheduleDurationHours > 0
+    ? getRecommendedTicketPrice(selectedCapacity, recommendedCapacity, roomHourlyRate, scheduleDurationHours)
+    : 0;
   const recommendedParkingCapacity = getRecommendedParkingQuota(recommendedCapacity, selectedCapacity);
   const recommendedParkingPrice = getRecommendedParkingRate(scheduleDurationHours, selectedCapacity);
   const grossRevenueEstimate = eventCapacityEstimate * ticketPriceEstimate;
   const roomCostEstimate = roomHourlyRate * scheduleDurationHours;
   const commissionEstimate = grossRevenueEstimate * MEETSPACE_COMMISSION_RATE;
   const organizerNetEstimate = grossRevenueEstimate - commissionEstimate - roomCostEstimate;
+  const minimumProfitablePrice = scheduleDurationHours > 0 && eventCapacityEstimate > 0
+    ? getRecommendedTicketPrice(
+        selectedCapacity, eventCapacityEstimate, roomHourlyRate, scheduleDurationHours,
+      )
+    : 0;
   const showFinancePreview = selectedSpace && eventCapacityEstimate > 0;
 
   useEffect(() => {
@@ -249,7 +256,7 @@ export default function OrganizerEventForm() {
   };
 
   const applySmartRecommendation = () => {
-    if (!selectedSpace) return;
+    if (!selectedSpace || scheduleDurationHours <= 0) return;
     setEventForm((prev) => ({
       ...prev,
       capacity: String(recommendedCapacity),
@@ -440,7 +447,11 @@ export default function OrganizerEventForm() {
                   {t("organizer.advisorCapacity")}
                 </span>
                 <span>
-                  <strong>{formatMoney(recommendedPrice, locale)}</strong>
+                  <strong>
+                    {scheduleDurationHours > 0
+                      ? formatMoney(recommendedPrice, locale)
+                      : t("organizer.advisorScheduleRequired")}
+                  </strong>
                   {t("organizer.advisorPrice")}
                 </span>
                 <span>
@@ -452,7 +463,13 @@ export default function OrganizerEventForm() {
                 <button type="button" onClick={applyRoomCapacity} className={styles.advisorGhost}>
                   {t("organizer.applyCapacity")}
                 </button>
-                <button type="button" onClick={applySmartRecommendation} className={styles.advisorPrimary}>
+                <button
+                  type="button"
+                  onClick={applySmartRecommendation}
+                  className={styles.advisorPrimary}
+                  disabled={scheduleDurationHours <= 0}
+                  title={scheduleDurationHours <= 0 ? t("organizer.advisorScheduleRequired") : undefined}
+                >
                   {t("organizer.applyRecommendation")}
                 </button>
               </div>
@@ -533,6 +550,13 @@ export default function OrganizerEventForm() {
                   </strong>
                 </span>
               </div>
+              {organizerNetEstimate < 0 && scheduleDurationHours > 0 && (
+                <p className={styles.financeLossWarning}>
+                  {t("organizer.financeLossWarning", {
+                    price: formatMoney(minimumProfitablePrice, locale),
+                  })}
+                </p>
+              )}
               <p className={styles.financePreviewNote}>
                 {t(
                   scheduleDurationHours > 0

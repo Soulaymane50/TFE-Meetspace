@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -40,17 +41,62 @@ public class ParkingCapacityService {
         if (target == null || target.getId() == null || target.getStatus() != ParkingSlotStatus.OPEN) {
             return new CapacitySnapshot(BusinessRules.TOTAL_PARKING_SPACES, 0, 0, 0, 0, 0);
         }
-        int physicalCapacity = inventoryRepository.findById(INVENTORY_ID)
-                .map(ParkingInventory::getCapacity)
-                .orElse(BusinessRules.TOTAL_PARKING_SPACES);
+        int physicalCapacity = physicalCapacity();
         List<ParkingSlot> overlaps = new ArrayList<>(slotRepository.findOpenOverlappingSlots(
                 target.getSessionDate(), target.getStartTime(), target.getEndTime()));
         if (overlaps.stream().noneMatch(slot -> slot.getId().equals(target.getId()))) overlaps.add(target);
 
-        Map<Long, Integer> allocations = calculateAllocations(overlaps, physicalCapacity);
         int reservedForTarget = safe(reservationRepository.countReservedSpacesByParkingSlotId(target.getId()));
         int reservedForWindow = safe(reservationRepository.countReservedSpacesForWindow(
                 target.getSessionDate(), target.getStartTime(), target.getEndTime()));
+        return buildSnapshot(target, overlaps, physicalCapacity, reservedForTarget, reservedForWindow);
+    }
+
+    public Map<Long, CapacitySnapshot> snapshots(List<ParkingSlot> candidates) {
+        if (candidates == null || candidates.isEmpty()) return Map.of();
+
+        List<ParkingSlot> openSlots = candidates.stream()
+                .filter(slot -> slot != null && slot.getId() != null && slot.getStatus() == ParkingSlotStatus.OPEN)
+                .toList();
+        if (openSlots.isEmpty()) return Map.of();
+
+        int physicalCapacity = physicalCapacity();
+        List<Long> slotIds = openSlots.stream().map(ParkingSlot::getId).toList();
+        Map<Long, Integer> reservedBySlot = new HashMap<>();
+        for (var row : reservationRepository.sumReservedSpacesByParkingSlotIds(slotIds)) {
+            reservedBySlot.put(row.getSlotId(), Math.toIntExact(row.getReservedSpaces()));
+        }
+
+        Map<LocalDate, List<ParkingSlot>> slotsByDate = new HashMap<>();
+        for (ParkingSlot slot : openSlots) {
+            slotsByDate.computeIfAbsent(slot.getSessionDate(), ignored -> new ArrayList<>()).add(slot);
+        }
+
+        Map<Long, CapacitySnapshot> result = new HashMap<>();
+        for (ParkingSlot target : openSlots) {
+            List<ParkingSlot> overlaps = slotsByDate.getOrDefault(target.getSessionDate(), List.of()).stream()
+                    .filter(slot -> slot.getStartTime().isBefore(target.getEndTime())
+                            && slot.getEndTime().isAfter(target.getStartTime()))
+                    .toList();
+            int reservedForTarget = reservedBySlot.getOrDefault(target.getId(), 0);
+            int reservedForWindow = overlaps.stream()
+                    .mapToInt(slot -> reservedBySlot.getOrDefault(slot.getId(), 0))
+                    .sum();
+            result.put(target.getId(), buildSnapshot(
+                    target, overlaps, physicalCapacity, reservedForTarget, reservedForWindow));
+        }
+        return result;
+    }
+
+    private int physicalCapacity() {
+        return inventoryRepository.findById(INVENTORY_ID)
+                .map(ParkingInventory::getCapacity)
+                .orElse(BusinessRules.TOTAL_PARKING_SPACES);
+    }
+
+    private CapacitySnapshot buildSnapshot(ParkingSlot target, List<ParkingSlot> overlaps,
+                                           int physicalCapacity, int reservedForTarget, int reservedForWindow) {
+        Map<Long, Integer> allocations = calculateAllocations(overlaps, physicalCapacity);
         int allocated = allocations.getOrDefault(target.getId(), 0);
         long hoursUntilStart = Duration.between(LocalDateTime.now(),
                 LocalDateTime.of(target.getSessionDate(), target.getStartTime())).toHours();

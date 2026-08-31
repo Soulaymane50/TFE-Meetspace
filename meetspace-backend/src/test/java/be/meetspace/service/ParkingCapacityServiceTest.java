@@ -15,9 +15,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -106,6 +110,32 @@ class ParkingCapacityServiceTest {
         assertEquals(100, snapshot.reservedForSlot());
         assertEquals(0, snapshot.availableSpaces());
         assertEquals(50, snapshot.globalRemainingSpaces());
+    }
+
+    @Test
+    void calculatesThePublicCatalogWithOneGroupedReservationQuery() {
+        ParkingSlot largeEvent = slot(1L, 150, LocalTime.of(9, 0), LocalTime.of(14, 0), 10);
+        ParkingSlot smallerEvent = slot(2L, 100, LocalTime.of(11, 0), LocalTime.of(15, 0), 10);
+        List<Long> slotIds = List.of(1L, 2L);
+        when(reservationRepository.sumReservedSpacesByParkingSlotIds(slotIds))
+                .thenReturn(List.of(reservedSpaces(1L, 12L), reservedSpaces(2L, 4L)));
+
+        Map<Long, ParkingCapacityService.CapacitySnapshot> snapshots =
+                service.snapshots(List.of(largeEvent, smallerEvent));
+
+        assertEquals(78, snapshots.get(1L).availableSpaces());
+        assertEquals(56, snapshots.get(2L).availableSpaces());
+        assertEquals(134, snapshots.get(1L).globalRemainingSpaces());
+        verify(reservationRepository, times(1)).sumReservedSpacesByParkingSlotIds(slotIds);
+        verify(slotRepository, never()).findOpenOverlappingSlots(
+                largeEvent.getSessionDate(), largeEvent.getStartTime(), largeEvent.getEndTime());
+    }
+
+    private ParkingReservationRepository.ReservedSpacesBySlot reservedSpaces(Long slotId, Long spaces) {
+        return new ParkingReservationRepository.ReservedSpacesBySlot() {
+            @Override public Long getSlotId() { return slotId; }
+            @Override public Long getReservedSpaces() { return spaces; }
+        };
     }
 
     private ParkingSlot slot(Long id, int capacity, LocalTime start, LocalTime end, int daysFromNow) {
