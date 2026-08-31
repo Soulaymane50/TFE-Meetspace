@@ -33,6 +33,12 @@
 .qrPanel { display: grid; place-items: center; align-content: center; gap: .55rem; padding: 1rem; border-left: 1px solid var(--border); background: #fffdf8; color: #31453f; }
 .qrPanel img { display: block; width: min(100%, 190px); aspect-ratio: 1; }
 .qrPanel small { max-width: 22ch; text-align: center; font-size: .62rem; line-height: 1.35; }
+.parkingTickets { border-top: 1px solid var(--border); background: var(--surface-muted); }
+.passGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1px; border-top: 1px solid var(--border); background: var(--border); }
+.passCard { display: grid; place-items: center; gap: .55rem; padding: 1rem; background: #fffdf8; color: #31453f; text-align: center; }
+.passCard img { display: block; width: min(100%, 180px); aspect-ratio: 1; }
+.passCard code { overflow-wrap: anywhere; font-size: .66rem; }
+.passCard button { min-height: 34px; border: 1px solid #b8c3be; background: white; color: #183b33; font-weight: 800; }
 .amountLine { display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1.2rem 1.5rem; border-top: 1px solid var(--border); background: var(--surface-muted); }
 .amountLine div { display: grid; }
 .amountLine small { color: var(--text-muted); }

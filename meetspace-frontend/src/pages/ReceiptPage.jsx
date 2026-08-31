@@ -63,7 +63,7 @@ export default function ReceiptPage() {
   const [record, setRecord] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [qrCode, setQrCode] = useState("");
+  const [qrCodes, setQrCodes] = useState({});
   const [copyStatus, setCopyStatus] = useState("");
   const locale = normalizeLocale(i18n.language);
   const loader = LOADERS[type];
@@ -107,26 +107,36 @@ export default function ReceiptPage() {
     };
   }, [record, t, type]);
 
-  const ticketPayload = useMemo(() => {
-    if (type !== "event" || !record?.ticketToken) return "";
-    return `MS-CHECKIN:${record.eventId}:${record.ticketToken}`;
+  const ticketPayloads = useMemo(() => {
+    if (type === "event" && record?.ticketToken) {
+      return [{ key: record.ticketToken, value: `MS-CHECKIN:${record.eventId}:${record.ticketToken}` }];
+    }
+    if (type === "parking") {
+      return (record?.accessPasses || [])
+        .filter((pass) => pass.status !== "CANCELLED")
+        .map((pass) => ({ key: pass.token, value: `MS-PARKING:${pass.token}` }));
+    }
+    return [];
   }, [record, type]);
 
   useEffect(() => {
     let cancelled = false;
-    if (!ticketPayload) return undefined;
-    QRCode.toDataURL(ticketPayload, {
-      width: 280,
-      margin: 1,
-      errorCorrectionLevel: "M",
-      color: { dark: "#0d3b33", light: "#fffdf8" },
-    }).then((dataUrl) => !cancelled && setQrCode(dataUrl));
+    const generation = ticketPayloads.length === 0 ? Promise.resolve([]) : Promise.all(
+      ticketPayloads.map(async (payload) => [payload.key, await QRCode.toDataURL(payload.value, {
+        width: 280,
+        margin: 1,
+        errorCorrectionLevel: "M",
+        color: { dark: "#0d3b33", light: "#fffdf8" },
+      })]),
+    );
+    generation
+      .then((entries) => !cancelled && setQrCodes(Object.fromEntries(entries)));
     return () => { cancelled = true; };
-  }, [ticketPayload]);
+  }, [ticketPayloads]);
 
-  const copyTicket = async () => {
+  const copyTicket = async (value) => {
     try {
-      await copyText(record.ticketToken);
+      await copyText(value);
       setCopyStatus("copied");
     } catch {
       setCopyStatus("error");
@@ -183,15 +193,36 @@ export default function ReceiptPage() {
               <div className={styles.ticketCode}>
                 <small>{t("checkIn.ticketCode")}</small>
                 <code>{record.ticketToken.match(/.{1,4}/g)?.join(" ") || record.ticketToken}</code>
-                <button type="button" onClick={copyTicket}>{copyStatus === "copied" ? t("checkIn.copied") : t("checkIn.copyCode")}</button>
+                <button type="button" onClick={() => copyTicket(record.ticketToken)}>{copyStatus === "copied" ? t("checkIn.copied") : t("checkIn.copyCode")}</button>
                 {copyStatus === "error" ? (
                   <span className={styles.copyError} role="status">{t("checkIn.copyFailed")}</span>
                 ) : null}
               </div>
             </div>
             <div className={styles.qrPanel}>
-              {qrCode ? <img src={qrCode} alt={t("checkIn.qrAlt", { event: details.title })} /> : <span>{t("common.loading")}</span>}
+              {qrCodes[record.ticketToken] ? <img src={qrCodes[record.ticketToken]} alt={t("checkIn.qrAlt", { event: details.title })} /> : <span>{t("common.loading")}</span>}
               <small>{t("checkIn.presentQr")}</small>
+            </div>
+          </section>
+        ) : null}
+
+        {type === "parking" && record.accessPasses?.length ? (
+          <section className={styles.parkingTickets} aria-labelledby="parking-ticket-title">
+            <div className={styles.ticketCopy}>
+              <p>{t("parking.accessKicker", { defaultValue: "Accès au parking" })}</p>
+              <h2 id="parking-ticket-title">{t("parking.vehiclePasses", { defaultValue: "Un QR code par véhicule" })}</h2>
+              <span>{t("parking.vehiclePassHelp", { defaultValue: "Présentez un QR différent à la barrière pour chaque véhicule. Un code déjà utilisé reste marqué comme contrôlé." })}</span>
+            </div>
+            <div className={styles.passGrid}>
+              {record.accessPasses.filter((pass) => pass.status !== "CANCELLED").map((pass, index) => (
+                <article key={pass.id || pass.token} className={styles.passCard}>
+                  <strong>{t("parking.vehicleNumber", { defaultValue: "Véhicule {{count}}", count: index + 1 })}</strong>
+                  {qrCodes[pass.token] ? <img src={qrCodes[pass.token]} alt={t("parking.qrAlt", { defaultValue: "QR d’accès parking" })} /> : <span>{t("common.loading")}</span>}
+                  <code>{pass.token.match(/.{1,4}/g)?.join(" ") || pass.token}</code>
+                  <small>{pass.status === "USED" ? t("parking.accessUsed", { defaultValue: "Accès déjà contrôlé" }) : t("parking.accessReady", { defaultValue: "Prêt à présenter" })}</small>
+                  <button type="button" onClick={() => copyTicket(pass.token)}>{t("checkIn.copyCode")}</button>
+                </article>
+              ))}
             </div>
           </section>
         ) : null}

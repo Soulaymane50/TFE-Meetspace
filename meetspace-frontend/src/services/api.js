@@ -917,6 +917,18 @@ export async function organizerCheckIn(id, ticket, token) {
   return handleResponse(res, "Impossible de valider ce billet");
 }
 
+export async function adminParkingCheckIn(ticket, token) {
+  const res = await fetch(`${API_URL}/api/admin/parking/access/check-in`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(token),
+    },
+    body: JSON.stringify({ pass: ticket }),
+  });
+  return handleResponse(res, "Impossible de valider cet accès parking");
+}
+
 export async function organizerGetFinanceSummary(token, period) {
   const res = await fetch(`${API_URL}/api/organizer/finance/summary${financeQuery(period)}`, {
     headers: authHeaders(token),

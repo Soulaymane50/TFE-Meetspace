@@ -37,6 +37,7 @@ const AdminEventsPage = lazy(() => import("./pages/AdminEventsPage"));
 const AdminEventForm = lazy(() => import("./pages/AdminEventForm"));
 const AdminParkingPage = lazy(() => import("./pages/AdminParkingPage"));
 const AdminParkingForm = lazy(() => import("./pages/AdminParkingForm"));
+const AdminParkingCheckInPage = lazy(() => import("./pages/AdminParkingCheckInPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 function Shell({ children }) {
@@ -125,6 +126,7 @@ export default function App() {
         <Route path="/admin/events/new" element={<PrivatePage roles={["ADMIN"]}><AdminEventForm /></PrivatePage>} />
         <Route path="/admin/events/:id/edit" element={<PrivatePage roles={["ADMIN"]}><AdminEventForm /></PrivatePage>} />
         <Route path="/admin/parking" element={<PrivatePage roles={["ADMIN"]}><AdminParkingPage /></PrivatePage>} />
+        <Route path="/admin/parking/check-in" element={<PrivatePage roles={["ADMIN"]}><AdminParkingCheckInPage /></PrivatePage>} />
         <Route path="/admin/parking/new" element={<PrivatePage roles={["ADMIN"]}><AdminParkingForm /></PrivatePage>} />
         <Route path="/admin/parking/edit/:id" element={<PrivatePage roles={["ADMIN"]}><AdminParkingForm /></PrivatePage>} />
 

@@ -14,6 +14,7 @@ export default function WorkspaceNav({ scope = "account" }) {
         { to: "/admin/espaces", label: t("nav.spaces") },
         { to: "/admin/events", label: t("nav.events") },
         { to: "/admin/parking", label: t("nav.parking") },
+        { to: "/admin/parking/check-in", label: t("parking.accessControl", { defaultValue: "Contrôle parking" }) },
       ]
     : scope === "organizer"
       ? [

@@ -375,10 +375,12 @@ export default function OrganizerEventsPage() {
 
               {e.parkingRequired && e.parkingCapacity ? (
                 <div className={styles.parkingQuotaStrip}>
-                  <span>{t("organizer.parkingQuota")}</span>
+                  <span>{t("parking.currentAllocation", { defaultValue: "Parking partagé — allocation actuelle" })}</span>
                   <strong>
-                    {t("organizer.parkingQuotaSummary", {
-                      count: formatStat(e.parkingCapacity),
+                    {t("parking.organizerAllocationSummary", {
+                      defaultValue: "{{available}} places encore réservables sur {{allocated}} · {{price}} / véhicule",
+                      available: formatStat(e.parkingAvailableSpaces ?? e.parkingCapacity),
+                      allocated: formatStat(e.parkingCapacity),
                       price: formatEuro(e.parkingPrice || 0),
                     })}
                   </strong>
