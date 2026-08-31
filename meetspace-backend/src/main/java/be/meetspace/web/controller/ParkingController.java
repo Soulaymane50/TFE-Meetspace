@@ -9,6 +9,8 @@ import be.meetspace.service.EmailService;
 import be.meetspace.service.PaymentLifecycleService;
 import be.meetspace.service.CancellationPolicyService;
 import be.meetspace.service.NotificationService;
+import be.meetspace.service.ParkingAccessService;
+import be.meetspace.service.ParkingCapacityService;
 import be.meetspace.web.dto.CancellationResponse;
 import be.meetspace.web.dto.ParkingReservationRequest;
 import be.meetspace.web.dto.ParkingReservationResponseDto;
@@ -37,6 +39,8 @@ public class ParkingController {
     private final AuditService auditService;
     private final EmailService emailService;
     private final NotificationService notificationService;
+    private final ParkingCapacityService parkingCapacityService;
+    private final ParkingAccessService parkingAccessService;
 
     public ParkingController(ParkingSlotRepository sessionRepository,
                               ParkingReservationRepository reservationRepository,
@@ -45,7 +49,9 @@ public class ParkingController {
                               CancellationPolicyService cancellationPolicyService,
                               AuditService auditService,
                               EmailService emailService,
-                              NotificationService notificationService) {
+                              NotificationService notificationService,
+                              ParkingCapacityService parkingCapacityService,
+                              ParkingAccessService parkingAccessService) {
         this.sessionRepository = sessionRepository;
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
@@ -54,6 +60,8 @@ public class ParkingController {
         this.auditService = auditService;
         this.emailService = emailService;
         this.notificationService = notificationService;
+        this.parkingCapacityService = parkingCapacityService;
+        this.parkingAccessService = parkingAccessService;
     }
 
     @GetMapping("/sessions")
@@ -67,7 +75,10 @@ public class ParkingController {
                 .filter(session -> !cancellationPolicyService.hasStarted(startsAt(session)))
                 .map(s -> {
                     Integer registeredCount = reservationRepository.countReservedSpacesByParkingSlotId(s.getId());
-                    return ParkingSlotResponseDto.fromEntity(s, registeredCount);
+                    ParkingCapacityService.CapacitySnapshot capacity = parkingCapacityService.snapshot(s);
+                    return ParkingSlotResponseDto.fromEntity(s, registeredCount, capacity.allocatedSpaces(),
+                            capacity.availableSpaces(), capacity.physicalCapacity(),
+                            capacity.globalRemainingSpaces());
                 })
                 .toList();
     }
@@ -104,12 +115,7 @@ public class ParkingController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nombre de places invalide");
         }
 
-        Integer currentReservedSpaces = reservationRepository.countReservedSpacesByParkingSlotId(session.getId());
-        if (currentReservedSpaces + reservedSpaces > session.getCapacity()) {
-            int remaining = session.getCapacity() - currentReservedSpaces;
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                "Capacité insuffisante. Places restantes : " + remaining);
-        }
+        parkingCapacityService.lockAndAssertAvailable(session, reservedSpaces);
 
         double totalPrice = session.getParkingRate() * reservedSpaces;
         long totalAmountCents = Math.round(totalPrice * 100D);
@@ -141,6 +147,7 @@ public class ParkingController {
         if (paymentIntentId != null) {
             paymentLifecycleService.bindToBooking(paymentIntentId, saved.getId());
         }
+        parkingAccessService.ensurePasses(saved);
 
         // Audit log
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
@@ -153,11 +160,12 @@ public class ParkingController {
         notificationService.create(user, NotificationTone.SUCCESS,
                 "Parking confirmé",
                 "Votre réservation parking pour " + session.getTitle() + " est confirmée.",
-                "/my-reservations?tab=parking", "ParkingReservation", saved.getId());
+                "/receipts/parking/" + saved.getId(), "ParkingReservation", saved.getId());
         return ParkingReservationResponseDto.fromEntity(saved);
     }
 
     @GetMapping("/reservations/me")
+    @Transactional
     public List<ParkingReservationResponseDto> listMyReservations(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecté");
@@ -171,6 +179,7 @@ public class ParkingController {
                 reservationRepository.findByUserId(user.getId());
 
         return reservations.stream()
+                .peek(parkingAccessService::ensurePasses)
                 .map(ParkingReservationResponseDto::fromEntity)
                 .toList();
     }
@@ -214,6 +223,7 @@ public class ParkingController {
         reservationRepository.save(reservation);
 
         // Audit log
+        parkingAccessService.cancelPasses(reservation);
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
         auditService.log(AuditAction.PARKING_RESERVATION_CANCEL, "ParkingReservation", reservation.getId(),
                 String.format("Annulation réservation parking: %s", reservation.getParkingSlot().getTitle()),

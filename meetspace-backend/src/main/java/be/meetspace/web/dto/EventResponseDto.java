@@ -36,6 +36,9 @@ public class EventResponseDto {
     private Double parkingPrice;
     private Integer parkingCapacity;
     private Integer parkingAvailableSpaces;
+    private Integer physicalParkingCapacity;
+    private Integer globalParkingRemainingSpaces;
+    private boolean sharedParkingInventory;
 
     public static EventResponseDto fromEntity(Event e) {
         return fromEntity(e, 0);
@@ -87,6 +90,16 @@ public class EventResponseDto {
         return dto;
     }
 
+    public EventResponseDto applyParkingCapacity(Integer allocatedSpaces, Integer availableSpaces,
+                                                  Integer physicalCapacity, Integer globalRemainingSpaces) {
+        this.parkingCapacity = allocatedSpaces;
+        this.parkingAvailableSpaces = availableSpaces;
+        this.physicalParkingCapacity = physicalCapacity;
+        this.globalParkingRemainingSpaces = globalRemainingSpaces;
+        this.sharedParkingInventory = true;
+        return this;
+    }
+
     public Long getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
@@ -112,5 +125,8 @@ public class EventResponseDto {
     public Double getParkingPrice() { return parkingPrice; }
     public Integer getParkingCapacity() { return parkingCapacity; }
     public Integer getParkingAvailableSpaces() { return parkingAvailableSpaces; }
-}
 
+    public Integer getPhysicalParkingCapacity() { return physicalParkingCapacity; }
+    public Integer getGlobalParkingRemainingSpaces() { return globalParkingRemainingSpaces; }
+    public boolean isSharedParkingInventory() { return sharedParkingInventory; }
+}

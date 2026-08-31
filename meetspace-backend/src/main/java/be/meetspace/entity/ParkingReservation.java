@@ -3,6 +3,8 @@ package be.meetspace.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "parking_reservation")
@@ -41,6 +43,13 @@ public class ParkingReservation {
     private String paymentIntentId;
 
     @Column(nullable = false)
+    private boolean complimentary = false;
+
+    @OneToMany(mappedBy = "parkingReservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
+    private List<ParkingAccessPass> accessPasses = new ArrayList<>();
+
+    @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public Long getId() { return id; }
@@ -71,4 +80,10 @@ public class ParkingReservation {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public boolean isComplimentary() { return complimentary; }
+    public void setComplimentary(boolean complimentary) { this.complimentary = complimentary; }
+
+    public List<ParkingAccessPass> getAccessPasses() { return accessPasses; }
+    public void setAccessPasses(List<ParkingAccessPass> accessPasses) { this.accessPasses = accessPasses; }
 }

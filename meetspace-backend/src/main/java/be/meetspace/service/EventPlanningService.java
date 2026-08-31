@@ -5,6 +5,7 @@ import be.meetspace.repository.EspaceRepository;
 import be.meetspace.repository.EventRegistrationRepository;
 import be.meetspace.repository.EventRepository;
 import be.meetspace.repository.ParkingReservationRepository;
+import be.meetspace.repository.ParkingSlotRepository;
 import be.meetspace.repository.ReservationRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,17 +25,26 @@ public class EventPlanningService {
     private final EventRepository eventRepository;
     private final EventRegistrationRepository eventRegistrationRepository;
     private final ParkingReservationRepository parkingReservationRepository;
+    private final ParkingSlotRepository parkingSlotRepository;
+    private final ParkingCapacityService parkingCapacityService;
+    private final ParkingAccessService parkingAccessService;
 
     public EventPlanningService(EspaceRepository espaceRepository,
                                 ReservationRepository reservationRepository,
                                 EventRepository eventRepository,
                                 EventRegistrationRepository eventRegistrationRepository,
-                                ParkingReservationRepository parkingReservationRepository) {
+                                ParkingReservationRepository parkingReservationRepository,
+                                ParkingSlotRepository parkingSlotRepository,
+                                ParkingCapacityService parkingCapacityService,
+                                ParkingAccessService parkingAccessService) {
         this.espaceRepository = espaceRepository;
         this.reservationRepository = reservationRepository;
         this.eventRepository = eventRepository;
         this.eventRegistrationRepository = eventRegistrationRepository;
         this.parkingReservationRepository = parkingReservationRepository;
+        this.parkingSlotRepository = parkingSlotRepository;
+        this.parkingCapacityService = parkingCapacityService;
+        this.parkingAccessService = parkingAccessService;
     }
 
     public void applyAndValidate(Event event, EventData data, Long excludeEventId) {
@@ -61,7 +71,6 @@ public class EventPlanningService {
         if (data.status() != null) {
             event.setStatus(data.status());
         }
-        event.setParkingRequired(data.parkingRequired());
 
         EventLocationType typeToUse = data.locationType() != null
                 ? data.locationType()
@@ -79,6 +88,7 @@ public class EventPlanningService {
             event.setLocation(espace.getName());
             event.setExternalAddress(null);
             event.setLocationType(EventLocationType.EXISTING_SPACE);
+            event.setParkingRequired(true);
         } else {
             String resolvedAddress = StringUtils.hasText(data.externalAddress())
                     ? data.externalAddress()
@@ -91,6 +101,7 @@ public class EventPlanningService {
             event.setExternalAddress(resolvedAddress);
             event.setLocation(resolvedAddress);
             event.setLocationType(EventLocationType.EXTERNAL);
+            event.setParkingRequired(false);
         }
 
         syncParkingSlot(event, data);
@@ -152,52 +163,61 @@ public class EventPlanningService {
     }
 
     private void syncParkingSlot(Event event, EventData data) {
-        if (!data.parkingRequired()) {
+        if (event.getLocationType() != EventLocationType.EXISTING_SPACE) {
             event.setParkingSlot(null);
             return;
         }
-
-        if (data.parkingCapacity() == null || data.parkingCapacity() < 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le nombre de places de parking est requis");
-        }
-        if (data.parkingCapacity() > data.capacity()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Le nombre de places de parking ne peut pas dépasser la capacité de l'événement"
-            );
-        }
-        int quotaLimit = BusinessRules.calculateParkingQuotaLimit(data.capacity(), getRoomCapacity(event));
-        if (data.parkingCapacity() > quotaLimit) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Le quota parking ne peut pas depasser " + quotaLimit + " places pour cette salle"
-            );
-        }
-
-        ParkingSlot parkingSlot = event.getParkingSlot();
-        if (parkingSlot == null) {
-            parkingSlot = new ParkingSlot();
-        } else if (parkingSlot.getId() != null) {
-            int reservedSpaces = parkingReservationRepository.countReservedSpacesByParkingSlotId(parkingSlot.getId());
-            if (data.parkingCapacity() < reservedSpaces) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "La capacité parking ne peut pas être inférieure aux places déjà réservées (" + reservedSpaces + ")"
-                );
-            }
-        }
+        ParkingSlot parkingSlot = event.getParkingSlot() != null ? event.getParkingSlot() : new ParkingSlot();
 
         parkingSlot.setEvent(event);
-        parkingSlot.setTitle("Acces parking - " + event.getTitle());
-        parkingSlot.setDescription("Quota parking lie a l'evenement. Les participants paient leur place separement via MeetSpace.");
+        parkingSlot.setTitle("Parking — " + event.getTitle());
+        parkingSlot.setDescription("Parking MeetSpace partagé automatiquement selon les événements qui se chevauchent.");
         parkingSlot.setSessionDate(event.getStartDateTime().toLocalDate());
         parkingSlot.setStartTime(event.getStartDateTime().toLocalTime());
         parkingSlot.setEndTime(event.getEndDateTime().toLocalTime());
-        parkingSlot.setCapacity(data.parkingCapacity());
+        parkingSlot.setCapacity(Math.min(BusinessRules.TOTAL_PARKING_SPACES, data.capacity()));
         parkingSlot.setParkingRate(BusinessRules.calculateParkingRate(calculateDurationHours(event), getRoomCapacity(event)));
-        parkingSlot.setStatus(ParkingSlotStatus.OPEN);
+        parkingSlot.setStatus(event.getStatus() == EventStatus.PUBLISHED ? ParkingSlotStatus.OPEN : ParkingSlotStatus.CANCELLED);
 
         event.setParkingSlot(parkingSlot);
+    }
+
+    public void activateParkingForPublication(Event event) {
+        if (event.getLocationType() != EventLocationType.EXISTING_SPACE || event.getParkingSlot() == null) return;
+        ParkingSlot slot = event.getParkingSlot();
+        slot.setStatus(ParkingSlotStatus.OPEN);
+        parkingSlotRepository.save(slot);
+        if (event.getCreatedBy() == null || parkingReservationRepository
+                .existsByParkingSlotIdAndUserIdAndComplimentaryTrueAndStatusNot(
+                        slot.getId(), event.getCreatedBy().getId(), ParkingReservationStatus.CANCELLED)) return;
+        parkingCapacityService.lockAndAssertAvailable(slot, 1);
+        ParkingReservation reservation = new ParkingReservation();
+        reservation.setUser(event.getCreatedBy());
+        reservation.setParkingSlot(slot);
+        reservation.setReservedSpaces(1);
+        reservation.setTotalPrice(0D);
+        reservation.setComplimentary(true);
+        reservation.setStatus(ParkingReservationStatus.CONFIRMED);
+        ParkingReservation saved = parkingReservationRepository.save(reservation);
+        parkingAccessService.ensurePasses(saved);
+    }
+
+    public void syncParkingStatus(Event event) {
+        if (event.getParkingSlot() == null) return;
+        boolean open = event.getStatus() == EventStatus.PUBLISHED;
+        ParkingSlot slot = event.getParkingSlot();
+        slot.setStatus(open ? ParkingSlotStatus.OPEN : ParkingSlotStatus.CANCELLED);
+        parkingSlotRepository.save(slot);
+        if (!open) {
+            parkingReservationRepository.findByParkingSlotId(slot.getId()).stream()
+                    .filter(ParkingReservation::isComplimentary)
+                    .filter(reservation -> reservation.getStatus() != ParkingReservationStatus.CANCELLED)
+                    .forEach(reservation -> {
+                        reservation.setStatus(ParkingReservationStatus.CANCELLED);
+                        parkingReservationRepository.save(reservation);
+                        parkingAccessService.cancelPasses(reservation);
+                    });
+        }
     }
 
     private double calculateDurationHours(Event event) {

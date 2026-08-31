@@ -101,6 +101,7 @@ public class AdminEventController {
         event.setApprovedBy(admin);
 
         Event saved = eventRepository.save(event);
+        eventPlanningService.activateParkingForPublication(saved);
 
         // Audit log
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
@@ -123,6 +124,11 @@ public class AdminEventController {
         );
 
         Event saved = eventRepository.save(event);
+        if (saved.getStatus() == EventStatus.PUBLISHED) {
+            eventPlanningService.activateParkingForPublication(saved);
+        } else {
+            eventPlanningService.syncParkingStatus(saved);
+        }
 
         // Audit log
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
@@ -164,6 +170,11 @@ public class AdminEventController {
         }
 
         Event saved = eventRepository.save(event);
+        if (dto.isApproved()) {
+            eventPlanningService.activateParkingForPublication(saved);
+        } else {
+            eventPlanningService.syncParkingStatus(saved);
+        }
 
         // Audit log
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
@@ -213,6 +224,11 @@ public class AdminEventController {
         }
 
         Event saved = eventRepository.save(event);
+        if (saved.getStatus() == EventStatus.PUBLISHED) {
+            eventPlanningService.activateParkingForPublication(saved);
+        } else {
+            eventPlanningService.syncParkingStatus(saved);
+        }
 
         // Audit log
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
