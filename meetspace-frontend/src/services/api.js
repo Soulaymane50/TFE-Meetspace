@@ -1,6 +1,7 @@
 import { signalSessionExpired } from "../utils/authSession";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
+const PARKING_LOAD_TIMEOUT_MS = 15000;
 
 export function authHeaders(token) {
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -230,8 +231,21 @@ async function handleResponse(res, defaultMessage) {
 }
 
 async function fetchParkingSlotsResponse() {
-  const res = await fetch(`${API_URL}/api/public/parking/sessions`);
-  return handleResponse(res, "Erreur lors du chargement des sessions parking");
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), PARKING_LOAD_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${API_URL}/api/public/parking/sessions`, { signal: controller.signal });
+    return await handleResponse(res, "Erreur lors du chargement des sessions parking");
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      const timeoutError = new Error("REQUEST_TIMEOUT");
+      timeoutError.code = "REQUEST_TIMEOUT";
+      throw timeoutError;
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 async function postParkingReservation(payload, token) {

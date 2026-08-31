@@ -1,5 +1,6 @@
 export const MEETSPACE_COMMISSION_RATE = 0.1;
 export const MEETSPACE_TOTAL_PARKING_SPACES = 150;
+export const ORGANIZER_TARGET_MARGIN_RATE = 0.15;
 
 export function calculateRoomPrice(basePrice, durationHours) {
   const rate = Number(basePrice) || 0;
@@ -45,10 +46,20 @@ export function getRecommendedParkingRate(durationHours, roomCapacity) {
   return 8;
 }
 
-export function getRecommendedTicketPrice(roomCapacity) {
+export function getRecommendedTicketPrice(roomCapacity, eventCapacity, roomHourlyRate, durationHours) {
   const capacity = Number(roomCapacity) || 0;
-  if (capacity >= 300) return 120;
-  if (capacity >= 100) return 80;
-  if (capacity >= 50) return 45;
-  return 35;
+  const marketPrice = capacity >= 300 ? 120 : capacity >= 100 ? 80 : capacity >= 50 ? 45 : 35;
+  const expectedParticipants = Number(eventCapacity) || 0;
+  const hourlyRate = Number(roomHourlyRate) || 0;
+  const duration = Number(durationHours) || 0;
+
+  if (expectedParticipants <= 0 || hourlyRate <= 0 || duration <= 0) return marketPrice;
+
+  const roomCost = hourlyRate * duration;
+  const targetRevenueAfterCommission = roomCost * (1 + ORGANIZER_TARGET_MARGIN_RATE);
+  const minimumTicketPrice =
+    targetRevenueAfterCommission / (expectedParticipants * (1 - MEETSPACE_COMMISSION_RATE));
+  const roundedProfitablePrice = Math.ceil(minimumTicketPrice / 5) * 5;
+
+  return Math.max(marketPrice, roundedProfitablePrice);
 }

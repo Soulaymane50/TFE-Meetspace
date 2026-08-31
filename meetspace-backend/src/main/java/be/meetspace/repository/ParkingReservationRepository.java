@@ -41,6 +41,16 @@ public interface ParkingReservationRepository extends JpaRepository<ParkingReser
     @Query("SELECT COALESCE(SUM(r.reservedSpaces), 0) FROM ParkingReservation r WHERE r.parkingSlot.id = :parkingSlotId AND r.status != 'CANCELLED'")
     Integer countReservedSpacesByParkingSlotId(@Param("parkingSlotId") Long parkingSlotId);
 
+    @Query("SELECT r.parkingSlot.id AS slotId, SUM(r.reservedSpaces) AS reservedSpaces " +
+            "FROM ParkingReservation r WHERE r.parkingSlot.id IN :parkingSlotIds " +
+            "AND r.status != 'CANCELLED' GROUP BY r.parkingSlot.id")
+    List<ReservedSpacesBySlot> sumReservedSpacesByParkingSlotIds(@Param("parkingSlotIds") List<Long> parkingSlotIds);
+
+    interface ReservedSpacesBySlot {
+        Long getSlotId();
+        Long getReservedSpaces();
+    }
+
     @Query("SELECT COALESCE(SUM(r.reservedSpaces), 0) FROM ParkingReservation r JOIN r.parkingSlot p " +
             "WHERE r.status != 'CANCELLED' AND p.status = 'OPEN' " +
             "AND p.sessionDate = :date AND p.startTime < :endTime AND p.endTime > :startTime")

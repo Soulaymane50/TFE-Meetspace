@@ -53,7 +53,11 @@ export default function AdminEventForm() {
     startDate && endDate && !Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime()) && endDate > startDate
       ? Math.round(((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)) * 100) / 100
       : 0;
-  const recommendedPrice = getRecommendedTicketPrice(selectedCapacity);
+  const recommendedPrice = scheduleDurationHours > 0
+    ? getRecommendedTicketPrice(
+        selectedCapacity, recommendedCapacity, Number(selectedSpace?.basePrice) || 0, scheduleDurationHours,
+      )
+    : 0;
   const recommendedParkingCapacity = getRecommendedParkingQuota(recommendedCapacity, selectedCapacity);
   const recommendedParkingPrice = getRecommendedParkingRate(scheduleDurationHours, selectedCapacity);
   const locationTypeOptions = [
@@ -290,7 +294,7 @@ export default function AdminEventForm() {
   };
 
   const applySmartRecommendation = () => {
-    if (!selectedSpace) return;
+    if (!selectedSpace || scheduleDurationHours <= 0) return;
     setEventForm((prev) => ({
       ...prev,
       capacity: String(recommendedCapacity),
@@ -403,7 +407,11 @@ export default function AdminEventForm() {
                 {t("organizer.advisorCapacity")}
               </span>
               <span>
-                <strong>{formatMoney(recommendedPrice, locale)}</strong>
+                <strong>
+                  {scheduleDurationHours > 0
+                    ? formatMoney(recommendedPrice, locale)
+                    : t("organizer.advisorScheduleRequired")}
+                </strong>
                 {t("organizer.advisorPrice")}
               </span>
               <span>
@@ -415,7 +423,13 @@ export default function AdminEventForm() {
               <button type="button" onClick={applyRoomCapacity} className={styles.advisorGhost}>
                 {t("organizer.applyCapacity")}
               </button>
-              <button type="button" onClick={applySmartRecommendation} className={styles.advisorPrimary}>
+              <button
+                type="button"
+                onClick={applySmartRecommendation}
+                className={styles.advisorPrimary}
+                disabled={scheduleDurationHours <= 0}
+                title={scheduleDurationHours <= 0 ? t("organizer.advisorScheduleRequired") : undefined}
+              >
                 {t("organizer.applyRecommendation")}
               </button>
             </div>

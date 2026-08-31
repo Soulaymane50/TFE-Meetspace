@@ -28,6 +28,10 @@ export default function ParkingPage() {
     getParkingSlots()
       .then(setParkingSlots)
       .catch((err) => {
+        if (err.code === "REQUEST_TIMEOUT" || err.message === "REQUEST_TIMEOUT") {
+          setError(t("parking.fetchTimeout"));
+          return;
+        }
         if (err.message === "Failed to fetch") {
           setError(t("parking.fetchError"));
           return;
