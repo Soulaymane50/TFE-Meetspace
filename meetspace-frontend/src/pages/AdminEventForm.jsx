@@ -7,7 +7,6 @@ import RoomSchedulePicker from "../components/RoomSchedulePicker";
 import SelectDropdown from "../components/SelectDropdown";
 import { formatMoney, normalizeLocale } from "../utils/formatters";
 import {
-  MEETSPACE_TOTAL_PARKING_SPACES,
   getParkingQuotaLimit,
   getRecommendedParkingQuota,
   getRecommendedParkingRate,
@@ -35,7 +34,7 @@ export default function AdminEventForm() {
     location: "",
     capacity: "",
     price: "",
-    parkingRequired: false,
+    parkingRequired: true,
     parkingPrice: "",
     parkingCapacity: "",
     status: "DRAFT",
@@ -54,9 +53,7 @@ export default function AdminEventForm() {
     startDate && endDate && !Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime()) && endDate > startDate
       ? Math.round(((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)) * 100) / 100
       : 0;
-  const eventCapacityEstimate = Number(eventForm.capacity) || 0;
   const recommendedPrice = getRecommendedTicketPrice(selectedCapacity);
-  const parkingQuotaLimit = getParkingQuotaLimit(eventCapacityEstimate || recommendedCapacity, selectedCapacity);
   const recommendedParkingCapacity = getRecommendedParkingQuota(recommendedCapacity, selectedCapacity);
   const recommendedParkingPrice = getRecommendedParkingRate(scheduleDurationHours, selectedCapacity);
   const locationTypeOptions = [
@@ -101,7 +98,7 @@ export default function AdminEventForm() {
               location: ev.externalAddress || ev.location || "",
               capacity: ev.capacity || "",
               price: ev.price || "",
-              parkingRequired: ev.parkingRequired || false,
+              parkingRequired: ev.parkingRequired ?? true,
               parkingPrice: ev.parkingPrice ?? "",
               parkingCapacity: ev.parkingCapacity ?? "",
               status: ev.status,
@@ -166,31 +163,15 @@ export default function AdminEventForm() {
       return;
     }
 
-    if (eventForm.parkingRequired) {
-      const parkingCapacity = Number(eventForm.parkingCapacity);
-      if (!parkingCapacity || parkingCapacity < 1) {
-        setError(t("organizer.parkingCapacityRequired"));
-        return;
-      }
-      if (parkingCapacity > capacity) {
-        setError(t("organizer.parkingCapacityExceedsEvent", { capacity }));
-        return;
-      }
-      if (parkingCapacity > parkingQuotaLimit) {
-        setError(t("organizer.parkingCapacityExceedsQuota", { quota: parkingQuotaLimit }));
-        return;
-      }
-    }
 
     const payload = {
       ...eventForm,
       spaceId: eventForm.spaceId ? Number(eventForm.spaceId) : null,
       capacity,
       price: eventForm.price ? Number(eventForm.price) : null,
-      parkingPrice: eventForm.parkingRequired
-        ? (eventForm.parkingPrice !== "" ? Number(eventForm.parkingPrice) : recommendedParkingPrice)
-        : null,
-      parkingCapacity: eventForm.parkingCapacity !== "" ? Number(eventForm.parkingCapacity) : null,
+      parkingRequired: eventForm.locationType === "EXISTING_SPACE",
+      parkingPrice: eventForm.locationType === "EXISTING_SPACE" ? recommendedParkingPrice : null,
+      parkingCapacity: null,
       externalAddress: eventForm.locationType === "EXTERNAL" ? eventForm.location : null,
     };
 
@@ -509,51 +490,18 @@ export default function AdminEventForm() {
           </div>
         </div>
 
-        <div className={styles.checkboxRow}>
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              name="parkingRequired"
-              checked={eventForm.parkingRequired}
-              onChange={handleChange}
-            />
-            <span>{t("organizer.parkingRequired")}</span>
-          </label>
-        </div>
-
-        {eventForm.parkingRequired && (
+        {eventForm.locationType === "EXISTING_SPACE" && (
           <div className={parkingGridClassName}>
             <div className={styles.field}>
-              <label className={styles.label}>{t("organizer.parkingRate")}</label>
-              <input
-                type="number"
-                name="parkingPrice"
-                value={eventForm.parkingPrice}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                readOnly
-                className={styles.input}
-              />
-              <span className={styles.hint}>{t("organizer.parkingRateHint")}</span>
+              <label className={styles.label}>{t("parking.automaticTitle", { defaultValue: "Parking automatiquement inclus" })}</label>
+              <span className={styles.hint}>
+                {t("parking.automaticAdminHelp", { defaultValue: "Les 150 places physiques sont réparties automatiquement entre les événements qui se chevauchent. Les créneaux successifs réutilisent toute la capacité." })}
+              </span>
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>{t("organizer.parkingCapacity")}</label>
-              <input
-                type="number"
-                name="parkingCapacity"
-                value={eventForm.parkingCapacity}
-                onChange={handleChange}
-                min="1"
-                max={parkingQuotaLimit || undefined}
-                className={styles.input}
-              />
-              <span className={styles.hint}>
-                {t("organizer.parkingQuotaHint", {
-                  quota: parkingQuotaLimit,
-                  total: MEETSPACE_TOTAL_PARKING_SPACES,
-                })}
-              </span>
+              <label className={styles.label}>{t("organizer.parkingRate")}</label>
+              <strong>{formatMoney(recommendedParkingPrice, locale)} / {t("parking.place", { defaultValue: "place" })}</strong>
+              <span className={styles.hint}>{t("organizer.parkingRateHint")}</span>
             </div>
           </div>
         )}

@@ -9,7 +9,6 @@ import SelectDropdown from "../components/SelectDropdown";
 import { formatMoney, normalizeLocale } from "../utils/formatters";
 import {
   MEETSPACE_COMMISSION_RATE,
-  MEETSPACE_TOTAL_PARKING_SPACES,
   getParkingQuotaLimit,
   getRecommendedParkingQuota,
   getRecommendedParkingRate,
@@ -35,7 +34,7 @@ export default function OrganizerEventForm() {
     location: "",
     capacity: "",
     price: "",
-    parkingRequired: false,
+    parkingRequired: true,
     parkingPrice: "",
     parkingCapacity: "",
   });
@@ -91,7 +90,6 @@ export default function OrganizerEventForm() {
     ? Math.min(selectedCapacity, Math.max(12, Math.round(selectedCapacity * 0.75)))
     : 0;
   const recommendedPrice = getRecommendedTicketPrice(selectedCapacity);
-  const parkingQuotaLimit = getParkingQuotaLimit(eventCapacityEstimate || recommendedCapacity, selectedCapacity);
   const recommendedParkingCapacity = getRecommendedParkingQuota(recommendedCapacity, selectedCapacity);
   const recommendedParkingPrice = getRecommendedParkingRate(scheduleDurationHours, selectedCapacity);
   const grossRevenueEstimate = eventCapacityEstimate * ticketPriceEstimate;
@@ -126,7 +124,7 @@ export default function OrganizerEventForm() {
             location: event.location || "",
             capacity: event.capacity,
             price: event.price || "",
-            parkingRequired: event.parkingRequired || false,
+            parkingRequired: event.parkingRequired ?? true,
             parkingPrice: event.parkingPrice ?? "",
             parkingCapacity: event.parkingCapacity ?? "",
           });
@@ -296,21 +294,6 @@ export default function OrganizerEventForm() {
       setError(t("organizer.capacityExceedsRoom", { capacity: selectedSpace.capacity }));
       return false;
     }
-    if (eventForm.parkingRequired) {
-      const parkingCapacity = parseInt(eventForm.parkingCapacity, 10);
-      if (!parkingCapacity || parkingCapacity < 1) {
-        setError(t("organizer.parkingCapacityRequired"));
-        return false;
-      }
-      if (parkingCapacity > parseInt(eventForm.capacity, 10)) {
-        setError(t("organizer.parkingCapacityExceedsEvent", { capacity: eventForm.capacity }));
-        return false;
-      }
-      if (parkingCapacity > parkingQuotaLimit) {
-        setError(t("organizer.parkingCapacityExceedsQuota", { quota: parkingQuotaLimit }));
-        return false;
-      }
-    }
     return true;
   };
 
@@ -330,10 +313,9 @@ export default function OrganizerEventForm() {
       location: selectedSpace.name,
       capacity: parseInt(eventForm.capacity),
       price: eventForm.price ? parseFloat(eventForm.price) : 0,
-      parkingPrice: eventForm.parkingRequired
-        ? (eventForm.parkingPrice !== "" ? parseFloat(eventForm.parkingPrice) : recommendedParkingPrice)
-        : null,
-      parkingCapacity: eventForm.parkingCapacity !== "" ? parseInt(eventForm.parkingCapacity) : null,
+      parkingRequired: true,
+      parkingPrice: recommendedParkingPrice,
+      parkingCapacity: null,
     };
 
     try {
@@ -561,54 +543,23 @@ export default function OrganizerEventForm() {
             </section>
           )}
 
-          <div className={styles.checkboxRow}>
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                name="parkingRequired"
-                checked={eventForm.parkingRequired}
-                onChange={handleChange}
-              />
-              <span>{t("organizer.parkingRequired")}</span>
-            </label>
-          </div>
-
-          {eventForm.parkingRequired && (
-            <div className={parkingGridClassName}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>{t("organizer.parkingRate")}</label>
-                <input
-                  type="number"
-                  name="parkingPrice"
-                  value={eventForm.parkingPrice}
-                  onChange={handleChange}
-                  min="0"
-                  step="0.01"
-                  readOnly
-                  className={styles.input}
-                />
-                <span className={styles.hint}>{t("organizer.parkingRateHint")}</span>
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>{t("organizer.parkingCapacity")}</label>
-                <input
-                  type="number"
-                  name="parkingCapacity"
-                  value={eventForm.parkingCapacity}
-                  onChange={handleChange}
-                  min="1"
-                  max={parkingQuotaLimit || undefined}
-                  className={styles.input}
-                />
-                <span className={styles.hint}>
-                  {t("organizer.parkingQuotaHint", {
-                    quota: parkingQuotaLimit,
-                    total: MEETSPACE_TOTAL_PARKING_SPACES,
-                  })}
-                </span>
-              </div>
+          <div className={parkingGridClassName}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                {t("parking.automaticTitle", { defaultValue: "Parking automatiquement inclus" })}
+              </label>
+              <span className={styles.hint}>
+                {t("parking.automaticOrganizerHelp", {
+                  defaultValue: "MeetSpace répartit les 150 places physiques entre les événements qui se chevauchent. Une place gratuite est réservée à votre équipe ; les participants réservent ensuite leur propre place.",
+                })}
+              </span>
             </div>
-          )}
+            <div className={styles.formGroup}>
+              <label className={styles.label}>{t("organizer.parkingRate")}</label>
+              <strong>{formatMoney(recommendedParkingPrice, locale)} / {t("parking.place", { defaultValue: "place" })}</strong>
+              <span className={styles.hint}>{t("organizer.parkingRateHint")}</span>
+            </div>
+          </div>
 
           <section className={styles.previewPanel} aria-label={t("organizer.previewAria")}>
             <div className={styles.previewIntro}>
@@ -632,12 +583,10 @@ export default function OrganizerEventForm() {
                 <span>{eventForm.capacity || 0} {t("common.persons")}</span>
                 <span>{eventForm.price ? formatMoney(eventForm.price, locale) : t("events.free")}</span>
                 <span>
-                  {eventForm.parkingRequired
-                    ? t("organizer.previewParkingQuota", {
-                        count: eventForm.parkingCapacity || 0,
-                        price: formatMoney(eventForm.parkingPrice || recommendedParkingPrice, locale),
-                      })
-                    : t("organizer.previewParkingExcluded")}
+                  {t("parking.previewAutomatic", {
+                    defaultValue: "Parking partagé · {{price}} / véhicule",
+                    price: formatMoney(recommendedParkingPrice, locale),
+                  })}
                 </span>
               </div>
               <div className={styles.previewFooter}>

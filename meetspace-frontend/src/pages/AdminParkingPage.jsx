@@ -108,6 +108,9 @@ export default function AdminParkingPage() {
           <h1 className={styles.title}>{t("admin.parkingManagement")}</h1>
         </div>
         <div className={styles.headerActions}>
+          <Link to="/admin/parking/check-in" className={styles.btnPrimary}>
+            {t("parking.scanAccess", { defaultValue: "Scanner un accès" })}
+          </Link>
           <Link to="/admin/parking/new" className={styles.btnPrimary}>
             + {t("admin.createSession")}
           </Link>
@@ -157,6 +160,9 @@ export default function AdminParkingPage() {
                         <span className={styles.capacityBadge}>
                           {formatNumber(parkingSlot.availableSpaces, locale)} / {formatNumber(parkingSlot.parkingCapacity, locale)}
                         </span>
+                        <small className={styles.emailSmall}>
+                          {t("parking.sharedCapacity", { defaultValue: "sur 150 places physiques partagées" })}
+                        </small>
                       </td>
                       <td>{formatMoney(parkingSlot.parkingRate, locale)}</td>
                       <td>
