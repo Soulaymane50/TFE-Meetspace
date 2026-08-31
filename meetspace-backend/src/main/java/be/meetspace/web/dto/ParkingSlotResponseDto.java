@@ -22,6 +22,9 @@ public class ParkingSlotResponseDto {
     private ParkingSlotStatus status;
     private LocalDateTime createdAt;
     private Long eventId;
+    private Integer physicalCapacity;
+    private Integer globalRemainingSpaces;
+    private boolean sharedInventory;
 
     public static ParkingSlotResponseDto fromEntity(ParkingSlot s) {
         ParkingSlotResponseDto dto = new ParkingSlotResponseDto();
@@ -46,6 +49,17 @@ public class ParkingSlotResponseDto {
         return dto;
     }
 
+    public static ParkingSlotResponseDto fromEntity(ParkingSlot s, Integer registeredCount,
+                                                     Integer allocatedSpaces, Integer availableSpaces,
+                                                     Integer physicalCapacity, Integer globalRemainingSpaces) {
+        ParkingSlotResponseDto dto = fromEntity(s, registeredCount);
+        dto.parkingCapacity = allocatedSpaces;
+        dto.availableSpaces = availableSpaces;
+        dto.physicalCapacity = physicalCapacity;
+        dto.globalRemainingSpaces = globalRemainingSpaces;
+        dto.sharedInventory = true;
+        return dto;
+    }
     public Long getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
@@ -59,5 +73,8 @@ public class ParkingSlotResponseDto {
     public ParkingSlotStatus getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public Long getEventId() { return eventId; }
-}
 
+    public Integer getPhysicalCapacity() { return physicalCapacity; }
+    public Integer getGlobalRemainingSpaces() { return globalRemainingSpaces; }
+    public boolean isSharedInventory() { return sharedInventory; }
+}

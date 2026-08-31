@@ -5,6 +5,7 @@ import be.meetspace.entity.EventStatus;
 import be.meetspace.repository.EventRepository;
 import be.meetspace.repository.EventRegistrationRepository;
 import be.meetspace.repository.ParkingReservationRepository;
+import be.meetspace.service.ParkingCapacityService;
 import be.meetspace.web.dto.EventResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -20,15 +21,18 @@ public class EventController {
     private final EventRepository eventRepository;
     private final EventRegistrationRepository registrationRepository;
     private final ParkingReservationRepository parkingReservationRepository;
+    private final ParkingCapacityService parkingCapacityService;
 
     public EventController(
             EventRepository eventRepository,
             EventRegistrationRepository registrationRepository,
-            ParkingReservationRepository parkingReservationRepository
+            ParkingReservationRepository parkingReservationRepository,
+            ParkingCapacityService parkingCapacityService
     ) {
         this.eventRepository = eventRepository;
         this.registrationRepository = registrationRepository;
         this.parkingReservationRepository = parkingReservationRepository;
+        this.parkingCapacityService = parkingCapacityService;
     }
 
     @GetMapping
@@ -42,7 +46,13 @@ public class EventController {
             int parkingReserved = e.getParkingSlot() != null
                     ? parkingReservationRepository.countReservedSpacesByParkingSlotId(e.getParkingSlot().getId())
                     : 0;
-            return EventResponseDto.fromEntity(e, registered, parkingReserved);
+            EventResponseDto dto = EventResponseDto.fromEntity(e, registered, parkingReserved);
+            if (e.getParkingSlot() != null) {
+                ParkingCapacityService.CapacitySnapshot capacity = parkingCapacityService.snapshot(e.getParkingSlot());
+                dto.applyParkingCapacity(capacity.allocatedSpaces(), capacity.availableSpaces(),
+                        capacity.physicalCapacity(), capacity.globalRemainingSpaces());
+            }
+            return dto;
         })
         .toList();
     }
@@ -60,6 +70,12 @@ public class EventController {
         int parkingReserved = event.getParkingSlot() != null
                 ? parkingReservationRepository.countReservedSpacesByParkingSlotId(event.getParkingSlot().getId())
                 : 0;
-        return EventResponseDto.fromEntity(event, registered, parkingReserved);
+        EventResponseDto dto = EventResponseDto.fromEntity(event, registered, parkingReserved);
+        if (event.getParkingSlot() != null) {
+            ParkingCapacityService.CapacitySnapshot capacity = parkingCapacityService.snapshot(event.getParkingSlot());
+            dto.applyParkingCapacity(capacity.allocatedSpaces(), capacity.availableSpaces(),
+                    capacity.physicalCapacity(), capacity.globalRemainingSpaces());
+        }
+        return dto;
     }
 }

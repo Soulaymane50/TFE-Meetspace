@@ -11,6 +11,8 @@ import be.meetspace.service.PaymentLifecycleService;
 import be.meetspace.service.CancellationPolicyService;
 import be.meetspace.service.NotificationService;
 import be.meetspace.service.EventWaitlistService;
+import be.meetspace.service.ParkingAccessService;
+import be.meetspace.service.ParkingCapacityService;
 import be.meetspace.web.dto.CancellationResponse;
 import be.meetspace.web.dto.EventRegistrationRequest;
 import be.meetspace.web.dto.EventRegistrationResponseDto;
@@ -39,6 +41,8 @@ public class EventRegistrationController {
     private final EmailService emailService;
     private final NotificationService notificationService;
     private final EventWaitlistService eventWaitlistService;
+    private final ParkingCapacityService parkingCapacityService;
+    private final ParkingAccessService parkingAccessService;
 
     public EventRegistrationController(
             EventRegistrationRepository registrationRepository,
@@ -50,7 +54,9 @@ public class EventRegistrationController {
             AuditService auditService,
             EmailService emailService,
             NotificationService notificationService,
-            EventWaitlistService eventWaitlistService
+            EventWaitlistService eventWaitlistService,
+            ParkingCapacityService parkingCapacityService,
+            ParkingAccessService parkingAccessService
     ) {
         this.registrationRepository = registrationRepository;
         this.eventRepository = eventRepository;
@@ -62,6 +68,8 @@ public class EventRegistrationController {
         this.emailService = emailService;
         this.notificationService = notificationService;
         this.eventWaitlistService = eventWaitlistService;
+        this.parkingCapacityService = parkingCapacityService;
+        this.parkingAccessService = parkingAccessService;
     }
 
     @PostMapping("/register")
@@ -111,17 +119,15 @@ public class EventRegistrationController {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nombre de places invalide");
             }
 
+            if (reservedSpaces > request.getNumberOfParticipants()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Le nombre de véhicules ne peut pas dépasser le nombre de participants");
+            }
             if (parkingSlot.getStatus() != ParkingSlotStatus.OPEN) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le parking n'est pas disponible pour cet événement");
             }
 
-            Integer currentlyReservedSpaces = parkingReservationRepository.countReservedSpacesByParkingSlotId(parkingSlot.getId());
-            if (currentlyReservedSpaces == null) currentlyReservedSpaces = 0;
-            if (currentlyReservedSpaces + reservedSpaces > parkingSlot.getCapacity()) {
-                int remaining = parkingSlot.getCapacity() - currentlyReservedSpaces;
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Capacité parking insuffisante. Places restantes : " + remaining);
-            }
+            parkingCapacityService.lockAndAssertAvailable(parkingSlot, reservedSpaces);
 
             parkingPrice = parkingSlot.getParkingRate() * reservedSpaces;
         }
@@ -177,6 +183,7 @@ public class EventRegistrationController {
             auditService.log(AuditAction.PARKING_RESERVATION_CREATE, "ParkingReservation", savedParkingReservation.getId(),
                     String.format("Réservation parking pour événement: %s (%d places)", event.getTitle(), reservedSpaces),
                     ipAddress);
+            parkingAccessService.ensurePasses(savedParkingReservation);
         }
 
         // Audit log for event registration
@@ -256,6 +263,7 @@ public class EventRegistrationController {
         if (linkedParking != null && linkedParking.getStatus() != ParkingReservationStatus.CANCELLED) {
             linkedParking.setStatus(ParkingReservationStatus.CANCELLED);
             parkingReservationRepository.save(linkedParking);
+            parkingAccessService.cancelPasses(linkedParking);
         }
 
         // Audit log

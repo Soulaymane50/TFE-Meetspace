@@ -11,13 +11,15 @@ import jakarta.persistence.LockModeType;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface ParkingReservationRepository extends JpaRepository<ParkingReservation, Long> {
 
     @Override
-    @EntityGraph(attributePaths = {"user", "parkingSlot"})
+    @EntityGraph(attributePaths = {"user", "parkingSlot", "accessPasses"})
     List<ParkingReservation> findAll();
 
     @Override
@@ -30,7 +32,7 @@ public interface ParkingReservationRepository extends JpaRepository<ParkingReser
 
     Optional<ParkingReservation> findByEventRegistrationId(Long eventRegistrationId);
 
-    @Query("SELECT gr FROM ParkingReservation gr JOIN FETCH gr.parkingSlot JOIN FETCH gr.user WHERE gr.user.id = :userId")
+    @Query("SELECT DISTINCT gr FROM ParkingReservation gr JOIN FETCH gr.parkingSlot JOIN FETCH gr.user LEFT JOIN FETCH gr.accessPasses WHERE gr.user.id = :userId")
     List<ParkingReservation> findByUserId(@Param("userId") Long userId);
 
     @Query("SELECT gr FROM ParkingReservation gr JOIN FETCH gr.user WHERE gr.parkingSlot.id = :parkingSlotId")
@@ -38,6 +40,19 @@ public interface ParkingReservationRepository extends JpaRepository<ParkingReser
 
     @Query("SELECT COALESCE(SUM(r.reservedSpaces), 0) FROM ParkingReservation r WHERE r.parkingSlot.id = :parkingSlotId AND r.status != 'CANCELLED'")
     Integer countReservedSpacesByParkingSlotId(@Param("parkingSlotId") Long parkingSlotId);
+
+    @Query("SELECT COALESCE(SUM(r.reservedSpaces), 0) FROM ParkingReservation r JOIN r.parkingSlot p " +
+            "WHERE r.status != 'CANCELLED' AND p.status = 'OPEN' " +
+            "AND p.sessionDate = :date AND p.startTime < :endTime AND p.endTime > :startTime")
+    Integer countReservedSpacesForWindow(@Param("date") LocalDate date,
+                                         @Param("startTime") LocalTime startTime,
+                                         @Param("endTime") LocalTime endTime);
+
+    boolean existsByParkingSlotIdAndUserIdAndComplimentaryTrueAndStatusNot(
+            Long parkingSlotId,
+            Long userId,
+            ParkingReservationStatus status
+    );
 
     @Modifying
     @Transactional

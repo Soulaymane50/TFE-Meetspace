@@ -10,6 +10,7 @@ import be.meetspace.repository.EventRegistrationRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
 import be.meetspace.service.EventPlanningService;
+import be.meetspace.service.ParkingCapacityService;
 import be.meetspace.web.dto.AdminEventRegistrationDto;
 import be.meetspace.web.dto.EventCheckInRequest;
 import be.meetspace.web.dto.EventCheckInResponseDto;
@@ -34,6 +35,7 @@ public class OrganizerEventController {
     private final EventRegistrationRepository registrationRepository;
     private final UserRepository userRepository;
     private final EventPlanningService eventPlanningService;
+    private final ParkingCapacityService parkingCapacityService;
     private final AuditService auditService;
 
     public OrganizerEventController(
@@ -41,12 +43,14 @@ public class OrganizerEventController {
             EventRegistrationRepository registrationRepository,
             UserRepository userRepository,
             EventPlanningService eventPlanningService,
+            ParkingCapacityService parkingCapacityService,
             AuditService auditService
     ) {
         this.eventRepository = eventRepository;
         this.registrationRepository = registrationRepository;
         this.userRepository = userRepository;
         this.eventPlanningService = eventPlanningService;
+        this.parkingCapacityService = parkingCapacityService;
         this.auditService = auditService;
     }
 
@@ -76,6 +80,9 @@ public class OrganizerEventController {
         }
 
         Event saved = eventRepository.save(event);
+        if (saved.getStatus() == EventStatus.PUBLISHED) {
+            eventPlanningService.activateParkingForPublication(saved);
+        }
 
         // Audit log
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
@@ -83,7 +90,7 @@ public class OrganizerEventController {
                 String.format("Création événement par organisateur: %s (statut: %s)", saved.getTitle(), saved.getStatus()),
                 ipAddress);
 
-        return EventResponseDto.fromEntity(saved);
+        return toResponse(saved, 0);
     }
 
     @GetMapping("/my")
@@ -93,7 +100,7 @@ public class OrganizerEventController {
         return eventRepository.findByCreatedByIdOrderByCreatedAtDesc(organizer.getId()).stream()
                 .map(e -> {
                     int registered = registrationRepository.countTotalParticipantsByEventId(e.getId());
-                    return EventResponseDto.fromEntity(e, registered);
+                    return toResponse(e, registered);
                 })
                 .toList();
     }
@@ -158,7 +165,7 @@ public class OrganizerEventController {
         }
 
         int registered = registrationRepository.countTotalParticipantsByEventId(event.getId());
-        return EventResponseDto.fromEntity(event, registered);
+        return toResponse(event, registered);
     }
 
     @PutMapping("/my/{id}")
@@ -198,7 +205,7 @@ public class OrganizerEventController {
                 String.format("Modification événement par organisateur: %s", saved.getTitle()),
                 oldStatus, saved.getStatus().name(), ipAddress);
 
-        return EventResponseDto.fromEntity(saved);
+        return toResponse(saved, registrationRepository.countTotalParticipantsByEventId(saved.getId()));
     }
 
     @DeleteMapping("/my/{id}")
@@ -216,6 +223,7 @@ public class OrganizerEventController {
         String oldStatus = event.getStatus().name();
         event.setStatus(EventStatus.CANCELLED);
         eventRepository.save(event);
+        eventPlanningService.syncParkingStatus(event);
 
         // Audit log
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
@@ -247,7 +255,18 @@ public class OrganizerEventController {
         return value;
     }
 
+    private EventResponseDto toResponse(Event event, int registered) {
+        EventResponseDto dto = EventResponseDto.fromEntity(event, registered);
+        if (event.getParkingSlot() != null) {
+            ParkingCapacityService.CapacitySnapshot capacity = parkingCapacityService.snapshot(event.getParkingSlot());
+            dto.applyParkingCapacity(capacity.allocatedSpaces(), capacity.availableSpaces(),
+                    capacity.physicalCapacity(), capacity.globalRemainingSpaces());
+        }
+        return dto;
+    }
+
     private User getAuthenticatedUser(Authentication authentication) {
+
         if (authentication == null || authentication.getName() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecté");
         }

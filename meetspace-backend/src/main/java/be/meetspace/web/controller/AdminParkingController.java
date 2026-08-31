@@ -5,6 +5,8 @@ import be.meetspace.entity.ParkingSlot;
 import be.meetspace.repository.ParkingSlotRepository;
 import be.meetspace.repository.ParkingReservationRepository;
 import be.meetspace.service.AuditService;
+import be.meetspace.service.BusinessRules;
+import be.meetspace.service.ParkingCapacityService;
 import be.meetspace.web.dto.ParkingSlotRequest;
 import be.meetspace.web.dto.ParkingSlotResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,19 +26,22 @@ public class AdminParkingController {
     private final ParkingReservationRepository reservationRepository;
     private final AuditService auditService;
 
+    private final ParkingCapacityService parkingCapacityService;
     public AdminParkingController(ParkingSlotRepository sessionRepository,
                                    ParkingReservationRepository reservationRepository,
-                                   AuditService auditService) {
+                                   AuditService auditService,
+                                   ParkingCapacityService parkingCapacityService) {
         this.sessionRepository = sessionRepository;
         this.reservationRepository = reservationRepository;
         this.auditService = auditService;
+        this.parkingCapacityService = parkingCapacityService;
     }
 
     @GetMapping("/sessions")
     public List<ParkingSlotResponseDto> listSessions() {
         return sessionRepository.findAll()
                 .stream()
-                .map(ParkingSlotResponseDto::fromEntity)
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -51,14 +56,14 @@ public class AdminParkingController {
         auditService.log(AuditAction.PARKING_SESSION_CREATE, "ParkingSlot", saved.getId(),
                 String.format("Création créneau parking: %s", saved.getTitle()), ipAddress);
 
-        return ParkingSlotResponseDto.fromEntity(saved);
+        return toResponse(saved);
     }
 
     @GetMapping("/sessions/{id}")
     public ParkingSlotResponseDto getSession(@PathVariable Long id) {
         ParkingSlot s = sessionRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found"));
-        return ParkingSlotResponseDto.fromEntity(s);
+        return toResponse(s);
     }
 
     @PutMapping("/sessions/{id}")
@@ -78,7 +83,7 @@ public class AdminParkingController {
         auditService.log(AuditAction.PARKING_SESSION_UPDATE, "ParkingSlot", saved.getId(),
                 String.format("Modification créneau parking: %s", saved.getTitle()), ipAddress);
 
-        return ParkingSlotResponseDto.fromEntity(saved);
+        return toResponse(saved);
     }
 
     @DeleteMapping("/sessions/{id}")
@@ -102,6 +107,13 @@ public class AdminParkingController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "L'heure de fin doit être après l'heure de début");
         }
 
+        if (r.getParkingCapacity() > BusinessRules.TOTAL_PARKING_SPACES) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La capacité d'un créneau ne peut pas dépasser les 150 places physiques"
+            );
+        }
+
         if (s.getId() != null) {
             Integer reservedSpaces = reservationRepository.countReservedSpacesByParkingSlotId(s.getId());
             if (reservedSpaces != null && reservedSpaces > r.getParkingCapacity()) {
@@ -120,5 +132,13 @@ public class AdminParkingController {
         s.setCapacity(r.getParkingCapacity());
         s.setParkingRate(r.getParkingRate());
         s.setStatus(r.getStatus());
+    }
+
+    private ParkingSlotResponseDto toResponse(ParkingSlot slot) {
+        int reserved = reservationRepository.countReservedSpacesByParkingSlotId(slot.getId());
+        ParkingCapacityService.CapacitySnapshot capacity = parkingCapacityService.snapshot(slot);
+        return ParkingSlotResponseDto.fromEntity(slot, reserved, capacity.allocatedSpaces(),
+                capacity.availableSpaces(), capacity.physicalCapacity(),
+                capacity.globalRemainingSpaces());
     }
 }

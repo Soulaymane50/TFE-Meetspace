@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class ParkingReservationResponseDto {
 
@@ -20,6 +21,8 @@ public class ParkingReservationResponseDto {
     private Double totalPrice;
     private ParkingReservationStatus status;
     private LocalDateTime createdAt;
+    private boolean complimentary;
+    private List<ParkingAccessPassDto> accessPasses;
 
     public static ParkingReservationResponseDto fromEntity(ParkingReservation r) {
         ParkingReservationResponseDto dto = new ParkingReservationResponseDto();
@@ -33,6 +36,8 @@ public class ParkingReservationResponseDto {
         dto.totalPrice = r.getTotalPrice();
         dto.status = r.getStatus();
         dto.createdAt = r.getCreatedAt();
+        dto.complimentary = r.isComplimentary();
+        dto.accessPasses = r.getAccessPasses().stream().map(ParkingAccessPassDto::fromEntity).toList();
         return dto;
     }
 
@@ -47,7 +52,8 @@ public class ParkingReservationResponseDto {
     public ParkingReservationStatus getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 
-    @JsonIgnore
+    public boolean isComplimentary() { return complimentary; }
+    public List<ParkingAccessPassDto> getAccessPasses() { return accessPasses; }
     public Long getSessionId() { return parkingSlotId; }
     @JsonIgnore
     public String getSessionTitle() { return parkingSlotTitle; }
