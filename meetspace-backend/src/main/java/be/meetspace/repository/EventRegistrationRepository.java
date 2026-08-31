@@ -49,6 +49,16 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
     @Query("SELECT COALESCE(SUM(er.numberOfParticipants), 0) FROM EventRegistration er WHERE er.event.id = :eventId AND er.status != 'CANCELLED'")
     Integer countTotalParticipantsByEventId(@Param("eventId") Long eventId);
 
+    @Query("SELECT er.event.id AS eventId, SUM(er.numberOfParticipants) AS participantCount " +
+            "FROM EventRegistration er WHERE er.event.id IN :eventIds " +
+            "AND er.status != 'CANCELLED' GROUP BY er.event.id")
+    List<ParticipantsByEvent> sumParticipantsByEventIds(@Param("eventIds") List<Long> eventIds);
+
+    interface ParticipantsByEvent {
+        Long getEventId();
+        Long getParticipantCount();
+    }
+
     @Modifying
     @Transactional
     @Query("DELETE FROM EventRegistration er WHERE er.event.id = :eventId")
