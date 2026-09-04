@@ -56,8 +56,6 @@ export default function ParkingPage() {
   };
 
   const openSlotsCount = parkingSlots.filter((slot) => (slot.availableSpaces ?? 0) > 0).length;
-  const totalAvailableSpaces = parkingSlots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0);
-  const totalCapacity = parkingSlots.reduce((sum, slot) => sum + (slot.parkingCapacity || 0), 0);
   const averageRate = parkingSlots.length
     ? Math.round((parkingSlots.reduce((sum, slot) => sum + (Number(slot.parkingRate) || 0), 0) / parkingSlots.length) * 10) / 10
     : 0;
@@ -105,12 +103,6 @@ export default function ParkingPage() {
   }, [parkingSlots, locale]);
 
   const selectedGroup = groupedSlots.find((group) => group.key === selectedDate);
-  const selectedDayAvailable = selectedGroup
-    ? selectedGroup.slots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0)
-    : totalAvailableSpaces;
-  const selectedDayCapacity = selectedGroup
-    ? selectedGroup.slots.reduce((sum, slot) => sum + (slot.parkingCapacity || 0), 0)
-    : totalCapacity;
   const visibleSlots = [...(selectedDate === "ALL" ? parkingSlots : selectedGroup?.slots || [])].sort((a, b) => {
     const aDate = new Date(`${a.slotDate}T${a.startTime || "00:00:00"}`);
     const bDate = new Date(`${b.slotDate}T${b.startTime || "00:00:00"}`);
@@ -202,8 +194,8 @@ export default function ParkingPage() {
                 <span className={styles.sidebarStatLabel}>{t("parking.daysCovered")}</span>
               </div>
               <div className={styles.sidebarStat}>
-                <span className={styles.sidebarStatValue}>{formatNumber(totalCapacity, locale)}</span>
-                <span className={styles.sidebarStatLabel}>{t("parking.allocatedQuotaLabel")}</span>
+                <span className={styles.sidebarStatValue}>{formatNumber(parkingSlots.length, locale)}</span>
+                <span className={styles.sidebarStatLabel}>{t("parking.sessionPlural")}</span>
               </div>
             </div>
 
@@ -216,12 +208,10 @@ export default function ParkingPage() {
                   onClick={() => setSelectedDate("ALL")}
                 >
                   <strong>{t("parking.allDays")}</strong>
-                  <span>{formatNumber(totalAvailableSpaces, locale)} {t("parking.remainingLabel")}</span>
+                  <span>{formatNumber(parkingSlots.length, locale)} {t("parking.sessionPlural")}</span>
                 </button>
                 {groupedSlots.map((group) => {
-                  const available = group.slots.reduce((sum, slot) => sum + (slot.availableSpaces || 0), 0);
-                  const capacity = group.slots.reduce((sum, slot) => sum + (slot.parkingCapacity || 0), 0);
-                  const isFull = available <= 0;
+                  const isFull = group.slots.every((slot) => (slot.availableSpaces || 0) <= 0);
                   return (
                     <button
                       type="button"
@@ -236,7 +226,9 @@ export default function ParkingPage() {
                       onClick={() => setSelectedDate(group.key)}
                     >
                       <strong>{group.compactLabel}</strong>
-                      <span>{formatNumber(available, locale)}/{formatNumber(capacity, locale)} {t("parking.places")}</span>
+                      <span>
+                        {formatNumber(group.slots.length, locale)} {group.slots.length > 1 ? t("parking.sessionPlural") : t("parking.session")}
+                      </span>
                     </button>
                   );
                 })}
@@ -244,13 +236,9 @@ export default function ParkingPage() {
             </div>
 
             <div className={styles.selectedDayCard}>
-              <span>{selectedDate === "ALL" ? t("parking.allDays") : t("parking.selectedDay")}</span>
-              <strong>{formatNumber(selectedDayAvailable, locale)}</strong>
-              <p>
-                {selectedDate === "ALL"
-                  ? t("parking.availableAcrossDays", { count: selectedDayCapacity })
-                  : t("parking.availableOnDay", { count: selectedDayCapacity })}
-              </p>
+              <span>{t("parking.physicalCapacityLabel")}</span>
+              <strong data-testid="parking-physical-capacity">{formatNumber(MEETSPACE_TOTAL_PARKING_SPACES, locale)}</strong>
+              <p>{t("parking.sharedCapacitySummary")}</p>
             </div>
 
             <div className={styles.sidebarSection}>
@@ -277,7 +265,7 @@ export default function ParkingPage() {
                     {formatNumber(visibleSlots.length, locale)} {visibleSlots.length > 1 ? t("parking.sessionPlural") : t("parking.session")}
                   </span>
                   <span className={styles.dayStat}>
-                    {formatNumber(selectedDayAvailable, locale)} {t("parking.placesAvailable")}
+                    {formatNumber(MEETSPACE_TOTAL_PARKING_SPACES, locale)} {t("parking.physicalCapacityLabel")}
                   </span>
                 </div>
               </div>
