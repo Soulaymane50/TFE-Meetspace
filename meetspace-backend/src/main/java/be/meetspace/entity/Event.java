@@ -71,6 +71,32 @@ public class Event {
     @OneToOne(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private ParkingSlot parkingSlot;
 
+    @Column(name = "room_cost_cents", nullable = false)
+    private Long roomCostCents = 0L;
+    @Column(name = "deposit_amount_cents", nullable = false)
+    private Long depositAmountCents = 0L;
+    @Column(name = "deposit_payment_intent_id")
+    private String depositPaymentIntentId;
+    @Column(name = "deposit_paid_at")
+    private LocalDateTime depositPaidAt;
+    @Column(name = "deposit_due_at")
+    private LocalDateTime depositDueAt;
+
+    @Column(name = "balance_due_cents", nullable = false)
+    private Long balanceDueCents = 0L;
+    @Column(name = "balance_payment_intent_id")
+    private String balancePaymentIntentId;
+    @Column(name = "balance_paid_at")
+    private LocalDateTime balancePaidAt;
+    @Column(name = "settlement_due_at")
+    private LocalDateTime settlementDueAt;
+    @Column(name = "late_fee_cents", nullable = false)
+    private Long lateFeeCents = 0L;
+    @Column(name = "payout_amount_cents", nullable = false)
+    private Long payoutAmountCents = 0L;
+    @Column(name = "settlement_status", nullable = false, length = 32)
+    private String settlementStatus = "NOT_APPLICABLE";
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -130,6 +156,30 @@ public class Event {
     public boolean isParkingRequired() { return parkingRequired; }
     public void setParkingRequired(boolean parkingRequired) { this.parkingRequired = parkingRequired; }
 
+    public Long getRoomCostCents() { return roomCostCents; }
+    public void setRoomCostCents(Long value) { this.roomCostCents = value; }
+    public Long getDepositAmountCents() { return depositAmountCents; }
+    public void setDepositAmountCents(Long value) { this.depositAmountCents = value; }
+    public String getDepositPaymentIntentId() { return depositPaymentIntentId; }
+    public void setDepositPaymentIntentId(String value) { this.depositPaymentIntentId = value; }
+    public LocalDateTime getDepositPaidAt() { return depositPaidAt; }
+    public LocalDateTime getDepositDueAt() { return depositDueAt; }
+    public void setDepositDueAt(LocalDateTime value) { this.depositDueAt = value; }
+    public void setDepositPaidAt(LocalDateTime value) { this.depositPaidAt = value; }
+    public Long getBalanceDueCents() { return balanceDueCents; }
+    public void setBalanceDueCents(Long value) { this.balanceDueCents = value; }
+    public String getBalancePaymentIntentId() { return balancePaymentIntentId; }
+    public void setBalancePaymentIntentId(String value) { this.balancePaymentIntentId = value; }
+    public LocalDateTime getBalancePaidAt() { return balancePaidAt; }
+    public void setBalancePaidAt(LocalDateTime value) { this.balancePaidAt = value; }
+    public LocalDateTime getSettlementDueAt() { return settlementDueAt; }
+    public void setSettlementDueAt(LocalDateTime value) { this.settlementDueAt = value; }
+    public Long getLateFeeCents() { return lateFeeCents; }
+    public void setLateFeeCents(Long value) { this.lateFeeCents = value; }
+    public Long getPayoutAmountCents() { return payoutAmountCents; }
+    public void setPayoutAmountCents(Long value) { this.payoutAmountCents = value; }
+    public String getSettlementStatus() { return settlementStatus; }
+    public void setSettlementStatus(String value) { this.settlementStatus = value; }
     public ParkingSlot getParkingSlot() { return parkingSlot; }
     public void setParkingSlot(ParkingSlot parkingSlot) { this.parkingSlot = parkingSlot; }
 }

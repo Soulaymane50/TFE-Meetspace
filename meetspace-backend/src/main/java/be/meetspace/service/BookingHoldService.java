@@ -50,6 +50,8 @@ public class BookingHoldService {
             case SPACE -> createSpaceHold(request, user, amountCents);
             case PREMIUM_ROOM -> createPremiumRoomHold(request, user, amountCents);
             case EVENT -> createEventHold(request, user, amountCents);
+            case EVENT_DEPOSIT -> createEventChargeHold(request, user, amountCents, true);
+            case EVENT_BALANCE -> createEventChargeHold(request, user, amountCents, false);
             case PARKING -> createParkingHold(request, user, amountCents);
         };
         hold.setToken(UUID.randomUUID().toString().replace("-", ""));
@@ -162,6 +164,30 @@ public class BookingHoldService {
             hold.setSecondaryQuantity(request.getReservedSpaces());
         }
         return hold;
+    }
+
+    private BookingHold createEventChargeHold(PaymentRequest request, User user, long amountCents, boolean deposit) {
+        if (request.getEventId() == null) {
+            throw badRequest("L'événement est requis.");
+        }
+        Event event = eventRepository.findByIdForUpdate(request.getEventId())
+                .orElseThrow(() -> notFound("Événement introuvable."));
+        boolean admin = "ADMIN".equals(user.getRole().name());
+        if (!admin && (event.getCreatedBy() == null || !event.getCreatedBy().getId().equals(user.getId()))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cet événement ne vous appartient pas.");
+        }
+        if (deposit) {
+            if (event.getStatus() != EventStatus.AWAITING_DEPOSIT || event.getDepositPaidAt() != null) {
+                throw badRequest("Cet acompte n'est pas en attente.");
+            }
+            if (event.getDepositDueAt() != null && !event.getDepositDueAt().isAfter(LocalDateTime.now())) {
+                throw conflict("Le délai de paiement de l'acompte est expiré.");
+            }
+        } else if (event.getDepositPaidAt() == null || event.getBalancePaidAt() != null
+                || (event.getSettlementDueAt() != null && !event.getSettlementDueAt().isAfter(LocalDateTime.now()))) {
+            throw badRequest("Ce solde n'est plus payable en ligne.");
+        }
+        return baseHold(event.getId(), amountCents);
     }
 
     private BookingHold createParkingHold(PaymentRequest request, User user, long amountCents) {

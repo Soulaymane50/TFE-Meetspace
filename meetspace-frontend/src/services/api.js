@@ -912,6 +912,25 @@ export async function organizerGetMyEvents(token) {
   return events.map(normalizeEvent);
 }
 
+export async function organizerPayEventDeposit(id, paymentIntentId, token) {
+  const res = await fetch(`${API_URL}/api/organizer/events/my/${id}/pay-deposit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders(token) },
+    body: JSON.stringify({ paymentIntentId }),
+  });
+  const event = await handleResponse(res, "Impossible de confirmer l'acompte");
+  return normalizeEvent(event);
+}
+
+export async function organizerPayEventBalance(id, paymentIntentId, token) {
+  const res = await fetch(`${API_URL}/api/organizer/events/my/${id}/pay-balance`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders(token) },
+    body: JSON.stringify({ paymentIntentId }),
+  });
+  const event = await handleResponse(res, "Impossible de confirmer le solde");
+  return normalizeEvent(event);
+}
 export async function organizerGetEventAttendees(id, token) {
   const res = await fetch(`${API_URL}/api/organizer/events/my/${id}/attendees`, {
     headers: authHeaders(token),

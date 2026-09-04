@@ -560,3 +560,33 @@
     grid-column: auto;
   }
 }
+
+.payButton {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.8rem 1rem;
+  background: var(--brand-strong);
+  color: var(--text-on-inverse);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.paymentOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(7, 28, 24, 0.62);
+  backdrop-filter: blur(8px);
+}
+
+.paymentModal {
+  width: min(100%, 720px);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  border-radius: 28px;
+  background: var(--surface);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
+}

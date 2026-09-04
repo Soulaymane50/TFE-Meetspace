@@ -9,6 +9,7 @@ import be.meetspace.repository.EventRepository;
 import be.meetspace.repository.EventRegistrationRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
+import be.meetspace.service.EventBillingService;
 import be.meetspace.service.EventPlanningService;
 import be.meetspace.service.ParkingCapacityService;
 import be.meetspace.web.dto.AdminEventRegistrationDto;
@@ -16,6 +17,7 @@ import be.meetspace.web.dto.EventCheckInRequest;
 import be.meetspace.web.dto.EventCheckInResponseDto;
 import be.meetspace.web.dto.EventRequestDto;
 import be.meetspace.web.dto.EventResponseDto;
+import be.meetspace.web.dto.PayReservationRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -35,6 +37,7 @@ public class OrganizerEventController {
     private final EventRegistrationRepository registrationRepository;
     private final UserRepository userRepository;
     private final EventPlanningService eventPlanningService;
+    private final EventBillingService eventBillingService;
     private final ParkingCapacityService parkingCapacityService;
     private final AuditService auditService;
 
@@ -43,6 +46,7 @@ public class OrganizerEventController {
             EventRegistrationRepository registrationRepository,
             UserRepository userRepository,
             EventPlanningService eventPlanningService,
+            EventBillingService eventBillingService,
             ParkingCapacityService parkingCapacityService,
             AuditService auditService
     ) {
@@ -50,6 +54,7 @@ public class OrganizerEventController {
         this.registrationRepository = registrationRepository;
         this.userRepository = userRepository;
         this.eventPlanningService = eventPlanningService;
+        this.eventBillingService = eventBillingService;
         this.parkingCapacityService = parkingCapacityService;
         this.auditService = auditService;
     }
@@ -166,6 +171,26 @@ public class OrganizerEventController {
 
         int registered = registrationRepository.countTotalParticipantsByEventId(event.getId());
         return toResponse(event, registered);
+    }
+
+    @PostMapping("/my/{id}/pay-deposit")
+    @Transactional
+    public EventResponseDto payDeposit(@PathVariable Long id,
+                                       @Valid @RequestBody PayReservationRequest request,
+                                       Authentication authentication) {
+        User organizer = getAuthenticatedUser(authentication);
+        Event saved = eventBillingService.payDeposit(id, request.getPaymentIntentId(), organizer);
+        return toResponse(saved, registrationRepository.countTotalParticipantsByEventId(saved.getId()));
+    }
+
+    @PostMapping("/my/{id}/pay-balance")
+    @Transactional
+    public EventResponseDto payBalance(@PathVariable Long id,
+                                       @Valid @RequestBody PayReservationRequest request,
+                                       Authentication authentication) {
+        User organizer = getAuthenticatedUser(authentication);
+        Event saved = eventBillingService.payBalance(id, request.getPaymentIntentId(), organizer);
+        return toResponse(saved, registrationRepository.countTotalParticipantsByEventId(saved.getId()));
     }
 
     @PutMapping("/my/{id}")
