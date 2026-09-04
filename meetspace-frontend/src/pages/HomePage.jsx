@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { getEspaces, getParkingSlots, getPublicEvents } from "../services/api";
+import { getEspaces, getPublicEvents } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { getSpaceImage } from "../utils/mediaAssets";
+import { MEETSPACE_TOTAL_PARKING_SPACES } from "../utils/businessRules";
 import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./HomePage.module.css";
 
@@ -26,7 +27,6 @@ export default function HomePage() {
   const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [spaces, setSpaces] = useState([]);
-  const [parkingSlots, setParkingSlots] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,17 +34,15 @@ export default function HomePage() {
 
     async function loadHome() {
       setLoading(true);
-      const [nextEvents, nextSpaces, nextParking] = await Promise.allSettled([
+      const [nextEvents, nextSpaces] = await Promise.allSettled([
         getPublicEvents(),
         getEspaces(),
-        getParkingSlots(),
       ]);
 
       if (!active) return;
 
       setEvents(nextEvents.status === "fulfilled" ? nextEvents.value : []);
       setSpaces(nextSpaces.status === "fulfilled" ? nextSpaces.value : []);
-      setParkingSlots(nextParking.status === "fulfilled" ? nextParking.value : []);
       setLoading(false);
     }
 
@@ -81,8 +79,6 @@ export default function HomePage() {
   const featuredSpaces = [...spaces]
     .sort((a, b) => (Number(b.capacity) || 0) - (Number(a.capacity) || 0))
     .slice(0, 3);
-
-  const totalParkingAvailable = parkingSlots.reduce((sum, slot) => sum + (Number(slot.availableSpaces) || 0), 0);
 
   const actionCards = [
     {
@@ -165,7 +161,7 @@ export default function HomePage() {
           <span>{t("home.statsEvents")}</span>
         </div>
         <div>
-          <strong>{formatNumber(totalParkingAvailable, numberLocale)}</strong>
+          <strong data-testid="home-parking-capacity">{formatNumber(MEETSPACE_TOTAL_PARKING_SPACES, numberLocale)}</strong>
           <span>{t("home.statsParking")}</span>
         </div>
         <div>

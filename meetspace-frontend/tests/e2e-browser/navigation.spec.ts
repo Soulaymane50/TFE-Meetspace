@@ -10,6 +10,7 @@ test.describe.serial("E2E Navigation", () => {
     await page.goto(BASE_URL);
 
     await expect(page.locator('header nav').first()).toBeVisible();
+    await expect(page.getByTestId("home-parking-capacity")).toHaveText("150");
   });
 
   test("Can navigate to events page via navbar", async ({ page }) => {
@@ -37,11 +38,34 @@ test.describe.serial("E2E Navigation", () => {
   test("Can navigate to parking page via navbar", async ({ page }) => {
     await ensureLoggedOut(page);
 
+    await page.route("**/api/public/parking/sessions", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        json: [{
+          id: 1,
+          title: "Parking MeetSpace",
+          description: "Parking partagé",
+          slotDate: "2026-12-10",
+          startTime: "08:00:00",
+          endTime: "18:00:00",
+          parkingCapacity: 100,
+          registeredSpaces: 0,
+          availableSpaces: 100,
+          parkingRate: 12,
+          status: "OPEN",
+          eventId: null,
+          physicalCapacity: 150,
+          globalRemainingSpaces: 150,
+          sharedInventory: true,
+        }],
+      });
+    });
     await page.goto(BASE_URL);
 
     const parkingLink = page.locator('nav a[href="/parking"]').first();
     await parkingLink.click();
 
     await expect(page).toHaveURL(/parking/);
+    await expect(page.getByTestId("parking-physical-capacity")).toHaveText("150");
   });
 });
