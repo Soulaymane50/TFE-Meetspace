@@ -6,18 +6,21 @@ Le produit couvre quatre usages distincts : la consultation publique, la réserv
 
 ## Fonctionnalités
 
-- catalogue public des salles, événements et créneaux de parking ;
-- disponibilité des salles et réservation par créneau ;
-- inscription aux événements, capacité, liste d’attente, ticket QR et parking lié ;
+- catalogue public des salles et événements avec recherche, filtres et disponibilités ;
+- calendrier centralisé des salles avec détection et verrouillage des chevauchements ;
+- réservation de salles standard ou demande de salle premium soumise à validation ;
+- inscription aux événements, capacité, liste d’attente et billet QR individuel ;
+- parking partagé de 150 places, réparti entre les événements simultanés, avec réservation par véhicule et QR code d’accès ;
 - demandes de salles premium avec validation et échéance de paiement ;
 - espace client pour les réservations, paiements, annulations et profil ;
-- espace organisateur pour créer, soumettre et suivre ses événements, leurs participants et les entrées ;
-- administration des utilisateurs, espaces, événements, parkings et validations ;
-- suivi financier distinct pour l’administrateur et l’organisateur ;
+- espace organisateur pour créer, soumettre et suivre ses événements, leurs participants, leurs revenus et les entrées ;
+- contrôle des billets par caméra ou saisie manuelle, avec validation idempotente ;
+- administration des utilisateurs, espaces, événements, parkings, validations et contrôles d’accès ;
+- tableau financier global pour l’administrateur et synthèse simplifiée pour l’organisateur ;
 - authentification JWT, révocation des sessions et états de compte ;
-- paiement Stripe avec mode local strictement réservé au développement ;
+- paiement Stripe, registre interne des paiements et mode simulé strictement réservé au développement ;
 - notifications persistantes, e-mails configurables et journal d’audit ;
-- interface responsive en français, anglais et néerlandais, avec thèmes clair et sombre.
+- interface responsive et installable en français, anglais et néerlandais, avec thèmes clair et sombre.
 
 ## Rôles
 
@@ -27,6 +30,17 @@ Le produit couvre quatre usages distincts : la consultation publique, la réserv
 | Client | Réserver, s’inscrire, payer et gérer ses demandes |
 | Organisateur | Créer des événements et suivre inscriptions et revenus |
 | Administrateur | Valider, superviser, administrer et analyser la plateforme |
+
+## Règles métier principales
+
+- Les prix, capacités et montants à payer sont recalculés côté serveur : le frontend ne constitue jamais la source de vérité.
+- Une salle ne peut pas accueillir deux réservations ou événements qui se chevauchent. Les opérations sensibles verrouillent la salle avant le contrôle.
+- Un événement soumis par un organisateur doit être approuvé par un administrateur avant sa publication.
+- Les 150 places de parking forment un stock physique commun. MeetSpace répartit la capacité entre les événements simultanés, conserve une réserve partagée à plus de 48 heures et libère le reliquat à l’approche de l’événement.
+- Une place est incluse pour l’équipe organisatrice ; les participants réservent ensuite leurs propres véhicules dans la limite du quota disponible.
+- Un billet d’événement et une réservation de parking possèdent chacun un code d’accès unique. Un second scan ne crée jamais une seconde entrée.
+- Les remboursements sont calculés selon l’échéance d’annulation : 100 % au moins 48 heures avant, 50 % entre 24 et 48 heures, puis aucun remboursement à moins de 24 heures.
+- Les projections financières sont indicatives et ne remplacent ni une facture ni une comptabilité légale.
 
 ## Architecture
 
@@ -192,7 +206,7 @@ set E2E_ADMIN_PASSWORD=MeetSpaceDemo!2026
 npm test
 ```
 
-La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La dernière validation complète comporte 41 tests backend et 44 scénarios API, navigateur et accessibilité ; une recette complémentaire de 15 scénarios a également été exécutée sur la production.
+La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La suite actuelle comporte 49 tests backend et 45 cas Playwright exécutables : 7 scénarios API et 38 scénarios navigateur, parcours métier et accessibilité.
 
 ## Déploiement
 
@@ -202,7 +216,7 @@ La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstru
 | Backend Railway | [tfe-meetspace-production.up.railway.app](https://tfe-meetspace-production.up.railway.app) |
 | Santé backend | [actuator/health](https://tfe-meetspace-production.up.railway.app/actuator/health) |
 
-État vérifié le 28 août 2026 : frontend accessible, backend `UP`, schéma Flyway validé et communication Vercel-Railway opérationnelle.
+État vérifié le 1er septembre 2026 : frontend accessible, backend `UP`, schéma Flyway validé et communication Vercel-Railway opérationnelle.
 
 La production utilise au minimum les garde-fous suivants :
 
@@ -228,7 +242,7 @@ Les valeurs MySQL, JWT, Stripe, Brevo, Resend et SMTP restent exclusivement dans
 
 Points de contrôle après chaque déploiement :
 
-- Flyway applique la migration `V6__event_check_in.sql` et renseigne un jeton unique pour chaque inscription existante ;
+- Flyway applique toutes les migrations versionnées disponibles ainsi que les migrations répétables de correction de données ;
 - Vercel autorise la caméra pour le contrôle des billets (`Permissions-Policy: camera=(self)`) ;
 - les clés Stripe publique et privée appartiennent au même mode (`test` ou `live`) ;
 - le webhook Stripe cible `https://tfe-meetspace-production.up.railway.app/api/payments/webhook` ;
@@ -240,8 +254,16 @@ Points de contrôle après chaque déploiement :
 - les comptes de démonstration en `.test` ne reçoivent volontairement aucun e-mail ;
 - le frontend charge la configuration de paiement depuis `GET /api/payments/config` après connexion ;
 - un même billet peut être scanné plusieurs fois sans créer plusieurs entrées : le contrôle est idempotent.
+- une même réservation de parking conserve un QR code unique, contrôlable depuis l’espace administrateur.
 
-Lors de la dernière vérification, les catalogues publics de production exposaient 8 espaces, 23 événements futurs et 15 sessions de parking. Les quatre dates de démonstration enrichies comportent chacune trois événements dans trois salles différentes. Aucun chevauchement salle-événement ni salle-réservation n’a été détecté.
+Lors de la vérification du 1er septembre 2026, les catalogues publics de production exposaient 8 espaces, 22 événements et 22 sessions de parking. Les dates de démonstration enrichies comportent plusieurs événements dans des salles différentes. Aucun chevauchement salle-événement ni salle-réservation n’a été détecté.
+
+## Limites connues
+
+- Les versements automatiques aux organisateurs par Stripe Connect ne sont pas encore activés.
+- Les tableaux financiers servent au pilotage et à la démonstration ; ils ne constituent pas une comptabilité certifiée.
+- Les comptes de démonstration utilisant le domaine `.test` ne peuvent pas recevoir de véritables e-mails.
+- Les faux paiements sont réservés au profil local et restent bloqués en production.
 
 ## Sécurité et règles de dépôt
 
