@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { organizerGetMyEvents, organizerCancelMyEvent, organizerGetFinanceSummary } from "../services/api";
+import { organizerGetMyEvents, organizerCancelMyEvent, organizerGetFinanceSummary, organizerPayEventDeposit, organizerPayEventBalance } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
@@ -10,8 +10,9 @@ import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters"
 import WorkspaceNav from "../components/WorkspaceNav";
 import FinanceLedger from "../components/FinanceLedger";
 import styles from "./OrganizerEventsPage.module.css";
+import PaymentForm from "../components/PaymentForm";
 
-const ORGANIZER_STATUS_FILTERS = ["ALL", "PENDING_APPROVAL", "PUBLISHED", "REJECTED", "CANCELLED"];
+const ORGANIZER_STATUS_FILTERS = ["ALL", "PENDING_APPROVAL", "AWAITING_DEPOSIT", "PUBLISHED", "REJECTED", "CANCELLED"];
 
 function OrganizerIcon({ type }) {
   const icons = {
@@ -97,6 +98,7 @@ export default function OrganizerEventsPage() {
     { replace: true },
   );
   const [financeSummary, setFinanceSummary] = useState(null);
+  const [paymentEvent, setPaymentEvent] = useState(null);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -150,12 +152,36 @@ export default function OrganizerEventsPage() {
     }
   };
 
+  const handleChargePaid = async (paymentIntentId) => {
+    if (!paymentEvent) return;
+    try {
+      if (paymentEvent.type === "deposit") {
+        await organizerPayEventDeposit(paymentEvent.event.id, paymentIntentId, token);
+      } else {
+        await organizerPayEventBalance(paymentEvent.event.id, paymentIntentId, token);
+      }
+      notify({
+        type: "success",
+        title: paymentEvent.type === "deposit" ? t("organizer.depositPaidTitle") : t("organizer.balancePaidTitle"),
+        message: paymentEvent.type === "deposit"
+          ? t("organizer.depositPaidMessage")
+          : t("organizer.balancePaidMessage"),
+      });
+      setPaymentEvent(null);
+      await fetchEvents();
+    } catch (err) {
+      notify({ type: "error", title: t("common.error"), message: err.message });
+    }
+  };
+
+
   const statusClass = (status) => {
     const map = {
       PENDING_APPROVAL: styles.statusPending,
       PUBLISHED: styles.statusPublished,
       REJECTED: styles.statusRejected,
       CANCELLED: styles.statusCancelled,
+      AWAITING_DEPOSIT: styles.statusPending,
     };
     return `${styles.statusBadge} ${map[status] || styles.statusCancelled}`;
   };
@@ -416,6 +442,21 @@ export default function OrganizerEventsPage() {
               )}
 
               <div className={styles.eventActions}>
+                {e.status === "AWAITING_DEPOSIT" && (
+                  <button className={styles.payButton} onClick={() => setPaymentEvent({ event: e, type: "deposit" })}>
+                    {t("organizer.payDeposit", {
+                      amount: formatEuro((e.depositAmountCents || 0) / 100),
+                    })}
+                  </button>
+                )}
+                {e.status === "PUBLISHED" && !e.balancePaidAt && (e.balanceDueCents || 0) > 0 && (
+                  <button className={styles.payButton} onClick={() => setPaymentEvent({ event: e, type: "balance" })}>
+                    {t("organizer.payBalance", {
+                      amount: formatEuro((e.balanceDueCents || 0) / 100),
+                    })}
+                  </button>
+                )}
+
                 <Link to={`/organizer/events/edit/${e.id}`} className={styles.editButton}>
                   {t("common.edit")}
                 </Link>
@@ -440,6 +481,24 @@ export default function OrganizerEventsPage() {
             </div>
             );
           })}
+        </div>
+      )}
+
+      {paymentEvent && (
+        <div className={styles.paymentOverlay} role="dialog" aria-modal="true">
+          <div className={styles.paymentModal}>
+            <PaymentForm
+              token={token}
+              amount={(paymentEvent.type === "deposit"
+                ? paymentEvent.event.depositAmountCents
+                : paymentEvent.event.balanceDueCents) / 100}
+              description={`${t(paymentEvent.type === "deposit" ? "organizer.depositLabel" : "organizer.balanceLabel")} — ${paymentEvent.event.title}`}
+              reservationType={paymentEvent.type === "deposit" ? "EVENT_DEPOSIT" : "EVENT_BALANCE"}
+              metadata={{ eventId: paymentEvent.event.id }}
+              onSuccess={handleChargePaid}
+              onCancel={() => setPaymentEvent(null)}
+            />
+          </div>
         </div>
       )}
 

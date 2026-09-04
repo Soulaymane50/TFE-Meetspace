@@ -39,6 +39,16 @@ public class EventResponseDto {
     private Integer physicalParkingCapacity;
     private Integer globalParkingRemainingSpaces;
     private boolean sharedParkingInventory;
+    private Long roomCostCents;
+    private Long depositAmountCents;
+    private LocalDateTime depositDueAt;
+    private LocalDateTime depositPaidAt;
+    private Long balanceDueCents;
+    private LocalDateTime balancePaidAt;
+    private LocalDateTime settlementDueAt;
+    private Long lateFeeCents;
+    private Long payoutAmountCents;
+    private String settlementStatus;
 
     public static EventResponseDto fromEntity(Event e) {
         return fromEntity(e, 0);
@@ -76,6 +86,16 @@ public class EventResponseDto {
             dto.approvedByName = e.getApprovedBy().getFirstName() + " " + e.getApprovedBy().getLastName();
         }
         dto.rejectionReason = e.getRejectionReason();
+        dto.roomCostCents = e.getRoomCostCents();
+        dto.depositAmountCents = e.getDepositAmountCents();
+        dto.depositDueAt = e.getDepositDueAt();
+        dto.depositPaidAt = e.getDepositPaidAt();
+        dto.balanceDueCents = e.getBalanceDueCents();
+        dto.balancePaidAt = e.getBalancePaidAt();
+        dto.settlementDueAt = e.getSettlementDueAt();
+        dto.lateFeeCents = e.getLateFeeCents();
+        dto.payoutAmountCents = e.getPayoutAmountCents();
+        dto.settlementStatus = e.getSettlementStatus();
 
         dto.parkingRequired = e.isParkingRequired();
         ParkingSlot parkingSlot = e.getParkingSlot();
@@ -129,4 +149,14 @@ public class EventResponseDto {
     public Integer getPhysicalParkingCapacity() { return physicalParkingCapacity; }
     public Integer getGlobalParkingRemainingSpaces() { return globalParkingRemainingSpaces; }
     public boolean isSharedParkingInventory() { return sharedParkingInventory; }
+    public Long getRoomCostCents() { return roomCostCents; }
+    public Long getDepositAmountCents() { return depositAmountCents; }
+    public LocalDateTime getDepositDueAt() { return depositDueAt; }
+    public LocalDateTime getDepositPaidAt() { return depositPaidAt; }
+    public Long getBalanceDueCents() { return balanceDueCents; }
+    public LocalDateTime getBalancePaidAt() { return balancePaidAt; }
+    public LocalDateTime getSettlementDueAt() { return settlementDueAt; }
+    public Long getLateFeeCents() { return lateFeeCents; }
+    public Long getPayoutAmountCents() { return payoutAmountCents; }
+    public String getSettlementStatus() { return settlementStatus; }
 }

@@ -10,6 +10,7 @@ import be.meetspace.repository.EventRepository;
 import be.meetspace.repository.ParkingReservationRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
+import be.meetspace.service.EventBillingService;
 import be.meetspace.service.EventPlanningService;
 import be.meetspace.service.NotificationService;
 import be.meetspace.web.dto.EventApprovalDto;
@@ -35,6 +36,7 @@ public class AdminEventController {
     private final ParkingReservationRepository parkingReservationRepository;
     private final UserRepository userRepository;
     private final EventPlanningService eventPlanningService;
+    private final EventBillingService eventBillingService;
     private final AuditService auditService;
     private final NotificationService notificationService;
 
@@ -44,6 +46,7 @@ public class AdminEventController {
             ParkingReservationRepository parkingReservationRepository,
             UserRepository userRepository,
             EventPlanningService eventPlanningService,
+            EventBillingService eventBillingService,
             AuditService auditService,
             NotificationService notificationService
     ) {
@@ -52,6 +55,7 @@ public class AdminEventController {
         this.parkingReservationRepository = parkingReservationRepository;
         this.userRepository = userRepository;
         this.eventPlanningService = eventPlanningService;
+        this.eventBillingService = eventBillingService;
         this.auditService = auditService;
         this.notificationService = notificationService;
     }
@@ -160,7 +164,7 @@ public class AdminEventController {
 
         if (dto.isApproved()) {
             eventPlanningService.validateAvailabilityForPublication(event);
-            event.setStatus(EventStatus.PUBLISHED);
+            eventBillingService.prepareAfterApproval(event);
             event.setApprovedAt(LocalDateTime.now());
             event.setApprovedBy(admin);
             event.setRejectionReason(null);
@@ -170,7 +174,7 @@ public class AdminEventController {
         }
 
         Event saved = eventRepository.save(event);
-        if (dto.isApproved()) {
+        if (dto.isApproved() && saved.getStatus() == EventStatus.PUBLISHED) {
             eventPlanningService.activateParkingForPublication(saved);
         } else {
             eventPlanningService.syncParkingStatus(saved);
@@ -187,9 +191,11 @@ public class AdminEventController {
         if (saved.getCreatedBy() != null) {
             notificationService.create(saved.getCreatedBy(),
                     dto.isApproved() ? NotificationTone.SUCCESS : NotificationTone.WARNING,
-                    dto.isApproved() ? "Événement publié" : "Événement refusé",
+                    dto.isApproved() ? "Événement validé" : "Événement refusé",
                     dto.isApproved()
-                            ? saved.getTitle() + " est maintenant visible dans le catalogue."
+                            ? (saved.getStatus() == EventStatus.AWAITING_DEPOSIT
+                                ? saved.getTitle() + " est validé. Payez l'acompte pour le publier."
+                                : saved.getTitle() + " est maintenant visible dans le catalogue.")
                             : saved.getTitle() + " doit être corrigé avant publication.",
                     "/organizer/events", "Event", saved.getId());
         }

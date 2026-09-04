@@ -34,6 +34,8 @@ public class PaymentQuoteService {
         PaymentType type = normalizeType(request);
         long amountCents = switch (type) {
             case EVENT -> quoteEvent(request);
+            case EVENT_DEPOSIT -> quoteEventCharge(request, user, true);
+            case EVENT_BALANCE -> quoteEventCharge(request, user, false);
             case PARKING -> quoteParking(request);
             case SPACE -> quoteSpace(request);
             case PREMIUM_ROOM -> quotePremiumRoom(request, user);
@@ -50,6 +52,7 @@ public class PaymentQuoteService {
         }
         Long resourceId = switch (type) {
             case EVENT -> request.getEventId();
+            case EVENT_DEPOSIT, EVENT_BALANCE -> request.getEventId();
             case PARKING -> request.getParkingSlotId();
             case SPACE -> request.getEspaceId();
             case PREMIUM_ROOM -> request.getReservationId();
@@ -116,6 +119,28 @@ public class PaymentQuoteService {
         return toCents(total);
     }
 
+    private long quoteEventCharge(PaymentRequest request, User user, boolean deposit) {
+        if (request.getEventId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "L'événement est requis.");
+        }
+        Event event = eventRepository.findById(request.getEventId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Événement introuvable."));
+        boolean admin = "ADMIN".equals(user.getRole().name());
+        if (!admin && (event.getCreatedBy() == null || !event.getCreatedBy().getId().equals(user.getId()))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cet événement ne vous appartient pas.");
+        }
+        if (deposit) {
+            if (event.getStatus() != EventStatus.AWAITING_DEPOSIT || event.getDepositPaidAt() != null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cet acompte n'est pas en attente.");
+            }
+            return event.getDepositAmountCents();
+        }
+        if (event.getDepositPaidAt() == null || event.getBalancePaidAt() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce solde n'est pas payable.");
+        }
+        return event.getBalanceDueCents();
+    }
+
     private long quoteParking(PaymentRequest request) {
         if (request.getParkingSlotId() == null || request.getReservedSpaces() == null || request.getReservedSpaces() < 1) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Les places de parking sont requises.");
@@ -137,6 +162,8 @@ public class PaymentQuoteService {
             case "PREMIUM_ROOM" -> PaymentType.PREMIUM_ROOM;
             case "EVENT" -> PaymentType.EVENT;
             case "PARKING" -> PaymentType.PARKING;
+            case "EVENT_DEPOSIT" -> PaymentType.EVENT_DEPOSIT;
+            case "EVENT_BALANCE" -> PaymentType.EVENT_BALANCE;
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Type de reservation invalide.");
         };
     }
