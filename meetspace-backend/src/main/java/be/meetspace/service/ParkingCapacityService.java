@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -61,14 +62,21 @@ public class ParkingCapacityService {
         if (openSlots.isEmpty()) return Map.of();
 
         int physicalCapacity = physicalCapacity();
-        List<Long> slotIds = openSlots.stream().map(ParkingSlot::getId).toList();
+        List<Long> targetIds = openSlots.stream().map(ParkingSlot::getId).distinct().toList();
+        // Inclure aussi les occupants que le catalogue ne montre pas.
+        Map<Long, ParkingSlot> relevantSlots = new LinkedHashMap<>();
+        for (ParkingSlot slot : slotRepository.findOpenOverlappingSlotsForTargets(targetIds)) {
+            relevantSlots.put(slot.getId(), slot);
+        }
+        openSlots.forEach(slot -> relevantSlots.putIfAbsent(slot.getId(), slot));
+        List<Long> slotIds = List.copyOf(relevantSlots.keySet());
         Map<Long, Integer> reservedBySlot = new HashMap<>();
         for (var row : reservationRepository.sumReservedSpacesByParkingSlotIds(slotIds)) {
             reservedBySlot.put(row.getSlotId(), Math.toIntExact(row.getReservedSpaces()));
         }
 
         Map<LocalDate, List<ParkingSlot>> slotsByDate = new HashMap<>();
-        for (ParkingSlot slot : openSlots) {
+        for (ParkingSlot slot : relevantSlots.values()) {
             slotsByDate.computeIfAbsent(slot.getSessionDate(), ignored -> new ArrayList<>()).add(slot);
         }
 

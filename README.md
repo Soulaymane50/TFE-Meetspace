@@ -22,6 +22,8 @@ Le produit couvre quatre usages distincts : la consultation publique, la réserv
 - notifications persistantes, e-mails configurables et journal d’audit ;
 - interface responsive et installable en français, anglais et néerlandais, avec thèmes clair et sombre.
 
+Les sections salles et événements de l’accueil se chargent indépendamment. Les lectures des catalogues publics et du calendrier des salles sont limitées à 15 secondes ; les appels identiques simultanés sont regroupés, sans conserver les disponibilités en cache après leur réponse. Un échec de chargement de l’accueil ou du parking affiche un message et permet de réessayer.
+
 ## Rôles
 
 | Rôle | Responsabilités |
@@ -37,6 +39,7 @@ Le produit couvre quatre usages distincts : la consultation publique, la réserv
 - Une salle ne peut pas accueillir deux réservations ou événements qui se chevauchent. Les opérations sensibles verrouillent la salle avant le contrôle.
 - Un événement soumis par un organisateur doit être approuvé par un administrateur avant sa publication.
 - Les 150 places de parking forment un stock physique commun. MeetSpace répartit la capacité entre les événements simultanés, conserve une réserve partagée à plus de 48 heures et libère le reliquat à l’approche de l’événement.
+- Le calcul des disponibilités du catalogue inclut aussi les créneaux ouverts qui se chevauchent mais ne sont pas affichés, notamment ceux déjà commencés et les parkings indépendants.
 - Une place est incluse pour l’équipe organisatrice ; les participants réservent ensuite leurs propres véhicules dans la limite du quota disponible.
 - Un billet d’événement et une réservation de parking possèdent chacun un code d’accès unique. Un second scan ne crée jamais une seconde entrée.
 - Les remboursements sont calculés selon l’échéance d’annulation : 100 % au moins 48 heures avant, 50 % entre 24 et 48 heures, puis aucun remboursement à moins de 24 heures.
@@ -191,6 +194,7 @@ Frontend :
 
 ```bat
 cd meetspace-frontend
+node --test tests/public-read.test.mjs
 npm run lint
 npm run build
 ```

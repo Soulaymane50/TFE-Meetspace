@@ -1,7 +1,7 @@
 import { signalSessionExpired } from "../utils/authSession";
+import { publicRead } from "./publicRead";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
-const PARKING_LOAD_TIMEOUT_MS = 15000;
 
 export function authHeaders(token) {
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -231,21 +231,8 @@ async function handleResponse(res, defaultMessage) {
 }
 
 async function fetchParkingSlotsResponse() {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), PARKING_LOAD_TIMEOUT_MS);
-  try {
-    const res = await fetch(`${API_URL}/api/public/parking/sessions`, { signal: controller.signal });
-    return await handleResponse(res, "Erreur lors du chargement des sessions parking");
-  } catch (error) {
-    if (error?.name === "AbortError") {
-      const timeoutError = new Error("REQUEST_TIMEOUT");
-      timeoutError.code = "REQUEST_TIMEOUT";
-      throw timeoutError;
-    }
-    throw error;
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  return publicRead(`${API_URL}/api/public/parking/sessions`,
+    (res) => handleResponse(res, "Erreur lors du chargement des sessions parking"));
 }
 
 async function postParkingReservation(payload, token) {
@@ -430,13 +417,13 @@ export async function logoutRequest(token) {
 }
 
 export async function getEspaces() {
-  const res = await fetch(`${API_URL}/api/public/espaces`);
-  return handleResponse(res, "Erreur lors du chargement des espaces");
+  return publicRead(`${API_URL}/api/public/espaces`,
+    (res) => handleResponse(res, "Erreur lors du chargement des espaces"));
 }
 
 export async function getEspaceReservationsForCalendar(espaceId, year, month) {
-  const res = await fetch(`${API_URL}/api/public/reservations/espace/${espaceId}/calendar?year=${year}&month=${month}`);
-  return handleResponse(res, "Erreur lors du chargement des réservations");
+  return publicRead(`${API_URL}/api/public/reservations/espace/${espaceId}/calendar?year=${year}&month=${month}`,
+    (res) => handleResponse(res, "Erreur lors du chargement des réservations"));
 }
 
 export async function getReservationsByUser(id, token) {
@@ -517,8 +504,8 @@ export async function payApprovedReservation(id, paymentIntentId, token) {
 }
 
 export async function getPublicEvents() {
-  const res = await fetch(`${API_URL}/api/public/events`);
-  const events = await handleResponse(res, "Erreur lors du chargement des événements");
+  const events = await publicRead(`${API_URL}/api/public/events`,
+    (res) => handleResponse(res, "Erreur lors du chargement des événements"));
   return events.map(normalizeEvent);
 }
 

@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getParkingSlots } from "../services/api";
+import { usePublicCatalog } from "../hooks/usePublicCatalog";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import PageState from "../components/PageState";
@@ -16,44 +17,17 @@ const getDateLocale = (lang) => {
 
 export default function ParkingPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [parkingSlots, setParkingSlots] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { data: parkingSlots, loading, error: failure, retry: retryParkingSlots } = usePublicCatalog(getParkingSlots);
   const [selectedDate, setSelectedDate] = useState(() => searchParams.get("date") || "ALL");
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const locale = getDateLocale(i18n.language);
 
-  const fetchParkingSlots = useCallback(() => {
-    getParkingSlots()
-      .then(setParkingSlots)
-      .catch((err) => {
-        if (err.code === "REQUEST_TIMEOUT" || err.message === "REQUEST_TIMEOUT") {
-          setError(t("parking.fetchTimeout"));
-          return;
-        }
-        if (err.message === "Failed to fetch") {
-          setError(t("parking.fetchError"));
-          return;
-        }
-        setError(err.message || t("parking.createError"));
-      })
-      .finally(() => setLoading(false));
-  }, [t]);
-
-  useEffect(() => {
-    fetchParkingSlots();
-  }, [fetchParkingSlots]);
+  const error = failure ? t(failure.code === "REQUEST_TIMEOUT" ? "parking.fetchTimeout" : "parking.fetchError") : "";
 
   useEffect(() => {
     setSearchParams(selectedDate === "ALL" ? {} : { date: selectedDate }, { replace: true });
   }, [selectedDate, setSearchParams]);
-
-  const retryParkingSlots = () => {
-    setLoading(true);
-    setError("");
-    fetchParkingSlots();
-  };
 
   const openSlotsCount = parkingSlots.filter((slot) => (slot.availableSpaces ?? 0) > 0).length;
   const averageRate = parkingSlots.length

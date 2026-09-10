@@ -29,7 +29,13 @@ public interface ParkingSlotRepository extends JpaRepository<ParkingSlot, Long> 
             "AND p.startTime < :endTime AND p.endTime > :startTime " +
             "ORDER BY p.id ASC")
     List<ParkingSlot> findOpenOverlappingSlots(@Param("date") LocalDate date,
-                                               @Param("startTime") LocalTime startTime,
-                                               @Param("endTime") LocalTime endTime);
+                                                @Param("startTime") LocalTime startTime,
+                                                @Param("endTime") LocalTime endTime);
+
+    @Query("SELECT p FROM ParkingSlot p WHERE p.status = 'OPEN' AND EXISTS (" +
+            "SELECT target.id FROM ParkingSlot target WHERE target.id IN :targetIds " +
+            "AND p.sessionDate = target.sessionDate " +
+            "AND p.startTime < target.endTime AND p.endTime > target.startTime) ORDER BY p.id ASC")
+    List<ParkingSlot> findOpenOverlappingSlotsForTargets(@Param("targetIds") List<Long> targetIds);
 }
 

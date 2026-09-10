@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getEspaces, getPublicEvents } from "../services/api";
+import { usePublicCatalog } from "../hooks/usePublicCatalog";
 import { useAuth } from "../context/AuthContext";
 import { getSpaceImage } from "../utils/mediaAssets";
 import { MEETSPACE_TOTAL_PARKING_SPACES } from "../utils/businessRules";
@@ -25,32 +26,8 @@ function getSpaceUse(space, t) {
 export default function HomePage() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
-  const [events, setEvents] = useState([]);
-  const [spaces, setSpaces] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadHome() {
-      setLoading(true);
-      const [nextEvents, nextSpaces] = await Promise.allSettled([
-        getPublicEvents(),
-        getEspaces(),
-      ]);
-
-      if (!active) return;
-
-      setEvents(nextEvents.status === "fulfilled" ? nextEvents.value : []);
-      setSpaces(nextSpaces.status === "fulfilled" ? nextSpaces.value : []);
-      setLoading(false);
-    }
-
-    loadHome();
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { data: events, loading: eventsLoading, error: eventsError, retry: retryEvents } = usePublicCatalog(getPublicEvents);
+  const { data: spaces, loading: spacesLoading, error: spacesError, retry: retrySpaces } = usePublicCatalog(getEspaces);
 
   const locale = getLocale(i18n.language);
   const numberLocale = normalizeLocale(i18n.language);
@@ -71,10 +48,10 @@ export default function HomePage() {
     return { to: "/register", label: t("home.finalPrimary") };
   }, [isAdmin, isOrganizer, t, user]);
 
-  const upcomingEvents = [...events]
+  const allUpcomingEvents = [...events]
     .filter((event) => new Date(event.startDateTime) >= new Date())
-    .sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime))
-    .slice(0, 3);
+    .sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime));
+  const upcomingEvents = allUpcomingEvents.slice(0, 3);
 
   const featuredSpaces = [...spaces]
     .sort((a, b) => (Number(b.capacity) || 0) - (Number(a.capacity) || 0))
@@ -153,11 +130,11 @@ export default function HomePage() {
 
       <section className={styles.quickStats} aria-label={t("home.platformStatusLabel")}>
         <div>
-          <strong>{formatNumber(spaces.length, numberLocale)}</strong>
+          <strong>{spacesLoading || spacesError ? "—" : formatNumber(spaces.length, numberLocale)}</strong>
           <span>{t("home.statsRooms")}</span>
         </div>
         <div>
-          <strong>{formatNumber(upcomingEvents.length || events.length, numberLocale)}</strong>
+          <strong>{eventsLoading || eventsError ? "—" : formatNumber(allUpcomingEvents.length, numberLocale)}</strong>
           <span>{t("home.statsEvents")}</span>
         </div>
         <div>
@@ -214,8 +191,13 @@ export default function HomePage() {
         </div>
 
         <div className={styles.roomGrid}>
-          {loading ? (
+          {spacesLoading ? (
             <div className={styles.simpleState}>{t("common.loading")}</div>
+          ) : spacesError ? (
+            <div className={styles.simpleState} role="alert">
+              <p>{t("common.catalogLoadError")}</p>
+              <button type="button" className={styles.textCta} onClick={retrySpaces}>{t("common.retry")}</button>
+            </div>
           ) : featuredSpaces.length === 0 ? (
             <div className={styles.simpleState}>{t("spaces.noSpaces")}</div>
           ) : featuredSpaces.map((space) => (
@@ -244,8 +226,13 @@ export default function HomePage() {
         </div>
 
         <div className={styles.eventList}>
-          {loading ? (
+          {eventsLoading ? (
             <div className={styles.simpleState}>{t("common.loading")}</div>
+          ) : eventsError ? (
+            <div className={styles.simpleState} role="alert">
+              <p>{t("common.catalogLoadError")}</p>
+              <button type="button" className={styles.textCta} onClick={retryEvents}>{t("common.retry")}</button>
+            </div>
           ) : upcomingEvents.length === 0 ? (
             <div className={styles.simpleState}>{t("home.noUpcomingEventsTitle")}</div>
           ) : upcomingEvents.map((event) => (

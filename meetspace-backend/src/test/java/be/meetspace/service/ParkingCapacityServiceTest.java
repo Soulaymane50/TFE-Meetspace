@@ -117,6 +117,8 @@ class ParkingCapacityServiceTest {
         ParkingSlot largeEvent = slot(1L, 150, LocalTime.of(9, 0), LocalTime.of(14, 0), 10);
         ParkingSlot smallerEvent = slot(2L, 100, LocalTime.of(11, 0), LocalTime.of(15, 0), 10);
         List<Long> slotIds = List.of(1L, 2L);
+        when(slotRepository.findOpenOverlappingSlotsForTargets(slotIds))
+                .thenReturn(List.of(largeEvent, smallerEvent));
         when(reservationRepository.sumReservedSpacesByParkingSlotIds(slotIds))
                 .thenReturn(List.of(reservedSpaces(1L, 12L), reservedSpaces(2L, 4L)));
 
@@ -127,8 +129,53 @@ class ParkingCapacityServiceTest {
         assertEquals(56, snapshots.get(2L).availableSpaces());
         assertEquals(134, snapshots.get(1L).globalRemainingSpaces());
         verify(reservationRepository, times(1)).sumReservedSpacesByParkingSlotIds(slotIds);
+        verify(slotRepository, times(1)).findOpenOverlappingSlotsForTargets(slotIds);
         verify(slotRepository, never()).findOpenOverlappingSlots(
                 largeEvent.getSessionDate(), largeEvent.getStartTime(), largeEvent.getEndTime());
+    }
+
+    @Test
+    void includesAnOverlappingSlotAbsentFromTheCatalog() {
+        ParkingSlot visible = slot(1L, 150, LocalTime.of(10, 0), LocalTime.of(14, 0), 10);
+        ParkingSlot hidden = slot(2L, 150, LocalTime.of(9, 0), LocalTime.of(12, 0), 10);
+        assertHiddenOccupantIsIncluded(visible, hidden);
+    }
+
+    @Test
+    void includesAnAlreadyStartedSlotStillOccupyingTheParking() {
+        ParkingSlot visible = slot(1L, 150, LocalTime.of(12, 0), LocalTime.of(23, 0), 0);
+        ParkingSlot started = slot(2L, 150, LocalTime.MIDNIGHT, LocalTime.of(23, 0), 0);
+        assertHiddenOccupantIsIncluded(visible, started);
+    }
+
+    @Test
+    void includesIndependentParkingWithoutAnEvent() {
+        ParkingSlot visible = slot(1L, 150, LocalTime.of(10, 0), LocalTime.of(14, 0), 10);
+        ParkingSlot independent = slot(2L, 150, LocalTime.of(9, 0), LocalTime.of(15, 0), 10);
+        independent.setEvent(null);
+        assertHiddenOccupantIsIncluded(visible, independent);
+    }
+
+    private void assertHiddenOccupantIsIncluded(ParkingSlot visible, ParkingSlot hidden) {
+        when(slotRepository.findOpenOverlappingSlotsForTargets(List.of(1L)))
+                .thenReturn(List.of(visible, hidden));
+        when(reservationRepository.sumReservedSpacesByParkingSlotIds(List.of(1L, 2L)))
+                .thenReturn(List.of(reservedSpaces(2L, 100L)));
+        var snapshots = service.snapshots(List.of(visible));
+        assertEquals(1, snapshots.size(), "Le catalogue ne doit pas exposer les occupants caches");
+        var snapshot = snapshots.get(1L);
+        assertEquals(75, snapshot.allocatedSpaces());
+        assertEquals(100, snapshot.reservedForWindow());
+        assertEquals(50, snapshot.availableSpaces());
+        assertEquals(50, snapshot.globalRemainingSpaces());
+        verify(slotRepository, times(1)).findOpenOverlappingSlotsForTargets(List.of(1L));
+        verify(reservationRepository, times(1)).sumReservedSpacesByParkingSlotIds(List.of(1L, 2L));
+
+        when(slotRepository.findOpenOverlappingSlots(visible.getSessionDate(), visible.getStartTime(), visible.getEndTime()))
+                .thenReturn(List.of(visible, hidden));
+        when(reservationRepository.countReservedSpacesForWindow(visible.getSessionDate(), visible.getStartTime(), visible.getEndTime()))
+                .thenReturn(100);
+        assertEquals(service.snapshot(visible), snapshot, "Le calcul groupe doit correspondre au calcul individuel");
     }
 
     private ParkingReservationRepository.ReservedSpacesBySlot reservedSpaces(Long slotId, Long spaces) {

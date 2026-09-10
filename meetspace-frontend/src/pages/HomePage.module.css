@@ -855,3 +855,9 @@
     border-radius: 17px;
   }
 }
+.simpleState button {
+  color: #fff;
+  background: var(--brand);
+  padding: 0.7rem 1rem;
+  min-height: 44px;
+}

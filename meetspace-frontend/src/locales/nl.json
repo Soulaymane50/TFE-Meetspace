@@ -226,6 +226,7 @@
                    "loading":  "Laden...",
                    "error":  "Er is een fout opgetreden",
                    "retry":  "Opnieuw proberen",
+                   "catalogLoadError": "Deze catalogus kan momenteel niet worden geladen. Probeer het opnieuw.",
                    "save":  "Opslaan",
                    "cancel":  "Annuleren",
                    "delete":  "Verwijderen",

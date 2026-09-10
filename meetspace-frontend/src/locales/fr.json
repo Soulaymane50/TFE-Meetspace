@@ -226,6 +226,7 @@
         "loading": "Chargement...",
         "error": "Une erreur est survenue",
         "retry": "Réessayer",
+        "catalogLoadError": "Impossible de charger ce catalogue pour le moment. Veuillez réessayer.",
         "save": "Enregistrer",
         "cancel": "Annuler",
         "delete": "Supprimer",
