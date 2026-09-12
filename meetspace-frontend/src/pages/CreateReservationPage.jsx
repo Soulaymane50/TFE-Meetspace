@@ -26,6 +26,9 @@ function getBookingPrefill(searchParams) {
   const valid = Boolean(
     selectedDay &&
     !Number.isNaN(selectedDay.getTime()) &&
+    selectedDay.getFullYear() === Number(date.slice(0, 4)) &&
+    selectedDay.getMonth() + 1 === Number(date.slice(5, 7)) &&
+    selectedDay.getDate() === Number(date.slice(8, 10)) &&
     selectedDay >= today &&
     /^([01]\d|2[0-1]):00$/.test(start) &&
     BOOKING_DURATIONS.includes(duration) &&
@@ -57,6 +60,7 @@ export default function CreateReservationPage() {
   const [endTime, setEndTime] = useState(prefill.end);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [showPayment, setShowPayment] = useState(false);
   const [creatingReservation, setCreatingReservation] = useState(false);
   const [justification, setJustification] = useState("");
@@ -72,15 +76,18 @@ export default function CreateReservationPage() {
       return;
     }
 
+    let active = true;
     getEspaces()
       .then((list) => {
+        if (!active) return;
         const found = list.find((entry) => String(entry.id) === String(espaceId));
         setEspace(found || null);
         if (!found) setError(t("spaces.notFound"));
       })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [user, token, espaceId, navigate, t, location.pathname, location.search]);
+      .catch(() => { if (active) setError(t("common.catalogLoadError")); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [user, token, espaceId, navigate, t, location.pathname, location.search, loadAttempt]);
 
   const calculateHours = () => {
     if (!selectedDate || !startTime || !endTime) return 1;
@@ -120,7 +127,7 @@ export default function CreateReservationPage() {
       return false;
     }
 
-    if (!scheduleValid) {
+    if (!scheduleValid || new Date(`${selectedDate}T${startTime}`) <= new Date()) {
       setError(slotUnavailableMessage);
       return false;
     }
@@ -186,7 +193,7 @@ export default function CreateReservationPage() {
       });
       navigate("/my-reservations?tab=spaces");
     } catch (err) {
-      setError(err.message);
+      setError(t(err.status === 409 ? "reservation.slotUnavailable" : "reservation.operationFailed"));
     } finally {
       setCreatingReservation(false);
     }
@@ -220,7 +227,7 @@ export default function CreateReservationPage() {
       });
       navigate("/my-reservations?tab=spaces");
     } catch (err) {
-      setError(err.message);
+      setError(t(err.status === 409 ? "reservation.slotUnavailable" : "reservation.operationFailed"));
       setShowPayment(false);
     } finally {
       setCreatingReservation(false);
@@ -241,7 +248,9 @@ export default function CreateReservationPage() {
   }
 
   if (error && !espace) {
-    return <PageState type="error" title={t("common.error")} message={error} />;
+    return <PageState type="error" title={t("common.error")} message={error} action={
+      <button type="button" onClick={() => { setError(""); setLoading(true); setLoadAttempt((attempt) => attempt + 1); }}>{t("common.retry")}</button>
+    } />;
   }
 
   const selectedRange = selectedDate && startTime && endTime ? `${selectedDate} - ${startTime} - ${endTime}` : t("calendar.selectTime");
@@ -438,10 +447,11 @@ export default function CreateReservationPage() {
 
               {isPremiumRoom && (
                 <div className={styles.justificationSection}>
-                  <label className={styles.justificationLabel}>
+                  <label htmlFor="reservation-justification" className={styles.justificationLabel}>
                     {t("reservation.justificationLabel")} <span className={styles.required}>*</span>
                   </label>
                   <textarea
+                    id="reservation-justification"
                     value={justification}
                     onChange={(e) => setJustification(e.target.value)}
                     placeholder={t("reservation.justificationPlaceholder")}

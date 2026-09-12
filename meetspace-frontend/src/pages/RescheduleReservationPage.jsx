@@ -12,7 +12,7 @@ import styles from "./RescheduleReservationPage.module.css";
 
 function durationHours(start, end) {
   const minutes = (new Date(end).getTime() - new Date(start).getTime()) / 60_000;
-  return Math.max(1, Math.round(minutes / 60));
+  return minutes / 60;
 }
 
 export default function RescheduleReservationPage() {
@@ -37,10 +37,10 @@ export default function RescheduleReservationPage() {
         setSchedule({
           startDateTime: data.startDateTime,
           endDateTime: data.endDateTime,
-          available: true,
+          available: false,
         });
       })
-      .catch((err) => !cancelled && setError(err.message))
+      .catch(() => !cancelled && setError("reservation.operationFailed"))
       .finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
   }, [id, token]);
@@ -67,14 +67,14 @@ export default function RescheduleReservationPage() {
       });
       navigate("/my-reservations?tab=spaces");
     } catch (err) {
-      notify({ type: "error", title: t("common.error"), message: err.message });
+      notify({ type: "error", title: t("common.error"), message: t(err.status === 409 ? "reservation.slotUnavailable" : "reservation.operationFailed") });
     } finally {
       setSaving(false);
     }
   };
 
   if (loading) return <PageState type="loading" title={t("common.loading")} message={t("reservation.reschedule", { defaultValue: "Modifier le créneau" })} />;
-  if (error || !reservation) return <PageState type="error" title={t("common.error")} message={error || t("reservation.notFound", { defaultValue: "Réservation introuvable" })} action={<Link to="/my-reservations">{t("common.back", { defaultValue: "Retour" })}</Link>} />;
+  if (error || !reservation) return <PageState type="error" title={t("common.error")} message={error ? t(error) : t("reservation.notFound", { defaultValue: "Réservation introuvable" })} action={<Link to="/my-reservations">{t("common.back", { defaultValue: "Retour" })}</Link>} />;
 
   return (
     <div className={styles.container}>
@@ -100,6 +100,8 @@ export default function RescheduleReservationPage() {
           endDateTime={schedule.endDateTime}
           onChange={handleScheduleChange}
           ignoreBlockId={reservation.id}
+          ignoreBlockType="RESERVATION"
+          minimumStartDateTime={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()}
           lockedDuration={duration}
         />
         <footer className={styles.actions}>

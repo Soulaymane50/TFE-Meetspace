@@ -610,6 +610,7 @@
   },
 
   "reservation": {
+    "operationFailed": "This reservation could not be processed. Check its status in your reservations before trying again.",
     "newReservation": "New room reservation",
     "myReservations": "My room reservations",
     "startDate": "Start date",
@@ -669,6 +670,8 @@
   },
 
   "calendar": {
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
     "mon": "Mon",
     "tue": "Tue",
     "wed": "Wed",

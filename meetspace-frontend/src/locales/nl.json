@@ -605,6 +605,7 @@
                       "PREMIUM_ROOM":  "Premium conferentieruimte"
                   },
     "reservation":  {
+                        "operationFailed": "Deze reservering kon niet worden verwerkt. Controleer de status bij uw reserveringen voordat u opnieuw probeert.",
                         "newReservation":  "Nieuwe zaalreservering",
                         "myReservations":  "Mijn zaalreserveringen",
                         "startDate":  "Startdatum",
@@ -662,6 +663,8 @@
                     "accountLabel": "Persoonlijke ruimte"
                  },
     "calendar":  {
+                     "previousMonth": "Vorige maand",
+                     "nextMonth": "Volgende maand",
                      "mon":  "Ma",
                      "tue":  "Di",
                      "wed":  "Wo",

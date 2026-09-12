@@ -605,6 +605,7 @@
     "PREMIUM_ROOM": "Salle de conférence premium"
   },
     "reservation": {
+        "operationFailed": "Impossible de traiter cette réservation. Vérifiez son état dans vos réservations avant de réessayer.",
         "newReservation": "Nouvelle réservation de salle",
         "myReservations": "Mes réservations de salles",
         "startDate": "Date de début",
@@ -659,6 +660,8 @@
         "accountLabel": "Espace personnel"
     },
     "calendar": {
+        "previousMonth": "Mois précédent",
+        "nextMonth": "Mois suivant",
         "mon": "Lun",
         "tue": "Mar",
         "wed": "Mer",

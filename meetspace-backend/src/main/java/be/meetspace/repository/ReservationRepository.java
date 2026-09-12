@@ -39,7 +39,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT COUNT(r) > 0 FROM Reservation r " +
            "WHERE r.espace.id = :espaceId " +
-           "AND r.status != 'CANCELLED' " +
+           "AND r.status NOT IN ('CANCELLED', 'REJECTED') " +
            "AND r.startDateTime < :endDateTime " +
            "AND r.endDateTime > :startDateTime")
     boolean existsOverlappingReservation(
@@ -51,7 +51,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Query("SELECT COUNT(r) > 0 FROM Reservation r " +
            "WHERE r.espace.id = :espaceId " +
            "AND r.id != :reservationId " +
-           "AND r.status != 'CANCELLED' " +
+           "AND r.status NOT IN ('CANCELLED', 'REJECTED') " +
            "AND r.startDateTime < :endDateTime " +
            "AND r.endDateTime > :startDateTime")
     boolean existsOverlappingReservationExcludingId(
@@ -63,7 +63,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT r FROM Reservation r " +
            "WHERE r.espace.id = :espaceId " +
-           "AND r.status != 'CANCELLED' " +
+           "AND r.status NOT IN ('CANCELLED', 'REJECTED') " +
            "AND r.startDateTime < :endDateTime " +
            "AND r.endDateTime > :startDateTime")
     List<Reservation> findOverlappingReservations(
@@ -74,7 +74,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT r FROM Reservation r " +
            "WHERE r.espace.id = :espaceId " +
-           "AND r.status != 'CANCELLED' " +
+           "AND r.status NOT IN ('CANCELLED', 'REJECTED') " +
            "AND r.startDateTime < :endDateTime " +
            "AND r.endDateTime > :startDateTime " +
            "ORDER BY r.startDateTime")

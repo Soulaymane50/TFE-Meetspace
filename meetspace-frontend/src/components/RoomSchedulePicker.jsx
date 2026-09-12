@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getEspaceReservationsForCalendar } from "../services/api";
+import { isCalendarRangeAvailable, isIgnoredCalendarBlock, localTimeAtHour } from "../utils/scheduleValidation";
 import styles from "./RoomSchedulePicker.module.css";
 
 const OPENING_HOUR = 7;
@@ -12,12 +13,12 @@ function pad(value) {
 }
 
 function toLocalDateTime(dateKey, hour) {
-  return `${dateKey}T${pad(hour)}:00`;
+  return localTimeAtHour(dateKey, hour);
 }
 
 function getHourFromDateTime(value) {
   if (!value || value.length < 13) return null;
-  const hour = Number(value.slice(11, 13));
+  const hour = Number(value.slice(11, 13)) + Number(value.slice(14, 16) || 0) / 60;
   return Number.isFinite(hour) ? hour : null;
 }
 
@@ -35,6 +36,8 @@ export default function RoomSchedulePicker({
   endDateTime,
   onChange,
   ignoreBlockId,
+  ignoreBlockType = "EVENT",
+  minimumStartDateTime,
   lockedDuration,
 }) {
   const { t, i18n } = useTranslation();
@@ -44,6 +47,7 @@ export default function RoomSchedulePicker({
   const [manualSelectedDate, setManualSelectedDate] = useState("");
   const [durationOverride, setDurationOverride] = useState(null);
   const reportedPrefillRef = useRef("");
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
@@ -73,7 +77,8 @@ export default function RoomSchedulePicker({
     getEspaceReservationsForCalendar(spaceId, year, month)
       .then((data) => {
         if (!cancelled) {
-          const items = Array.isArray(data) ? data : [];
+          if (!Array.isArray(data)) throw new Error("INVALID_CALENDAR_RESPONSE");
+          const items = data;
           setReservationBucket({
             key: reservationKey,
             items,
@@ -94,7 +99,7 @@ export default function RoomSchedulePicker({
     return () => {
       cancelled = true;
     };
-  }, [spaceId, year, month, reservationKey]);
+  }, [spaceId, year, month, reservationKey, retryAttempt]);
 
   const monthFormatter = useMemo(() => new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }), [locale]);
   const selectedDateFormatter = useMemo(
@@ -108,11 +113,7 @@ export default function RoomSchedulePicker({
 
     return reservations
       .filter((reservation) => {
-        if (
-          ignoreBlockId &&
-          reservation.blockType === "EVENT" &&
-          Number(reservation.id) === Number(ignoreBlockId)
-        ) return false;
+        if (isIgnoredCalendarBlock(reservation, ignoreBlockId, ignoreBlockType)) return false;
         const start = new Date(reservation.startDateTime);
         const end = new Date(reservation.endDateTime);
         return start < dayEnd && end > dayStart;
@@ -124,18 +125,18 @@ export default function RoomSchedulePicker({
   };
 
   const isRangeBlocked = (dateKey, hour, slotDuration) => {
-    const slotStart = new Date(`${dateKey}T${pad(hour)}:00:00`);
-    const slotEnd = new Date(`${dateKey}T${pad(hour + slotDuration)}:00:00`);
+    const slotStart = new Date(toLocalDateTime(dateKey, hour));
+    const slotEnd = new Date(toLocalDateTime(dateKey, hour + slotDuration));
     return getBlocksForDate(dateKey).some((block) => block.start < slotEnd && block.end > slotStart);
   };
 
   const isPastRange = (dateKey, hour) => {
-    const slotStart = new Date(`${dateKey}T${pad(hour)}:00:00`);
-    return slotStart <= new Date();
+    const slotStart = new Date(toLocalDateTime(dateKey, hour));
+    return slotStart <= (minimumStartDateTime ? new Date(minimumStartDateTime) : new Date());
   };
 
   const isSlotAvailable = (dateKey, hour, slotDuration = duration) => {
-    if (!calendarReady || !dateKey || hour < OPENING_HOUR || hour + slotDuration > CLOSING_HOUR) return false;
+    if (!calendarReady || !dateKey || dateKey.slice(0, 7) !== `${year}-${pad(month)}` || hour < OPENING_HOUR || hour + slotDuration > CLOSING_HOUR) return false;
     return !isPastRange(dateKey, hour) && !isRangeBlocked(dateKey, hour, slotDuration);
   };
 
@@ -146,7 +147,7 @@ export default function RoomSchedulePicker({
   const getDayStatus = (dateKey) => {
     if (!calendarReady) return "loading";
 
-    const possibleStarts = CLOSING_HOUR - OPENING_HOUR - duration + 1;
+    const possibleStarts = Math.floor(CLOSING_HOUR - OPENING_HOUR - duration + 1);
     const availableStarts = getAvailableStarts(dateKey, duration).length;
     if (availableStarts === 0) return "full";
     if (availableStarts === possibleStarts) return "available";
@@ -198,26 +199,16 @@ export default function RoomSchedulePicker({
   const selectedAvailableCount = selectedDate ? getAvailableStarts(selectedDate, duration).length : 0;
 
   useEffect(() => {
-    if (!calendarReady || !startDateTime || !endDateTime || selectedStartHour === null || selectedEndHour === null) return;
-    const rangeDuration = selectedEndHour - selectedStartHour;
-    const slotStart = new Date(`${selectedDate}T${pad(selectedStartHour)}:00:00`);
-    const slotEnd = new Date(`${selectedDate}T${pad(selectedEndHour)}:00:00`);
-    const blocked = reservations.some((reservation) => {
-      if (
-        ignoreBlockId &&
-        reservation.blockType === "EVENT" &&
-        Number(reservation.id) === Number(ignoreBlockId)
-      ) return false;
-      const start = new Date(reservation.startDateTime);
-      const end = new Date(reservation.endDateTime);
-      return start < slotEnd && end > slotStart;
+    if (!startDateTime || !endDateTime) return;
+    const available = calendarReady && isCalendarRangeAvailable({
+      startDateTime, endDateTime, year, month, blocks: reservations,
+      ignoreBlockId, ignoreBlockType, earliestStart: minimumStartDateTime || Date.now(),
     });
-    const available = rangeDuration > 0 && selectedStartHour >= OPENING_HOUR && selectedEndHour <= CLOSING_HOUR && slotEnd > new Date() && !blocked;
-    const reportKey = `${startDateTime}|${endDateTime}|${available}`;
+    const reportKey = `${reservationKey}|${startDateTime}|${endDateTime}|${available}`;
     if (reportedPrefillRef.current === reportKey) return;
     reportedPrefillRef.current = reportKey;
     onChange({ startDateTime, endDateTime, available });
-  }, [calendarReady, endDateTime, ignoreBlockId, onChange, reservations, selectedDate, selectedEndHour, selectedStartHour, startDateTime]);
+  }, [calendarReady, endDateTime, ignoreBlockId, ignoreBlockType, minimumStartDateTime, month, onChange, reservationKey, reservations, startDateTime, year]);
 
   if (!spaceId) {
     return (
@@ -242,11 +233,11 @@ export default function RoomSchedulePicker({
           </p>
         </div>
         <div className={styles.monthControls}>
-          <button type="button" onClick={() => setCurrentDate(new Date(year, month - 2, 1))}>
+          <button type="button" aria-label={t("calendar.previousMonth")} onClick={() => setCurrentDate(new Date(year, month - 2, 1))}>
             ←
           </button>
           <strong>{monthFormatter.format(currentDate)}</strong>
-          <button type="button" onClick={() => setCurrentDate(new Date(year, month, 1))}>
+          <button type="button" aria-label={t("calendar.nextMonth")} onClick={() => setCurrentDate(new Date(year, month, 1))}>
             →
           </button>
         </div>
@@ -255,7 +246,13 @@ export default function RoomSchedulePicker({
       <div className={styles.contentGrid}>
         <div className={styles.calendarPanel}>
           {calendarLoading && !calendarError && <div className={styles.loading}>{t("availabilityFinder.checking")}</div>}
-          {calendarError && <div className={styles.loadingError}>{t("availabilityFinder.error")}</div>}
+          {calendarError && <div className={styles.loadingError} role="alert">
+            <p>{t("availabilityFinder.error")}</p>
+            <button type="button" onClick={() => {
+              setReservationBucket({ key: "", items: [], failed: false });
+              setRetryAttempt((attempt) => attempt + 1);
+            }}>{t("common.retry")}</button>
+          </div>}
           <div className={styles.weekGrid}>
             {weekDays.map((day) => (
               <span key={day}>{day}</span>
