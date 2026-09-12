@@ -24,6 +24,12 @@ Le produit couvre quatre usages distincts : la consultation publique, la réserv
 
 Les sections salles et événements de l’accueil se chargent indépendamment. Les lectures des catalogues publics et du calendrier des salles sont limitées à 15 secondes ; les appels identiques simultanés sont regroupés, sans conserver les disponibilités en cache après leur réponse. Un échec de chargement de l’accueil ou du parking affiche un message et permet de réessayer.
 
+### Disponibilités et conservation des réservations
+
+Les réservations annulées ou refusées libèrent la salle. Les autres statuts continuent à bloquer les chevauchements. Le calendrier vérifie les horaires à la minute, conserve la durée exacte lors d'un déplacement et désactive la validation tant que les disponibilités du mois affiché ne sont pas chargées. Un chargement invalide affiche une erreur avec possibilité de réessayer.
+
+Une publication administrative respecte aussi l'acompte requis pour les événements payants créés par un organisateur. Le paiement du solde exige un événement publié. La suppression d'un événement avec des inscriptions ou des paiements est refusée pour préserver son historique ; un créneau de parking avec des réservations clientes est également conservé. Les seuls accès organisateur gratuits, sans paiement, peuvent être supprimés avec leur créneau.
+
 ## Rôles
 
 | Rôle | Responsabilités |
