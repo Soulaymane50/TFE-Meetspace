@@ -87,7 +87,8 @@ public class EventBillingService {
     @Transactional
     public Event payBalance(Long eventId, String paymentIntentId, User organizer) {
         Event event = ownedEventForUpdate(eventId, organizer);
-        if (event.getDepositPaidAt() == null || event.getBalancePaidAt() != null || event.getBalanceDueCents() <= 0L) {
+        if (event.getStatus() != EventStatus.PUBLISHED || event.getDepositPaidAt() == null
+                || event.getBalancePaidAt() != null || event.getBalanceDueCents() <= 0L) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce solde n'est pas payable.");
         }
         if (event.getSettlementDueAt() != null && !event.getSettlementDueAt().isAfter(LocalDateTime.now())) {
@@ -133,6 +134,17 @@ public class EventBillingService {
         event.setPayoutAmountCents(Math.max(0L, grossRevenue - commission - unpaidBalance - lateFee));
         event.setSettlementStatus("READY_FOR_PAYOUT");
         eventRepository.save(event);
+    }
+
+    public void validatePaymentForPublication(Event event) {
+        if (event.getDepositPaidAt() != null || event.getSpace() == null
+                || (event.getCreatedBy() != null && event.getCreatedBy().getRole() == be.meetspace.entity.Role.ADMIN)) {
+            return;
+        }
+        if (quoteService.calculateRoomPriceCents(event.getSpace(), event.getStartDateTime(), event.getEndDateTime()) > 0L) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "L'acompte doit être payé après approbation avant de publier cet événement.");
+        }
     }
 
     private Event ownedEventForUpdate(Long eventId, User organizer) {

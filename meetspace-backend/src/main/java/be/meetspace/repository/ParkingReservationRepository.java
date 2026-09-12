@@ -64,10 +64,19 @@ public interface ParkingReservationRepository extends JpaRepository<ParkingReser
             ParkingReservationStatus status
     );
 
-    @Modifying
     @Transactional
-    @Query("DELETE FROM ParkingReservation gr WHERE gr.parkingSlot.id = :parkingSlotId")
-    void deleteByParkingSlotId(@Param("parkingSlotId") Long parkingSlotId);
+    default void deleteByParkingSlotId(Long parkingSlotId) {
+        List<ParkingReservation> reservations = findByParkingSlotId(parkingSlotId);
+        if (reservations.stream().anyMatch(reservation -> !reservation.isComplimentary()
+                || reservation.getPaymentIntentId() != null
+                || (reservation.getTotalPrice() != null && reservation.getTotalPrice() > 0D))) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT,
+                    "Ce créneau possède un historique de réservations. Annulez-le plutôt que de le supprimer.");
+        }
+        // La suppression JPQL en masse contourne la cascade ORM des laissez-passer.
+        deleteAll(reservations);
+        flush();
+    }
 
     @Query("SELECT COUNT(gr) FROM ParkingReservation gr WHERE gr.status = :status")
     long countByStatus(@Param("status") ParkingReservationStatus status);

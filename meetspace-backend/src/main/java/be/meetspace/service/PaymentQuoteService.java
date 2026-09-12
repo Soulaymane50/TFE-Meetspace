@@ -135,7 +135,7 @@ public class PaymentQuoteService {
             }
             return event.getDepositAmountCents();
         }
-        if (event.getDepositPaidAt() == null || event.getBalancePaidAt() != null) {
+        if (event.getStatus() != EventStatus.PUBLISHED || event.getDepositPaidAt() == null || event.getBalancePaidAt() != null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce solde n'est pas payable.");
         }
         return event.getBalanceDueCents();

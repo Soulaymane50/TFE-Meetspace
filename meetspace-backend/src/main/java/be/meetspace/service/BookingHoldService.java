@@ -183,7 +183,7 @@ public class BookingHoldService {
             if (event.getDepositDueAt() != null && !event.getDepositDueAt().isAfter(LocalDateTime.now())) {
                 throw conflict("Le délai de paiement de l'acompte est expiré.");
             }
-        } else if (event.getDepositPaidAt() == null || event.getBalancePaidAt() != null
+        } else if (event.getStatus() != EventStatus.PUBLISHED || event.getDepositPaidAt() == null || event.getBalancePaidAt() != null
                 || (event.getSettlementDueAt() != null && !event.getSettlementDueAt().isAfter(LocalDateTime.now()))) {
             throw badRequest("Ce solde n'est plus payable en ligne.");
         }

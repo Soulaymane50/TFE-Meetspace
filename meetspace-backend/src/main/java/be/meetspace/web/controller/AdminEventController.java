@@ -217,6 +217,7 @@ public class AdminEventController {
         try {
             EventStatus newStatus = EventStatus.valueOf(status.toUpperCase());
             if (newStatus == EventStatus.PUBLISHED && event.getStatus() != EventStatus.PUBLISHED) {
+                eventBillingService.validatePaymentForPublication(event);
                 eventPlanningService.validateAvailabilityForPublication(event);
             }
             event.setStatus(newStatus);
@@ -249,8 +250,15 @@ public class AdminEventController {
     @DeleteMapping("/{id}")
     @Transactional
     public void deleteEvent(@PathVariable Long id, HttpServletRequest httpRequest) {
-        Event event = eventRepository.findById(id)
+        Event event = eventRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evenement introuvable"));
+
+        if (event.getDepositPaidAt() != null || event.getBalancePaidAt() != null
+                || event.getDepositPaymentIntentId() != null || event.getBalancePaymentIntentId() != null
+                || !registrationRepository.findByEventId(id).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cet événement possède un historique d'inscriptions ou de paiements. Annulez-le plutôt que de le supprimer.");
+        }
 
         String eventTitle = event.getTitle();
 

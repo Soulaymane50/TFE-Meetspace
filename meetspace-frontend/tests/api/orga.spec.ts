@@ -29,7 +29,7 @@ test.describe("API Organizer flows", () => {
     orgaToken = await loginToken(request, ORGA_EMAIL, ORGA_PASSWORD);
   });
 
-  test("Organizer creates event and admin approves it", async ({ request }) => {
+  test("Organizer approval requires a deposit before publication", async ({ request }) => {
     const suffix = Date.now();
     const start = isoDateTime(20);
     const end = isoDateTime(22);
@@ -41,7 +41,15 @@ test.describe("API Organizer flows", () => {
     expect(orgaEvent.status).toBe("PENDING_APPROVAL");
 
     const approved = await adminApproveEvent(request, adminToken, orgaEvent.id);
-    expect(approved.status).toBe("PUBLISHED");
+    expect(approved.status).toBe("AWAITING_DEPOSIT");
+    expect(approved.depositAmountCents).toBeGreaterThan(0);
+    expect(approved.depositPaidAt).toBeFalsy();
+    const apiUrl = process.env.API_URL || "http://localhost:8080";
+    const publicDetail = await request.get(`${apiUrl}/api/public/events/${orgaEvent.id}`);
+    expect(publicDetail.status()).toBe(404);
+    const publicList = await request.get(`${apiUrl}/api/public/events`);
+    expect(publicList.ok()).toBeTruthy();
+    expect((await publicList.json()).some((event: { id: number }) => event.id === orgaEvent.id)).toBe(false);
 
     await adminDeleteEvent(request, adminToken, orgaEvent.id);
     await adminDeleteEspace(request, adminToken, espace.id);

@@ -3,8 +3,6 @@ import {
   adminCreateEspace,
   adminCreateEvent,
   adminCreateParkingSlot,
-  adminDeleteEspace,
-  adminDeleteEvent,
   adminDeleteParkingSlot,
   adminEnsureRole,
   isoDate,
@@ -48,8 +46,15 @@ test.describe("API User flows", () => {
     });
     expect(registration.id).toBeTruthy();
 
-    await adminDeleteEvent(request, adminToken, event.id);
-    await adminDeleteEspace(request, adminToken, espace.id);
+    const deletion = await request.delete(`${API_URL}/api/admin/events/${event.id}`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(deletion.status()).toBe(409);
+    const ticketsResponse = await request.get(`${API_URL}/api/public/events/registrations/me`, {
+      headers: { Authorization: `Bearer ${userToken}` },
+    });
+    expect(ticketsResponse.ok()).toBeTruthy();
+    expect((await ticketsResponse.json()).some((ticket: { id: number }) => ticket.id === registration.id)).toBe(true);
   });
 
   test("User reserves a free parking slot without a payment intent", async ({ request }) => {
@@ -76,7 +81,15 @@ test.describe("API User flows", () => {
       expect(reservation.id).toBeTruthy();
       expect(reservation.totalPrice).toBe(0);
     } finally {
-      await adminDeleteParkingSlot(request, adminToken, parkingSlot.id);
+      const deletion = await request.delete(`${API_URL}/api/admin/parking/sessions/${parkingSlot.id}`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      expect(deletion.status()).toBe(409);
+      const bookings = await request.get(`${API_URL}/api/public/parking/reservations/me`, {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+      expect(bookings.ok()).toBeTruthy();
+      expect((await bookings.json()).some((booking: { parkingSlotId: number }) => booking.parkingSlotId === parkingSlot.id)).toBe(true);
     }
   });
 
