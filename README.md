@@ -216,7 +216,19 @@ set E2E_ADMIN_PASSWORD=MeetSpaceDemo!2026
 npm test
 ```
 
-La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La suite actuelle comporte 49 tests backend et 45 cas Playwright exécutables : 7 scénarios API et 38 scénarios navigateur, parcours métier et accessibilité.
+La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La suite comprend 169 tests backend et 71 cas Playwright : 7 scénarios API et 64 scénarios navigateur, parcours métier et accessibilité. Les tests Node complètent la validation des lectures HTTP, des disponibilités et du paiement. Les scénarios financiers utilisent un adaptateur de paiement simulé ; leur réussite ne remplace pas une recette Stripe en mode test.
+
+## Disponibilités, statuts et remboursements
+
+Une journée disponible contient au moins un départ possible pour la durée sélectionnée ; elle peut aussi contenir des périodes occupées. Le calendrier distingue les réservations et événements bloquants, les créneaux limités et les réponses indisponibles. Une réponse invalide ne devient pas une journée libre. Les lectures privées et la sonde de santé disposent également d'un délai et d'une issue explicite.
+
+Le formulaire administrateur crée par défaut un événement en attente d'approbation. Son statut est transmis lors de la création et de la modification, avec les mêmes contrôles que la route dédiée. Une annulation est définitive ; un événement publié ne retourne pas en attente. La publication d'un événement organisateur respecte son approbation et son acompte. Les champs financiers détaillés ne sont pas exposés dans les réponses publiques.
+
+Les réservations et les blocages temporaires de paiement partagent l'inventaire de parking. La finalisation exclut uniquement le blocage correspondant au paiement, à son propriétaire et au créneau exact. Le contrôle des QR et les annulations prennent le même premier verrou afin de terminer sans conflit circulaire. Un créneau déjà vendu ne peut pas être déplacé ; les modifications d'allocation pendant un paiement actif sont refusées. Le parking d'un événement interne reste limité à une journée.
+
+La migration Flyway V11 ajoute un journal durable des remboursements. Une tentative conserve sa clé d'opération et son état même si l'écriture de réservation échoue. Les montants remboursés correspondent aux confirmations du prestataire ; une demande en cours ou échouée reste identifiable. L'annulation par le prestataire vise le remboursement complet restant, sans appliquer de nouveau le barème d'annulation du client. Les reprises ne dépassent pas le montant payé.
+
+Le point d'entrée Stripe vérifie les signatures et traite aussi `refund.created`, `refund.updated` et `refund.failed`. Ces événements doivent être configurés sur le webhook de l'environnement utilisé. La compensation des paiements réussis sans réservation et les reprises sont idempotentes. Aucun mode de paiement fictif ne doit être activé en production.
 
 ## Déploiement
 
