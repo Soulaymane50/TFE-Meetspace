@@ -1,3 +1,5 @@
+import { privateRead } from "../services/privateRead";
+import { apiErrorMessage } from "../utils/apiErrors";
 import { useEffect, useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
@@ -110,7 +112,7 @@ function CheckoutForm({ amount, description, reservationType, metadata, onSucces
         } catch {
           if (text) errorMessage = text;
         }
-        throw new Error(errorMessage);
+        throw new Error(apiErrorMessage(errorMessage, response.status, t));
       }
 
       const { clientSecret } = await response.json();
@@ -127,7 +129,7 @@ function CheckoutForm({ amount, description, reservationType, metadata, onSucces
         onSuccess(result.paymentIntent.id);
       }
     } catch (err) {
-      setError(err.message);
+      setError(apiErrorMessage(err.code || err.message, err.status, t));
     } finally {
       setLoading(false);
     }
@@ -403,7 +405,7 @@ export default function PaymentForm({ stripePublicKey, token, ...props }) {
     }
 
     const controller = new AbortController();
-    fetch(`${API_URL}/payments/config`, {
+    privateRead(`${API_URL}/payments/config`, {
       headers: { Authorization: `Bearer ${token}` },
       signal: controller.signal,
     })

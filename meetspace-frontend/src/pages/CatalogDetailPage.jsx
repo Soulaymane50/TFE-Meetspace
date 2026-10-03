@@ -96,8 +96,9 @@ export default function CatalogDetailPage({ type }) {
           ? t("detail.placesAvailable", { count: available, defaultValue: `${available} places disponibles` })
           : t("events.full"),
         available: available > 0,
+        canJoinWaitlist: available <= 0,
         cta: `/events/register/${item.id}`,
-        ctaLabel: user ? t("events.register") : t("events.loginToRegister"),
+        ctaLabel: available <= 0 ? t("events.ctaWaitlist") : user ? t("events.register") : t("events.loginToRegister"),
         start,
         end,
         location: item.location || t("common.toBeAnnounced"),
@@ -230,10 +231,10 @@ export default function CatalogDetailPage({ type }) {
           <h2>{model.available
             ? t("detail.bookTitle", { defaultValue: "Planifiez votre venue" })
             : t("detail.fullTitle", { defaultValue: "Cette session est complète" })}</h2>
-          <p>{model.available
+          <p>{model.canJoinWaitlist ? t("events.ctaWaitlist") : model.available
             ? t("detail.bookHint", { defaultValue: "Les disponibilités et le montant final seront confirmés avant le paiement." })
             : t("detail.fullHint", { defaultValue: "Revenez au catalogue pour choisir une autre disponibilité." })}</p>
-          {model.available ? (
+          {(model.available || model.canJoinWaitlist) ? (
             <Link to={model.cta} state={{ from: location.pathname }} className={styles.primaryAction}>{model.ctaLabel}</Link>
           ) : (
             <Link to={config.back} className={styles.primaryAction}>{t("detail.seeAlternatives", { defaultValue: "Voir les alternatives" })}</Link>

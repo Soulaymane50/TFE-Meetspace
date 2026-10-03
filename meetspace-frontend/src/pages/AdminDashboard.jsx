@@ -148,6 +148,7 @@ export default function AdminDashboard() {
   const clearUserFilters = () => setSearchParams({ tab: "users" }, { replace: true });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [partialErrors, setPartialErrors] = useState([]);
 
   const [stats, setStats] = useState(null);
   const [financeSummary, setFinanceSummary] = useState(null);
@@ -165,6 +166,7 @@ export default function AdminDashboard() {
   const loadData = useCallback(async () => {
     setLoading(true);
     setError("");
+    setPartialErrors([]);
     try {
       const [
         statsResult,
@@ -205,6 +207,12 @@ export default function AdminDashboard() {
         return;
       }
 
+      setPartialErrors([
+        ["finance", financeResult], ["pendingEvents", pendingEventsResult],
+        ["pendingReservations", pendingReservationsResult], ["events", eventsResult],
+        ["spaceReservations", spaceReservationsResult], ["allReservations", allReservationsResult],
+        ["parking", parkingSlotsResult],
+      ].filter(([, result]) => result.status === "rejected").map(([key]) => key));
       setStats(statsResult.value);
       setFinanceSummary(financeResult.status === "fulfilled" ? financeResult.value : null);
       setUsers(usersResult.value);
@@ -330,7 +338,7 @@ export default function AdminDashboard() {
 
   if (!user || user.role !== "ADMIN") return null;
   if (loading) return <PageState type="loading" title={t("common.loading")} message={t("admin.dashboardSubtitle")} />;
-  if (error) return <PageState type="error" title={t("common.error")} message={error} />;
+  if (error) return <PageState type="error" title={t("common.error")} message={error} actionLabel={t("common.retry")} onAction={loadData} />;
 
   const totalPending = pendingEvents.length + pendingReservations.length;
   const confirmedParkingReservations = stats?.confirmedParkingReservations ?? 0;
@@ -459,22 +467,22 @@ export default function AdminDashboard() {
     {
       icon: "pending",
       label: t("admin.eventsPendingShort"),
-      value: pendingEvents.length,
-      meta: pendingEvents.length > 0 ? t("admin.requiresReview") : t("admin.noImmediateAction"),
+      value: partialErrors.includes("pendingEvents") ? "—" : pendingEvents.length,
+      meta: partialErrors.includes("pendingEvents") ? t("system.unavailableData") : pendingEvents.length > 0 ? t("admin.requiresReview") : t("admin.noImmediateAction"),
       to: "/admin/events",
     },
     {
       icon: "spaces",
       label: t("admin.roomRequestsPendingShort"),
-      value: pendingReservations.length,
-      meta: pendingReservations.length > 0 ? t("admin.requiresReview") : t("admin.noImmediateAction"),
+      value: partialErrors.includes("pendingReservations") ? "—" : pendingReservations.length,
+      meta: partialErrors.includes("pendingReservations") ? t("system.unavailableData") : pendingReservations.length > 0 ? t("admin.requiresReview") : t("admin.noImmediateAction"),
       to: "/admin/espaces",
     },
     {
       icon: "parking",
       label: t("admin.parkingOccupancy"),
-      value: `${formatStat(parkingOccupancy)}%`,
-      meta: t("admin.futureParkingHelp", {
+      value: partialErrors.includes("parking") ? "—" : `${formatStat(parkingOccupancy)}%`,
+      meta: partialErrors.includes("parking") ? t("system.unavailableData") : t("admin.futureParkingHelp", {
         reserved: formatStat(futureParkingReserved),
         capacity: formatStat(futureParkingCapacity),
       }),
@@ -522,7 +530,7 @@ export default function AdminDashboard() {
           <p className={styles.subtitle}>{t("admin.dashboardSubtitle")}</p>
         </div>
         <div className={styles.headerActions}>
-          <button type="button" className={styles.exportButton} onClick={exportCurrentView}>
+          <button type="button" className={styles.exportButton} onClick={exportCurrentView} disabled={activeTab !== "users" && partialErrors.includes("allReservations")}>
             {activeTab === "users"
               ? t("admin.exportUsers", { defaultValue: "Exporter les comptes" })
               : t("admin.exportReservations", { defaultValue: "Exporter les réservations" })}
@@ -533,6 +541,10 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {partialErrors.length > 0 && <section role="alert" className={styles.actionSummary}>
+        <p>{t("system.partialData", { sections: partialErrors.map((key) => t(`auditSections.${key}`)).join(", ") })}</p>
+        <button type="button" onClick={loadData}>{t("common.retry")}</button>
+      </section>}
       {totalPending > 0 && (
         <div className={styles.actionSummary}>
           <div>
@@ -666,7 +678,7 @@ export default function AdminDashboard() {
                     </span>
                   </Link>
                 )) : (
-                  <p className={styles.emptyLine}>{t("admin.noUpcomingEvents")}</p>
+                  <p className={styles.emptyLine}>{t(partialErrors.includes("events") ? "system.unavailableData" : "admin.noUpcomingEvents")}</p>
                 )}
               </div>
             </div>
@@ -690,7 +702,7 @@ export default function AdminDashboard() {
                     </span>
                   </Link>
                 )) : (
-                  <p className={styles.emptyLine}>{t("admin.noUpcomingRooms")}</p>
+                  <p className={styles.emptyLine}>{t(partialErrors.includes("spaceReservations") ? "system.unavailableData" : "admin.noUpcomingRooms")}</p>
                 )}
               </div>
             </div>
@@ -716,7 +728,7 @@ export default function AdminDashboard() {
                     </span>
                   </Link>
                 )) : (
-                  <p className={styles.emptyLine}>{t("admin.noUpcomingParking")}</p>
+                  <p className={styles.emptyLine}>{t(partialErrors.includes("parking") ? "system.unavailableData" : "admin.noUpcomingParking")}</p>
                 )}
               </div>
             </div>

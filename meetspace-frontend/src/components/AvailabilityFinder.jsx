@@ -7,8 +7,7 @@ import { getSpaceImage } from "../utils/mediaAssets";
 import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./AvailabilityFinder.module.css";
 
-const OPENING_HOUR = 7;
-const CLOSING_HOUR = 22;
+import { getAvailability, validateCalendar } from "../utils/availability";
 const DURATIONS = [2, 4, 8];
 const CAPACITY_PRESETS = [20, 50, 100, 300];
 
@@ -19,54 +18,6 @@ function pad(value) {
 function getTodayKey() {
   const date = new Date();
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
-function rangesOverlap(startA, endA, startB, endB) {
-  return startA < endB && startB < endA;
-}
-
-function getFirstAvailableSlot(dateKey, duration, reservations) {
-  for (let hour = OPENING_HOUR; hour <= CLOSING_HOUR - duration; hour += 1) {
-    const slotStart = new Date(`${dateKey}T${pad(hour)}:00:00`);
-    const slotEnd = new Date(`${dateKey}T${pad(hour + duration)}:00:00`);
-    if (slotEnd <= new Date()) continue;
-
-    const blocked = reservations.some((reservation) =>
-      rangesOverlap(
-        slotStart,
-        slotEnd,
-        new Date(reservation.startDateTime),
-        new Date(reservation.endDateTime),
-      ),
-    );
-
-    if (!blocked) return `${pad(hour)}:00`;
-  }
-
-  return null;
-}
-
-function getAvailableHours(dateKey, reservations) {
-  let availableHours = 0;
-
-  for (let hour = OPENING_HOUR; hour < CLOSING_HOUR; hour += 1) {
-    const slotStart = new Date(`${dateKey}T${pad(hour)}:00:00`);
-    const slotEnd = new Date(`${dateKey}T${pad(hour + 1)}:00:00`);
-    if (slotEnd <= new Date()) continue;
-
-    const blocked = reservations.some((reservation) =>
-      rangesOverlap(
-        slotStart,
-        slotEnd,
-        new Date(reservation.startDateTime),
-        new Date(reservation.endDateTime),
-      ),
-    );
-
-    if (!blocked) availableHours += 1;
-  }
-
-  return availableHours;
 }
 
 export default function AvailabilityFinder({ spaces: providedSpaces, compact = false }) {
@@ -80,7 +31,17 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
   const [duration, setDuration] = useState(2);
   const [capacity, setCapacity] = useState(20);
   const [availabilityState, setAvailabilityState] = useState({ key: "", map: {} });
+  const [now, setNow] = useState(() => new Date());
+  const [retryVersion, setRetryVersion] = useState(0);
+  const retry = () => setRetryVersion((value) => value + 1);
   const spaces = providedSpaces || fetchedSpaces;
+
+  useEffect(() => {
+    const refresh = () => setNow(new Date());
+    const timer = window.setInterval(refresh, 1000);
+    window.addEventListener("focus", refresh);
+    return () => { window.clearInterval(timer); window.removeEventListener("focus", refresh); };
+  }, []);
 
   useEffect(() => {
     if (providedSpaces) return undefined;
@@ -110,7 +71,7 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
     return () => {
       cancelled = true;
     };
-  }, [providedSpaces]);
+  }, [providedSpaces, retryVersion]);
 
   const maxCapacity = spaces.length ? Math.max(...spaces.map((space) => Number(space.capacity) || 0)) : 500;
   const normalizedCapacity = Math.min(Math.max(Number(capacity) || 1, 1), maxCapacity);
@@ -123,17 +84,20 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
     [spaces, normalizedCapacity],
   );
   const matchingSpaceIds = useMemo(() => matchingSpaces.map((space) => space.id).join(","), [matchingSpaces]);
-  const availabilityKey = `${selectedDate}|${duration}|${matchingSpaceIds}`;
-  const availabilityMap = useMemo(
-    () => (availabilityState.key === availabilityKey ? availabilityState.map : {}),
-    [availabilityKey, availabilityState.key, availabilityState.map],
-  );
+  const availabilityKey = `${selectedDate}|${matchingSpaceIds}|${retryVersion}`;
+  const availabilityMap = useMemo(() => {
+    if (availabilityState.key !== availabilityKey) return {};
+    return Object.fromEntries(Object.entries(availabilityState.map).map(([id, items]) => {
+      try { return [id, getAvailability(selectedDate, duration, items, now)]; }
+      catch { return [id, { error: true }]; }
+    }));
+  }, [availabilityKey, availabilityState, selectedDate, duration, now]);
   const checkingAvailability = Boolean(
     selectedDate && matchingSpaces.length > 0 && availabilityState.key !== availabilityKey,
   );
 
   useEffect(() => {
-    if (!selectedDate || matchingSpaces.length === 0) {
+    if (!selectedDate || !Number.isFinite(Date.parse(`${selectedDate}T12:00:00`)) || matchingSpaces.length === 0) {
       return undefined;
     }
 
@@ -146,28 +110,9 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
       matchingSpaces.map(async (space) => {
         try {
           const reservations = await getEspaceReservationsForCalendar(space.id, year, month);
-          const items = Array.isArray(reservations) ? reservations : [];
-          const firstSlot = getFirstAvailableSlot(selectedDate, duration, items);
-          const dayBlocks = items.filter((reservation) =>
-            rangesOverlap(
-              new Date(`${selectedDate}T${pad(OPENING_HOUR)}:00:00`),
-              new Date(`${selectedDate}T${pad(CLOSING_HOUR)}:00:00`),
-              new Date(reservation.startDateTime),
-              new Date(reservation.endDateTime),
-            ),
-          );
-
-          return [
-            space.id,
-            {
-              firstSlot,
-              available: Boolean(firstSlot),
-              availableHours: getAvailableHours(selectedDate, items),
-              dayBlocks: dayBlocks.length,
-            },
-          ];
+          return [space.id, validateCalendar(reservations)];
         } catch {
-          return [space.id, { firstSlot: null, available: false, availableHours: 0, dayBlocks: 0 }];
+          return [space.id, null];
         }
       }),
     )
@@ -178,7 +123,7 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
     return () => {
       cancelled = true;
     };
-  }, [availabilityKey, matchingSpaces, selectedDate, duration]);
+  }, [availabilityKey, matchingSpaces, selectedDate]);
 
   const rooms = useMemo(
     () =>
@@ -193,7 +138,8 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
     [matchingSpaces, availabilityMap, compact],
   );
 
-  const availableCount = rooms.filter((room) => room.availability?.available).length;
+  const availableCount = Object.values(availabilityMap).filter((availability) => availability.available).length;
+  const unknownAvailability = Object.values(availabilityMap).some((availability) => availability.error);
 
   const handleCapacityChange = (nextCapacity) => {
     const value = Math.min(Math.max(Number(nextCapacity) || 1, 1), maxCapacity);
@@ -215,7 +161,7 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
           <p>{t("availabilityFinder.text")}</p>
         </div>
         <div className={styles.signal}>
-          <strong>{checkingAvailability ? "..." : formatNumber(availableCount, locale)}</strong>
+          <strong>{checkingAvailability ? "..." : unknownAvailability ? "—" : formatNumber(availableCount, locale)}</strong>
           <span>{t("availabilityFinder.availableRooms")}</span>
         </div>
       </div>
@@ -279,7 +225,9 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
       {loadingSpaces ? (
         <div className={styles.state}>{t("common.loading")}</div>
       ) : loadError ? (
-        <div className={styles.state}>{t("availabilityFinder.error")}</div>
+        <div className={styles.state} role="alert">{t("availabilityFinder.error")} <button type="button" onClick={retry}>{t("common.retry")}</button></div>
+      ) : !selectedDate ? (
+        <div className={styles.state}>{t("availabilityFinder.invalidDate")}</div>
       ) : matchingSpaces.length === 0 ? (
         <div className={styles.state}>
           <strong>{t("availabilityFinder.noCapacityMatch")}</strong>
@@ -306,15 +254,16 @@ export default function AvailabilityFinder({ spaces: providedSpaces, compact = f
                   <p>
                     {formatNumber(room.capacity, locale)} {t("common.persons")} ·{" "}
                     {availability
-                      ? isAvailable
+                      ? availability.error ? t("availabilityFinder.unknown") : isAvailable
                         ? t("availabilityFinder.firstSlot", { time: availability.firstSlot })
                         : t("availabilityFinder.full")
                       : t("availabilityFinder.checking")}
                   </p>
-                  <div className={styles.roomMeta}>
+                  {availability?.error && <button type="button" onClick={retry}>{t("common.retry")}</button>}
+                  {!availability?.error && <div className={styles.roomMeta}>
                     <span>{formatNumber(availability?.availableHours ?? 0, locale)}h {t("availabilityFinder.free")}</span>
                     <span>{formatNumber(availability?.dayBlocks ?? 0, locale)} {t("availabilityFinder.blocks")}</span>
-                  </div>
+                  </div>}
                   {isAvailable && (
                     <Link
                       to={`/reservations/new/${room.id}?date=${encodeURIComponent(selectedDate)}&start=${encodeURIComponent(availability.firstSlot)}&duration=${duration}`}

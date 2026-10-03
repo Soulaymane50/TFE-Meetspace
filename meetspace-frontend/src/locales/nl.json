@@ -663,6 +663,11 @@
                     "accountLabel": "Persoonlijke ruimte"
                  },
     "calendar":  {
+        "dayOverview": "De dag in één oogopslag",
+        "occupied": "Bezet",
+        "unoccupied": "Geen reservering",
+        "startsForDuration": "{{count}} mogelijke starttijden voor {{duration}} uur. Kies hieronder een tijd.",
+        "noStartsForDuration": "Geen starttijd beschikbaar voor {{duration}} uur. Probeer een andere duur of dag.",
                      "previousMonth": "Vorige maand",
                      "nextMonth": "Volgende maand",
                      "mon":  "Ma",

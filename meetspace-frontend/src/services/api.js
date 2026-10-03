@@ -1,5 +1,29 @@
 import { signalSessionExpired } from "../utils/authSession";
-import { publicRead } from "./publicRead";
+import { publicRead as readPublic } from "./publicRead";
+import { privateRead } from "./privateRead";
+import { apiErrorMessage } from "../utils/apiErrors";
+import i18n from "../i18n";
+
+function readableError(error) {
+  error.message = apiErrorMessage(error.code || error.message, error.status, i18n.t.bind(i18n));
+  return error;
+}
+
+async function publicRead(...args) {
+  try { return await readPublic(...args); }
+  catch (error) { throw readableError(error); }
+}
+
+async function request(url, options = {}) {
+  try {
+    if ((options.method || "GET").toUpperCase() !== "GET") return await globalThis.fetch(url, options);
+    const response = await privateRead(url, options);
+    return { ...response,
+      json: () => response.json().catch((error) => { throw readableError(error); }),
+      text: () => response.text().catch((error) => { throw readableError(error); }),
+    };
+  } catch (error) { throw readableError(error); }
+}
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
@@ -15,7 +39,7 @@ function enrichApiError(error, response) {
 }
 
 async function throwApiError(res, fallbackMessage) {
-  const text = await res.text().catch(() => "");
+  const text = await res.text().catch((error) => { if (error.code === "REQUEST_TIMEOUT") throw error; return ""; });
   let message = fallbackMessage;
 
   if (text) {
@@ -27,11 +51,11 @@ async function throwApiError(res, fallbackMessage) {
     }
   }
 
-  throw enrichApiError(new Error(message), res);
+  throw enrichApiError(new Error(apiErrorMessage(message, res.status, i18n.t.bind(i18n))), res);
 }
 
 async function readApiErrorCode(res, fallbackMessage) {
-  const text = await res.text().catch(() => "");
+  const text = await res.text().catch((error) => { if (error.code === "REQUEST_TIMEOUT") throw error; return ""; });
   if (!text) return fallbackMessage;
 
   try {
@@ -57,7 +81,11 @@ async function throwAccountApiError(res, fallbackMessage) {
     throw enrichApiError(new Error("PASSWORD_CONFIRMATION_MISMATCH"), res);
   }
 
-  throw enrichApiError(new Error(message || fallbackMessage), res);
+  const error = new Error(apiErrorMessage(message || fallbackMessage, res.status, i18n.t.bind(i18n)));
+  // Keep the account outcome available to the view without displaying a technical code.
+  const accountCode = typeof message === "string" && message.match(/\b(?:EMAIL_CHANGE_EXPIRED|EMAIL_CHANGE_INVALID|CURRENT_PASSWORD_INVALID|EMAIL_SERVICE_UNAVAILABLE)\b/);
+  if (accountCode) error.code = accountCode[0];
+  throw enrichApiError(error, res);
 }
 
 async function throwPasswordResetApiError(res, fallbackMessage) {
@@ -194,7 +222,8 @@ async function handleResponse(res, defaultMessage) {
   if (res.ok) {
     try {
       return await res.json();
-    } catch {
+    } catch (error) {
+      if (error.code === "REQUEST_TIMEOUT") throw error;
       return null;
     }
   }
@@ -205,11 +234,13 @@ async function handleResponse(res, defaultMessage) {
     if (data?.message) message = data.message;
     else if (data?.error) message = data.error;
     else if (typeof data === "string") message = data;
-  } catch {
+  } catch (error) {
+    if (error.code === "REQUEST_TIMEOUT") throw error;
     try {
       const text = await res.text();
       if (text) message = text;
-    } catch {
+    } catch (error) {
+    if (error.code === "REQUEST_TIMEOUT") throw error;
       message = defaultMessage;
     }
   }
@@ -227,7 +258,7 @@ async function handleResponse(res, defaultMessage) {
     }
   }
 
-  throw enrichApiError(new Error(message), res);
+  throw enrichApiError(new Error(apiErrorMessage(message, res.status, i18n.t.bind(i18n))), res);
 }
 
 async function fetchParkingSlotsResponse() {
@@ -236,7 +267,7 @@ async function fetchParkingSlotsResponse() {
 }
 
 async function postParkingReservation(payload, token) {
-  const res = await fetch(`${API_URL}/api/public/parking/reservations`, {
+  const res = await request(`${API_URL}/api/public/parking/reservations`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -248,14 +279,14 @@ async function postParkingReservation(payload, token) {
 }
 
 async function fetchMyParkingReservationsResponse(token) {
-  const res = await fetch(`${API_URL}/api/public/parking/reservations/me`, {
+  const res = await request(`${API_URL}/api/public/parking/reservations/me`, {
     headers: authHeaders(token),
   });
   return handleResponse(res, "Impossible de récupérer les réservations parking");
 }
 
 async function deleteParkingReservationRequest(id, token) {
-  const res = await fetch(`${API_URL}/api/public/parking/reservations/${id}/cancel`, {
+  const res = await request(`${API_URL}/api/public/parking/reservations/${id}/cancel`, {
     method: "DELETE",
     headers: authHeaders(token),
   });
@@ -263,7 +294,7 @@ async function deleteParkingReservationRequest(id, token) {
 }
 
 async function fetchAdminParkingSlotsResponse(token) {
-  const res = await fetch(`${API_URL}/api/admin/parking/sessions`, {
+  const res = await request(`${API_URL}/api/admin/parking/sessions`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération sessions (admin)");
@@ -271,7 +302,7 @@ async function fetchAdminParkingSlotsResponse(token) {
 }
 
 async function fetchAdminParkingSlotResponse(id, token) {
-  const res = await fetch(`${API_URL}/api/admin/parking/sessions/${id}`, {
+  const res = await request(`${API_URL}/api/admin/parking/sessions/${id}`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Session introuvable");
@@ -279,7 +310,7 @@ async function fetchAdminParkingSlotResponse(id, token) {
 }
 
 async function postAdminParkingSlot(payload, token) {
-  const res = await fetch(`${API_URL}/api/admin/parking/sessions`, {
+  const res = await request(`${API_URL}/api/admin/parking/sessions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -292,7 +323,7 @@ async function postAdminParkingSlot(payload, token) {
 }
 
 async function putAdminParkingSlot(id, payload, token) {
-  const res = await fetch(`${API_URL}/api/admin/parking/sessions/${id}`, {
+  const res = await request(`${API_URL}/api/admin/parking/sessions/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -305,7 +336,7 @@ async function putAdminParkingSlot(id, payload, token) {
 }
 
 async function deleteAdminParkingSlotRequest(id, token) {
-  const res = await fetch(`${API_URL}/api/admin/parking/sessions/${id}`, {
+  const res = await request(`${API_URL}/api/admin/parking/sessions/${id}`, {
     method: "DELETE",
     headers: authHeaders(token),
   });
@@ -313,7 +344,7 @@ async function deleteAdminParkingSlotRequest(id, token) {
 }
 
 async function fetchAdminParkingReservationsResponse(token) {
-  const res = await fetch(`${API_URL}/api/admin/reservations/parking`, {
+  const res = await request(`${API_URL}/api/admin/reservations/parking`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération réservations parking (admin)");
@@ -323,7 +354,7 @@ async function fetchAdminParkingReservationsResponse(token) {
 export async function loginRequest(email, password) {
   let res;
   try {
-    res = await fetch(`${API_URL}/api/auth/login`, {
+    res = await request(`${API_URL}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -353,7 +384,7 @@ export async function loginRequest(email, password) {
 }
 
 export async function registerRequest(data) {
-  const res = await fetch(`${API_URL}/api/auth/register`, {
+  const res = await request(`${API_URL}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -365,7 +396,7 @@ export async function registerRequest(data) {
 }
 
 export async function forgotPasswordRequest(email) {
-  const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
+  const res = await request(`${API_URL}/api/auth/forgot-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
@@ -381,7 +412,7 @@ export async function forgotPasswordRequest(email) {
 }
 
 export async function resetPasswordRequest(token, newPassword) {
-  const res = await fetch(`${API_URL}/api/auth/reset-password`, {
+  const res = await request(`${API_URL}/api/auth/reset-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token, newPassword }),
@@ -395,7 +426,7 @@ export async function resetPasswordRequest(token, newPassword) {
 }
 
 export async function sendSupportContactRequest(data, token) {
-  const res = await fetch(`${API_URL}/api/support/contact`, {
+  const res = await request(`${API_URL}/api/support/contact`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -408,7 +439,7 @@ export async function sendSupportContactRequest(data, token) {
 }
 
 export async function logoutRequest(token) {
-  const res = await fetch(`${API_URL}/api/auth/logout`, {
+  const res = await request(`${API_URL}/api/auth/logout`, {
     method: "POST",
     headers: authHeaders(token),
   });
@@ -427,28 +458,28 @@ export async function getEspaceReservationsForCalendar(espaceId, year, month) {
 }
 
 export async function getReservationsByUser(id, token) {
-  const res = await fetch(`${API_URL}/api/public/reservations/user/${id}`, {
+  const res = await request(`${API_URL}/api/public/reservations/user/${id}`, {
     headers: authHeaders(token),
   });
   return handleResponse(res, "Impossible de récupérer les réservations");
 }
 
 export async function getMyReservations(token) {
-  const res = await fetch(`${API_URL}/api/public/reservations/me`, {
+  const res = await request(`${API_URL}/api/public/reservations/me`, {
     headers: authHeaders(token),
   });
   return handleResponse(res, "Impossible de récupérer les réservations");
 }
 
 export async function getMyReservation(id, token) {
-  const res = await fetch(`${API_URL}/api/public/reservations/${id}`, {
+  const res = await request(`${API_URL}/api/public/reservations/${id}`, {
     headers: authHeaders(token),
   });
   return handleResponse(res, "Impossible de récupérer cette réservation");
 }
 
 export async function rescheduleReservation(id, payload, token) {
-  const res = await fetch(`${API_URL}/api/public/reservations/${id}/schedule`, {
+  const res = await request(`${API_URL}/api/public/reservations/${id}/schedule`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -460,7 +491,7 @@ export async function rescheduleReservation(id, payload, token) {
 }
 
 export async function createReservation(payload, token) {
-  const res = await fetch(`${API_URL}/api/public/reservations`, {
+  const res = await request(`${API_URL}/api/public/reservations`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -472,7 +503,7 @@ export async function createReservation(payload, token) {
 }
 
 export async function cancelReservation(id, token) {
-  const res = await fetch(`${API_URL}/api/public/reservations/${id}/cancel`, {
+  const res = await request(`${API_URL}/api/public/reservations/${id}/cancel`, {
     method: "DELETE",
     headers: authHeaders(token),
   });
@@ -480,7 +511,7 @@ export async function cancelReservation(id, token) {
 }
 
 export async function requestPremiumRoomReservation(payload, token) {
-  const res = await fetch(`${API_URL}/api/public/reservations/premium-room`, {
+  const res = await request(`${API_URL}/api/public/reservations/premium-room`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -492,7 +523,7 @@ export async function requestPremiumRoomReservation(payload, token) {
 }
 
 export async function payApprovedReservation(id, paymentIntentId, token) {
-  const res = await fetch(`${API_URL}/api/public/reservations/${id}/pay`, {
+  const res = await request(`${API_URL}/api/public/reservations/${id}/pay`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -510,7 +541,7 @@ export async function getPublicEvents() {
 }
 
 export async function registerToEvent(payload, token) {
-  const res = await fetch(`${API_URL}/api/public/events/register`, {
+  const res = await request(`${API_URL}/api/public/events/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -522,14 +553,14 @@ export async function registerToEvent(payload, token) {
 }
 
 export async function getMyEventRegistrations(token) {
-  const res = await fetch(`${API_URL}/api/public/events/registrations/me`, {
+  const res = await request(`${API_URL}/api/public/events/registrations/me`, {
     headers: authHeaders(token),
   });
   return handleResponse(res, "Impossible de récupérer les inscriptions aux événements");
 }
 
 export async function cancelEventRegistration(id, token) {
-  const res = await fetch(`${API_URL}/api/public/events/registrations/${id}/cancel`, {
+  const res = await request(`${API_URL}/api/public/events/registrations/${id}/cancel`, {
     method: "DELETE",
     headers: authHeaders(token),
   });
@@ -537,7 +568,7 @@ export async function cancelEventRegistration(id, token) {
 }
 
 export async function joinEventWaitlist(eventId, participantCount, token) {
-  const res = await fetch(`${API_URL}/api/public/events/waitlist/${eventId}`, {
+  const res = await request(`${API_URL}/api/public/events/waitlist/${eventId}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -549,14 +580,14 @@ export async function joinEventWaitlist(eventId, participantCount, token) {
 }
 
 export async function getMyEventWaitlist(token) {
-  const res = await fetch(`${API_URL}/api/public/events/waitlist/me`, {
+  const res = await request(`${API_URL}/api/public/events/waitlist/me`, {
     headers: authHeaders(token),
   });
   return handleResponse(res, "Impossible de charger la liste d'attente");
 }
 
 export async function leaveEventWaitlist(id, token) {
-  const res = await fetch(`${API_URL}/api/public/events/waitlist/${id}`, {
+  const res = await request(`${API_URL}/api/public/events/waitlist/${id}`, {
     method: "DELETE",
     headers: authHeaders(token),
   });
@@ -587,7 +618,7 @@ export async function cancelParkingReservation(id, token) {
 }
 
 export async function getMyProfile(token) {
-  const res = await fetch(`${API_URL}/api/user/me`, {
+  const res = await request(`${API_URL}/api/user/me`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "PROFILE_LOAD_FAILED");
@@ -595,7 +626,7 @@ export async function getMyProfile(token) {
 }
 
 export async function updateMyProfile(data, token) {
-  const res = await fetch(`${API_URL}/api/user/me`, {
+  const res = await request(`${API_URL}/api/user/me`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -608,7 +639,7 @@ export async function updateMyProfile(data, token) {
 }
 
 export async function changeMyPassword(data, token) {
-  const res = await fetch(`${API_URL}/api/user/change-password`, {
+  const res = await request(`${API_URL}/api/user/change-password`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -620,14 +651,14 @@ export async function changeMyPassword(data, token) {
 }
 
 export async function getMyNotifications(token, limit = 20) {
-  const res = await fetch(`${API_URL}/api/user/notifications?limit=${limit}`, {
+  const res = await request(`${API_URL}/api/user/notifications?limit=${limit}`, {
     headers: authHeaders(token),
   });
   return handleResponse(res, "Impossible de charger les notifications");
 }
 
 export async function markNotificationRead(id, token) {
-  const res = await fetch(`${API_URL}/api/user/notifications/${id}/read`, {
+  const res = await request(`${API_URL}/api/user/notifications/${id}/read`, {
     method: "PATCH",
     headers: authHeaders(token),
   });
@@ -635,7 +666,7 @@ export async function markNotificationRead(id, token) {
 }
 
 export async function markAllNotificationsRead(token) {
-  const res = await fetch(`${API_URL}/api/user/notifications/read-all`, {
+  const res = await request(`${API_URL}/api/user/notifications/read-all`, {
     method: "PATCH",
     headers: authHeaders(token),
   });
@@ -643,7 +674,7 @@ export async function markAllNotificationsRead(token) {
 }
 
 export async function requestEmailChange(data, token) {
-  const res = await fetch(`${API_URL}/api/user/me/email-change-request`, {
+  const res = await request(`${API_URL}/api/user/me/email-change-request`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -656,7 +687,7 @@ export async function requestEmailChange(data, token) {
 }
 
 export async function confirmEmailChange(token) {
-  const res = await fetch(`${API_URL}/api/auth/email-change/confirm`, {
+  const res = await request(`${API_URL}/api/auth/email-change/confirm`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token }),
@@ -666,7 +697,7 @@ export async function confirmEmailChange(token) {
 }
 
 export async function adminGetEspaces(token) {
-  const res = await fetch(`${API_URL}/api/admin/espaces`, {
+  const res = await request(`${API_URL}/api/admin/espaces`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération espaces (admin)");
@@ -674,7 +705,7 @@ export async function adminGetEspaces(token) {
 }
 
 export async function adminGetEspace(id, token) {
-  const res = await fetch(`${API_URL}/api/admin/espaces/${id}`, {
+  const res = await request(`${API_URL}/api/admin/espaces/${id}`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Espace introuvable");
@@ -682,7 +713,7 @@ export async function adminGetEspace(id, token) {
 }
 
 export async function adminCreateEspace(data, token) {
-  const res = await fetch(`${API_URL}/api/admin/espaces`, {
+  const res = await request(`${API_URL}/api/admin/espaces`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -695,7 +726,7 @@ export async function adminCreateEspace(data, token) {
 }
 
 export async function adminUpdateEspace(id, data, token) {
-  const res = await fetch(`${API_URL}/api/admin/espaces/${id}`, {
+  const res = await request(`${API_URL}/api/admin/espaces/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -708,7 +739,7 @@ export async function adminUpdateEspace(id, data, token) {
 }
 
 export async function adminDeleteEspace(id, token) {
-  const res = await fetch(`${API_URL}/api/admin/espaces/${id}`, {
+  const res = await request(`${API_URL}/api/admin/espaces/${id}`, {
     method: "DELETE",
     headers: authHeaders(token),
   });
@@ -716,7 +747,7 @@ export async function adminDeleteEspace(id, token) {
 }
 
 export async function adminGetEvents(token) {
-  const res = await fetch(`${API_URL}/api/admin/events`, {
+  const res = await request(`${API_URL}/api/admin/events`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération événements (admin)");
@@ -724,8 +755,14 @@ export async function adminGetEvents(token) {
   return events.map(normalizeEvent);
 }
 
+export async function adminGetEvent(id, token) {
+  const res = await request(`${API_URL}/api/admin/events/${id}`, { headers: authHeaders(token) });
+  if (!res.ok) await throwApiError(res, i18n.t("admin.eventLoadError"));
+  return normalizeEvent(await res.json());
+}
+
 export async function adminCreateEvent(data, token) {
-  const res = await fetch(`${API_URL}/api/admin/events`, {
+  const res = await request(`${API_URL}/api/admin/events`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -738,7 +775,7 @@ export async function adminCreateEvent(data, token) {
 }
 
 export async function adminUpdateEvent(id, data, token) {
-  const res = await fetch(`${API_URL}/api/admin/events/${id}`, {
+  const res = await request(`${API_URL}/api/admin/events/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -751,7 +788,7 @@ export async function adminUpdateEvent(id, data, token) {
 }
 
 export async function adminDeleteEvent(id, token) {
-  const res = await fetch(`${API_URL}/api/admin/events/${id}`, {
+  const res = await request(`${API_URL}/api/admin/events/${id}`, {
     method: "DELETE",
     headers: authHeaders(token),
   });
@@ -781,7 +818,7 @@ export async function adminDeleteParkingSlot(id, token) {
 }
 
 export async function adminGetAllReservations(token) {
-  const res = await fetch(`${API_URL}/api/admin/reservations/all`, {
+  const res = await request(`${API_URL}/api/admin/reservations/all`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération réservations (admin)");
@@ -789,7 +826,7 @@ export async function adminGetAllReservations(token) {
 }
 
 export async function adminGetAllSpaceReservations(token) {
-  const res = await fetch(`${API_URL}/api/admin/reservations/spaces`, {
+  const res = await request(`${API_URL}/api/admin/reservations/spaces`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération réservations espaces (admin)");
@@ -797,7 +834,7 @@ export async function adminGetAllSpaceReservations(token) {
 }
 
 export async function adminGetAllEventRegistrations(token) {
-  const res = await fetch(`${API_URL}/api/admin/reservations/events`, {
+  const res = await request(`${API_URL}/api/admin/reservations/events`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération inscriptions événements (admin)");
@@ -810,7 +847,7 @@ export async function adminGetAllParkingReservations(token) {
 }
 
 export async function adminGetStats(token) {
-  const res = await fetch(`${API_URL}/api/admin/stats`, {
+  const res = await request(`${API_URL}/api/admin/stats`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération statistiques");
@@ -827,7 +864,7 @@ function financeQuery(period = {}) {
 }
 
 export async function adminGetFinanceSummary(token, period) {
-  const res = await fetch(`${API_URL}/api/admin/finance/summary${financeQuery(period)}`, {
+  const res = await request(`${API_URL}/api/admin/finance/summary${financeQuery(period)}`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur recuperation revenus estimes");
@@ -835,7 +872,7 @@ export async function adminGetFinanceSummary(token, period) {
 }
 
 export async function adminGetFinanceTrend(token, period) {
-  const res = await fetch(`${API_URL}/api/admin/finance/trend${financeQuery(period)}`, {
+  const res = await request(`${API_URL}/api/admin/finance/trend${financeQuery(period)}`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération évolution financière");
@@ -843,7 +880,7 @@ export async function adminGetFinanceTrend(token, period) {
 }
 
 export async function adminGetEventFinance(id, token) {
-  const res = await fetch(`${API_URL}/api/admin/events/${id}/finance`, {
+  const res = await request(`${API_URL}/api/admin/events/${id}/finance`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur recuperation estimation evenement");
@@ -851,7 +888,7 @@ export async function adminGetEventFinance(id, token) {
 }
 
 export async function adminGetPendingReservations(token) {
-  const res = await fetch(`${API_URL}/api/admin/reservations/pending`, {
+  const res = await request(`${API_URL}/api/admin/reservations/pending`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération réservations en attente");
@@ -859,7 +896,7 @@ export async function adminGetPendingReservations(token) {
 }
 
 export async function adminApproveReservation(id, approved, rejectionReason, token) {
-  const res = await fetch(`${API_URL}/api/admin/reservations/${id}/approve`, {
+  const res = await request(`${API_URL}/api/admin/reservations/${id}/approve`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -867,15 +904,12 @@ export async function adminApproveReservation(id, approved, rejectionReason, tok
     },
     body: JSON.stringify({ approved, rejectionReason }),
   });
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.message || "Erreur approbation réservation");
-  }
+  if (!res.ok) await throwApiError(res, "Erreur approbation réservation");
   return res.json();
 }
 
 export async function organizerCreateEvent(data, token) {
-  const res = await fetch(`${API_URL}/api/organizer/events`, {
+  const res = await request(`${API_URL}/api/organizer/events`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -883,15 +917,12 @@ export async function organizerCreateEvent(data, token) {
     },
     body: JSON.stringify(serializeEventPayload(data)),
   });
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.message || "Erreur création événement");
-  }
+  if (!res.ok) await throwApiError(res, "Erreur création événement");
   return res.json();
 }
 
 export async function organizerGetMyEvents(token) {
-  const res = await fetch(`${API_URL}/api/organizer/events/my`, {
+  const res = await request(`${API_URL}/api/organizer/events/my`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération événements");
@@ -900,7 +931,7 @@ export async function organizerGetMyEvents(token) {
 }
 
 export async function organizerPayEventDeposit(id, paymentIntentId, token) {
-  const res = await fetch(`${API_URL}/api/organizer/events/my/${id}/pay-deposit`, {
+  const res = await request(`${API_URL}/api/organizer/events/my/${id}/pay-deposit`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders(token) },
     body: JSON.stringify({ paymentIntentId }),
@@ -910,7 +941,7 @@ export async function organizerPayEventDeposit(id, paymentIntentId, token) {
 }
 
 export async function organizerPayEventBalance(id, paymentIntentId, token) {
-  const res = await fetch(`${API_URL}/api/organizer/events/my/${id}/pay-balance`, {
+  const res = await request(`${API_URL}/api/organizer/events/my/${id}/pay-balance`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders(token) },
     body: JSON.stringify({ paymentIntentId }),
@@ -919,14 +950,14 @@ export async function organizerPayEventBalance(id, paymentIntentId, token) {
   return normalizeEvent(event);
 }
 export async function organizerGetEventAttendees(id, token) {
-  const res = await fetch(`${API_URL}/api/organizer/events/my/${id}/attendees`, {
+  const res = await request(`${API_URL}/api/organizer/events/my/${id}/attendees`, {
     headers: authHeaders(token),
   });
   return handleResponse(res, "Impossible de récupérer les participants");
 }
 
 export async function organizerCheckIn(id, ticket, token) {
-  const res = await fetch(`${API_URL}/api/organizer/events/my/${id}/check-in`, {
+  const res = await request(`${API_URL}/api/organizer/events/my/${id}/check-in`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -938,7 +969,7 @@ export async function organizerCheckIn(id, ticket, token) {
 }
 
 export async function adminParkingCheckIn(ticket, token) {
-  const res = await fetch(`${API_URL}/api/admin/parking/access/check-in`, {
+  const res = await request(`${API_URL}/api/admin/parking/access/check-in`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -950,7 +981,7 @@ export async function adminParkingCheckIn(ticket, token) {
 }
 
 export async function organizerGetFinanceSummary(token, period) {
-  const res = await fetch(`${API_URL}/api/organizer/finance/summary${financeQuery(period)}`, {
+  const res = await request(`${API_URL}/api/organizer/finance/summary${financeQuery(period)}`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur recuperation estimation financiere");
@@ -958,7 +989,7 @@ export async function organizerGetFinanceSummary(token, period) {
 }
 
 export async function organizerGetEventFinance(id, token) {
-  const res = await fetch(`${API_URL}/api/organizer/events/${id}/finance`, {
+  const res = await request(`${API_URL}/api/organizer/events/${id}/finance`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur recuperation estimation evenement");
@@ -966,7 +997,7 @@ export async function organizerGetEventFinance(id, token) {
 }
 
 export async function organizerGetMyEvent(id, token) {
-  const res = await fetch(`${API_URL}/api/organizer/events/my/${id}`, {
+  const res = await request(`${API_URL}/api/organizer/events/my/${id}`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Événement introuvable");
@@ -975,7 +1006,7 @@ export async function organizerGetMyEvent(id, token) {
 }
 
 export async function organizerUpdateMyEvent(id, data, token) {
-  const res = await fetch(`${API_URL}/api/organizer/events/my/${id}`, {
+  const res = await request(`${API_URL}/api/organizer/events/my/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -983,15 +1014,12 @@ export async function organizerUpdateMyEvent(id, data, token) {
     },
     body: JSON.stringify(serializeEventPayload(data)),
   });
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.message || "Erreur modification événement");
-  }
+  if (!res.ok) await throwApiError(res, "Erreur modification événement");
   return res.json();
 }
 
 export async function organizerCancelMyEvent(id, token) {
-  const res = await fetch(`${API_URL}/api/organizer/events/my/${id}`, {
+  const res = await request(`${API_URL}/api/organizer/events/my/${id}`, {
     method: "DELETE",
     headers: authHeaders(token),
   });
@@ -999,7 +1027,7 @@ export async function organizerCancelMyEvent(id, token) {
 }
 
 export async function adminGetPendingEvents(token) {
-  const res = await fetch(`${API_URL}/api/admin/events/pending`, {
+  const res = await request(`${API_URL}/api/admin/events/pending`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération événements en attente");
@@ -1007,7 +1035,7 @@ export async function adminGetPendingEvents(token) {
 }
 
 export async function adminApproveEvent(id, approved, rejectionReason, token) {
-  const res = await fetch(`${API_URL}/api/admin/events/${id}/approve`, {
+  const res = await request(`${API_URL}/api/admin/events/${id}/approve`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -1020,7 +1048,7 @@ export async function adminApproveEvent(id, approved, rejectionReason, token) {
 }
 
 export async function adminGetUsers(token) {
-  const res = await fetch(`${API_URL}/api/admin/users`, {
+  const res = await request(`${API_URL}/api/admin/users`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération utilisateurs");
@@ -1028,7 +1056,7 @@ export async function adminGetUsers(token) {
 }
 
 export async function adminUpdateUserRole(id, role, token) {
-  const res = await fetch(`${API_URL}/api/admin/users/${id}/role`, {
+  const res = await request(`${API_URL}/api/admin/users/${id}/role`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -1041,7 +1069,7 @@ export async function adminUpdateUserRole(id, role, token) {
 }
 
 export async function adminUpdateUserStatus(id, status, token) {
-  const res = await fetch(`${API_URL}/api/admin/users/${id}/status`, {
+  const res = await request(`${API_URL}/api/admin/users/${id}/status`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -1054,7 +1082,7 @@ export async function adminUpdateUserStatus(id, status, token) {
 }
 
 export async function adminBanUser(id, token) {
-  const res = await fetch(`${API_URL}/api/admin/users/${id}/ban`, {
+  const res = await request(`${API_URL}/api/admin/users/${id}/ban`, {
     method: "POST",
     headers: authHeaders(token),
   });
@@ -1063,7 +1091,7 @@ export async function adminBanUser(id, token) {
 }
 
 export async function adminReactivateUser(id, token) {
-  const res = await fetch(`${API_URL}/api/admin/users/${id}/reactivate`, {
+  const res = await request(`${API_URL}/api/admin/users/${id}/reactivate`, {
     method: "POST",
     headers: authHeaders(token),
   });
@@ -1072,7 +1100,7 @@ export async function adminReactivateUser(id, token) {
 }
 
 export async function adminGetUserDetails(id, token) {
-  const res = await fetch(`${API_URL}/api/admin/users/${id}/details`, {
+  const res = await request(`${API_URL}/api/admin/users/${id}/details`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération détails utilisateur");
@@ -1107,7 +1135,7 @@ async function throwAccountDeletionApiError(res, fallbackMessage) {
 }
 
 export async function requestAccountDeletion(token) {
-  const res = await fetch(`${API_URL}/api/user/me/deletion-request`, {
+  const res = await request(`${API_URL}/api/user/me/deletion-request`, {
     method: "POST",
     headers: authHeaders(token),
   });
@@ -1116,7 +1144,7 @@ export async function requestAccountDeletion(token) {
 }
 
 export async function confirmAccountDeletion(deletionToken, token) {
-  const res = await fetch(`${API_URL}/api/user/me/deletion-confirm`, {
+  const res = await request(`${API_URL}/api/user/me/deletion-confirm`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -1134,7 +1162,7 @@ export async function deleteMyAccount(token) {
 
 // Audit Logs
 export async function adminGetAuditLogs(token, page = 0, size = 20) {
-  const res = await fetch(`${API_URL}/api/admin/audit?page=${page}&size=${size}`, {
+  const res = await request(`${API_URL}/api/admin/audit?page=${page}&size=${size}`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération logs d'audit");
@@ -1149,7 +1177,7 @@ export async function adminGetAuditLogsFiltered(token, filters = {}, page = 0, s
   if (filters.startDate) params.append("startDate", filters.startDate);
   if (filters.endDate) params.append("endDate", filters.endDate);
 
-  const res = await fetch(`${API_URL}/api/admin/audit/filter?${params}`, {
+  const res = await request(`${API_URL}/api/admin/audit/filter?${params}`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération logs d'audit filtrés");
@@ -1157,7 +1185,7 @@ export async function adminGetAuditLogsFiltered(token, filters = {}, page = 0, s
 }
 
 export async function adminGetAuditActions(token) {
-  const res = await fetch(`${API_URL}/api/admin/audit/actions`, {
+  const res = await request(`${API_URL}/api/admin/audit/actions`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération actions d'audit");
@@ -1165,7 +1193,7 @@ export async function adminGetAuditActions(token) {
 }
 
 export async function adminGetAuditEntityTypes(token) {
-  const res = await fetch(`${API_URL}/api/admin/audit/entity-types`, {
+  const res = await request(`${API_URL}/api/admin/audit/entity-types`, {
     headers: authHeaders(token),
   });
   if (!res.ok) await throwApiError(res, "Erreur récupération types d'entités");

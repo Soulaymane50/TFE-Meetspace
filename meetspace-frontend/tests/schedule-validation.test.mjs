@@ -28,3 +28,17 @@ test("respecte fermeture, date invalide et délai minimal", () => {
 test("préserve les demi-heures au lieu de fabriquer une heure invalide", () => {
   assert.equal(localTimeAtHour("2026-11-10", 10.5), "2026-11-10T10:30");
 });
+
+test("la frise fusionne les occupations et les limite aux heures d'ouverture", async () => {
+  const { getDayOccupancy } = await import("../src/utils/scheduleValidation.js");
+  const segments = getDayOccupancy([
+    {start:"2026-11-10T06:00",end:"2026-11-10T08:30"},
+    {start:"2026-11-10T08:00",end:"2026-11-10T09:00"},
+    {start:"2026-11-10T12:00",end:"2026-11-10T14:00"},
+    {start:"2026-11-11T12:00",end:"2026-11-11T14:00"},
+  ], "2026-11-10");
+  const hours = (time) => new Date(time).getHours();
+  assert.deepEqual(segments.map(s => [hours(s.start), hours(s.end), s.occupied]),
+    [[7,9,true],[9,12,false],[12,14,true],[14,22,false]]);
+  assert.deepEqual(getDayOccupancy([], "bad"), []);
+});

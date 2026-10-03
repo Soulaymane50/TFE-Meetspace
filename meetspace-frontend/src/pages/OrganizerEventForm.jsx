@@ -1,3 +1,4 @@
+import { canEditOrganizerEvent } from "../utils/eventPlanning";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { getEspaces, organizerCreateEvent, organizerGetMyEvent, organizerUpdateMyEvent } from "../services/api";
@@ -303,6 +304,7 @@ export default function OrganizerEventForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading || loadingEvent || (isEdit && !canEditOrganizerEvent(originalEvent))) return;
     if (!validateForm()) return;
 
     setLoading(true);
@@ -343,6 +345,9 @@ export default function OrganizerEventForm() {
     return <PageState type="loading" title={t("common.loading")} message={t("organizer.manageYourEvents")} />;
   }
 
+  if (isEdit && !canEditOrganizerEvent(originalEvent)) {
+    return <PageState type="error" title={t("common.error")} message={error || t("organizer.notEditable")} action={<Link to="/organizer/events">{t("organizer.backToMyEvents")}</Link>} />;
+  }
   return (
     <div className={styles.container}>
       <div className={styles.breadcrumb}>

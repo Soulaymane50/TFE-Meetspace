@@ -8,23 +8,7 @@ const getDateLocale = (lang) => {
   return locales[lang] || "fr-BE";
 };
 
-const getResourceKey = (event) =>
-  String(event.spaceId || event.espaceId || event.location || event.externalAddress || "unknown").toLowerCase();
-
-const getDayKey = (value) => {
-  if (!value) return "unknown";
-  return value.slice(0, 10);
-};
-
-const rangesOverlap = (a, b) => {
-  const aStart = new Date(a.startDateTime).getTime();
-  const aEnd = new Date(a.endDateTime).getTime();
-  const bStart = new Date(b.startDateTime).getTime();
-  const bEnd = new Date(b.endDateTime).getTime();
-  return Number.isFinite(aStart) && Number.isFinite(aEnd) && Number.isFinite(bStart) && Number.isFinite(bEnd)
-    ? aStart < bEnd && bStart < aEnd
-    : false;
-};
+import { eventDays, eventsConflict, getResourceKey, isBlockingEvent } from "../utils/eventPlanning";
 
 export default function EventPlanningTimeline({ events = [], title, subtitle, getEventHref, maxDays }) {
   const { t, i18n } = useTranslation();
@@ -34,18 +18,16 @@ export default function EventPlanningTimeline({ events = [], title, subtitle, ge
   const groups = useMemo(() => {
     const sortedEvents = [...events].sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime));
     const byDay = sortedEvents.reduce((acc, event) => {
-      const key = getDayKey(event.startDateTime);
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(event);
+      for (const key of eventDays(event)) {
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(event);
+      }
       return acc;
     }, {});
 
     return Object.entries(byDay).map(([key, dayEvents]) => {
       const conflicts = dayEvents.filter((event) =>
-        dayEvents.some(
-          (other) =>
-            other.id !== event.id && getResourceKey(other) === getResourceKey(event) && rangesOverlap(event, other),
-        ),
+        events.some((other) => eventsConflict(event, other)),
       );
 
       return {
@@ -59,7 +41,7 @@ export default function EventPlanningTimeline({ events = [], title, subtitle, ge
                 month: "long",
               }),
         events: dayEvents,
-        roomCount: new Set(dayEvents.map(getResourceKey)).size,
+        roomCount: new Set(dayEvents.filter(isBlockingEvent).map(getResourceKey)).size,
         conflictCount: conflicts.length,
       };
     });
@@ -131,10 +113,7 @@ export default function EventPlanningTimeline({ events = [], title, subtitle, ge
 
             <div className={styles.eventStack}>
               {group.events.map((event) => {
-                const hasConflict = group.events.some(
-                  (other) =>
-                    other.id !== event.id && getResourceKey(other) === getResourceKey(event) && rangesOverlap(event, other),
-                );
+                const hasConflict = events.some((other) => eventsConflict(event, other));
                 const occupancy = event.capacity
                   ? Math.min(100, Math.round(((event.registeredCount || 0) / event.capacity) * 100))
                   : 0;
@@ -150,8 +129,8 @@ export default function EventPlanningTimeline({ events = [], title, subtitle, ge
                     className={`${styles.eventRow} ${eventHref ? styles.eventRowLink : ""} ${hasConflict ? styles.eventConflict : ""}`}
                   >
                     <div className={styles.timeCell}>
-                      <strong>{formatTime(event.startDateTime)}</strong>
-                      <span>{formatTime(event.endDateTime)}</span>
+                      <strong>{formatTime(new Date(event.startDateTime) < new Date(`${group.key}T00:00:00`) ? `${group.key}T00:00:00` : event.startDateTime)}</strong>
+                      <span>{eventDays(event).at(-1) !== group.key ? "24:00" : formatTime(event.endDateTime)}</span>
                     </div>
                     <div className={styles.eventBody}>
                       <div className={styles.eventTopline}>

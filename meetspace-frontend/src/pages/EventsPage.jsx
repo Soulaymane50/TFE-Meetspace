@@ -212,13 +212,9 @@ export default function EventsPage() {
         <Link to={`/events/${event.id}`} className={styles.detailButton}>
           {t("detail.viewDetails", { defaultValue: "Voir la fiche" })}
         </Link>
-        {isFull ? (
-          <span className={styles.buttonDisabled}>{user ? t("events.ctaWaitlist") : t("events.full")}</span>
-        ) : (
-          <Link to={`/events/register/${event.id}`} className={user ? styles.button : styles.buttonSecondary}>
-            {user ? t("events.register") : t("events.loginToRegister")}
-          </Link>
-        )}
+        <Link to={`/events/register/${event.id}`} className={user ? styles.button : styles.buttonSecondary}>
+          {isFull ? t("events.ctaWaitlist") : user ? t("events.register") : t("events.loginToRegister")}
+        </Link>
       </div>
     );
   };

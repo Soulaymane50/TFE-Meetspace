@@ -76,6 +76,7 @@
 }
 
 .intro {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -95,6 +96,7 @@
 }
 
 .intro h1 {
+  overflow-wrap: anywhere;
   max-width: 12ch;
   margin-bottom: 1.5rem;
   font-size: clamp(2.5rem, 4.5vw, 4.8rem);
@@ -102,6 +104,7 @@
 }
 
 .description {
+  overflow-wrap: anywhere;
   max-width: 48ch;
   margin-bottom: 2rem;
   font-size: 1rem;
@@ -237,6 +240,8 @@
 }
 
 .factList dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
   margin: 0;
   color: var(--ink);
   font-weight: 700;

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getEspaceReservationsForCalendar } from "../services/api";
-import { isCalendarRangeAvailable, isIgnoredCalendarBlock, localTimeAtHour } from "../utils/scheduleValidation";
+import { getDayOccupancy, isCalendarRangeAvailable, isIgnoredCalendarBlock, localTimeAtHour } from "../utils/scheduleValidation";
 import styles from "./RoomSchedulePicker.module.css";
 
 const OPENING_HOUR = 7;
@@ -195,7 +195,10 @@ export default function RoomSchedulePicker({
     t("calendar.sun"),
   ];
 
-  const selectedBlocks = selectedDate ? getBlocksForDate(selectedDate) : [];
+  const selectedDayReady = calendarReady && selectedDate?.slice(0, 7) === (year + "-" + pad(month));
+  const selectedBlocks = selectedDayReady ? getBlocksForDate(selectedDate) : [];
+  const daySegments = selectedDayReady ? getDayOccupancy(selectedBlocks, selectedDate) : [];
+  const timeFormatter = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" });
   const selectedAvailableCount = selectedDate ? getAvailableStarts(selectedDate, duration).length : 0;
 
   useEffect(() => {
@@ -280,11 +283,13 @@ export default function RoomSchedulePicker({
                   type="button"
                   key={dateKey}
                   className={dayClass}
-                  onClick={() => status !== "full" && status !== "loading" && handleDaySelect(dateKey)}
-                  disabled={status === "full" || status === "loading"}
+                  onClick={() => handleDaySelect(dateKey)}
+                  aria-pressed={isSelected}
+                  aria-label={selectedDateFormatter.format(new Date(dateKey + "T12:00:00")) + ", " + (status === "loading" ? t("availabilityFinder.checking") : t(`calendar.${status}`)) + ", " + duration + " h"}
+                  disabled={status === "loading" || new Date(dateKey + "T22:00:00") <= new Date()}
                 >
                   <span>{day}</span>
-                  <small>{status === "loading" ? t("availabilityFinder.checking") : t(`calendar.${status}`)}</small>
+                  <i aria-hidden="true" className={styles.dayIndicator} />
                 </button>
               );
             })}
@@ -315,16 +320,35 @@ export default function RoomSchedulePicker({
             </strong>
           </div>
 
-          <div className={styles.statsRow}>
-            <div>
-              <strong>{selectedAvailableCount}</strong>
-              <span>{t("calendar.availableStarts", { duration })}</span>
+          {selectedDayReady ? (
+            <div className={styles.dayOverview}>
+              <div className={styles.overviewHeading}>
+                <strong>{t("calendar.dayOverview")}</strong>
+                <span>07:00 – 22:00</span>
+              </div>
+              <div className={styles.occupancyTrack} aria-hidden="true">
+                {daySegments.map(segment => (
+                  <span key={segment.start} className={segment.occupied ? styles.segmentOccupied : styles.segmentFree}
+                    style={{ flex: segment.end - segment.start }} />
+                ))}
+              </div>
+              <ul className={styles.periodList} aria-label={t("calendar.dayOverview")}>
+                {daySegments.map(segment => (
+                  <li key={segment.start}>
+                    <span className={segment.occupied ? styles.occupiedLabel : styles.freeLabel}>
+                      {t(segment.occupied ? "calendar.occupied" : "calendar.unoccupied")}
+                    </span>
+                    <span>{timeFormatter.format(segment.start)} – {timeFormatter.format(segment.end)}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className={styles.availabilityNote} role="status">
+                {selectedAvailableCount > 0
+                  ? t("calendar.startsForDuration", { count: selectedAvailableCount, duration })
+                  : t("calendar.noStartsForDuration", { duration })}
+              </p>
             </div>
-            <div>
-              <strong>{selectedBlocks.length}</strong>
-              <span>{t("calendar.occupiedBlocks")}</span>
-            </div>
-          </div>
+          ) : <p className={styles.durationLegend}>{t(calendarError ? "availabilityFinder.error" : calendarLoading ? "availabilityFinder.checking" : "calendar.chooseDay")}</p>}
 
           <div className={styles.durationGroup}>
             <span>{t("calendar.duration")}</span>
@@ -333,6 +357,7 @@ export default function RoomSchedulePicker({
                 <button
                   type="button"
                   key={item}
+                  aria-pressed={item === duration}
                   className={item === duration ? styles.durationActive : ""}
                   disabled={!calendarReady}
                   onClick={() => !lockedDuration && handleDurationChange(item)}
@@ -357,6 +382,7 @@ export default function RoomSchedulePicker({
                   type="button"
                   key={hour}
                   disabled={!calendarReady || !selectedDate || !available}
+                  aria-pressed={Boolean(selected)}
                   className={selected ? styles.hourSelected : ""}
                   onClick={() => applySlot(selectedDate, hour, duration)}
                 >

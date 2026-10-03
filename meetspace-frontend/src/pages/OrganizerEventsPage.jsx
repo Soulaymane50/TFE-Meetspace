@@ -1,3 +1,4 @@
+import { canEditOrganizerEvent } from "../utils/eventPlanning";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { organizerGetMyEvents, organizerCancelMyEvent, organizerGetFinanceSummary, organizerPayEventDeposit, organizerPayEventBalance } from "../services/api";
@@ -98,11 +99,13 @@ export default function OrganizerEventsPage() {
     { replace: true },
   );
   const [financeSummary, setFinanceSummary] = useState(null);
+  const [financeError, setFinanceError] = useState(false);
   const [paymentEvent, setPaymentEvent] = useState(null);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     setError("");
+    setFinanceError(false);
     try {
       const [eventsResult, financeResult] = await Promise.allSettled([
         organizerGetMyEvents(token),
@@ -115,6 +118,7 @@ export default function OrganizerEventsPage() {
 
       setEvents(eventsResult.value);
       setFinanceSummary(financeResult.status === "fulfilled" ? financeResult.value : null);
+      setFinanceError(financeResult.status === "rejected");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -245,6 +249,10 @@ export default function OrganizerEventsPage() {
       </div>
 
       {error && <div className={styles.error}>{error}</div>}
+      {financeError && <div role="alert" className={styles.error}>
+        <p>{t("system.partialData", { sections: t("auditSections.finance") })}</p>
+        <button type="button" onClick={fetchEvents}>{t("common.retry")}</button>
+      </div>}
 
       <div className={styles.commandDeck}>
         <section className={styles.mainConsole}>
@@ -350,7 +358,7 @@ export default function OrganizerEventsPage() {
           events={filteredEvents}
           title={t("planning.organizerTitle")}
           subtitle={t("planning.organizerSubtitle")}
-          getEventHref={(event) => `/organizer/events/edit/${event.id}`}
+          getEventHref={(event) => canEditOrganizerEvent(event) ? `/organizer/events/edit/${event.id}` : event.status === "PUBLISHED" ? `/events/${event.id}` : null}
           maxDays={4}
         />
       )}
@@ -457,9 +465,9 @@ export default function OrganizerEventsPage() {
                   </button>
                 )}
 
-                <Link to={`/organizer/events/edit/${e.id}`} className={styles.editButton}>
+                {canEditOrganizerEvent(e) && <Link to={`/organizer/events/edit/${e.id}`} className={styles.editButton}>
                   {t("common.edit")}
-                </Link>
+                </Link>}
                 {e.status !== "CANCELLED" && e.status !== "REJECTED" && (
                   <button onClick={() => handleCancel(e.id, e.title)} className={styles.cancelButton}>
                     {t("organizer.cancelEvent")}

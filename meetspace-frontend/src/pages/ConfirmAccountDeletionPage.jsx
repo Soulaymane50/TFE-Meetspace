@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { confirmAccountDeletion } from "../services/api";
@@ -7,7 +7,8 @@ import PageState from "../components/PageState";
 import styles from "./ProfilePage.module.css";
 
 export default function ConfirmAccountDeletionPage() {
-  const { token, logout } = useAuth();
+  const { token, logout, isLoading, sessionExpired } = useAuth();
+  const location = useLocation();
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function ConfirmAccountDeletionPage() {
   const [error, setError] = useState("");
 
   const handleConfirm = async () => {
+    if (loading || success || !token) return;
     setError("");
     setLoading(true);
 
@@ -25,7 +27,6 @@ export default function ConfirmAccountDeletionPage() {
       await confirmAccountDeletion(deletionToken, token);
       setSuccess(true);
       await logout();
-      setTimeout(() => navigate("/", { replace: true }), 2500);
     } catch (err) {
       if (err?.message === "ACCOUNT_DELETION_EXPIRED") {
         setError(t("accountDeletion.expired"));
@@ -39,6 +40,8 @@ export default function ConfirmAccountDeletionPage() {
     }
   };
 
+  if (isLoading) return <PageState type="loading" title={t("system.sessionCheckTitle")} />;
+  if (!token && !success) return <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}`, sessionExpired }} />;
   if (!deletionToken) {
     return <PageState type="error" title={t("accountDeletion.invalidTitle")} message={t("accountDeletion.missingToken")} />;
   }
@@ -58,7 +61,7 @@ export default function ConfirmAccountDeletionPage() {
         <p className={styles.dangerText}>{t("accountDeletion.confirmText")}</p>
 
         {success ? (
-          <p className={styles.success}>{t("accountDeletion.success")}</p>
+          <div role="status"><p className={styles.success}>{t("accountDeletion.success")}</p><Link to="/">{t("nav.home")}</Link></div>
         ) : (
           <>
             <div className={styles.confirmButtons}>

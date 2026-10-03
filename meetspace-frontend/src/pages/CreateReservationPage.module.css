@@ -464,3 +464,9 @@
     min-height: 140px;
   }
 }
+
+@media (max-width: 720px) {
+  .stepActions { position: sticky; bottom: .5rem; z-index: 5; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-medium); padding-bottom: max(.85rem, env(safe-area-inset-bottom)); }
+  [data-theme="dark"] .stepActions { background: var(--surface); }
+  .stepActions > div { font-size: .85rem; }
+}

@@ -6,6 +6,8 @@ import fr from './locales/fr.json';
 import en from './locales/en.json';
 import nl from './locales/nl.json';
 import enhancements from './locales/enhancements';
+import frontendAudit from './locales/frontendAudit';
+import auditSections from './locales/auditSections';
 
 function mergeTranslations(base, extra) {
   return Object.entries(extra).reduce((result, [key, value]) => {
@@ -16,9 +18,9 @@ function mergeTranslations(base, extra) {
 }
 
 const resources = {
-  fr: { translation: mergeTranslations(fr, enhancements.fr) },
-  en: { translation: mergeTranslations(en, enhancements.en) },
-  nl: { translation: mergeTranslations(nl, enhancements.nl) },
+  fr: { translation: mergeTranslations(mergeTranslations(fr, enhancements.fr), { ...frontendAudit.fr, auditSections: auditSections.fr }) },
+  en: { translation: mergeTranslations(mergeTranslations(en, enhancements.en), { ...frontendAudit.en, auditSections: auditSections.en }) },
+  nl: { translation: mergeTranslations(mergeTranslations(nl, enhancements.nl), { ...frontendAudit.nl, auditSections: auditSections.nl }) },
 };
 
 i18n

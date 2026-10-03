@@ -211,7 +211,10 @@ export async function adminApproveEvent(request: APIRequestContext, token: strin
 }
 
 export function isoDateTime(hoursFromNow: number) {
-  const d = new Date(Date.now() + hoursFromNow * 3600 * 1000);
+  // The paired 24/26 and 48/50 fixtures must stay on one day, even near midnight.
+  const d = new Date();
+  d.setUTCHours(10, 0, 0, 0);
+  d.setTime(d.getTime() + hoursFromNow * 3600 * 1000);
   return d.toISOString().split(".")[0];
 }
 

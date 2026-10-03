@@ -98,7 +98,7 @@ export default function App() {
           element={<PrivatePage><Navigate to="/my-reservations?tab=parking" replace /></PrivatePage>}
         />
         <Route path="/profile" element={<PrivatePage><ProfilePage /></PrivatePage>} />
-        <Route path="/confirm-account-deletion" element={<PrivatePage><ConfirmAccountDeletionPage /></PrivatePage>} />
+        <Route path="/confirm-account-deletion" element={<Shell><ConfirmAccountDeletionPage /></Shell>} />
 
         <Route
           path="/organizer/events"

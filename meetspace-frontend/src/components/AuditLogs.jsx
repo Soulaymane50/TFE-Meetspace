@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
   adminGetAuditLogs,
@@ -55,11 +55,12 @@ const ACTION_LABELS = {
 
 export default function AuditLogs() {
   const { token } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const requestVersion = useRef(0);
 
   const [actions, setActions] = useState([]);
   const [entityTypes, setEntityTypes] = useState([]);
@@ -93,20 +94,23 @@ export default function AuditLogs() {
   }, [token]);
 
   const loadLogs = useCallback(async () => {
+    const version = ++requestVersion.current;
     setLoading(true);
+    setError("");
     try {
       const hasFilters = Object.values(filters).some((v) => v !== "");
       const data = hasFilters
         ? await adminGetAuditLogsFiltered(token, filters, page, 15)
         : await adminGetAuditLogs(token, page, 15);
 
+      if (version !== requestVersion.current) return;
       setLogs(data.content || []);
       setTotalPages(data.totalPages || 0);
       setTotalElements(data.totalElements || 0);
     } catch (err) {
-      setError(err.message);
+      if (version === requestVersion.current) setError(err.message);
     } finally {
-      setLoading(false);
+      if (version === requestVersion.current) setLoading(false);
     }
   }, [filters, page, token]);
 
@@ -143,7 +147,7 @@ export default function AuditLogs() {
   const formatDate = (dateString) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
-    return date.toLocaleString("fr-BE", {
+    return date.toLocaleString({ fr: "fr-BE", en: "en-GB", nl: "nl-BE" }[i18n.language] || i18n.language, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -152,7 +156,8 @@ export default function AuditLogs() {
     });
   };
 
-  const getActionInfo = (action) => ACTION_LABELS[action] || { label: action, icon: "LOG", color: "gray" };
+  const getActionInfo = (action) => ({ ...(ACTION_LABELS[action] || { icon: "LOG", color: "gray" }),
+    label: t(`auditActions.${action}`, { defaultValue: action }) });
 
   const userOptions = [
     { value: "", label: t("common.all", "Tous") },
@@ -179,7 +184,7 @@ export default function AuditLogs() {
   ];
 
   if (error) {
-    return <PageState type="error" title={t("common.error")} message={error} />;
+    return <PageState type="error" title={t("common.error")} message={error} actionLabel={t("common.retry")} onAction={loadLogs} />;
   }
 
   return (
@@ -303,7 +308,7 @@ export default function AuditLogs() {
                         <td className={styles.dateCell}>{formatDate(log.timestamp)}</td>
                         <td>
                           <div className={styles.userCell}>
-                            <span className={styles.userName}>{log.userName || "Anonyme"}</span>
+                            <span className={styles.userName}>{log.userName || t("admin.anonymous")}</span>
                             {log.userEmail && <span className={styles.userEmail}>{log.userEmail}</span>}
                           </div>
                         </td>

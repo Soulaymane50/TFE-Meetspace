@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { confirmEmailChange } from "../services/api";
@@ -13,19 +13,29 @@ export default function ConfirmEmailChangePage() {
   const token = searchParams.get("token");
   const [state, setState] = useState(token ? "loading" : "invalid");
 
+  const confirmationRef = useRef(null);
+
   useEffect(() => {
     if (!token) return;
     let active = true;
-    confirmEmailChange(token)
+    if (confirmationRef.current?.token !== token) {
+      confirmationRef.current = { token, promise: confirmEmailChange(token), sessionCleared: false };
+    }
+    const confirmation = confirmationRef.current;
+    confirmation.promise
       .then(async () => {
         if (!active) return;
-        await logout();
+        if (!confirmation.sessionCleared) {
+          confirmation.sessionCleared = true;
+          await logout();
+        }
         if (active) setState("success");
       })
       .catch((error) => {
         if (!active) return;
-        if (error?.message?.includes("EXPIRED")) setState("expired");
-        else if (error?.message?.includes("EMAIL_ALREADY_EXISTS")) setState("exists");
+        const reason = error?.code || error?.message || "";
+        if (reason.includes("EXPIRED")) setState("expired");
+        else if (reason.includes("EMAIL_ALREADY_EXISTS")) setState("exists");
         else setState("invalid");
       });
     return () => { active = false; };

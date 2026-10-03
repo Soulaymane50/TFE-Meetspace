@@ -73,3 +73,38 @@ for (const path of ["/admin/finances","/organizer/events/new"]) {
     await expect(page).toHaveURL(`${BASE_URL}/`);
   });
 }
+
+test("frise lisible sur mobile et desktop, jours complets consultables sans réservation", async ({page}, testInfo) => {
+  await prepare(page);
+  await page.route("**/api/public/reservations/espace/1/calendar?**", route => route.fulfill({json:[
+    {id:44,blockType:"EVENT",startDateTime:"2026-11-10T12:00",endDateTime:"2026-11-10T14:00",title:"Titre privé à ne jamais afficher"},
+    {id:45,blockType:"EVENT",startDateTime:"2026-11-11T07:00",endDateTime:"2026-11-11T22:00"},
+  ]}));
+  await page.goto(`${BASE_URL}/reservations/17/edit`);
+  const periods = page.getByRole("list", {name:"La journée en un coup d’œil"});
+  await expect(periods).toContainText("12:00 – 14:00");
+  await expect(periods).toContainText("Occupé");
+  await expect(page.getByText("Titre privé à ne jamais afficher")).toHaveCount(0);
+  for (const width of [1440,390]) {
+    await page.setViewportSize({width,height:1000});
+    await periods.scrollIntoViewIfNeeded();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({path:testInfo.outputPath(`calendar-modern-${width}.png`)});
+  }
+  await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
+  await page.screenshot({path:testInfo.outputPath("calendar-modern-dark.png")});
+  await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+  await page.getByRole("button",{name:/mercredi 11 novembre/}).click();
+  await expect(periods).toContainText("07:00 – 22:00");
+  await expect(page.getByText(/Aucun départ possible/)).toBeVisible();
+  await expect(page.getByRole("button",{name:"Confirmer le nouveau créneau"})).toBeDisabled();
+  await page.getByRole("button",{name:"Mois suivant"}).click();
+  await expect(periods).toHaveCount(0);
+  await page.goto(`${BASE_URL}/reservations/new/1?date=2026-11-10&start=09:00&duration=2`);
+  const next = page.getByRole("button", {name:"Continuer vers le récapitulatif"});
+  await expect(next).toBeEnabled();
+  await next.scrollIntoViewIfNeeded();
+  await page.screenshot({path:testInfo.outputPath("booking-mobile-summary.png")});
+  await next.click();
+  await expect(page.getByRole("button", {name:"Modifier le créneau"})).toBeVisible();
+});

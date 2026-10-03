@@ -1,6 +1,7 @@
+import PageState from "../components/PageState";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { adminCreateEvent, adminGetEvents, adminUpdateEvent, adminGetEspaces } from "../services/api";
+import { adminCreateEvent, adminGetEvent, adminUpdateEvent, adminGetEspaces } from "../services/api";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import RoomSchedulePicker from "../components/RoomSchedulePicker";
@@ -37,11 +38,15 @@ export default function AdminEventForm() {
     parkingRequired: true,
     parkingPrice: "",
     parkingCapacity: "",
-    status: "DRAFT",
+    status: "PENDING_APPROVAL",
   });
 
   const [espaces, setEspaces] = useState([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [retryVersion, setRetryVersion] = useState(0);
   const selectedSpace = espaces.find((space) => String(space.id) === String(eventForm.spaceId));
   const selectedCapacity = Number(selectedSpace?.capacity) || 0;
   const recommendedCapacity = selectedCapacity
@@ -72,10 +77,16 @@ export default function AdminEventForm() {
     })),
   ];
   const statusOptions = [
-    { value: "DRAFT", label: t("status.draft") },
-    { value: "PUBLISHED", label: t("status.published") },
+    ...(!isEdit || eventForm.status === "PENDING_APPROVAL"
+      ? [{ value: "PENDING_APPROVAL", label: t("status.pending_approval") }] : []),
+    ...(!["CANCELLED", "REJECTED"].includes(eventForm.status)
+      ? [{ value: "PUBLISHED", label: t("status.published") }] : []),
     { value: "CANCELLED", label: t("status.cancelled") },
   ];
+
+  if (!statusOptions.some((option) => option.value === eventForm.status)) {
+    statusOptions.unshift({ value: eventForm.status, label: t(`status.${String(eventForm.status).toLowerCase()}`, { defaultValue: eventForm.status }) });
+  }
 
   useEffect(() => {
     if (!user || user.role !== "ADMIN") {
@@ -83,34 +94,31 @@ export default function AdminEventForm() {
       return;
     }
 
-    adminGetEspaces(token)
-      .then(setEspaces)
-      .catch(() => setEspaces([]));
-
-    if (isEdit) {
-      adminGetEvents(token)
-        .then((events) => {
-          const ev = events.find((e) => e.id === Number(id));
-          if (ev) {
-            setEventForm({
-              title: ev.title,
-              description: ev.description,
-              startDateTime: ev.startDateTime,
-              endDateTime: ev.endDateTime,
-              locationType: ev.locationType || (ev.spaceId ? "EXISTING_SPACE" : "EXTERNAL"),
-              spaceId: ev.spaceId ?? "",
-              location: ev.externalAddress || ev.location || "",
-              capacity: ev.capacity || "",
-              price: ev.price || "",
-              parkingRequired: ev.parkingRequired ?? true,
-              parkingPrice: ev.parkingPrice ?? "",
-              parkingCapacity: ev.parkingCapacity ?? "",
-              status: ev.status,
-            });
-          }
-        });
-    }
-  }, [id, isEdit, user, token, navigate]);
+    let cancelled = false;
+    setLoading(true);
+    setLoadError(null);
+    Promise.all([adminGetEspaces(token), isEdit ? adminGetEvent(id, token) : Promise.resolve(null)])
+      .then(([rooms, ev]) => {
+        if (cancelled) return;
+        if (!Array.isArray(rooms)) throw new Error(t("system.requestFailed"));
+        setEspaces(rooms);
+        if (isEdit) {
+          if (!ev || String(ev.id) !== String(id)) throw Object.assign(new Error(t("admin.eventNotFound")), { status: 404 });
+          setEventForm({
+            title: ev.title || "", description: ev.description || "",
+            startDateTime: ev.startDateTime || "", endDateTime: ev.endDateTime || "",
+            locationType: ev.locationType || (ev.spaceId ? "EXISTING_SPACE" : "EXTERNAL"),
+            spaceId: ev.spaceId ?? "", location: ev.externalAddress || ev.location || "",
+            capacity: ev.capacity ?? "", price: ev.price ?? "",
+            parkingRequired: ev.parkingRequired ?? true, parkingPrice: ev.parkingPrice ?? "",
+            parkingCapacity: ev.parkingCapacity ?? "", status: ev.status,
+          });
+        }
+      })
+      .catch((requestError) => { if (!cancelled) setLoadError(requestError); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [id, isEdit, user, token, navigate, retryVersion, t]);
 
   const validateDates = () => {
     const now = new Date();
@@ -138,6 +146,7 @@ export default function AdminEventForm() {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (loading || loadError || saving) return;
     setError("");
 
     const dateError = validateDates();
@@ -179,6 +188,7 @@ export default function AdminEventForm() {
       externalAddress: eventForm.locationType === "EXTERNAL" ? eventForm.location : null,
     };
 
+    setSaving(true);
     try {
       if (isEdit) {
         await adminUpdateEvent(id, payload, token);
@@ -188,7 +198,7 @@ export default function AdminEventForm() {
       navigate("/admin/events");
     } catch (err) {
       setError(err.message || t("common.error"));
-    }
+    } finally { setSaving(false); }
   };
 
   const handleChange = (e) => {
@@ -310,6 +320,10 @@ export default function AdminEventForm() {
   };
 
   if (!user || user.role !== "ADMIN") return null;
+  if (loading) return <PageState type="loading" title={t("common.loading")} />;
+  if (loadError) return <PageState type="error" title={loadError.status === 404 ? t("admin.eventNotFound") : t("admin.eventLoadError")}
+    message={loadError.status === 404 ? t("admin.eventNotFound") : loadError.message}
+    action={<><Link to="/admin/events">{t("admin.backToList")}</Link>{loadError.status !== 404 && <button type="button" onClick={() => setRetryVersion((value) => value + 1)}>{t("common.retry")}</button>}</>} />;
 
   return (
     <div className={styles.page}>
@@ -528,7 +542,7 @@ export default function AdminEventForm() {
           <button type="button" onClick={() => navigate("/admin/events")} className={styles.secondary}>
             {t("common.cancel")}
           </button>
-          <button type="submit" className={styles.primary}>
+          <button type="submit" className={styles.primary} disabled={saving}>
             {isEdit ? t("common.save") : t("common.create")}
           </button>
         </div>

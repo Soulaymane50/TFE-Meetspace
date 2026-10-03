@@ -1,20 +1,14 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { probeHealth } from "../services/healthProbe";
 import styles from "./ConnectionStatus.module.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
-async function probeApi() {
-  if (!API_URL || !navigator.onLine) return navigator.onLine;
-  try {
-    const response = await fetch(API_URL + "/actuator/health", {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-    });
-    return response.ok;
-  } catch {
-    return false;
-  }
+async function probeApi(signal) {
+  if (!navigator.onLine) return false;
+  if (!API_URL) return true;
+  return probeHealth(`${API_URL}/actuator/health`, signal);
 }
 
 function getInitialStatus() {
@@ -29,9 +23,10 @@ export default function ConnectionStatus() {
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
     const handleOffline = () => setStatus("offline");
     const handleOnline = async () => {
-      const available = await probeApi();
+      const available = await probeApi(controller.signal);
       if (active) setStatus(available ? "ready" : "api-unavailable");
     };
     const handleApiUnavailable = () => setStatus("api-unavailable");
@@ -44,6 +39,7 @@ export default function ConnectionStatus() {
     handleOnline();
     return () => {
       active = false;
+      controller.abort();
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("meetspace:api-unavailable", handleApiUnavailable);
@@ -59,11 +55,8 @@ export default function ConnectionStatus() {
 
     setRetrying(true);
     try {
-      const response = await fetch(`${API_URL}/actuator/health`, {
-        headers: { Accept: "application/json" },
-        cache: "no-store",
-      });
-      setStatus(response.ok ? "ready" : "api-unavailable");
+      const available = await probeApi();
+      setStatus(available ? "ready" : "api-unavailable");
     } catch {
       setStatus("api-unavailable");
     } finally {

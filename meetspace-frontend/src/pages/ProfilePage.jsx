@@ -17,7 +17,7 @@ function profileFromUser(user) {
 }
 
 export default function ProfilePage() {
-  const { user, token, login, logout } = useAuth();
+  const { user, token, login, logout, rememberSession } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -81,7 +81,8 @@ export default function ProfilePage() {
             lastName: updated.lastName,
             email: updated.email,
           },
-          token
+          token,
+          { remember: rememberSession }
         );
       }
     } catch (err) {
@@ -185,8 +186,8 @@ export default function ProfilePage() {
       setEmailPassword("");
     } catch (err) {
       if (err?.message === "EMAIL_ALREADY_EXISTS") setEmailError(t("profile.emailAlreadyExists"));
-      else if (err?.message?.includes("CURRENT_PASSWORD_INVALID")) setEmailError(t("profile.currentPasswordInvalid"));
-      else if (err?.message?.includes("EMAIL_SERVICE_UNAVAILABLE")) setEmailError(t("profile.emailServiceUnavailable"));
+      else if ((err?.code || err?.message)?.includes("CURRENT_PASSWORD_INVALID")) setEmailError(t("profile.currentPasswordInvalid"));
+      else if ((err?.code || err?.message)?.includes("EMAIL_SERVICE_UNAVAILABLE")) setEmailError(t("profile.emailServiceUnavailable"));
       else setEmailError(t("profile.emailChangeFailed"));
     } finally {
       setEmailSaving(false);
@@ -226,8 +227,9 @@ export default function ProfilePage() {
 
         <form onSubmit={submitProfile}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("auth.firstName")}</label>
+            <label className={styles.label} htmlFor="profile-first-name">{t("auth.firstName")}</label>
             <input
+              id="profile-first-name" autoComplete="given-name"
               value={profile.firstName}
               onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
               className={styles.input}
@@ -235,8 +237,9 @@ export default function ProfilePage() {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("auth.lastName")}</label>
+            <label className={styles.label} htmlFor="profile-last-name">{t("auth.lastName")}</label>
             <input
+              id="profile-last-name" autoComplete="family-name"
               value={profile.lastName}
               onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
               className={styles.input}
@@ -244,8 +247,9 @@ export default function ProfilePage() {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("auth.email")}</label>
+            <label className={styles.label} htmlFor="profile-email">{t("auth.email")}</label>
             <input
+              id="profile-email" type="email" autoComplete="email"
               value={profile.email}
               className={styles.input}
               readOnly
@@ -294,8 +298,9 @@ export default function ProfilePage() {
 
         <form onSubmit={submitPassword}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("profile.currentPassword")}</label>
+            <label className={styles.label} htmlFor="profile-current-password">{t("profile.currentPassword")}</label>
             <input
+              id="profile-current-password" autoComplete="current-password"
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
@@ -304,8 +309,9 @@ export default function ProfilePage() {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("profile.newPassword")}</label>
+            <label className={styles.label} htmlFor="profile-new-password">{t("profile.newPassword")}</label>
             <input
+              id="profile-new-password" autoComplete="new-password"
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -314,8 +320,9 @@ export default function ProfilePage() {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("profile.confirmPassword")}</label>
+            <label className={styles.label} htmlFor="profile-confirm-password">{t("profile.confirmPassword")}</label>
             <input
+              id="profile-confirm-password" autoComplete="new-password"
               type="password"
               value={newPassword2}
               onChange={(e) => setNewPassword2(e.target.value)}

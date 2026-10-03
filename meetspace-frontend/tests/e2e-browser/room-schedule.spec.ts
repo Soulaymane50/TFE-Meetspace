@@ -71,7 +71,7 @@ test("changing duration never keeps a newly conflicting room slot", async ({ pag
   await page.getByRole("button", { name: "Lieu" }).click();
   await page.getByRole("option").filter({ hasText: "Salle Atlas" }).getByRole("button").click();
   await page.getByRole("button", { name: "1h", exact: true }).click();
-  await page.getByRole("button", { name: /31 Créneaux limités/ }).click();
+  await page.getByRole("button", { name: /lundi 31 août, Créneaux limités/ }).click();
 
   const elevenOClock = page.getByRole("button", { name: "11:00", exact: true });
   await expect(elevenOClock).toBeEnabled();

@@ -414,6 +414,7 @@ export default function CreateReservationPage() {
                     {t("reservation.stepScheduleHint", { defaultValue: "Choisissez un créneau libre" })}
                   </span>
                   <strong>{displaySelectedRange}</strong>
+                  {canReview && <span>{t("reservation.totalPrice")} · {formattedTotalPrice}</span>}
                 </div>
                 <button type="button" className={styles.primaryAction} onClick={handleContinueToReview} disabled={!canReview}>
                   {t("reservation.continueToSummary", { defaultValue: "Continuer vers le récapitulatif" })}

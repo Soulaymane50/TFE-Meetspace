@@ -542,3 +542,33 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* La frise indique l'occupation ; les départs restent validés pour la durée choisie. */
+.dayOverview { display: grid; gap: .75rem; }
+.overviewHeading { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; color: var(--text-primary); font-size: .85rem; }
+.overviewHeading > span { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.occupancyTrack { display: flex; height: 18px; overflow: hidden; border: 1px solid var(--border); border-radius: 6px; gap: 2px; }
+.segmentFree { background: var(--brand-soft); min-width: 1px; }
+.segmentOccupied { background: repeating-linear-gradient(135deg, var(--accent) 0 3px, var(--accent-soft) 3px 6px); min-width: 1px; }
+.periodList { list-style: none; padding: 0; margin: 0; display: grid; gap: .3rem; }
+.periodList li { display: flex; justify-content: space-between; gap: .5rem; padding: .35rem 0; color: var(--text-primary); font-size: .82rem; font-variant-numeric: tabular-nums; }
+.freeLabel, .occupiedLabel { display: inline-flex; align-items: center; gap: .5rem; }
+.freeLabel::before, .occupiedLabel::before { content: ''; width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; background: var(--brand); }
+.occupiedLabel::before { background: var(--accent); }
+.availabilityNote { margin: 0; padding: .75rem; background: var(--surface-muted); border-radius: 10px; color: var(--text-primary); font-size: .85rem; line-height: 1.5; }
+.dayFull:not(:disabled) { cursor: pointer; opacity: 1; }
+.dayButton:focus-visible, .hoursGrid button:focus-visible, .durationGroup button:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
+@media (max-width: 560px) {
+  .calendarPanel, .slotPanel { padding: .75rem; min-width: 0; }
+  .weekGrid, .daysGrid { gap: .2rem; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .dayButton { min-width: 0; }
+  .monthControls { min-width: 0; justify-content: space-between; }
+  .monthControls strong { min-width: 0; }
+}
+
+.scheduler .daysGrid .dayButton { min-height: 54px; gap: .3rem; }
+.dayIndicator { display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
+.dayPartial .dayIndicator { background: var(--accent); }
+.dayFull .dayIndicator, .dayLoading .dayIndicator { background: var(--text-muted); }
+.scheduler .daysGrid .daySelected { background: var(--brand-strong); color: var(--text-on-inverse); border-color: var(--brand-strong); }
+.daySelected .dayIndicator { background: currentColor; }

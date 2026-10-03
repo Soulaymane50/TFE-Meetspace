@@ -29,7 +29,7 @@ for (const theme of ["light", "dark"]) {
 
 test("la navigation principale reste utilisable au clavier", async ({ page }) => {
   await page.goto("/");
-  const skipLink = page.getByRole("link", { name: /contenu principal|main content|hoofdinhoud/i });
+  const skipLink = page.getByRole("link", { name: /contenu principal|main content|skip to content|hoofdinhoud/i });
   for (let step = 0; step < 3 && !(await skipLink.evaluate((element) => element === document.activeElement)); step += 1) {
     await page.keyboard.press("Tab");
   }

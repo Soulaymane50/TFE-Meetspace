@@ -660,6 +660,11 @@
         "accountLabel": "Espace personnel"
     },
     "calendar": {
+        "dayOverview": "La journée en un coup d’œil",
+        "occupied": "Occupé",
+        "unoccupied": "Sans réservation",
+        "startsForDuration": "{{count}} départs possibles pour {{duration}} h. Choisissez votre heure ci-dessous.",
+        "noStartsForDuration": "Aucun départ possible pour {{duration}} h. Essayez une autre durée ou un autre jour.",
         "previousMonth": "Mois précédent",
         "nextMonth": "Mois suivant",
         "mon": "Lun",

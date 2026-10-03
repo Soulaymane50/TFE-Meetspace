@@ -1,3 +1,4 @@
+import { eventDays, eventsConflict, isBlockingEvent } from "../utils/eventPlanning";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -19,7 +20,6 @@ import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters"
 import styles from "./AdminEventsPage.module.css";
 
 const getEventStart = (event) => new Date(event.startDateTime);
-const getEventEnd = (event) => new Date(event.endDateTime);
 
 const getDateKey = (date) => {
   const value = new Date(date);
@@ -32,14 +32,7 @@ const formatTime = (date, locale) =>
     minute: "2-digit",
   });
 
-const eventsOverlap = (event, others) => {
-  const start = getEventStart(event);
-  const end = getEventEnd(event);
-  return others.some((other) => {
-    if (other.id === event.id) return false;
-    return start < getEventEnd(other) && end > getEventStart(other);
-  });
-};
+const eventsOverlap = (event, others) => others.some((other) => eventsConflict(event, other));
 
 export default function AdminEventsPage() {
   const { user, token } = useAuth();
@@ -203,28 +196,18 @@ export default function AdminEventsPage() {
 
   const planningDays = useMemo(() => {
     const dayMap = new Map();
-    events.forEach((event) => {
-      const start = getEventStart(event);
-      if (Number.isNaN(start.getTime())) return;
-      const key = getDateKey(start);
-      if (!dayMap.has(key)) {
-        dayMap.set(key, {
-          key,
-          date: start,
-          events: [],
-        });
+    events.filter(isBlockingEvent).forEach((event) => {
+      for (const key of eventDays(event)) {
+        if (!dayMap.has(key)) dayMap.set(key, { key, date: new Date(`${key}T12:00:00`), events: [] });
+        dayMap.get(key).events.push(event);
       }
-      dayMap.get(key).events.push(event);
     });
-
-    return Array.from(dayMap.values())
-      .sort((a, b) => a.date - b.date)
-      .slice(0, 6);
+    return Array.from(dayMap.values()).sort((a, b) => a.date - b.date);
   }, [events]);
 
   useEffect(() => {
-    if (!selectedPlanningDay && planningDays.length > 0) {
-      setSelectedPlanningDay(planningDays[0].key);
+    if (!planningDays.some((day) => day.key === selectedPlanningDay) && planningDays.length > 0) {
+      setSelectedPlanningDay((planningDays.find((day) => day.key >= getDateKey(new Date())) || planningDays[0]).key);
     }
   }, [planningDays, selectedPlanningDay]);
 

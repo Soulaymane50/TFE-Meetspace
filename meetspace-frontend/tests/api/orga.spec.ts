@@ -31,8 +31,8 @@ test.describe("API Organizer flows", () => {
 
   test("Organizer approval requires a deposit before publication", async ({ request }) => {
     const suffix = Date.now();
-    const start = isoDateTime(20);
-    const end = isoDateTime(22);
+    const start = isoDateTime(72);
+    const end = isoDateTime(74);
 
     const espace = await adminCreateEspace(request, adminToken, `API Orga Space ${suffix}`);
 

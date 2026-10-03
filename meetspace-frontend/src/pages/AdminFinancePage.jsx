@@ -33,6 +33,7 @@ function periodRange(period) {
 }
 
 function LineChart({ points, metric, title, description, formatAxis, formatDate, tone = "brand", compact = false }) {
+  const { t } = useTranslation();
   const width = compact ? 480 : 860;
   const height = compact ? 220 : 320;
   const margin = { top: 18, right: 18, bottom: 40, left: compact ? 54 : 66 };
@@ -94,7 +95,7 @@ function LineChart({ points, metric, title, description, formatAxis, formatDate,
           <circle className={styles.latestPoint} cx={x(points.length - 1)} cy={y(latest)} r={compact ? 4.5 : 5.5} />
         </svg>
       ) : (
-        <p className={styles.emptyChart}>Aucune donnée sur cette période.</p>
+        <p className={styles.emptyChart}>{t("adminFinance.emptyChart")}</p>
       )}
     </section>
   );
@@ -131,6 +132,8 @@ export default function AdminFinancePage() {
   const loadFinance = useCallback(async (nextPeriod) => {
     setLoading(true);
     setError("");
+    setSummary(null);
+    setTrend(null);
     try {
       const range = periodRange(nextPeriod);
       const [summaryResult, trendResult] = await Promise.all([

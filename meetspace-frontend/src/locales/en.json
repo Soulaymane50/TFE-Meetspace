@@ -670,6 +670,11 @@
   },
 
   "calendar": {
+        "dayOverview": "Your day at a glance",
+        "occupied": "Occupied",
+        "unoccupied": "No booking",
+        "startsForDuration": "{{count}} possible start times for {{duration}} h. Choose a time below.",
+        "noStartsForDuration": "No start times available for {{duration}} h. Try another duration or day.",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
     "mon": "Mon",

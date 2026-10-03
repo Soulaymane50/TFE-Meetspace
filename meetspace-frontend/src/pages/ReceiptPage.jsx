@@ -108,7 +108,7 @@ export default function ReceiptPage() {
   }, [record, t, type]);
 
   const ticketPayloads = useMemo(() => {
-    if (type === "event" && record?.ticketToken) {
+    if (type === "event" && record?.ticketToken && record.status === "CONFIRMED") {
       return [{ key: record.ticketToken, value: `MS-CHECKIN:${record.eventId}:${record.ticketToken}` }];
     }
     if (type === "parking") {
@@ -159,7 +159,7 @@ export default function ReceiptPage() {
       <article className={styles.document}>
         <header className={styles.brandHeader}>
           <div className={styles.mark}>M</div>
-          <div><strong>MeetSpace</strong><span>Salles, événements & parking</span></div>
+          <div><strong>MeetSpace</strong><span>{t("receipt.brandTagline")}</span></div>
           <p>{t("receipt.documentType", { defaultValue: "Justificatif de réservation" })}</p>
         </header>
 
@@ -179,7 +179,8 @@ export default function ReceiptPage() {
           </dl>
         </section>
 
-        {type === "event" && record.ticketToken ? (
+        {type === "event" && record.status === "CANCELLED" && <p role="status">{t("receipt.cancelledTicket")}</p>}
+        {type === "event" && record.ticketToken && record.status === "CONFIRMED" ? (
           <section className={styles.ticket} aria-labelledby="event-ticket-title">
             <div className={styles.ticketCopy}>
               <p>{t("checkIn.ticketKicker")}</p>
