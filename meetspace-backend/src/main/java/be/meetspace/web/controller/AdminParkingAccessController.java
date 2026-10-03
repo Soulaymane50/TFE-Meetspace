@@ -9,6 +9,7 @@ import be.meetspace.entity.User;
 import be.meetspace.repository.ParkingAccessPassRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
+import be.meetspace.service.ParkingCapacityService;
 import be.meetspace.web.dto.ParkingAccessCheckInRequest;
 import be.meetspace.web.dto.ParkingAccessCheckInResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,13 +28,16 @@ public class AdminParkingAccessController {
     private final ParkingAccessPassRepository passRepository;
     private final UserRepository userRepository;
     private final AuditService auditService;
+    private final ParkingCapacityService parkingCapacityService;
 
     public AdminParkingAccessController(ParkingAccessPassRepository passRepository,
                                         UserRepository userRepository,
-                                        AuditService auditService) {
+                                        AuditService auditService,
+                                        ParkingCapacityService parkingCapacityService) {
         this.passRepository = passRepository;
         this.userRepository = userRepository;
         this.auditService = auditService;
+        this.parkingCapacityService = parkingCapacityService;
     }
 
     @PostMapping("/check-in")
@@ -41,6 +45,8 @@ public class AdminParkingAccessController {
     public ParkingAccessCheckInResponse checkIn(@Valid @RequestBody ParkingAccessCheckInRequest request,
                                                 Authentication authentication,
                                                 HttpServletRequest httpRequest) {
+        // Use the same first lock as cancellation and event allocation before locking joined rows.
+        parkingCapacityService.lockInventory();
         User admin = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
         ParkingAccessPass pass = passRepository.findByTokenForUpdate(normalize(request.getPass()))

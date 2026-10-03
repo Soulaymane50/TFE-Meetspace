@@ -91,21 +91,27 @@ public class AdminEventController {
     @PostMapping
     @Transactional
     public EventResponseDto createEvent(@Valid @RequestBody EventRequestDto dto, Authentication authentication, HttpServletRequest httpRequest) {
+        eventPlanningService.lockParkingInventory();
         User admin = getAuthenticatedAdmin(authentication);
+        EventStatus requestedStatus = dto.getStatus() == null ? EventStatus.PUBLISHED : dto.getStatus();
+        if (requestedStatus != EventStatus.PUBLISHED && requestedStatus != EventStatus.PENDING_APPROVAL
+                && requestedStatus != EventStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce statut doit suivre le circuit d'approbation de l'événement.");
+        }
 
         Event event = new Event();
         eventPlanningService.applyAndValidate(
                 event,
-                EventPlanningService.EventData.from(dto, EventStatus.PUBLISHED),
+                EventPlanningService.EventData.from(dto, EventStatus.PENDING_APPROVAL),
                 null
         );
-        event.setStatus(EventStatus.PUBLISHED);
         event.setCreatedBy(admin);
-        event.setApprovedAt(LocalDateTime.now());
-        event.setApprovedBy(admin);
+        event.setStatus(EventStatus.PENDING_APPROVAL);
+        transitionStatus(event, requestedStatus, admin);
 
         Event saved = eventRepository.save(event);
-        eventPlanningService.activateParkingForPublication(saved);
+        if (saved.getStatus() == EventStatus.PUBLISHED) eventPlanningService.activateParkingForPublication(saved);
+        else eventPlanningService.syncParkingStatus(saved);
 
         // Audit log
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
@@ -117,15 +123,26 @@ public class AdminEventController {
 
     @PutMapping("/{id}")
     @Transactional
-    public EventResponseDto updateEvent(@PathVariable Long id, @Valid @RequestBody EventRequestDto dto, HttpServletRequest httpRequest) {
+    public EventResponseDto updateEvent(@PathVariable Long id, @Valid @RequestBody EventRequestDto dto, Authentication authentication, HttpServletRequest httpRequest) {
+        eventPlanningService.lockParkingInventory();
         Event event = eventRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evenement introuvable"));
+
+        User admin = getAuthenticatedAdmin(authentication);
+        EventStatus requestedStatus = dto.getStatus() == null ? event.getStatus() : dto.getStatus();
+        validateTransition(event, requestedStatus);
+        if (requestedStatus == EventStatus.PUBLISHED && event.getStatus() != EventStatus.PUBLISHED) {
+            // A data edit must not erase an existing unpaid deposit requirement.
+            eventBillingService.validatePaymentForPublication(event);
+        }
 
         eventPlanningService.applyAndValidate(
                 event,
                 EventPlanningService.EventData.from(dto, event.getStatus()),
                 event.getId()
         );
+
+        transitionStatus(event, requestedStatus, admin);
 
         Event saved = eventRepository.save(event);
         if (saved.getStatus() == EventStatus.PUBLISHED) {
@@ -151,6 +168,7 @@ public class AdminEventController {
             Authentication authentication,
             HttpServletRequest httpRequest
     ) {
+        eventPlanningService.lockParkingInventory();
         User admin = getAuthenticatedAdmin(authentication);
 
         Event event = eventRepository.findByIdForUpdate(id)
@@ -207,6 +225,7 @@ public class AdminEventController {
     @PatchMapping("/{id}/status")
     @Transactional
     public EventResponseDto updateStatus(@PathVariable Long id, @RequestParam String status, Authentication authentication, HttpServletRequest httpRequest) {
+        eventPlanningService.lockParkingInventory();
         User admin = getAuthenticatedAdmin(authentication);
 
         Event event = eventRepository.findByIdForUpdate(id)
@@ -215,17 +234,11 @@ public class AdminEventController {
         String oldStatus = event.getStatus().name();
 
         try {
-            EventStatus newStatus = EventStatus.valueOf(status.toUpperCase());
-            if (newStatus == EventStatus.PUBLISHED && event.getStatus() != EventStatus.PUBLISHED) {
-                eventBillingService.validatePaymentForPublication(event);
-                eventPlanningService.validateAvailabilityForPublication(event);
+            EventStatus newStatus = EventStatus.valueOf(status.toUpperCase(java.util.Locale.ROOT));
+            if (newStatus == event.getStatus()) {
+                return EventResponseDto.fromEntity(event, registrationRepository.countTotalParticipantsByEventId(event.getId()));
             }
-            event.setStatus(newStatus);
-
-            if (newStatus == EventStatus.PUBLISHED && event.getApprovedAt() == null) {
-                event.setApprovedAt(LocalDateTime.now());
-                event.setApprovedBy(admin);
-            }
+            transitionStatus(event, newStatus, admin);
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Statut invalide");
         }
@@ -250,6 +263,7 @@ public class AdminEventController {
     @DeleteMapping("/{id}")
     @Transactional
     public void deleteEvent(@PathVariable Long id, HttpServletRequest httpRequest) {
+        eventPlanningService.lockParkingInventory();
         Event event = eventRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evenement introuvable"));
 
@@ -274,6 +288,36 @@ public class AdminEventController {
                 String.format("Suppression événement: %s", eventTitle), ipAddress);
     }
 
+    private void validateTransition(Event event, EventStatus next) {
+        if (next == event.getStatus()) return;
+        if (event.getStatus() == EventStatus.CANCELLED
+                || (event.getStatus() == EventStatus.REJECTED && next == EventStatus.PUBLISHED)
+                || (event.getStatus() == EventStatus.PUBLISHED && next != EventStatus.CANCELLED)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cette transition est interdite : un événement annulé ne peut pas être rouvert et un événement publié ne peut pas revenir en attente ou rejeté.");
+        }
+        if (next != EventStatus.PUBLISHED && next != EventStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Utilisez le circuit d'approbation pour ce statut.");
+        }
+        boolean internalAdminEvent = event.getCreatedBy() != null && event.getCreatedBy().getRole() == be.meetspace.entity.Role.ADMIN;
+        if (next == EventStatus.PUBLISHED && event.getStatus() == EventStatus.PENDING_APPROVAL && !internalAdminEvent) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "L'événement doit être approuvé avant publication.");
+        }
+    }
+
+    private void transitionStatus(Event event, EventStatus next, User admin) {
+        validateTransition(event, next);
+        if (next == event.getStatus()) return;
+        if (next == EventStatus.PUBLISHED) {
+            eventBillingService.validatePaymentForPublication(event);
+            eventPlanningService.validateAvailabilityForPublication(event);
+        }
+        event.setStatus(next);
+        if (next == EventStatus.PUBLISHED && event.getApprovedAt() == null) {
+            event.setApprovedAt(LocalDateTime.now()); event.setApprovedBy(admin);
+        }
+    }
+
     private User getAuthenticatedAdmin(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecte");
@@ -282,4 +326,3 @@ public class AdminEventController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
     }
 }
-

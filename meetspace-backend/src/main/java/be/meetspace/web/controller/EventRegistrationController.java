@@ -11,6 +11,7 @@ import be.meetspace.service.PaymentLifecycleService;
 import be.meetspace.service.CancellationPolicyService;
 import be.meetspace.service.NotificationService;
 import be.meetspace.service.EventWaitlistService;
+import be.meetspace.service.EventPlanningService;
 import be.meetspace.service.ParkingAccessService;
 import be.meetspace.service.ParkingCapacityService;
 import be.meetspace.web.dto.CancellationResponse;
@@ -43,6 +44,7 @@ public class EventRegistrationController {
     private final EventWaitlistService eventWaitlistService;
     private final ParkingCapacityService parkingCapacityService;
     private final ParkingAccessService parkingAccessService;
+    private final EventPlanningService eventPlanningService;
 
     public EventRegistrationController(
             EventRegistrationRepository registrationRepository,
@@ -56,7 +58,8 @@ public class EventRegistrationController {
             NotificationService notificationService,
             EventWaitlistService eventWaitlistService,
             ParkingCapacityService parkingCapacityService,
-            ParkingAccessService parkingAccessService
+            ParkingAccessService parkingAccessService,
+            EventPlanningService eventPlanningService
     ) {
         this.registrationRepository = registrationRepository;
         this.eventRepository = eventRepository;
@@ -70,6 +73,7 @@ public class EventRegistrationController {
         this.eventWaitlistService = eventWaitlistService;
         this.parkingCapacityService = parkingCapacityService;
         this.parkingAccessService = parkingAccessService;
+        this.eventPlanningService = eventPlanningService;
     }
 
     @PostMapping("/register")
@@ -83,6 +87,7 @@ public class EventRegistrationController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecté");
         }
 
+        parkingCapacityService.lockInventory();
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
@@ -109,6 +114,10 @@ public class EventRegistrationController {
             }
         }
 
+        Double eventPrice = 0.0;
+        if (event.getPrice() != null && event.getPrice() > 0) {
+            eventPrice = event.getPrice() * request.getNumberOfParticipants();
+        }
         ParkingSlot parkingSlot = event.getParkingSlot();
         int reservedSpaces = 0;
         double parkingPrice = 0.0;
@@ -127,19 +136,16 @@ public class EventRegistrationController {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le parking n'est pas disponible pour cet événement");
             }
 
-            parkingCapacityService.lockAndAssertAvailable(parkingSlot, reservedSpaces);
-
             parkingPrice = parkingSlot.getParkingRate() * reservedSpaces;
+            String paidIntent = Math.round((eventPrice + parkingPrice) * 100D) > 0L ? request.getPaymentIntentId() : null;
+            parkingCapacityService.lockAndAssertAvailable(parkingSlot, reservedSpaces, paidIntent, user);
         }
 
-        Double eventPrice = 0.0;
-        if (event.getPrice() != null && event.getPrice() > 0) {
-            eventPrice = event.getPrice() * request.getNumberOfParticipants();
-        }
 
         Double totalPrice = eventPrice + parkingPrice;
+        long paidAmountCents = Math.round(totalPrice * 100D);
 
-        if (totalPrice > 0) {
+        if (paidAmountCents > 0L) {
             if (request.getPaymentIntentId() == null || request.getPaymentIntentId().isBlank()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Paiement requis");
             }
@@ -147,7 +153,7 @@ public class EventRegistrationController {
                     request.getPaymentIntentId(),
                     user,
                     PaymentType.EVENT,
-                    Math.round(totalPrice * 100D),
+                    paidAmountCents,
                     event.getId()
             );
         }
@@ -157,11 +163,11 @@ public class EventRegistrationController {
         registration.setEvent(event);
         registration.setNumberOfParticipants(request.getNumberOfParticipants());
         registration.setTotalPrice(eventPrice);
-        registration.setPaymentIntentId(request.getPaymentIntentId());
+        registration.setPaymentIntentId(paidAmountCents > 0L ? request.getPaymentIntentId() : null);
         registration.setStatus(EventRegistrationStatus.CONFIRMED);
 
         EventRegistration saved = registrationRepository.save(registration);
-        if (totalPrice > 0) {
+        if (paidAmountCents > 0L) {
             paymentLifecycleService.bindToBooking(request.getPaymentIntentId(), saved.getId());
         }
 
@@ -176,7 +182,7 @@ public class EventRegistrationController {
             parkingReservation.setEventRegistration(saved);
             parkingReservation.setReservedSpaces(reservedSpaces);
             parkingReservation.setTotalPrice(parkingPrice);
-            parkingReservation.setPaymentIntentId(request.getPaymentIntentId());
+            parkingReservation.setPaymentIntentId(paidAmountCents > 0L ? request.getPaymentIntentId() : null);
             parkingReservation.setStatus(ParkingReservationStatus.CONFIRMED);
             savedParkingReservation = parkingReservationRepository.save(parkingReservation);
 
@@ -227,6 +233,7 @@ public class EventRegistrationController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecté");
         }
 
+        parkingCapacityService.lockInventory();
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
@@ -236,6 +243,25 @@ public class EventRegistrationController {
 
         if (!registration.getUser().getId().equals(user.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vous ne pouvez pas annuler cette inscription");
+        }
+
+        if (registration.getEvent().getStatus() == EventStatus.CANCELLED) {
+            var refund = eventPlanningService.refundProviderCancelledRegistration(registration);
+            registration.setStatus(EventRegistrationStatus.CANCELLED);
+            registrationRepository.save(registration);
+            ParkingReservation linked = parkingReservationRepository.findByEventRegistrationId(id).orElse(null);
+            if (linked != null) {
+                linked.setStatus(ParkingReservationStatus.CANCELLED);
+                parkingReservationRepository.save(linked);
+                parkingAccessService.cancelPasses(linked);
+            }
+            return new CancellationResponse(refund.status().name(), refund.refundedTotalCents(), 100,
+                    refund.status() == PaymentStatus.REFUNDED
+                        ? "Annulation prestataire : restitution intégrale confirmée."
+                        : "Annulation prestataire : droit à restitution intégrale conservé, remboursement en cours de traitement.");
+        }
+        if (registration.getStatus() == EventRegistrationStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cette inscription est déjà annulée");
         }
 
         if (registration.getEvent().getStartDateTime().isBefore(LocalDateTime.now())) {
@@ -251,8 +277,9 @@ public class EventRegistrationController {
                 : 0L;
         CancellationPolicyService.CancellationDecision decision = cancellationPolicyService.decide(
                 registration.getEvent().getStartDateTime(), eventAmountCents + parkingAmountCents);
+        PaymentLifecycleService.RefundResult refundResult = null;
         if (decision.refundAmountCents() > 0 && registration.getPaymentIntentId() != null) {
-            paymentLifecycleService.refundBookingPayment(
+            refundResult = paymentLifecycleService.refundBookingPayment(
                     registration.getPaymentIntentId(), decision.refundAmountCents(),
                     eventAmountCents + parkingAmountCents, user,
                     PaymentType.EVENT,
@@ -278,10 +305,10 @@ public class EventRegistrationController {
         eventWaitlistService.offerAvailablePlaces(registration.getEvent());
         return new CancellationResponse(
                 "CANCELLED",
-                decision.refundAmountCents(),
+                refundResult == null ? 0L : refundResult.refundedNowCents(),
                 decision.refundPercent(),
-                decision.explanation()
+                decision.explanation() + (refundResult != null && refundResult.status() == PaymentStatus.REFUND_PENDING
+                        ? " Le remboursement reste en cours de traitement; aucune somme non confirmée n'est présentée comme restituée." : "")
         );
     }
 }
-

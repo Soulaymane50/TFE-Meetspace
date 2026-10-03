@@ -6,6 +6,7 @@ import be.meetspace.repository.EventRepository;
 import be.meetspace.repository.ReservationRepository;
 import be.meetspace.repository.UserRepository;
 import be.meetspace.service.AuditService;
+import be.meetspace.service.BookingHoldService;
 import be.meetspace.service.EmailService;
 import be.meetspace.service.PaymentLifecycleService;
 import be.meetspace.service.PaymentQuoteService;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/public/reservations")
 public class ReservationController {
 
+    private final BookingHoldService bookingHoldService;
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
     private final EspaceRepository espaceRepository;
@@ -56,7 +58,9 @@ public class ReservationController {
                                  CancellationPolicyService cancellationPolicyService,
                                  AuditService auditService,
                                  EmailService emailService,
-                                 NotificationService notificationService) {
+                                 NotificationService notificationService,
+                                 BookingHoldService bookingHoldService) {
+        this.bookingHoldService = bookingHoldService;
         this.reservationRepository = reservationRepository;
         this.userRepository = userRepository;
         this.espaceRepository = espaceRepository;
@@ -132,6 +136,8 @@ public class ReservationController {
 
         long expectedAmountCents = paymentQuoteService.calculateRoomPriceCents(
                 espace, request.getStartDateTime(), request.getEndDateTime());
+        bookingHoldService.assertSpacePaymentWindow(request.getPaymentIntentId(), user, espace.getId(),
+                request.getStartDateTime(), request.getEndDateTime());
         paymentLifecycleService.consume(
                 request.getPaymentIntentId(), user, PaymentType.SPACE, expectedAmountCents, espace.getId());
 
@@ -194,6 +200,7 @@ public class ReservationController {
         long expectedAmountCents = paymentQuoteService.calculateRoomPriceCents(
                 espace, request.getStartDateTime(), request.getEndDateTime());
 
+        bookingHoldService.assertNoOverlappingSpaceHold(espace.getId(), request.getStartDateTime(), request.getEndDateTime(), null);
         Reservation reservation = new Reservation();
         reservation.setUser(user);
         reservation.setEspace(espace);
@@ -351,6 +358,8 @@ public class ReservationController {
                     "Cet espace est deja occupe sur ce creneau. Merci de choisir un autre horaire.");
         }
 
+        bookingHoldService.assertNoOverlappingSpaceHold(reservation.getEspace().getId(),
+                request.getStartDateTime(), request.getEndDateTime(), null);
         LocalDateTime previousStart = reservation.getStartDateTime();
         LocalDateTime previousEnd = reservation.getEndDateTime();
         reservation.setStartDateTime(request.getStartDateTime());
@@ -500,4 +509,3 @@ public class ReservationController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
     }
 }
-

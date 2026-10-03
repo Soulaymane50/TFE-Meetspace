@@ -28,6 +28,9 @@ public class EventPlanningService {
     private final ParkingSlotRepository parkingSlotRepository;
     private final ParkingCapacityService parkingCapacityService;
     private final ParkingAccessService parkingAccessService;
+    private final PaymentLifecycleService paymentLifecycleService;
+    private final NotificationService notificationService;
+    private final BookingHoldService bookingHoldService;
 
     public EventPlanningService(EspaceRepository espaceRepository,
                                 ReservationRepository reservationRepository,
@@ -36,7 +39,10 @@ public class EventPlanningService {
                                 ParkingReservationRepository parkingReservationRepository,
                                 ParkingSlotRepository parkingSlotRepository,
                                 ParkingCapacityService parkingCapacityService,
-                                ParkingAccessService parkingAccessService) {
+                                ParkingAccessService parkingAccessService,
+                                PaymentLifecycleService paymentLifecycleService,
+                                NotificationService notificationService,
+                                BookingHoldService bookingHoldService) {
         this.espaceRepository = espaceRepository;
         this.reservationRepository = reservationRepository;
         this.eventRepository = eventRepository;
@@ -45,10 +51,21 @@ public class EventPlanningService {
         this.parkingSlotRepository = parkingSlotRepository;
         this.parkingCapacityService = parkingCapacityService;
         this.parkingAccessService = parkingAccessService;
+        this.paymentLifecycleService = paymentLifecycleService;
+        this.notificationService = notificationService;
+        this.bookingHoldService = bookingHoldService;
     }
 
+    public void lockParkingInventory() { parkingCapacityService.lockInventory(); }
+
     public void applyAndValidate(Event event, EventData data, Long excludeEventId) {
+        lockParkingInventory();
         validateDates(data.startDateTime(), data.endDateTime());
+        if (data.locationType() == EventLocationType.EXISTING_SPACE) {
+            validateParkingDateWindow(data.startDateTime(), data.endDateTime());
+        }
+        validateWindowChangeBeforeBookings(event, data);
+        validateParkingAllocationChange(event, data);
 
         event.setTitle(data.title());
         event.setDescription(data.description());
@@ -108,9 +125,11 @@ public class EventPlanningService {
     }
 
     public void validateAvailabilityForPublication(Event event) {
+        lockParkingInventory();
         if (event.getLocationType() != EventLocationType.EXISTING_SPACE || event.getSpace() == null) {
             return;
         }
+        validateParkingDateWindow(event.getStartDateTime(), event.getEndDateTime());
         lockAndValidateExistingSpace(
                 event.getSpace().getId(),
                 event.getStartDateTime(),
@@ -128,6 +147,7 @@ public class EventPlanningService {
         Espace espace = espaceRepository.findByIdForUpdate(spaceId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Espace introuvable pour l'événement"));
 
+        bookingHoldService.assertNoOverlappingSpaceHold(spaceId, start, end, null);
         if (espace.getStatus() != EspaceStatus.AVAILABLE) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Espace non disponible");
         }
@@ -144,6 +164,51 @@ public class EventPlanningService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Un autre événement occupe déjà cet espace sur ce créneau");
         }
         return espace;
+    }
+
+    private void validateWindowChangeBeforeBookings(Event event, EventData data) {
+        if (event.getId() == null
+                || (java.util.Objects.equals(event.getStartDateTime(), data.startDateTime())
+                && java.util.Objects.equals(event.getEndDateTime(), data.endDateTime()))) {
+            return;
+        }
+        boolean confirmedAttendees = eventRegistrationRepository.findByEventId(event.getId()).stream()
+                .anyMatch(registration -> registration.getStatus() == EventRegistrationStatus.CONFIRMED);
+        boolean confirmedCustomerParking = event.getParkingSlot() != null
+                && parkingReservationRepository.findByParkingSlotId(event.getParkingSlot().getId()).stream()
+                .anyMatch(reservation -> reservation.getStatus() == ParkingReservationStatus.CONFIRMED
+                        && !reservation.isComplimentary());
+        if (confirmedAttendees || confirmedCustomerParking) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Les dates et horaires ne peuvent plus être modifiés : cet événement possède des inscriptions ou réservations parking confirmées.");
+        }
+    }
+
+    private void validateParkingAllocationChange(Event event, EventData data) {
+        ParkingSlot old = event.getParkingSlot();
+        boolean existingSpace = data.locationType() == EventLocationType.EXISTING_SPACE;
+        boolean changed = old == null || !existingSpace
+                || !java.util.Objects.equals(event.getStartDateTime(), data.startDateTime())
+                || !java.util.Objects.equals(event.getEndDateTime(), data.endDateTime())
+                || !java.util.Objects.equals(event.getCapacity(), data.capacity())
+                || (data.status() != null && event.getStatus() != data.status());
+        if (!changed) return;
+        if (old != null) assertNoParkingHolds(old);
+        if (existingSpace) {
+            parkingCapacityService.assertNoActiveHoldsForWindow(data.startDateTime().toLocalDate(),
+                    data.startDateTime().toLocalTime(), data.endDateTime().toLocalTime());
+        }
+    }
+
+    private void assertNoParkingHolds(ParkingSlot slot) {
+        parkingCapacityService.assertNoActiveHoldsForWindow(slot.getSessionDate(), slot.getStartTime(), slot.getEndTime());
+    }
+
+    private void validateParkingDateWindow(LocalDateTime start, LocalDateTime end) {
+        if (!start.toLocalDate().equals(end.toLocalDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Un événement avec parking doit commencer et se terminer le même jour. Le parking multijours n'est pas disponible.");
+        }
     }
 
     private void validateDates(LocalDateTime start, LocalDateTime end) {
@@ -183,8 +248,11 @@ public class EventPlanningService {
     }
 
     public void activateParkingForPublication(Event event) {
+        lockParkingInventory();
         if (event.getLocationType() != EventLocationType.EXISTING_SPACE || event.getParkingSlot() == null) return;
+        validateParkingDateWindow(event.getStartDateTime(), event.getEndDateTime());
         ParkingSlot slot = event.getParkingSlot();
+        if (slot.getStatus() != ParkingSlotStatus.OPEN) assertNoParkingHolds(slot);
         slot.setStatus(ParkingSlotStatus.OPEN);
         parkingSlotRepository.save(slot);
         if (event.getCreatedBy() == null || parkingReservationRepository
@@ -203,6 +271,28 @@ public class EventPlanningService {
     }
 
     public void syncParkingStatus(Event event) {
+        lockParkingInventory();
+        ParkingSlot currentSlot = event.getParkingSlot();
+        ParkingSlotStatus targetStatus = event.getStatus() == EventStatus.PUBLISHED ? ParkingSlotStatus.OPEN : ParkingSlotStatus.CANCELLED;
+        if (currentSlot != null && currentSlot.getStatus() != targetStatus) {
+            // Check before the durable refund calls: a rejected allocation change must not refund an open event.
+            assertNoParkingHolds(currentSlot);
+        }
+        if (event.getStatus() == EventStatus.CANCELLED) {
+            // Restituer le paiement historique, sans barème client, avant d'invalider les accès.
+            // Le journal durable permet de reprendre une réponse Stripe perdue après rollback.
+            for (EventRegistration candidate : eventRegistrationRepository.findByEventId(event.getId())) {
+                EventRegistration registration = eventRegistrationRepository.findByIdForUpdate(candidate.getId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "Inscription introuvable pendant l'annulation"));
+                boolean newlyCancelled = registration.getStatus() != EventRegistrationStatus.CANCELLED;
+                var refund = refundProviderCancelledRegistration(registration);
+                registration.setStatus(EventRegistrationStatus.CANCELLED);
+                eventRegistrationRepository.save(registration);
+                if (newlyCancelled || refund.refundedNowCents() > 0) {
+                    notifyProviderCancellation(registration.getUser(), event, "EventRegistration", registration.getId(), refund);
+                }
+            }
+        }
         if (event.getParkingSlot() == null) return;
         boolean open = event.getStatus() == EventStatus.PUBLISHED;
         ParkingSlot slot = event.getParkingSlot();
@@ -210,14 +300,68 @@ public class EventPlanningService {
         parkingSlotRepository.save(slot);
         if (!open) {
             parkingReservationRepository.findByParkingSlotId(slot.getId()).stream()
-                    .filter(ParkingReservation::isComplimentary)
-                    .filter(reservation -> reservation.getStatus() != ParkingReservationStatus.CANCELLED)
-                    .forEach(reservation -> {
+                    .filter(reservation -> event.getStatus() == EventStatus.CANCELLED || reservation.isComplimentary())
+                    .filter(reservation -> event.getStatus() == EventStatus.CANCELLED || reservation.getStatus() != ParkingReservationStatus.CANCELLED)
+                    .forEach(candidate -> {
+                        ParkingReservation reservation = parkingReservationRepository.findByIdForUpdate(candidate.getId())
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "Réservation parking introuvable pendant l'annulation"));
+                        boolean newlyCancelled = reservation.getStatus() != ParkingReservationStatus.CANCELLED;
+                        if (event.getStatus() == EventStatus.CANCELLED && !reservation.isComplimentary()
+                                && (reservation.getEventRegistration() == null
+                                || !java.util.Objects.equals(reservation.getPaymentIntentId(), reservation.getEventRegistration().getPaymentIntentId()))) {
+                            long paid = priceCents(reservation.getTotalPrice());
+                            var refund = refundProviderPayment(reservation.getPaymentIntentId(), paid, reservation.getUser(),
+                                    PaymentType.PARKING, slot.getId(), reservation.getId());
+                            if (newlyCancelled || refund.refundedNowCents() > 0) {
+                                notifyProviderCancellation(reservation.getUser(), event, "ParkingReservation", reservation.getId(), refund);
+                            }
+                        }
                         reservation.setStatus(ParkingReservationStatus.CANCELLED);
                         parkingReservationRepository.save(reservation);
                         parkingAccessService.cancelPasses(reservation);
                     });
         }
+    }
+
+    /** Retryable even after the ticket was cancelled: service cancellation preserves refund rights. */
+    public PaymentLifecycleService.RefundResult refundProviderCancelledRegistration(EventRegistration registration) {
+        lockParkingInventory();
+        if (registration.getEvent().getStatus() != EventStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "L'événement n'est pas annulé par son prestataire.");
+        }
+        ParkingReservation linked = parkingReservationRepository.findByEventRegistrationId(registration.getId()).orElse(null);
+        long paid = priceCents(registration.getTotalPrice());
+        if (linked != null && !linked.isComplimentary()
+                && java.util.Objects.equals(linked.getPaymentIntentId(), registration.getPaymentIntentId())) {
+            // Include the original parking charge even when its access has already been cancelled.
+            paid += priceCents(linked.getTotalPrice());
+        }
+        return refundProviderPayment(registration.getPaymentIntentId(), paid, registration.getUser(),
+                PaymentType.EVENT, registration.getEvent().getId(), registration.getId());
+    }
+
+    private PaymentLifecycleService.RefundResult refundProviderPayment(String intentId, long paid, User user,
+                                                                       PaymentType type, Long resourceId,
+                                                                       Long bookingId) {
+        if (paid == 0L) return new PaymentLifecycleService.RefundResult(0L, 0L, PaymentStatus.REFUNDED);
+        if (!StringUtils.hasText(intentId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Paiement historique manquant : la restitution intégrale doit être régularisée avant de confirmer l'annulation.");
+        }
+        return paymentLifecycleService.refundFullBookingPayment(intentId, paid, user, type, resourceId, bookingId);
+    }
+
+    private long priceCents(Double price) { return Math.round((price == null ? 0D : price) * 100D); }
+
+    private void notifyProviderCancellation(User user, Event event, String sourceType, Long sourceId,
+                                           PaymentLifecycleService.RefundResult refund) {
+        if (user == null) return;
+        String message = event.getTitle() + " a été annulé par son prestataire. "
+                + (refund.status() == PaymentStatus.REFUNDED
+                    ? "La restitution intégrale du paiement est confirmée."
+                    : "Vous conservez le droit à la restitution intégrale du paiement. Le remboursement est en cours de traitement.");
+        notificationService.create(user, NotificationTone.WARNING, "Événement annulé par le prestataire",
+                message, "/my-reservations?tab=events", sourceType, sourceId);
     }
 
     private double calculateDurationHours(Event event) {

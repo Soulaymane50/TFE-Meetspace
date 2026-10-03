@@ -7,6 +7,7 @@ import be.meetspace.repository.EventRegistrationRepository;
 import be.meetspace.repository.ParkingReservationRepository;
 import be.meetspace.service.ParkingCapacityService;
 import be.meetspace.web.dto.EventResponseDto;
+import be.meetspace.web.dto.PublicEventResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -39,7 +40,7 @@ public class EventController {
     }
 
     @GetMapping
-    public List<EventResponseDto> getPublishedEvents() {
+    public List<PublicEventResponseDto> getPublishedEvents() {
         List<Event> events = eventRepository.findByStatusAndStartDateTimeAfterOrderByStartDateTimeAsc(
                 EventStatus.PUBLISHED, 
                 LocalDateTime.now()
@@ -71,12 +72,12 @@ public class EventController {
                 dto.applyParkingCapacity(capacity.allocatedSpaces(), capacity.availableSpaces(),
                         capacity.physicalCapacity(), capacity.globalRemainingSpaces());
             }
-            return dto;
+            return PublicEventResponseDto.fromPrivateDto(dto);
         }).toList();
     }
 
     @GetMapping("/{id}")
-    public EventResponseDto getEvent(@PathVariable Long id) {
+    public PublicEventResponseDto getEvent(@PathVariable Long id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Événement introuvable"));
         
@@ -94,6 +95,6 @@ public class EventController {
             dto.applyParkingCapacity(capacity.allocatedSpaces(), capacity.availableSpaces(),
                     capacity.physicalCapacity(), capacity.globalRemainingSpaces());
         }
-        return dto;
+        return PublicEventResponseDto.fromPrivateDto(dto);
     }
 }

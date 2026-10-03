@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@org.springframework.context.annotation.Import(be.meetspace.service.EventParkingInventoryTestConfig.class)
 @SpringBootTest
 @ActiveProfiles("test")
 class OrganizerEventCheckInIntegrationTest {
@@ -132,6 +133,20 @@ class OrganizerEventCheckInIntegrationTest {
                 () -> controller.checkInAttendee(event.getId(), request, authentication(outsider), new MockHttpServletRequest()));
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.EnumSource(value = EventStatus.class,
+            names = {"CANCELLED", "REJECTED", "PENDING_APPROVAL", "AWAITING_DEPOSIT"})
+    void nonPublishedEventCannotValidateAnyTicket(EventStatus status) {
+        event.setStatus(status);
+        eventRepository.save(event);
+        EventCheckInRequest request = new EventCheckInRequest();
+        request.setTicket(registration.getTicketToken());
+        var error = assertThrows(ResponseStatusException.class,
+                () -> controller.checkInAttendee(event.getId(), request, authentication(organizer), new MockHttpServletRequest()));
+        assertEquals(org.springframework.http.HttpStatus.CONFLICT, error.getStatusCode());
+        assertEquals(0, auditLogRepository.count());
+        assertTrue(registrationRepository.findById(registration.getId()).orElseThrow().getCheckedInAt() == null);
+    }
     private static User user(String email, Role role) {
         User user = new User();
         user.setFirstName(role == Role.ORGANIZER ? "Organisateur" : "Participant");

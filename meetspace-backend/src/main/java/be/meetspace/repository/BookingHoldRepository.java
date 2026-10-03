@@ -32,5 +32,20 @@ public interface BookingHoldRepository extends JpaRepository<BookingHold, Long> 
                                                      @Param("status") BookingHoldStatus status,
                                                      @Param("now") LocalDateTime now);
 
+    @Query("SELECT h FROM BookingHold h JOIN ParkingSlot p ON " +
+            "((h.type = be.meetspace.entity.PaymentType.PARKING AND h.resourceId = p.id) OR " +
+            "(h.type = be.meetspace.entity.PaymentType.EVENT AND h.secondaryResourceId = p.id)) " +
+            "WHERE h.status = :status AND h.expiresAt > :now AND p.status = 'OPEN' " +
+            "AND p.sessionDate = :date AND p.startTime < :endTime AND p.endTime > :startTime")
+    List<BookingHold> findActiveParkingForWindow(@Param("date") java.time.LocalDate date,
+                                                @Param("startTime") java.time.LocalTime startTime,
+                                                @Param("endTime") java.time.LocalTime endTime,
+                                                @Param("status") BookingHoldStatus status,
+                                                @Param("now") LocalDateTime now);
+
+    @Query("SELECT h FROM PaymentRecord p JOIN p.bookingHold h JOIN FETCH h.user " +
+            "WHERE p.paymentIntentId = :paymentIntentId")
+    Optional<BookingHold> findByPaymentIntentId(@Param("paymentIntentId") String paymentIntentId);
+
     List<BookingHold> findByStatusAndExpiresAtBefore(BookingHoldStatus status, LocalDateTime now);
 }

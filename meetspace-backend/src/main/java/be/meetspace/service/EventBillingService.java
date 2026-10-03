@@ -106,6 +106,7 @@ public class EventBillingService {
     @Scheduled(fixedDelayString = "${app.events.settlement-check-ms:300000}")
     @Transactional
     public void calculateDueSettlements() {
+        eventPlanningService.lockParkingInventory();
         LocalDateTime now = LocalDateTime.now();
         eventRepository.findAll().stream()
                 .filter(event -> event.getStatus() == EventStatus.AWAITING_DEPOSIT)
@@ -125,8 +126,10 @@ public class EventBillingService {
     }
 
     private void calculateSettlement(Event event) {
-        int participants = registrationRepository.countTotalParticipantsByEventId(event.getId());
-        long grossRevenue = Math.round((event.getPrice() == null ? 0D : event.getPrice()) * participants * 100D);
+        long grossRevenue = registrationRepository.findByEventId(event.getId()).stream()
+                .filter(registration -> registration.getStatus() == be.meetspace.entity.EventRegistrationStatus.CONFIRMED)
+                .mapToLong(registration -> Math.round((registration.getTotalPrice() == null ? 0D : registration.getTotalPrice()) * 100D))
+                .sum();
         long commission = Math.round(grossRevenue * COMMISSION_RATE);
         long unpaidBalance = event.getBalancePaidAt() == null ? event.getBalanceDueCents() : 0L;
         long lateFee = unpaidBalance > 0L ? Math.round(unpaidBalance * LATE_FEE_RATE) : 0L;
@@ -148,6 +151,7 @@ public class EventBillingService {
     }
 
     private Event ownedEventForUpdate(Long eventId, User organizer) {
+        eventPlanningService.lockParkingInventory();
         Event event = eventRepository.findByIdForUpdate(eventId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Événement introuvable."));
         boolean admin = "ADMIN".equals(organizer.getRole().name());

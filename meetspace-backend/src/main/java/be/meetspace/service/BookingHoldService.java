@@ -4,6 +4,7 @@ import be.meetspace.entity.*;
 import be.meetspace.repository.*;
 import be.meetspace.web.dto.PaymentRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,9 @@ import java.util.UUID;
 
 @Service
 public class BookingHoldService {
+
+    @Autowired
+    private ParkingCapacityService parkingCapacityService;
 
     private final BookingHoldRepository holdRepository;
     private final EspaceRepository espaceRepository;
@@ -46,6 +50,10 @@ public class BookingHoldService {
 
     @Transactional
     public BookingHold createHold(PaymentRequest request, User user, PaymentType type, long amountCents) {
+        // All EVENT/PARKING holds serialize on the same physical inventory before reads.
+        if (type == PaymentType.PARKING || type == PaymentType.EVENT) {
+            parkingCapacityService.lockInventory();
+        }
         BookingHold hold = switch (type) {
             case SPACE -> createSpaceHold(request, user, amountCents);
             case PREMIUM_ROOM -> createPremiumRoomHold(request, user, amountCents);
@@ -159,6 +167,8 @@ public class BookingHoldService {
             if (slot == null || slot.getStatus() != ParkingSlotStatus.OPEN) {
                 throw badRequest("Le parking n'est pas disponible pour cet evenement.");
             }
+            slot = parkingSlotRepository.findByIdForUpdate(slot.getId())
+                    .orElseThrow(() -> notFound("Creneau parking introuvable."));
             validateParkingCapacity(slot, request.getReservedSpaces());
             hold.setSecondaryResourceId(slot.getId());
             hold.setSecondaryQuantity(request.getReservedSpaces());
@@ -210,11 +220,7 @@ public class BookingHoldService {
     }
 
     private void validateParkingCapacity(ParkingSlot slot, int requested) {
-        int actual = parkingReservationRepository.countReservedSpacesByParkingSlotId(slot.getId());
-        int held = activeQuantity(PaymentType.PARKING, slot.getId()) + activeSecondaryQuantity(slot.getId());
-        if (actual + held + requested > slot.getCapacity()) {
-            throw conflict("Le nombre de places parking restantes a change. Actualisez votre demande.");
-        }
+        parkingCapacityService.lockAndAssertHoldAvailable(slot, requested);
     }
 
     private int activeQuantity(PaymentType type, Long resourceId) {
@@ -223,6 +229,31 @@ public class BookingHoldService {
                 .filter(java.util.Objects::nonNull)
                 .mapToInt(Integer::intValue)
                 .sum();
+    }
+
+    @Transactional(readOnly = true)
+    public void assertSpacePaymentWindow(String paymentIntentId, User user, Long spaceId,
+                                         LocalDateTime start, LocalDateTime end) {
+        BookingHold hold = holdRepository.findByPaymentIntentId(paymentIntentId)
+                .orElseThrow(() -> badRequest("Le blocage lié au paiement est introuvable."));
+        if (!hold.getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Ce paiement appartient à un autre compte.");
+        }
+        if (hold.getType() != PaymentType.SPACE || !java.util.Objects.equals(hold.getResourceId(), spaceId)
+                || !java.util.Objects.equals(hold.getStartAt(), start) || !java.util.Objects.equals(hold.getEndAt(), end)) {
+            throw badRequest("Ce paiement ne correspond pas au créneau réservé.");
+        }
+        assertNoOverlappingSpaceHold(spaceId, start, end, hold.getToken());
+    }
+
+    @Transactional(readOnly = true)
+    public void assertNoOverlappingSpaceHold(Long spaceId, LocalDateTime start, LocalDateTime end, String excludedToken) {
+        boolean conflict = holdRepository.findActiveForResource(PaymentType.SPACE, spaceId,
+                BookingHoldStatus.ACTIVE, LocalDateTime.now()).stream()
+                .filter(hold -> !java.util.Objects.equals(hold.getToken(), excludedToken))
+                .anyMatch(hold -> hold.getStartAt() != null && hold.getEndAt() != null
+                        && hold.getStartAt().isBefore(end) && hold.getEndAt().isAfter(start));
+        if (conflict) throw conflict("Ce créneau est temporairement bloqué pour un paiement.");
     }
 
     private int activeSecondaryQuantity(Long resourceId) {

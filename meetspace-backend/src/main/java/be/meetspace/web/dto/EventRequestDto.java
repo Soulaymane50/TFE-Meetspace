@@ -1,6 +1,7 @@
 package be.meetspace.web.dto;
 
 import be.meetspace.entity.EventLocationType;
+import be.meetspace.entity.EventStatus;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -27,6 +28,8 @@ public class EventRequestDto {
     private Integer capacity;
 
     private Double price;
+
+    private EventStatus status;
 
     private EventLocationType locationType;
     private Long spaceId;
@@ -56,6 +59,9 @@ public class EventRequestDto {
 
     public Double getPrice() { return price; }
     public void setPrice(Double price) { this.price = price; }
+
+    public EventStatus getStatus() { return status; }
+    public void setStatus(EventStatus status) { this.status = status; }
 
     public EventLocationType getLocationType() { return locationType; }
     public void setLocationType(EventLocationType locationType) { this.locationType = locationType; }

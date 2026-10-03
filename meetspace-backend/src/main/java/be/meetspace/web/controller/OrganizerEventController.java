@@ -62,6 +62,7 @@ public class OrganizerEventController {
     @PostMapping
     @Transactional
     public EventResponseDto createEvent(@Valid @RequestBody EventRequestDto dto, Authentication authentication, HttpServletRequest httpRequest) {
+        eventPlanningService.lockParkingInventory();
         User organizer = getAuthenticatedUser(authentication);
 
         if (!organizer.getRole().name().equals("ORGANIZER") && !organizer.getRole().name().equals("ADMIN")) {
@@ -134,6 +135,9 @@ public class OrganizerEventController {
         Event event = eventRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Événement introuvable"));
         ensureCanManage(event, organizer);
+        if (event.getStatus() != EventStatus.PUBLISHED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cet événement n'est plus ouvert au contrôle des billets");
+        }
 
         String ticketToken = normalizeTicket(request.getTicket(), id);
         EventRegistration registration = registrationRepository.findByTicketTokenForUpdate(ticketToken)
@@ -178,6 +182,7 @@ public class OrganizerEventController {
     public EventResponseDto payDeposit(@PathVariable Long id,
                                        @Valid @RequestBody PayReservationRequest request,
                                        Authentication authentication) {
+        eventPlanningService.lockParkingInventory();
         User organizer = getAuthenticatedUser(authentication);
         Event saved = eventBillingService.payDeposit(id, request.getPaymentIntentId(), organizer);
         return toResponse(saved, registrationRepository.countTotalParticipantsByEventId(saved.getId()));
@@ -188,6 +193,7 @@ public class OrganizerEventController {
     public EventResponseDto payBalance(@PathVariable Long id,
                                        @Valid @RequestBody PayReservationRequest request,
                                        Authentication authentication) {
+        eventPlanningService.lockParkingInventory();
         User organizer = getAuthenticatedUser(authentication);
         Event saved = eventBillingService.payBalance(id, request.getPaymentIntentId(), organizer);
         return toResponse(saved, registrationRepository.countTotalParticipantsByEventId(saved.getId()));
@@ -196,6 +202,7 @@ public class OrganizerEventController {
     @PutMapping("/my/{id}")
     @Transactional
     public EventResponseDto updateMyEvent(@PathVariable Long id, @Valid @RequestBody EventRequestDto dto, Authentication authentication, HttpServletRequest httpRequest) {
+        eventPlanningService.lockParkingInventory();
         User organizer = getAuthenticatedUser(authentication);
 
         Event event = eventRepository.findByIdForUpdate(id)
@@ -236,6 +243,7 @@ public class OrganizerEventController {
     @DeleteMapping("/my/{id}")
     @Transactional
     public void cancelMyEvent(@PathVariable Long id, Authentication authentication, HttpServletRequest httpRequest) {
+        eventPlanningService.lockParkingInventory();
         User organizer = getAuthenticatedUser(authentication);
 
         Event event = eventRepository.findByIdForUpdate(id)
@@ -244,6 +252,8 @@ public class OrganizerEventController {
         if (!event.getCreatedBy().getId().equals(organizer.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vous n'êtes pas le créateur de cet événement");
         }
+
+        if (event.getStatus() == EventStatus.CANCELLED) return;
 
         String oldStatus = event.getStatus().name();
         event.setStatus(EventStatus.CANCELLED);
@@ -299,4 +309,3 @@ public class OrganizerEventController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
     }
 }
-

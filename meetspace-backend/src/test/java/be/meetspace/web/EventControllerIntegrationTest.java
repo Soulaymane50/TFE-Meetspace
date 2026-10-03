@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@org.springframework.context.annotation.Import(be.meetspace.service.EventParkingInventoryTestConfig.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -62,9 +63,36 @@ class EventControllerIntegrationTest {
         event.setPrice(25D);
         event.setStatus(EventStatus.PUBLISHED);
         event.setCreatedBy(organizer);
+        event.setRoomCostCents(20000L);
+        event.setDepositAmountCents(6000L);
+        event.setDepositPaidAt(LocalDateTime.now().minusDays(1));
+        event.setBalanceDueCents(14000L);
+        event.setPayoutAmountCents(12345L);
+        event.setSettlementStatus("HOLDING_REVENUE");
         eventRepository.save(event);
     }
 
+    @Test
+    void anonymousCatalogAndDetailExcludeAllPrivateFinancialAndApprovalFields() throws Exception {
+        Long id = eventRepository.findAll().get(0).getId();
+        String[] privateFields = {"roomCostCents", "depositAmountCents", "depositDueAt", "depositPaidAt",
+                "balanceDueCents", "balancePaidAt", "settlementDueAt", "lateFeeCents", "payoutAmountCents",
+                "settlementStatus", "approvedAt", "approvedByName", "rejectionReason"};
+        for (String field : privateFields) {
+            mockMvc.perform(get("/api/public/events")).andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0]." + field).doesNotHaveJsonPath());
+            mockMvc.perform(get("/api/public/events/" + id)).andExpect(status().isOk())
+                    .andExpect(jsonPath("$." + field).doesNotHaveJsonPath());
+        }
+        mockMvc.perform(get("/api/public/events/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.price").value(25D))
+                .andExpect(jsonPath("$.capacity").value(40))
+                .andExpect(jsonPath("$.registeredCount").value(0))
+                .andExpect(jsonPath("$.availablePlaces").value(40))
+                .andExpect(jsonPath("$.createdByName").value("Event Organizer"))
+                .andExpect(jsonPath("$.parkingRequired").value(false));
+    }
     @Test
     void publishedEventsSerializeLazyRelationsWithOpenInViewDisabled() throws Exception {
         mockMvc.perform(get("/api/public/events").header("X-Request-Id", "integration-request-123"))

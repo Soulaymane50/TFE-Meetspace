@@ -98,6 +98,8 @@ public class ParkingController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecté");
         }
 
+        parkingCapacityService.lockInventory();
+
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable"));
@@ -119,10 +121,10 @@ public class ParkingController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nombre de places invalide");
         }
 
-        parkingCapacityService.lockAndAssertAvailable(session, reservedSpaces);
-
         double totalPrice = session.getParkingRate() * reservedSpaces;
         long totalAmountCents = Math.round(totalPrice * 100D);
+        parkingCapacityService.lockAndAssertAvailable(session, reservedSpaces,
+                totalAmountCents > 0 ? request.getPaymentIntentId() : null, user);
         String paymentIntentId = request.getPaymentIntentId();
         if (totalAmountCents > 0) {
             if (paymentIntentId == null || paymentIntentId.isBlank()) {
@@ -191,6 +193,7 @@ public class ParkingController {
     @DeleteMapping("/reservations/{id}/cancel")
     @Transactional
     public CancellationResponse cancelReservation(@PathVariable Long id, Authentication authentication, HttpServletRequest httpRequest) {
+        parkingCapacityService.lockInventory();
         if (authentication == null || authentication.getName() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Non connecté");
         }
@@ -248,4 +251,3 @@ public class ParkingController {
         return LocalDateTime.of(session.getSessionDate(), session.getStartTime());
     }
 }
-

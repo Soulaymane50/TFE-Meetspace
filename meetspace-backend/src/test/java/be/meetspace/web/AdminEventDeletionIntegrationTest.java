@@ -17,10 +17,12 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@org.springframework.context.annotation.Import(be.meetspace.service.EventParkingInventoryTestConfig.class)
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
 class AdminEventDeletionIntegrationTest {
+    @Autowired be.meetspace.repository.ParkingInventoryRepository inventory;
     @Autowired AdminEventController controller;
     @Autowired EventRepository events;
     @Autowired UserRepository users;
@@ -86,6 +88,10 @@ class AdminEventDeletionIntegrationTest {
     }
 
     private ParkingReservation fixture() {
+        if (!inventory.existsById(1L)) {
+            be.meetspace.entity.ParkingInventory physical = new be.meetspace.entity.ParkingInventory();
+            physical.setId(1L); physical.setCapacity(150); inventory.saveAndFlush(physical);
+        }
         User user = new User();
         user.setFirstName("Audit");
         user.setLastName("Suppression");

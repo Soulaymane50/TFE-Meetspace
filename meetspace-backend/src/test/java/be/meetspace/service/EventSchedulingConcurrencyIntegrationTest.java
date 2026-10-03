@@ -30,9 +30,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@org.springframework.context.annotation.Import(be.meetspace.service.EventParkingInventoryTestConfig.class)
 @SpringBootTest
 @ActiveProfiles("test")
 class EventSchedulingConcurrencyIntegrationTest {
+    @Autowired be.meetspace.repository.ParkingInventoryRepository inventory;
 
     @Autowired
     private EventPlanningService eventPlanningService;
@@ -51,6 +53,10 @@ class EventSchedulingConcurrencyIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        if (!inventory.existsById(1L)) {
+            be.meetspace.entity.ParkingInventory physical = new be.meetspace.entity.ParkingInventory();
+            physical.setId(1L); physical.setCapacity(150); inventory.saveAndFlush(physical);
+        }
         eventRepository.deleteAll();
         espaceRepository.deleteAll();
         room = espaceRepository.saveAndFlush(room("Salle test concurrence"));

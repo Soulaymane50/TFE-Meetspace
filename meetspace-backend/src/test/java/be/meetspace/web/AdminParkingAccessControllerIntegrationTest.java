@@ -24,6 +24,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Import;
+import be.meetspace.service.EventParkingInventoryTestConfig;
+import be.meetspace.web.controller.ParkingController;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -37,9 +43,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(EventParkingInventoryTestConfig.class)
 class AdminParkingAccessControllerIntegrationTest {
 
     @Autowired private AdminParkingAccessController controller;
+    @Autowired private ParkingController parkingController;
     @Autowired private ParkingAccessPassRepository passRepository;
     @Autowired private ParkingReservationRepository reservationRepository;
     @Autowired private ParkingSlotRepository slotRepository;
@@ -85,6 +93,41 @@ class AdminParkingAccessControllerIntegrationTest {
         pass.setToken("0123456789abcdef0123456789abcdef");
         pass.setStatus(ParkingAccessPassStatus.ACTIVE);
         pass = passRepository.save(pass);
+    }
+
+    @Test
+    void scanAndCustomerCancellationCanFinishConcurrently() throws Exception {
+        ParkingReservation booking = reservationRepository.findById(pass.getParkingReservation().getId()).orElseThrow();
+        booking.setTotalPrice(0D);
+        reservationRepository.saveAndFlush(booking);
+        String customerEmail = booking.getUser().getEmail();
+        var start = new CountDownLatch(1);
+        var workers = Executors.newFixedThreadPool(2);
+        try {
+            var scan = workers.submit(() -> {
+                assertTrue(start.await(5, TimeUnit.SECONDS));
+                ParkingAccessCheckInRequest request = new ParkingAccessCheckInRequest();
+                request.setPass(pass.getToken());
+                try {
+                    controller.checkIn(request, new UsernamePasswordAuthenticationToken(admin.getEmail(), null), new MockHttpServletRequest());
+                } catch (ResponseStatusException conflict) {
+                    assertEquals(409, conflict.getStatusCode().value());
+                }
+                return true;
+            });
+            var cancel = workers.submit(() -> {
+                assertTrue(start.await(5, TimeUnit.SECONDS));
+                parkingController.cancelReservation(booking.getId(), new UsernamePasswordAuthenticationToken(customerEmail, null), new MockHttpServletRequest());
+                return true;
+            });
+            start.countDown();
+            assertTrue(scan.get(15, TimeUnit.SECONDS));
+            assertTrue(cancel.get(15, TimeUnit.SECONDS));
+            assertEquals(ParkingReservationStatus.CANCELLED, reservationRepository.findById(booking.getId()).orElseThrow().getStatus());
+            assertEquals(ParkingAccessPassStatus.CANCELLED, passRepository.findById(pass.getId()).orElseThrow().getStatus());
+        } finally {
+            workers.shutdownNow();
+        }
     }
 
     @Test

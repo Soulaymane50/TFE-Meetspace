@@ -46,7 +46,10 @@ public class AdminParkingController {
     }
 
     @PostMapping("/sessions")
+    @Transactional
     public ParkingSlotResponseDto createSession(@Valid @RequestBody ParkingSlotRequest request, HttpServletRequest httpRequest) {
+        parkingCapacityService.lockInventory();
+        parkingCapacityService.assertNoActiveHoldsForWindow(request.getSlotDate(), request.getStartTime(), request.getEndTime());
         ParkingSlot s = new ParkingSlot();
         apply(request, s);
         ParkingSlot saved = sessionRepository.save(s);
@@ -67,14 +70,33 @@ public class AdminParkingController {
     }
 
     @PutMapping("/sessions/{id}")
+    @Transactional
     public ParkingSlotResponseDto updateSession(
             @PathVariable Long id,
             @Valid @RequestBody ParkingSlotRequest request,
             HttpServletRequest httpRequest
     ) {
-        ParkingSlot s = sessionRepository.findById(id)
+        parkingCapacityService.lockInventory();
+        ParkingSlot s = sessionRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found"));
-
+        boolean windowChanged = !java.util.Objects.equals(s.getSessionDate(), request.getSlotDate())
+                || !java.util.Objects.equals(s.getStartTime(), request.getStartTime())
+                || !java.util.Objects.equals(s.getEndTime(), request.getEndTime());
+        int confirmed = reservationRepository.countReservedSpacesByParkingSlotId(id);
+        if (windowChanged && confirmed > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Les horaires d'un créneau avec des réservations confirmées ne peuvent pas être modifiés.");
+        }
+        if ((windowChanged || !java.util.Objects.equals(s.getCapacity(), request.getParkingCapacity())
+                || s.getStatus() != request.getStatus()) && parkingCapacityService.hasActiveHolds(s)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Ce créneau est temporairement bloqué pour un paiement.");
+        }
+        if (windowChanged || !java.util.Objects.equals(s.getCapacity(), request.getParkingCapacity())
+                || s.getStatus() != request.getStatus()) {
+            parkingCapacityService.assertNoActiveHoldsForWindow(s.getSessionDate(), s.getStartTime(), s.getEndTime());
+            parkingCapacityService.assertNoActiveHoldsForWindow(request.getSlotDate(), request.getStartTime(), request.getEndTime());
+        }
         apply(request, s);
         ParkingSlot saved = sessionRepository.save(s);
 
@@ -89,8 +111,13 @@ public class AdminParkingController {
     @DeleteMapping("/sessions/{id}")
     @Transactional
     public void deleteSession(@PathVariable Long id, HttpServletRequest httpRequest) {
-        ParkingSlot session = sessionRepository.findById(id)
+        parkingCapacityService.lockInventory();
+        ParkingSlot session = sessionRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found"));
+        if (parkingCapacityService.hasActiveHolds(session)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Ce créneau est temporairement bloqué pour un paiement.");
+        }
         String sessionTitle = session.getTitle();
 
         reservationRepository.deleteByParkingSlotId(id);
