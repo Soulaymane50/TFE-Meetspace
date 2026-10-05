@@ -28,6 +28,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.List;
@@ -407,10 +408,23 @@ public class ReservationController {
             @RequestParam String startDateTime,
             @RequestParam String endDateTime
     ) {
-        LocalDateTime start = LocalDateTime.parse(startDateTime);
-        LocalDateTime end = LocalDateTime.parse(endDateTime);
+        Espace espace = espaceRepository.findById(espaceId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Espace introuvable"));
+        LocalDateTime start;
+        LocalDateTime end;
+        try {
+            start = LocalDateTime.parse(startDateTime);
+            end = LocalDateTime.parse(endDateTime);
+        } catch (DateTimeException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "INVALID_REQUEST");
+        }
+        if (!end.isAfter(start)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La date de fin doit etre apres la date de debut");
+        }
+        if (espace.getStatus() != EspaceStatus.AVAILABLE) return false;
         return !reservationRepository.existsOverlappingReservation(espaceId, start, end)
-                && !eventRepository.existsOverlappingEventForSpace(espaceId, start, end, null);
+                && !eventRepository.existsOverlappingEventForSpace(espaceId, start, end, null)
+                && bookingHoldService.activeSpaceHolds(espaceId, start, end).isEmpty();
     }
 
     @GetMapping("/espace/{espaceId}/calendar")
@@ -422,9 +436,14 @@ public class ReservationController {
         espaceRepository.findById(espaceId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Espace introuvable"));
 
-        YearMonth yearMonth = YearMonth.of(year, month);
+        YearMonth yearMonth;
+        try {
+            yearMonth = YearMonth.of(year, month);
+        } catch (DateTimeException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "INVALID_REQUEST");
+        }
         LocalDateTime startOfMonth = yearMonth.atDay(1).atStartOfDay();
-        LocalDateTime endOfMonth = yearMonth.atEndOfMonth().atTime(23, 59, 59);
+        LocalDateTime endOfMonth = yearMonth.plusMonths(1).atDay(1).atStartOfDay();
 
         List<Reservation> reservations = reservationRepository.findByEspaceAndPeriod(
                 espaceId, startOfMonth, endOfMonth
@@ -438,6 +457,10 @@ public class ReservationController {
                 .filter(event -> event.getStatus() != EventStatus.CANCELLED && event.getStatus() != EventStatus.REJECTED)
                 .filter(event -> event.getStartDateTime().isBefore(endOfMonth) && event.getEndDateTime().isAfter(startOfMonth))
                 .map(CalendarReservationDto::fromEvent)
+                .forEach(blockedSlots::add);
+
+        bookingHoldService.activeSpaceHolds(espaceId, startOfMonth, endOfMonth).stream()
+                .map(CalendarReservationDto::fromHold)
                 .forEach(blockedSlots::add);
 
         return blockedSlots;

@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
 
 @Service
 public class BookingHoldService {
@@ -268,6 +269,13 @@ public class BookingHoldService {
         return holdRepository.findActiveForResource(type, resourceId, BookingHoldStatus.ACTIVE, LocalDateTime.now()).stream()
                 .anyMatch(hold -> hold.getStartAt() != null && hold.getEndAt() != null
                         && hold.getStartAt().isBefore(end) && hold.getEndAt().isAfter(start));
+    }
+
+    public List<BookingHold> activeSpaceHolds(Long spaceId, LocalDateTime start, LocalDateTime end) {
+        return holdRepository.findActiveForResource(PaymentType.SPACE, spaceId, BookingHoldStatus.ACTIVE, LocalDateTime.now()).stream()
+                .filter(hold -> hold.getStartAt() != null && hold.getEndAt() != null
+                        && hold.getStartAt().isBefore(end) && hold.getEndAt().isAfter(start))
+                .toList();
     }
 
     private static BookingHold baseHold(Long resourceId, long amountCents) {

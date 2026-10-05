@@ -324,7 +324,9 @@ class ParkingDemoFixesIntegrationTest {
         when(verifier.inspectPayment(pi)).thenReturn(new PaymentVerifier.PaymentSnapshot(200, "eur", Map.of(), true));
         ParkingReservationRequest request = new ParkingReservationRequest(); request.setParkingSlotId(a.getId());
         request.setReservedSpaces(2); request.setPaymentIntentId(pi);
-        parkingController.createReservation(request, new UsernamePasswordAuthenticationToken(customer.getEmail(), "unused"), new MockHttpServletRequest());
+        var response = parkingController.createReservation(request, new UsernamePasswordAuthenticationToken(customer.getEmail(), "unused"), new MockHttpServletRequest());
+        assertEquals(2, response.getAccessPasses().size());
+        assertEquals(2, response.getAccessPasses().stream().map(be.meetspace.web.dto.ParkingAccessPassDto::getToken).distinct().count());
         assertEquals(98, parkingReservations.countReservedSpacesByParkingSlotId(a.getId()));
         assertEquals(BookingHoldStatus.CONSUMED, holdRepo.findById(own.getId()).orElseThrow().getStatus());
         assertEquals(2, holdRepo.findActiveForResource(PaymentType.PARKING, a.getId(), BookingHoldStatus.ACTIVE, LocalDateTime.now())

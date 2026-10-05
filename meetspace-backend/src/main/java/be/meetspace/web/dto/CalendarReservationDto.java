@@ -2,6 +2,7 @@ package be.meetspace.web.dto;
 
 import be.meetspace.entity.Event;
 import be.meetspace.entity.Reservation;
+import be.meetspace.entity.BookingHold;
 
 import java.time.LocalDateTime;
 
@@ -27,6 +28,15 @@ public class CalendarReservationDto {
         dto.blockType = "EVENT";
         dto.startDateTime = event.getStartDateTime();
         dto.endDateTime = event.getEndDateTime();
+        return dto;
+    }
+
+    public static CalendarReservationDto fromHold(BookingHold hold) {
+        CalendarReservationDto dto = new CalendarReservationDto();
+        dto.id = hold.getId();
+        dto.blockType = "PAYMENT_HOLD";
+        dto.startDateTime = hold.getStartAt();
+        dto.endDateTime = hold.getEndAt();
         return dto;
     }
 

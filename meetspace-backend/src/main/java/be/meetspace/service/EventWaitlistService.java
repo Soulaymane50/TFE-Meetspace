@@ -25,13 +25,14 @@ public class EventWaitlistService {
 
     @Transactional
     public void offerAvailablePlaces(Event event) {
-        if (event.getCapacity() == null) return;
+        if (event.getCapacity() == null || event.getStatus() != EventStatus.PUBLISHED) return;
         int registered = registrationRepository.countTotalParticipantsByEventId(event.getId());
         int available = Math.max(0, event.getCapacity() - registered);
         if (available == 0) return;
 
         for (EventWaitlistEntry entry : waitlistRepository
                 .findByEventIdAndStatusOrderByCreatedAtAsc(event.getId(), EventWaitlistStatus.WAITING)) {
+            if (entry.getUser().getStatus() != UserStatus.ACTIVE) continue;
             if (entry.getParticipantCount() > available) continue;
             entry.setStatus(EventWaitlistStatus.OFFERED);
             waitlistRepository.save(entry);

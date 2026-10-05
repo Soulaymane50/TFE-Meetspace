@@ -31,6 +31,12 @@ public class ParkingAccessService {
                     ? ParkingAccessPassStatus.CANCELLED : ParkingAccessPassStatus.ACTIVE);
             passes.add(passRepository.save(pass));
         }
+        // Keep both sides available before serializing a newly created reservation.
+        for (ParkingAccessPass pass : passes) {
+            if (reservation.getAccessPasses().stream().noneMatch(existing -> java.util.Objects.equals(existing.getId(), pass.getId()))) {
+                reservation.getAccessPasses().add(pass);
+            }
+        }
         return passes;
     }
 

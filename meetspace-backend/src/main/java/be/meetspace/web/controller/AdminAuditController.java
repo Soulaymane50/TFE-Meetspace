@@ -8,6 +8,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -28,7 +30,7 @@ public class AdminAuditController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = auditPage(page, size);
         return auditService.getAllLogs(pageable).map(AuditLogDto::fromEntity);
     }
 
@@ -42,7 +44,7 @@ public class AdminAuditController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = auditPage(page, size);
         return auditService.getLogsWithFilters(userId, action, entityType, startDate, endDate, pageable)
                 .map(AuditLogDto::fromEntity);
     }
@@ -53,7 +55,7 @@ public class AdminAuditController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = auditPage(page, size);
         return auditService.getLogsByUser(userId, pageable).map(AuditLogDto::fromEntity);
     }
 
@@ -63,7 +65,7 @@ public class AdminAuditController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = auditPage(page, size);
         return auditService.getLogsByAction(action, pageable).map(AuditLogDto::fromEntity);
     }
 
@@ -73,7 +75,7 @@ public class AdminAuditController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = auditPage(page, size);
         return auditService.getLogsByEntityType(entityType, pageable).map(AuditLogDto::fromEntity);
     }
 
@@ -84,7 +86,7 @@ public class AdminAuditController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = auditPage(page, size);
         return auditService.getLogsByEntity(entityType, entityId, pageable).map(AuditLogDto::fromEntity);
     }
 
@@ -96,6 +98,13 @@ public class AdminAuditController {
     @GetMapping("/entity-types")
     public List<String> getAvailableEntityTypes() {
         return Arrays.asList("USER", "EVENT", "RESERVATION", "ESPACE", "PARKING");
+    }
+
+    private static Pageable auditPage(int page, int size) {
+        if (page < 0 || size < 1 || size > 100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La page doit être positive ou nulle et contenir entre 1 et 100 entrées.");
+        }
+        return PageRequest.of(page, size);
     }
 }
 

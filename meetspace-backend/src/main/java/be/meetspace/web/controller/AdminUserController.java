@@ -14,6 +14,8 @@ import be.meetspace.web.dto.UpdateUserRoleRequest;
 import be.meetspace.web.dto.UserResponseDto;
 import be.meetspace.web.dto.UserDetailResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -62,7 +64,7 @@ public class AdminUserController {
     @PutMapping("/{id}/role")
     public ResponseEntity<UserResponseDto> updateUserRole(
             @PathVariable Long id,
-            @RequestBody UpdateUserRoleRequest request,
+            @Valid @RequestBody UpdateUserRoleRequest request,
             HttpServletRequest httpRequest) {
 
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
@@ -71,6 +73,7 @@ public class AdminUserController {
                 .map(user -> {
                     Role oldRole = user.getRole();
                     user.setRole(request.getRole());
+                    if (oldRole != request.getRole()) user.incrementTokenVersion();
                     User saved = userRepository.save(user);
 
                     auditService.log(AuditAction.USER_ROLE_CHANGE, "USER", saved.getId(),
@@ -85,7 +88,7 @@ public class AdminUserController {
     @PutMapping("/{id}/status")
     public ResponseEntity<UserResponseDto> updateUserStatus(
             @PathVariable Long id,
-            @RequestBody UpdateUserStatusRequest request,
+            @Valid @RequestBody UpdateUserStatusRequest request,
             HttpServletRequest httpRequest) {
 
         String ipAddress = AuditService.getClientIpAddress(httpRequest);
@@ -94,6 +97,7 @@ public class AdminUserController {
                 .map(user -> {
                     UserStatus oldStatus = user.getStatus();
                     user.setStatus(request.getStatus());
+                    if (oldStatus != request.getStatus()) user.incrementTokenVersion();
                     User saved = userRepository.save(user);
 
                     auditService.log(AuditAction.USER_STATUS_CHANGE, "USER", saved.getId(),
@@ -119,6 +123,7 @@ public class AdminUserController {
     }
 
     public static class UpdateUserStatusRequest {
+        @NotNull
         private UserStatus status;
 
         public UserStatus getStatus() {

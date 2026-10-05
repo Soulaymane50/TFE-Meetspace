@@ -1,6 +1,8 @@
 package be.meetspace.service;
 
 import be.meetspace.entity.Event;
+import be.meetspace.entity.EventStatus;
+import be.meetspace.entity.UserStatus;
 import be.meetspace.entity.EventWaitlistEntry;
 import be.meetspace.entity.EventWaitlistStatus;
 import be.meetspace.entity.NotificationTone;
@@ -46,6 +48,7 @@ class EventWaitlistServiceTest {
         event.setId(42L);
         event.setTitle("Forum durable");
         event.setCapacity(10);
+        event.setStatus(EventStatus.PUBLISHED);
 
         EventWaitlistEntry oversized = entry(new User(), event, 3);
         User compatibleUser = new User();
@@ -75,6 +78,7 @@ class EventWaitlistServiceTest {
         Event event = new Event();
         event.setId(7L);
         event.setCapacity(4);
+        event.setStatus(EventStatus.PUBLISHED);
         when(registrationRepository.countTotalParticipantsByEventId(7L)).thenReturn(4);
 
         service.offerAvailablePlaces(event);
@@ -95,6 +99,26 @@ class EventWaitlistServiceTest {
 
         assertEquals(EventWaitlistStatus.FULFILLED, existing.getStatus());
         verify(waitlistRepository).save(existing);
+    }
+
+    @Test
+    void cancelledEventsNeverSendOffers() {
+        Event event = new Event(); event.setId(8L); event.setCapacity(4); event.setStatus(EventStatus.CANCELLED);
+        service.offerAvailablePlaces(event);
+        verify(registrationRepository, never()).countTotalParticipantsByEventId(any());
+        verify(notificationService, never()).create(any(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void suspendedUsersDoNotReceiveTheNextPlace() {
+        Event event = new Event(); event.setId(9L); event.setCapacity(2); event.setStatus(EventStatus.PUBLISHED);
+        User suspended = new User(); suspended.setStatus(UserStatus.BANNED);
+        EventWaitlistEntry excluded = entry(suspended, event, 1), next = entry(new User(), event, 1);
+        when(registrationRepository.countTotalParticipantsByEventId(9L)).thenReturn(1);
+        when(waitlistRepository.findByEventIdAndStatusOrderByCreatedAtAsc(9L, EventWaitlistStatus.WAITING)).thenReturn(List.of(excluded, next));
+        service.offerAvailablePlaces(event);
+        assertEquals(EventWaitlistStatus.WAITING, excluded.getStatus());
+        assertEquals(EventWaitlistStatus.OFFERED, next.getStatus());
     }
 
     private static EventWaitlistEntry entry(User user, Event event, int participants) {
