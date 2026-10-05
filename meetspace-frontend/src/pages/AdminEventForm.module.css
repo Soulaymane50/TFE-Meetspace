@@ -17,7 +17,7 @@
   min-height: 44px;
   padding: 0.7rem 1rem;
   border-radius: 999px;
-  border: 1px solid rgba(27, 42, 64, 0.12);
+  border: 1px solid color-mix(in srgb, var(--brand) 12%, transparent);
   background: rgba(255, 255, 255, 0.8);
   color: var(--blue-dark);
   font-weight: 700;
@@ -98,7 +98,7 @@
 .checkboxRow {
   padding: 1rem;
   border-radius: 20px;
-  background: rgba(27, 42, 64, 0.045);
+  background: rgba(22, 33, 29, 0.045);
 }
 
 .checkboxLabel {
@@ -114,9 +114,9 @@
   gap: 1rem;
   padding: 1rem;
   border-radius: 22px;
-  border: 1px solid rgba(27, 42, 64, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background:
-    radial-gradient(circle at top right, rgba(90, 124, 226, 0.1), transparent 34%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--brand) 10%, transparent), transparent 34%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(246, 249, 253, 0.78));
 }
 
@@ -153,7 +153,7 @@
   gap: 0.2rem;
   padding: 0.8rem;
   border-radius: 18px;
-  background: rgba(27, 42, 64, 0.055);
+  background: rgba(22, 33, 29, 0.055);
   color: var(--text-secondary);
   font-size: 0.78rem;
   font-weight: 800;
@@ -182,13 +182,13 @@
 .advisorGhost {
   color: var(--blue-dark);
   background: rgba(255, 255, 255, 0.74);
-  border: 1px solid rgba(27, 42, 64, 0.12);
+  border: 1px solid color-mix(in srgb, var(--brand) 12%, transparent);
   box-shadow: none;
 }
 
 .advisorPrimary {
   color: #f8f5ef;
-  background: linear-gradient(135deg, var(--brand-navy), #33476a);
+  background: linear-gradient(135deg, var(--brand-navy), var(--hero-bg));
 }
 
 .advisorPrimary:disabled {
@@ -205,7 +205,7 @@
 }
 
 .secondary {
-  border: 1px solid rgba(27, 42, 64, 0.14);
+  border: 1px solid color-mix(in srgb, var(--brand) 14%, transparent);
   background: rgba(255, 255, 255, 0.8);
   color: var(--blue-dark);
   box-shadow: none;
@@ -224,7 +224,7 @@
   border-color: rgba(255, 255, 255, 0.08);
   background:
     radial-gradient(circle at top right, rgba(207, 162, 101, 0.06), transparent 34%),
-    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 96%, transparent) 100%);
   color: var(--text-primary);
 }
 
@@ -254,12 +254,12 @@
 }
 
 [data-theme="dark"] .select {
-  background-color: rgba(18, 26, 37, 0.96) !important;
+  background-color: color-mix(in srgb, var(--surface-inverse) 96%, transparent) !important;
   color: var(--text-primary);
 }
 
 [data-theme="dark"] .select option {
-  background-color: #111827;
+  background-color: var(--surface-inverse);
   color: #f9fafb;
 }
 

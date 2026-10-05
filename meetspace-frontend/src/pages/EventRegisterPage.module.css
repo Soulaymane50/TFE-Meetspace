@@ -95,7 +95,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(9, 15, 28, 0.02) 0%, rgba(9, 15, 28, 0.34) 100%);
+  background: linear-gradient(180deg, rgba(22, 33, 29, 0.02) 0%, rgba(22, 33, 29, 0.34) 100%);
 }
 
 .metricGrid {
@@ -293,7 +293,7 @@
 [data-theme="dark"] .info,
 [data-theme="dark"] .loadingBox {
   border-color: rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 96%, transparent) 100%);
 }
 
 [data-theme="dark"] .panelTitle,

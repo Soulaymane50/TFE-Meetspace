@@ -96,7 +96,7 @@
 .actions button {
   border-color: var(--brand);
   background: var(--brand);
-  color: white;
+  color: var(--cta-solid-fg);
 }
 
 @media (max-width: 800px) {

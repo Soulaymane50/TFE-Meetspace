@@ -286,8 +286,8 @@
 }
 
 .statusRejected {
-  border-color: color-mix(in srgb, #b42318 28%, var(--border));
-  color: #b42318;
+  border-color: color-mix(in srgb, var(--danger) 28%, var(--border));
+  color: var(--danger);
 }
 
 .payButton,
@@ -312,8 +312,8 @@
 
 .cancelButton,
 .cancelButtonSmall {
-  border-color: color-mix(in srgb, #b42318 28%, var(--border));
-  color: #b42318;
+  border-color: color-mix(in srgb, var(--danger) 28%, var(--border));
+  color: var(--danger);
 }
 
 .disabledText {

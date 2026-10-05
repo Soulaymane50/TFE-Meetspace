@@ -25,7 +25,7 @@ export default function Navbar() {
   return (
     <header className={styles.header}>
       <div className={styles.topShell}>
-        <NavLink to="/" className={styles.brand} aria-label="MeetSpace — Accueil">
+        <NavLink to="/" className={styles.brand} aria-label={`MeetSpace — ${t("nav.home")}`}>
           <span className={styles.brandMark}>M</span>
           <span className={styles.brandCopy}>
             <strong className={styles.brandName}>MeetSpace</strong>

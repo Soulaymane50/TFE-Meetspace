@@ -1,7 +1,7 @@
 .container {
   padding: 1.35rem;
   border-radius: 24px;
-  border: 1px solid rgba(27, 42, 64, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background: rgba(255, 255, 255, 0.8);
   box-shadow: var(--shadow-soft);
 }
@@ -19,8 +19,8 @@
   min-height: 44px;
   padding: 0;
   border-radius: 999px;
-  background: rgba(27, 42, 64, 0.08);
-  border: 1px solid rgba(27, 42, 64, 0.1);
+  background: rgba(22, 33, 29, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, transparent);
   color: var(--blue-dark);
   box-shadow: none;
 }
@@ -90,7 +90,7 @@
 }
 
 .daySelected {
-  box-shadow: 0 0 0 3px rgba(11, 18, 32, 0.22);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.22);
 }
 
 .dayToday {
@@ -142,8 +142,8 @@
 [data-theme="dark"] .container {
   border-color: rgba(255, 255, 255, 0.08);
   background:
-    radial-gradient(circle at top right, rgba(137, 163, 255, 0.08), transparent 34%),
-    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+    radial-gradient(circle at top right, color-mix(in srgb, var(--brand) 8%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 96%, transparent) 100%);
   box-shadow: 0 22px 44px rgba(0, 0, 0, 0.28);
 }
 

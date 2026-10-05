@@ -63,17 +63,17 @@
 }
 
 .cancelButton {
-  border-color: color-mix(in srgb, #b42318 34%, var(--border));
-  color: #b42318;
+  border-color: color-mix(in srgb, var(--danger) 34%, var(--border));
+  color: var(--danger);
 }
 
 .error,
 .rejectionBox {
   padding: 0.8rem 1rem;
-  border: 1px solid color-mix(in srgb, #b42318 28%, var(--border));
-  border-left: 4px solid #b42318;
-  background: color-mix(in srgb, #b42318 7%, var(--surface));
-  color: #b42318;
+  border: 1px solid color-mix(in srgb, var(--danger) 28%, var(--border));
+  border-left: 4px solid var(--danger);
+  background: color-mix(in srgb, var(--danger) 7%, var(--surface));
+  color: var(--danger);
   font-size: 0.8rem;
 }
 
@@ -316,8 +316,8 @@
 
 .statusRejected,
 .statusCancelled {
-  border-color: color-mix(in srgb, #b42318 24%, var(--border));
-  color: #b42318;
+  border-color: color-mix(in srgb, var(--danger) 24%, var(--border));
+  color: var(--danger);
 }
 
 .filterTabs {

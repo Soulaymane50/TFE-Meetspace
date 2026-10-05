@@ -270,8 +270,8 @@ export default function EventRegisterPage() {
           <div className={styles.flowPanel}>
             <h3 className={styles.sectionTitle}>{t("events.numberOfParticipants")}</h3>
             <div className={styles.inputRow}>
-              <label className={styles.label}>{t("events.numberOfParticipants")}</label>
-              <input
+              <label className={styles.label} htmlFor="EventRegisterPage-participants">{t("events.numberOfParticipants")}</label>
+              <input id="EventRegisterPage-participants"
                 type="number"
                 min="1"
                 max={maxParticipants || 1}
@@ -316,8 +316,8 @@ export default function EventRegisterPage() {
 
               {addParking && (
                 <div className={styles.inputRow}>
-                  <label className={styles.label}>{t("parking.reservedSpacesLabel")}</label>
-                  <input
+                  <label className={styles.label} htmlFor="EventRegisterPage-parking-spaces">{t("parking.reservedSpacesLabel")}</label>
+                  <input id="EventRegisterPage-parking-spaces"
                     type="number"
                     min="1"
                     max={maxParkingSpaces || 1}

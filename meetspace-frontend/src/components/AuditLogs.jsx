@@ -250,8 +250,9 @@ export default function AuditLogs() {
         </div>
 
         <div className={styles.filterGroup}>
-          <label>{t("admin.startDate", "Début")}</label>
+          <label htmlFor="audit-start-date">{t("admin.startDate", "Début")}</label>
           <input
+            id="audit-start-date"
             type="datetime-local"
             value={filters.startDate}
             onChange={(e) => handleFilterChange("startDate", e.target.value)}
@@ -260,8 +261,9 @@ export default function AuditLogs() {
         </div>
 
         <div className={styles.filterGroup}>
-          <label>{t("admin.endDate", "Fin")}</label>
+          <label htmlFor="audit-end-date">{t("admin.endDate", "Fin")}</label>
           <input
+            id="audit-end-date"
             type="datetime-local"
             value={filters.endDate}
             onChange={(e) => handleFilterChange("endDate", e.target.value)}
@@ -282,7 +284,7 @@ export default function AuditLogs() {
         />
       ) : (
         <>
-          <div className={styles.tableContainer}>
+          <div className={styles.tableContainer} tabIndex={0} role="region" aria-label={t("admin.auditLogs", "Logs d'audit")}>
             <table className={styles.table}>
               <thead>
                 <tr>

@@ -6,16 +6,15 @@
 .hero {
   position: relative;
   isolation: isolate;
-  min-height: 570px;
+  min-height: 480px;
   display: grid;
   grid-template-columns: minmax(0, 1.08fr) minmax(380px, 0.92fr);
   align-items: center;
   gap: clamp(2rem, 5vw, 5rem);
   overflow: hidden;
   padding: clamp(2.5rem, 5vw, 5rem);
-  border-radius: 24px;
+  border-radius: 12px;
   background: var(--hero-bg);
-  box-shadow: var(--shadow-strong);
 }
 
 .hero::before,
@@ -73,12 +72,12 @@
 }
 
 .heroCopy h1 {
-  max-width: 13ch;
+  max-width: 17ch;
   margin: 0;
   color: #fff;
-  font-size: clamp(3rem, 5.6vw, 4.45rem);
+  font-size: clamp(2.6rem, 4.5vw, 3.6rem);
   font-weight: 700;
-  line-height: 1.01;
+  line-height: 1.08;
   letter-spacing: -0.055em;
 }
 
@@ -142,9 +141,8 @@
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 18px;
+  border-radius: 8px;
   background: var(--paper);
-  box-shadow: 0 24px 54px rgba(0, 0, 0, 0.2);
 }
 
 .heroPanelImage {
@@ -310,7 +308,7 @@
 
 .actionCard:hover > span {
   background: var(--brand);
-  color: #fff;
+  color: var(--cta-solid-fg);
 }
 
 .actionCard strong {
@@ -374,7 +372,7 @@
   border: 5px solid var(--brand-soft);
   border-radius: 50%;
   background: var(--brand);
-  color: #fff;
+  color: var(--cta-solid-fg);
   font-size: 0.59rem;
   font-weight: 800;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand) 34%, transparent);
@@ -598,7 +596,7 @@
 
 .organizerCta:hover {
   background: var(--brand-strong);
-  color: #fff;
+  color: var(--cta-solid-fg);
 }
 
 .faqGrid {
@@ -705,7 +703,7 @@
   }
 
   .heroCopy h1 {
-    font-size: clamp(2.75rem, 6vw, 4rem);
+    font-size: clamp(2.6rem, 4.5vw, 3.6rem);
   }
 
   .roomGrid {
@@ -770,7 +768,7 @@
   }
 
   .heroCopy h1 {
-    font-size: clamp(2.4rem, 12vw, 3.35rem);
+    font-size: clamp(2.15rem, 9vw, 2.8rem);
   }
 
   .heroActions,
@@ -856,8 +854,19 @@
   }
 }
 .simpleState button {
-  color: #fff;
+  color: var(--cta-solid-fg);
   background: var(--brand);
   padding: 0.7rem 1rem;
   min-height: 44px;
+}
+
+.heroPanelCard a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  justify-self: start;
+  padding-block: 0.5rem;
+  color: var(--brand-strong);
+  font-size: 0.78rem;
+  font-weight: 750;
 }

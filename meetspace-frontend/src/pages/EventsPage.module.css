@@ -11,11 +11,11 @@
   padding: 1.45rem;
   border-radius: 26px;
   background:
-    linear-gradient(135deg, rgba(9, 15, 28, 0.94) 0%, rgba(20, 30, 46, 0.9) 58%, rgba(31, 47, 70, 0.88) 100%),
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 94%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 90%, transparent) 58%, color-mix(in srgb, var(--surface-inverse) 88%, transparent) 100%),
     radial-gradient(circle at top right, rgba(202, 163, 102, 0.26), transparent 30%),
     url("/images/room-premium-orion-500-v5.webp") center / cover,
-    linear-gradient(135deg, rgba(9, 15, 28, 0.99) 0%, rgba(20, 30, 46, 0.98) 58%, rgba(31, 47, 70, 0.95) 100%);
-  box-shadow: 0 30px 60px rgba(10, 18, 31, 0.18);
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 99%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 58%, color-mix(in srgb, var(--surface-inverse) 95%, transparent) 100%);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.18);
 }
 
 .heroHeader {
@@ -83,7 +83,7 @@
 .linkPrimary {
   background: #ffffff;
   color: var(--brand-navy);
-  box-shadow: 0 18px 34px rgba(11, 18, 32, 0.14);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.14);
 }
 
 .linkGhost:hover {
@@ -138,7 +138,7 @@
 .sidebar,
 .content {
   border-radius: 30px;
-  border: 1px solid rgba(20, 32, 51, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 247, 241, 0.97) 100%);
   box-shadow: var(--shadow-soft);
 }
@@ -207,23 +207,23 @@
 .filterButton {
   min-height: 36px;
   padding: 0.52rem 0.78rem;
-  background: rgba(27, 42, 64, 0.03);
+  background: rgba(22, 33, 29, 0.03);
   color: var(--blue-dark);
-  border: 1px solid rgba(27, 42, 64, 0.1);
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, transparent);
   box-shadow: none;
   font-size: 0.78rem;
 }
 
 .filterButton:hover {
-  background: rgba(27, 42, 64, 0.06);
+  background: rgba(22, 33, 29, 0.06);
   transform: none;
 }
 
 .filterButton.active {
-  background: linear-gradient(135deg, var(--brand-navy) 0%, #243754 74%, var(--orange) 180%);
+  background: linear-gradient(135deg, var(--brand-navy) 0%, var(--surface-inverse) 74%, var(--orange) 180%);
   color: #f8f5ef;
   border-color: transparent;
-  box-shadow: 0 14px 24px rgba(11, 18, 32, 0.15);
+  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.15);
 }
 
 .sidebarFoot {
@@ -233,7 +233,7 @@
   gap: 0.9rem;
   margin-top: auto;
   padding-top: 1rem;
-  border-top: 1px solid rgba(20, 32, 51, 0.08);
+  border-top: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
 }
 
 .sidebarMetric {
@@ -260,12 +260,12 @@
   padding: 0.65rem 0.95rem;
   background: transparent;
   color: var(--blue-dark);
-  border: 1px solid rgba(27, 42, 64, 0.12);
+  border: 1px solid color-mix(in srgb, var(--brand) 12%, transparent);
   box-shadow: none;
 }
 
 .resetButton:hover {
-  background: rgba(27, 42, 64, 0.05);
+  background: rgba(22, 33, 29, 0.05);
 }
 
 .content {
@@ -302,8 +302,8 @@
   display: inline-flex;
   padding: 0.25rem;
   border-radius: 999px;
-  background: rgba(27, 42, 64, 0.05);
-  border: 1px solid rgba(27, 42, 64, 0.08);
+  background: rgba(22, 33, 29, 0.05);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
 }
 
 .viewButton {
@@ -320,13 +320,13 @@
 
 .viewButton:hover {
   transform: none;
-  background: rgba(27, 42, 64, 0.05);
+  background: rgba(22, 33, 29, 0.05);
 }
 
 .viewButtonActive {
-  background: linear-gradient(135deg, var(--brand-navy) 0%, #243754 72%, var(--orange) 180%);
+  background: linear-gradient(135deg, var(--brand-navy) 0%, var(--surface-inverse) 72%, var(--orange) 180%);
   color: #f8f5ef;
-  box-shadow: 0 14px 24px rgba(11, 18, 32, 0.12);
+  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.12);
 }
 
 .contentMeta {
@@ -361,7 +361,7 @@
   gap: 0.82rem;
   padding: 1.05rem;
   border-radius: 22px;
-  border: 1px solid rgba(20, 32, 51, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background:
     radial-gradient(circle at top right, rgba(181, 138, 76, 0.11), transparent 28%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.98) 100%);
@@ -369,7 +369,7 @@
 }
 
 .eventBlockFull {
-  opacity: 0.9;
+  opacity: 1;
 }
 
 .eventTopline {
@@ -442,7 +442,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(9, 15, 28, 0.04) 0%, rgba(9, 15, 28, 0.42) 100%);
+  background: linear-gradient(180deg, rgba(22, 33, 29, 0.04) 0%, rgba(22, 33, 29, 0.42) 100%);
 }
 
 .eventCopy {
@@ -498,12 +498,12 @@
 }
 
 .parkingTagOn {
-  background: rgba(90, 124, 226, 0.1);
-  color: #2845a1;
+  background: color-mix(in srgb, var(--brand) 10%, transparent);
+  color: var(--brand-strong);
 }
 
 .parkingTagOff {
-  background: rgba(27, 42, 64, 0.06);
+  background: rgba(22, 33, 29, 0.06);
   color: var(--blue-dark);
 }
 
@@ -534,7 +534,7 @@
   min-height: 64px;
   padding: 0.62rem 0.55rem;
   border-radius: 14px;
-  background: rgba(27, 42, 64, 0.04);
+  background: rgba(22, 33, 29, 0.04);
   text-align: center;
 }
 
@@ -572,9 +572,9 @@
   gap: 0.5rem;
   padding: 0.75rem 0.85rem;
   border-radius: 16px;
-  background: rgba(12, 20, 32, 0.96);
+  background: color-mix(in srgb, var(--surface-inverse) 96%, transparent);
   color: #f8f5ef;
-  box-shadow: 0 12px 24px rgba(10, 18, 31, 0.12);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
 }
 
 .progressHeader {
@@ -643,7 +643,7 @@
 .button {
   color: var(--cta-solid-fg);
   background: linear-gradient(135deg, var(--cta-solid-bg) 0%, var(--cta-solid-bg-end) 72%, var(--orange) 190%);
-  box-shadow: 0 16px 26px rgba(11, 18, 32, 0.16);
+  box-shadow: 0 16px 26px rgba(0, 0, 0, 0.16);
 }
 
 .button:hover {
@@ -663,7 +663,7 @@
 
 .buttonDisabled {
   color: rgba(248, 245, 239, 0.88);
-  background: linear-gradient(135deg, #7c8591 0%, #616975 100%);
+  background: linear-gradient(135deg, var(--surface-muted) 0%, var(--surface-muted) 100%);
 }
 
 .planningBoard {
@@ -678,7 +678,7 @@
   gap: 1rem;
   padding: 1.25rem;
   border-radius: 26px;
-  border: 1px solid rgba(20, 32, 51, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.98) 100%);
 }
 
@@ -687,7 +687,7 @@
   flex-direction: column;
   gap: 0.45rem;
   padding-right: 1rem;
-  border-right: 1px solid rgba(20, 32, 51, 0.08);
+  border-right: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
 }
 
 .planningLabel {
@@ -732,7 +732,7 @@
   margin-top: 1.1rem;
   border-radius: 999px;
   background: linear-gradient(135deg, var(--brand-navy) 0%, var(--orange) 100%);
-  box-shadow: 0 0 0 5px rgba(27, 42, 64, 0.08);
+  box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.08);
 }
 
 .timelineItem:not(:last-child) .timelineMarker::after {
@@ -742,7 +742,7 @@
   left: 6px;
   width: 2px;
   height: calc(100% + 1.15rem);
-  background: rgba(27, 42, 64, 0.1);
+  background: rgba(22, 33, 29, 0.1);
 }
 
 .timelineCard {
@@ -751,8 +751,8 @@
   gap: 0.85rem;
   padding: 1.1rem;
   border-radius: 22px;
-  background: rgba(27, 42, 64, 0.03);
-  border: 1px solid rgba(20, 32, 51, 0.08);
+  background: rgba(22, 33, 29, 0.03);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
 }
 
 .timelineHeader {
@@ -795,18 +795,18 @@
 .empty {
   padding: 3rem 2rem;
   border-radius: 28px;
-  border: 1px dashed rgba(20, 32, 51, 0.12);
+  border: 1px dashed color-mix(in srgb, var(--brand) 12%, transparent);
   background: rgba(255, 255, 255, 0.7);
   text-align: center;
 }
 
 :global([data-theme="light"]) .heroPanel {
-  border: 1px solid rgba(20, 32, 51, 0.075);
+  border: 1px solid color-mix(in srgb, var(--brand) 7.5%, transparent);
   background:
     radial-gradient(circle at 78% 16%, rgba(181, 138, 76, 0.12), transparent 28%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 249, 253, 0.92) 58%, rgba(242, 237, 228, 0.84) 100%),
     url("/images/room-premium-orion-500-v5.webp") center / cover;
-  box-shadow: 0 22px 48px rgba(11, 18, 32, 0.09);
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.09);
 }
 
 :global([data-theme="light"]) .kicker {
@@ -824,7 +824,7 @@
 :global([data-theme="light"]) .linkGhost {
   color: var(--blue-darker);
   background: rgba(255, 255, 255, 0.82);
-  border-color: rgba(20, 32, 51, 0.12);
+  border-color: color-mix(in srgb, var(--brand) 12%, transparent);
 }
 
 :global([data-theme="light"]) .linkPrimary {
@@ -834,8 +834,8 @@
 
 :global([data-theme="light"]) .summaryCard {
   background: rgba(255, 255, 255, 0.72);
-  border-color: rgba(20, 32, 51, 0.08);
-  box-shadow: 0 18px 34px rgba(11, 18, 32, 0.08);
+  border-color: color-mix(in srgb, var(--brand) 8%, transparent);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.08);
 }
 
 :global([data-theme="light"]) .summaryValue {
@@ -847,12 +847,12 @@
 }
 
 :global([data-theme="light"]) .progressCard {
-  border: 1px solid rgba(20, 32, 51, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background:
     radial-gradient(circle at top right, rgba(181, 138, 76, 0.14), transparent 32%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 249, 253, 0.96) 100%);
   color: var(--blue-darker);
-  box-shadow: 0 18px 34px rgba(11, 18, 32, 0.08);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.08);
 }
 
 :global([data-theme="light"]) .progressLabel,
@@ -865,17 +865,17 @@
 }
 
 :global([data-theme="light"]) .progressTrack {
-  background: rgba(27, 42, 64, 0.1);
+  background: rgba(22, 33, 29, 0.1);
 }
 
 :global([data-theme="light"]) .progressFill {
-  background: linear-gradient(90deg, #1b2a40 0%, #5a7ce2 52%, #d09a5d 100%);
+  background: linear-gradient(90deg, var(--surface-inverse) 0%, var(--hero-bg) 52%, #d09a5d 100%);
 }
 
 :global([data-theme="light"]) .buttonDisabled {
   color: var(--blue-dark);
-  background: rgba(27, 42, 64, 0.08);
-  border: 1px solid rgba(27, 42, 64, 0.1);
+  background: rgba(22, 33, 29, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, transparent);
 }
 
 [data-theme="dark"] .sidebar,
@@ -884,7 +884,7 @@
 [data-theme="dark"] .planningDay,
 [data-theme="dark"] .empty {
   border-color: rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 96%, transparent) 100%);
 }
 
 [data-theme="dark"] .sidebarEyebrow,
@@ -953,8 +953,8 @@
 }
 
 [data-theme="dark"] .parkingTagOn {
-  background: rgba(137, 163, 255, 0.18);
-  color: #d6e1ff;
+  background: color-mix(in srgb, var(--brand) 18%, transparent);
+  color: var(--ink);
 }
 
 [data-theme="dark"] .parkingTagOff {
@@ -1054,7 +1054,7 @@
     margin-top: 0;
     padding: 0 0 0 1rem;
     border-top: 0;
-    border-left: 1px solid rgba(20, 32, 51, 0.08);
+    border-left: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   }
 
   .planningDay {
@@ -1065,7 +1065,7 @@
     padding-right: 0;
     padding-bottom: 0.9rem;
     border-right: none;
-    border-bottom: 1px solid rgba(20, 32, 51, 0.08);
+    border-bottom: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   }
 }
 
@@ -1091,7 +1091,7 @@
   .sidebarFoot {
     grid-column: 1 / -1;
     padding: 0.75rem 0 0;
-    border-top: 1px solid rgba(20, 32, 51, 0.08);
+    border-top: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
     border-left: 0;
   }
 
@@ -1186,15 +1186,23 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 42px;
-  border: 1px solid rgba(248, 245, 239, 0.3);
+  min-height: 44px;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--brand-strong);
   border-radius: var(--radius-sm);
-  color: rgba(248, 245, 239, 0.9);
+  background: var(--paper);
+  color: var(--brand-strong);
+  text-align: center;
   font-size: 0.8rem;
   font-weight: 800;
 }
 
 .detailButton:hover {
-  border-color: var(--sun);
-  color: var(--sun);
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+}
+
+.detailButton:focus-visible {
+  outline: 2px solid var(--brand-strong);
+  outline-offset: 3px;
 }

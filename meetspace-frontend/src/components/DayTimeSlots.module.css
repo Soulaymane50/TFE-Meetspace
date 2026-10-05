@@ -1,7 +1,7 @@
 .container {
   padding: 1.35rem;
   border-radius: 24px;
-  border: 1px solid rgba(27, 42, 64, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background: rgba(255, 255, 255, 0.8);
   box-shadow: var(--shadow-soft);
 }
@@ -25,7 +25,7 @@
 .slot {
   padding: 1rem;
   border-radius: 20px;
-  border: 1px solid rgba(27, 42, 64, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -51,19 +51,19 @@
 }
 
 .past {
-  background: rgba(107, 114, 128, 0.08);
+  background: color-mix(in srgb, var(--ink-soft) 8%, transparent);
   color: var(--taupe-dark);
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 .selected {
-  background: rgba(90, 124, 226, 0.12);
-  border-color: rgba(90, 124, 226, 0.26);
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+  border-color: color-mix(in srgb, var(--brand) 26%, transparent);
 }
 
 .inRange {
-  box-shadow: 0 0 0 2px rgba(90, 124, 226, 0.12);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
 }
 
 .hourLabel {
@@ -76,7 +76,7 @@
 }
 
 .selectionLabel {
-  color: #3157b6;
+  color: var(--brand-strong);
   font-size: 0.82rem;
 }
 
@@ -111,14 +111,14 @@
 }
 
 .legendSelected {
-  background: #3157b6;
+  background: var(--hero-bg);
 }
 
 [data-theme="dark"] .container {
   border-color: rgba(255, 255, 255, 0.08);
   background:
     radial-gradient(circle at top right, rgba(207, 162, 101, 0.08), transparent 34%),
-    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 96%, transparent) 100%);
   box-shadow: 0 22px 44px rgba(0, 0, 0, 0.28);
 }
 
@@ -152,17 +152,17 @@
 }
 
 [data-theme="dark"] .past {
-  background: rgba(148, 163, 184, 0.08);
+  background: color-mix(in srgb, var(--ink-soft) 8%, transparent);
   color: rgba(203, 213, 225, 0.58);
 }
 
 [data-theme="dark"] .selected {
-  background: rgba(137, 163, 255, 0.18);
-  border-color: rgba(137, 163, 255, 0.38);
+  background: color-mix(in srgb, var(--brand) 18%, transparent);
+  border-color: color-mix(in srgb, var(--brand) 38%, transparent);
 }
 
 [data-theme="dark"] .inRange {
-  box-shadow: 0 0 0 2px rgba(137, 163, 255, 0.16);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.16);
 }
 
 [data-theme="dark"] .reservedLabel {
@@ -170,5 +170,5 @@
 }
 
 [data-theme="dark"] .selectionLabel {
-  color: #dbe5ff;
+  color: var(--ink);
 }

@@ -21,7 +21,7 @@ export default function AdminEspaceForm() {
   const [form, setForm] = useState({
     name: "",
     type: "SALLE",
-    capacity: 0,
+    capacity: 1,
     basePrice: 0,
     status: "AVAILABLE",
   });
@@ -97,8 +97,8 @@ export default function AdminEspaceForm() {
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
-          <label className={styles.label}>{t('admin.name')} :</label>
-          <input
+          <label className={styles.label} htmlFor="AdminEspaceForm-name">{t('admin.name')} :</label>
+          <input id="AdminEspaceForm-name"
             name="name"
             value={form.name}
             onChange={handleChange}
@@ -125,20 +125,21 @@ export default function AdminEspaceForm() {
 
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t('common.capacity')} :</label>
-            <input
+            <label className={styles.label} htmlFor="AdminEspaceForm-capacity">{t('common.capacity')} :</label>
+            <input id="AdminEspaceForm-capacity"
               name="capacity"
               type="number"
               value={form.capacity}
               onChange={handleChange}
-              min="0"
+              min="1"
+              required
               className={styles.input}
             />
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t('admin.basePrice')} ({"\u20ac"}) :</label>
-            <input
+            <label className={styles.label} htmlFor="AdminEspaceForm-basePrice">{t('admin.basePrice')} ({"\u20ac"}) :</label>
+            <input id="AdminEspaceForm-basePrice"
               name="basePrice"
               type="number"
               value={form.basePrice}

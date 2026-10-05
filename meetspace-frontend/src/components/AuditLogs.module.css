@@ -44,7 +44,7 @@
   min-height: 34px;
   padding: 0.25rem 0.8rem;
   border-radius: 999px;
-  background: rgba(27, 42, 64, 0.08);
+  background: rgba(22, 33, 29, 0.08);
   color: var(--blue-dark);
   font-size: 0.8rem;
   font-weight: 800;
@@ -57,7 +57,7 @@
   margin-bottom: 1rem;
   padding: 1rem;
   border-radius: 22px;
-  background: rgba(27, 42, 64, 0.045);
+  background: rgba(22, 33, 29, 0.045);
 }
 
 .filterGroup {
@@ -87,7 +87,7 @@
   align-self: end;
   min-height: 50px;
   border-radius: 999px;
-  border: 1px solid rgba(27, 42, 64, 0.14);
+  border: 1px solid color-mix(in srgb, var(--brand) 14%, transparent);
   background: rgba(255, 255, 255, 0.8);
   color: var(--blue-dark);
   box-shadow: none;
@@ -96,7 +96,7 @@
 .tableContainer {
   overflow-x: auto;
   border-radius: 22px;
-  border: 1px solid rgba(27, 42, 64, 0.07);
+  border: 1px solid color-mix(in srgb, var(--brand) 7%, transparent);
   background: rgba(255, 255, 255, 0.82);
 }
 
@@ -154,8 +154,8 @@
 }
 
 .blue {
-  background: rgba(90, 124, 226, 0.12);
-  color: #3157b6;
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+  color: var(--brand-strong);
 }
 
 .orange {
@@ -164,13 +164,13 @@
 }
 
 .purple {
-  background: rgba(115, 95, 220, 0.12);
-  color: #6248c9;
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+  color: var(--brand-strong);
 }
 
 .gray {
-  background: rgba(107, 114, 128, 0.13);
-  color: #4b5563;
+  background: color-mix(in srgb, var(--ink-soft) 13%, transparent);
+  color: var(--text-secondary);
 }
 
 .detailsCell {
@@ -238,7 +238,7 @@
   min-height: 44px;
   padding: 0.65rem 1rem;
   border-radius: 999px;
-  border: 1px solid rgba(27, 42, 64, 0.14);
+  border: 1px solid color-mix(in srgb, var(--brand) 14%, transparent);
   background: rgba(255, 255, 255, 0.8);
   color: var(--blue-dark);
   box-shadow: none;
@@ -250,6 +250,11 @@
   color: #b91c1c;
 }
 
+.tableContainer:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
 [data-theme="dark"] .container,
 [data-theme="dark"] .filters,
 [data-theme="dark"] .tableContainer,
@@ -258,7 +263,7 @@
   border-color: rgba(255, 255, 255, 0.08);
   background:
     radial-gradient(circle at top right, rgba(207, 162, 101, 0.06), transparent 34%),
-    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 96%, transparent) 100%);
   color: var(--text-primary);
 }
 
@@ -300,8 +305,8 @@
 }
 
 [data-theme="dark"] .blue {
-  background: rgba(137, 163, 255, 0.16);
-  color: #dbe5ff;
+  background: color-mix(in srgb, var(--brand) 16%, transparent);
+  color: var(--ink);
 }
 
 [data-theme="dark"] .orange {
@@ -310,12 +315,12 @@
 }
 
 [data-theme="dark"] .purple {
-  background: rgba(168, 145, 255, 0.16);
-  color: #e4ddff;
+  background: color-mix(in srgb, var(--brand) 16%, transparent);
+  color: var(--ink);
 }
 
 [data-theme="dark"] .gray {
-  background: rgba(148, 163, 184, 0.16);
+  background: color-mix(in srgb, var(--ink-soft) 16%, transparent);
   color: #dbe5f2;
 }
 

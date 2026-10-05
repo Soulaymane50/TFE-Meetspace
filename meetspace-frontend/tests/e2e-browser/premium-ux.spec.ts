@@ -28,7 +28,7 @@ test.describe("Premium public experience", () => {
   test("room booking keeps the protected destination through login", async ({ page }) => {
     await page.goto(`${BASE_URL}/espace`);
 
-    const bookingLink = page.locator('a[href^="/reservations/new/"]').first();
+    const bookingLink = page.getByTestId("room-results").locator('a[href^="/reservations/new/"]').first();
     await expect(bookingLink).toBeVisible();
     const destination = await bookingLink.getAttribute("href");
     await bookingLink.click();

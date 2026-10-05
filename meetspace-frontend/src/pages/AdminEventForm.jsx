@@ -339,8 +339,8 @@ export default function AdminEventForm() {
 
       <form onSubmit={submit} className={styles.form}>
         <div className={styles.field}>
-          <label className={styles.label}>{t("common.title")} *</label>
-          <input
+          <label className={styles.label} htmlFor="AdminEventForm-title">{t("common.title")} *</label>
+          <input id="AdminEventForm-title"
             name="title"
             value={eventForm.title}
             onChange={handleChange}
@@ -350,8 +350,8 @@ export default function AdminEventForm() {
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>{t("common.description")} *</label>
-          <textarea
+          <label className={styles.label} htmlFor="AdminEventForm-description">{t("common.description")} *</label>
+          <textarea id="AdminEventForm-description"
             name="description"
             value={eventForm.description}
             onChange={handleChange}
@@ -393,8 +393,8 @@ export default function AdminEventForm() {
             </div>
           ) : (
             <div className={styles.field}>
-              <label className={styles.label}>{t("events.location")} *</label>
-              <input
+              <label className={styles.label} htmlFor="AdminEventForm-location">{t("events.location")} *</label>
+              <input id="AdminEventForm-location"
                 name="location"
                 value={eventForm.location}
                 onChange={handleChange}
@@ -456,8 +456,8 @@ export default function AdminEventForm() {
         ) : (
           <div className={styles.row}>
             <div className={styles.field}>
-              <label className={styles.label}>{t("reservation.startDate")} *</label>
-              <input
+              <label className={styles.label} htmlFor="AdminEventForm-startDateTime">{t("reservation.startDate")} *</label>
+              <input id="AdminEventForm-startDateTime"
                 type="datetime-local"
                 name="startDateTime"
                 value={eventForm.startDateTime}
@@ -469,8 +469,8 @@ export default function AdminEventForm() {
             </div>
 
             <div className={styles.field}>
-              <label className={styles.label}>{t("reservation.endDate")} *</label>
-              <input
+              <label className={styles.label} htmlFor="AdminEventForm-endDateTime">{t("reservation.endDate")} *</label>
+              <input id="AdminEventForm-endDateTime"
                 type="datetime-local"
                 name="endDateTime"
                 value={eventForm.endDateTime}
@@ -485,8 +485,8 @@ export default function AdminEventForm() {
 
         <div className={styles.row}>
           <div className={styles.field}>
-            <label className={styles.label}>{t("common.capacity")}</label>
-            <input
+            <label className={styles.label} htmlFor="AdminEventForm-capacity">{t("common.capacity")}</label>
+            <input id="AdminEventForm-capacity"
               type="number"
               name="capacity"
               value={eventForm.capacity}
@@ -498,8 +498,8 @@ export default function AdminEventForm() {
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label}>{t("common.price")} (€)</label>
-            <input
+            <label className={styles.label} htmlFor="AdminEventForm-price">{t("common.price")} (€)</label>
+            <input id="AdminEventForm-price"
               type="number"
               name="price"
               value={eventForm.price}

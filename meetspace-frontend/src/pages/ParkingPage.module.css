@@ -15,7 +15,7 @@
   background:
     linear-gradient(90deg, rgba(7, 28, 24, 0.94) 0%, rgba(7, 28, 24, 0.82) 35%, rgba(7, 28, 24, 0.38) 67%, rgba(7, 28, 24, 0.12) 100%),
     var(--parking-image) center / cover;
-  box-shadow: 0 28px 54px rgba(11, 18, 32, 0.16);
+  box-shadow: 0 28px 54px rgba(0, 0, 0, 0.16);
 }
 
 .heroHeader {
@@ -115,7 +115,7 @@
 .daySection,
 .info {
   border-radius: 30px;
-  border: 1px solid rgba(20, 32, 51, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 247, 241, 0.97) 100%);
   box-shadow: var(--shadow-soft);
 }
@@ -172,7 +172,7 @@
   gap: 0.3rem;
   padding: 1rem;
   border-radius: 22px;
-  background: rgba(27, 42, 64, 0.04);
+  background: rgba(22, 33, 29, 0.04);
 }
 
 .sidebarStatValue {
@@ -190,7 +190,7 @@
 .sidebarNote {
   padding: 1rem;
   border-radius: 22px;
-  background: rgba(27, 42, 64, 0.04);
+  background: rgba(22, 33, 29, 0.04);
 }
 
 .sidebarNote strong {
@@ -218,7 +218,7 @@
   min-height: 48px;
   padding: 0.75rem 0.85rem;
   border-radius: 17px;
-  border: 1px solid rgba(27, 42, 64, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background: rgba(255, 255, 255, 0.62);
   color: var(--blue-dark);
   box-shadow: none;
@@ -251,12 +251,12 @@
   border-radius: 22px;
   background:
     radial-gradient(circle at top right, rgba(16, 185, 129, 0.14), transparent 34%),
-    linear-gradient(135deg, rgba(27, 42, 64, 0.92), rgba(46, 61, 83, 0.9));
-  color: #f8f5ef;
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 92%, transparent), color-mix(in srgb, var(--surface-inverse) 90%, transparent));
+  color: var(--text-primary);
 }
 
 .selectedDayCard span {
-  color: rgba(248, 245, 239, 0.72);
+  color: var(--text-secondary);
   font-size: 0.74rem;
   font-weight: 900;
   letter-spacing: 0.12em;
@@ -270,7 +270,7 @@
 
 .selectedDayCard p {
   margin: 0;
-  color: rgba(248, 245, 239, 0.72);
+  color: var(--text-secondary);
   font-size: 0.85rem;
 }
 
@@ -328,7 +328,7 @@
   min-height: 36px;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
-  background: rgba(27, 42, 64, 0.05);
+  background: rgba(22, 33, 29, 0.05);
   color: var(--blue-dark);
   font-size: 0.8rem;
   font-weight: 700;
@@ -349,11 +349,11 @@
   max-width: 360px;
   min-height: 0;
   border-radius: 22px;
-  border: 1px solid rgba(20, 32, 51, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background:
     radial-gradient(circle at top right, rgba(181, 138, 76, 0.12), transparent 30%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.98) 100%);
-  box-shadow: 0 18px 36px rgba(11, 18, 32, 0.08);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
 }
 
 .slotMedia {
@@ -365,7 +365,7 @@
   height: 100%;
   min-height: 128px;
   background:
-    linear-gradient(180deg, rgba(9, 15, 28, 0.02) 0%, rgba(9, 15, 28, 0.32) 100%),
+    linear-gradient(180deg, rgba(22, 33, 29, 0.02) 0%, rgba(22, 33, 29, 0.32) 100%),
     var(--parking-image) center / cover;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
 }
@@ -384,7 +384,7 @@
   font-size: 0.72rem;
   font-weight: 900;
   text-transform: capitalize;
-  box-shadow: 0 10px 24px rgba(11, 18, 32, 0.12);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
 }
 
 .slotContent {
@@ -452,7 +452,7 @@
   min-height: 58px;
   padding: 0.55rem 0.55rem;
   border-radius: 13px;
-  background: rgba(27, 42, 64, 0.04);
+  background: rgba(22, 33, 29, 0.04);
 }
 
 .metricLabel,
@@ -480,7 +480,7 @@
   gap: 0.45rem;
   padding: 0.65rem 0.7rem;
   border-radius: 15px;
-  background: rgba(12, 20, 32, 0.96);
+  background: color-mix(in srgb, var(--surface-inverse) 96%, transparent);
   color: #f8f5ef;
 }
 
@@ -557,7 +557,7 @@
 
 .buttonDisabled {
   color: rgba(248, 245, 239, 0.88);
-  background: linear-gradient(135deg, #7c8591 0%, #616975 100%);
+  background: linear-gradient(135deg, var(--surface-muted) 0%, var(--surface-muted) 100%);
 }
 
 .info {
@@ -615,10 +615,10 @@
 }
 
 :global([data-theme="light"]) .progressCard {
-  border: 1px solid rgba(20, 32, 51, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background: color-mix(in srgb, var(--brand-soft) 24%, var(--surface));
   color: var(--blue-darker);
-  box-shadow: 0 18px 34px rgba(11, 18, 32, 0.08);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.08);
 }
 
 :global([data-theme="light"]) .progressLabel,
@@ -631,7 +631,7 @@
 }
 
 :global([data-theme="light"]) .progressTrack {
-  background: rgba(27, 42, 64, 0.1);
+  background: rgba(22, 33, 29, 0.1);
 }
 
 :global([data-theme="light"]) .progressFill {
@@ -640,8 +640,8 @@
 
 :global([data-theme="light"]) .buttonDisabled {
   color: var(--blue-dark);
-  background: rgba(27, 42, 64, 0.08);
-  border: 1px solid rgba(27, 42, 64, 0.1);
+  background: rgba(22, 33, 29, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, transparent);
 }
 
 [data-theme="dark"] .sidebar,
@@ -649,7 +649,7 @@
 [data-theme="dark"] .slotCard,
 [data-theme="dark"] .info {
   border-color: rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 96%, transparent) 100%);
 }
 
 [data-theme="dark"] .sidebarEyebrow,
@@ -697,7 +697,7 @@
 }
 
 [data-theme="dark"] .slotDateBadge {
-  background: rgba(15, 23, 42, 0.84);
+  background: color-mix(in srgb, var(--surface-inverse) 84%, transparent);
   color: var(--text-primary);
 }
 
@@ -796,17 +796,25 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 40px;
-  border: 1px solid rgba(248, 245, 239, 0.3);
+  min-height: 44px;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--brand-strong);
   border-radius: var(--radius-sm);
-  color: rgba(248, 245, 239, 0.9);
+  background: var(--paper);
+  color: var(--brand-strong);
+  text-align: center;
   font-size: 0.78rem;
   font-weight: 800;
 }
 
 .detailButton:hover {
-  border-color: var(--sun);
-  color: var(--sun);
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+}
+
+.detailButton:focus-visible {
+  outline: 2px solid var(--brand-strong);
+  outline-offset: 3px;
 }
 
 @media (max-width: 520px) {

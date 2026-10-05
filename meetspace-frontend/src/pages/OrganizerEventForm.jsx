@@ -388,10 +388,10 @@ export default function OrganizerEventForm() {
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>
+            <label className={styles.label} htmlFor="OrganizerEventForm-title">
               {t("common.title")} <span className={styles.required}>*</span>
             </label>
-            <input
+            <input id="OrganizerEventForm-title"
               type="text"
               name="title"
               value={eventForm.title}
@@ -403,8 +403,8 @@ export default function OrganizerEventForm() {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("common.description")}</label>
-            <textarea
+            <label className={styles.label} htmlFor="OrganizerEventForm-description">{t("common.description")}</label>
+            <textarea id="OrganizerEventForm-description"
               name="description"
               value={eventForm.description}
               onChange={handleChange}
@@ -486,10 +486,10 @@ export default function OrganizerEventForm() {
 
           <div className={styles.row}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>
+              <label className={styles.label} htmlFor="OrganizerEventForm-capacity">
                 {t("common.capacity")} <span className={styles.required}>*</span>
               </label>
-              <input
+              <input id="OrganizerEventForm-capacity"
                 type="number"
                 name="capacity"
                 value={eventForm.capacity}
@@ -501,8 +501,8 @@ export default function OrganizerEventForm() {
               />
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.label}>{t("common.price")} (€)</label>
-              <input
+              <label className={styles.label} htmlFor="OrganizerEventForm-price">{t("common.price")} (€)</label>
+              <input id="OrganizerEventForm-price"
                 type="number"
                 name="price"
                 value={eventForm.price}

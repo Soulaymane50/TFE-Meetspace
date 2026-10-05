@@ -132,7 +132,7 @@
   min-height: 44px;
   border-color: var(--brand-strong);
   background: var(--brand-strong);
-  color: #fff;
+  color: var(--cta-solid-fg);
 }
 
 .btnDanger { color: var(--danger); }

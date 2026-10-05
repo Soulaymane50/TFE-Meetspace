@@ -57,6 +57,11 @@ export default function HomePage() {
     .sort((a, b) => (Number(b.capacity) || 0) - (Number(a.capacity) || 0))
     .slice(0, 3);
 
+  const heroSpace = spaces.find((space) =>
+    String(space.name || "").toLowerCase().includes("executive") && Number(space.capacity) >= 250
+  ) || featuredSpaces[0];
+  const largestRoomCapacity = Math.max(0, ...spaces.map((space) => Number(space.capacity) || 0));
+
   const actionCards = [
     {
       to: "/espace",
@@ -80,7 +85,7 @@ export default function HomePage() {
       cta: t("home.useParkingCta"),
     },
     {
-      to: isOrganizer ? "/organizer/events/new" : "/register",
+      to: isOrganizer ? "/organizer/events/new" : "/contact",
       icon: "04",
       title: t("home.useOrganizerTitle"),
       text: t("home.useOrganizerText"),
@@ -119,11 +124,12 @@ export default function HomePage() {
         </div>
 
         <aside className={styles.heroPanel} aria-label={t("home.heroPanelTitle")}>
-          <div className={styles.heroPanelImage} />
+          <div className={styles.heroPanelImage} style={heroSpace ? { backgroundImage: `url(${getSpaceImage(heroSpace)})` } : undefined} />
           <div className={styles.heroPanelCard}>
             <span>{t("home.heroPanelBadge")}</span>
-            <strong>{t("home.heroPanelMetric")}</strong>
+            <strong>{heroSpace?.name || t("home.heroPanelMetric")}</strong>
             <p>{t("home.heroPanelText")}</p>
+            {heroSpace && <Link to={`/espace/${heroSpace.id}`}>{t("detail.viewDetails")}</Link>}
           </div>
         </aside>
       </section>
@@ -142,8 +148,8 @@ export default function HomePage() {
           <span>{t("home.statsParking")}</span>
         </div>
         <div>
-          <strong>{t("home.statsEmailValue")}</strong>
-          <span>{t("home.statsEmail")}</span>
+          <strong>{spacesLoading || spacesError || !spaces.length ? "—" : t("home.statsCapacityValue", { count: largestRoomCapacity })}</strong>
+          <span>{t("home.statsCapacity")}</span>
         </div>
       </section>
 
@@ -259,7 +265,7 @@ export default function HomePage() {
             <li>{t("home.organizerBenefitFinance")}</li>
           </ul>
         </div>
-        <Link to={isOrganizer ? "/organizer/events/new" : "/register"} className={styles.organizerCta}>
+        <Link to={isOrganizer ? "/organizer/events/new" : "/contact"} className={styles.organizerCta}>
           {isOrganizer ? t("home.useOrganizerCtaActive") : t("home.useOrganizerCta")}
         </Link>
       </section>

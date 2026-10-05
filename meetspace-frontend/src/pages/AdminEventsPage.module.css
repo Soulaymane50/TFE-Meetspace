@@ -132,7 +132,7 @@
   min-height: 44px;
   border-color: var(--brand-strong);
   background: var(--brand-strong);
-  color: #fff;
+  color: var(--cta-solid-fg);
 }
 
 .btnGhost {
@@ -180,8 +180,8 @@
 }
 
 .statusCancelled {
-  background: rgba(107, 114, 128, 0.13);
-  color: #4b5563;
+  background: color-mix(in srgb, var(--ink-soft) 13%, transparent);
+  color: var(--text-secondary);
 }
 
 .cardsGrid {
@@ -358,7 +358,7 @@
 }
 
 .dayButton small {
-  color: var(--taupe-dark);
+  color: inherit;
   font-size: 0.72rem;
   font-weight: 800;
 }
@@ -370,7 +370,7 @@
 }
 
 .dayButtonActive small {
-  color: rgba(255, 255, 255, 0.72);
+  color: inherit;
 }
 
 .roomColumns {
@@ -507,18 +507,18 @@
   border-color: rgba(255, 255, 255, 0.08);
   background:
     radial-gradient(circle at top right, rgba(207, 162, 101, 0.06), transparent 34%),
-    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 96%, transparent) 100%);
   color: var(--text-primary);
 }
 
 [data-theme="dark"] .compactTable thead th {
-  background: rgba(18, 26, 37, 0.96);
+  background: color-mix(in srgb, var(--surface-inverse) 96%, transparent);
 }
 
 [data-theme="dark"] .pendingReviewCard {
   background:
     radial-gradient(circle at top right, rgba(207, 162, 101, 0.1), transparent 34%),
-    linear-gradient(180deg, rgba(18, 26, 37, 0.98), rgba(12, 18, 27, 0.94));
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent), color-mix(in srgb, var(--surface-inverse) 94%, transparent));
 }
 
 [data-theme="dark"] .pendingDetails span {
@@ -568,7 +568,7 @@
 
 [data-theme="dark"] .dayButtonActive {
   background: linear-gradient(135deg, rgba(207, 162, 101, 0.95), rgba(138, 91, 24, 0.95));
-  color: #111827;
+  color: #16211d;
 }
 
 [data-theme="dark"] .roomEmpty {
@@ -619,7 +619,7 @@
 }
 
 [data-theme="dark"] .statusCancelled {
-  background: rgba(148, 163, 184, 0.16);
+  background: color-mix(in srgb, var(--ink-soft) 16%, transparent);
   color: #dbe5f2;
 }
 

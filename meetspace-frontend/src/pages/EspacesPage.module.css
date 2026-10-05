@@ -11,11 +11,11 @@
   padding: 1.9rem;
   border-radius: 30px;
   background:
-    linear-gradient(135deg, rgba(11, 18, 32, 0.9) 0%, rgba(26, 39, 58, 0.86) 55%, rgba(90, 124, 226, 0.66) 180%),
-    radial-gradient(circle at top right, rgba(90, 124, 226, 0.18), transparent 28%),
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 90%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 86%, transparent) 55%, var(--hero-bg) 180%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--brand) 18%, transparent), transparent 28%),
     url("/images/room-premium-executive-300-v5.webp") center / cover,
-    linear-gradient(135deg, rgba(11, 18, 32, 0.98) 0%, rgba(26, 39, 58, 0.98) 55%, rgba(90, 124, 226, 0.88) 180%);
-  box-shadow: 0 28px 54px rgba(11, 18, 32, 0.16);
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 55%, var(--hero-bg) 180%);
+  box-shadow: 0 28px 54px rgba(0, 0, 0, 0.16);
 }
 
 .heroHeader {
@@ -116,7 +116,7 @@
 .content,
 .emptyState {
   border-radius: 30px;
-  border: 1px solid rgba(20, 32, 51, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 247, 241, 0.97) 100%);
   box-shadow: var(--shadow-soft);
 }
@@ -169,7 +169,7 @@
   gap: 0.3rem;
   padding: 1rem;
   border-radius: 22px;
-  background: rgba(27, 42, 64, 0.04);
+  background: rgba(22, 33, 29, 0.04);
 }
 
 .sidebarStatValue {
@@ -197,7 +197,7 @@
   align-items: center;
   padding: 0.95rem 1rem;
   border-radius: 20px;
-  background: rgba(27, 42, 64, 0.04);
+  background: rgba(22, 33, 29, 0.04);
 }
 
 .catalogItemTitle {
@@ -257,9 +257,9 @@
   padding: 1.35rem;
   border-radius: 26px;
   background:
-    radial-gradient(circle at top right, rgba(90, 124, 226, 0.16), transparent 28%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--brand) 16%, transparent), transparent 28%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 248, 242, 0.98) 100%);
-  border: 1px solid rgba(20, 32, 51, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
 }
 
 .panelTopline,
@@ -281,8 +281,8 @@
   min-height: 34px;
   padding: 0.3rem 0.75rem;
   border-radius: 999px;
-  background: rgba(90, 124, 226, 0.1);
-  color: #314fb3;
+  background: color-mix(in srgb, var(--brand) 10%, transparent);
+  color: var(--brand-strong);
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -338,7 +338,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(9, 15, 28, 0.02) 0%, rgba(9, 15, 28, 0.36) 100%);
+  background: linear-gradient(180deg, rgba(22, 33, 29, 0.02) 0%, rgba(22, 33, 29, 0.36) 100%);
 }
 
 .panelMetrics,
@@ -355,7 +355,7 @@
   gap: 0.3rem;
   padding: 0.95rem 1rem;
   border-radius: 20px;
-  background: rgba(27, 42, 64, 0.04);
+  background: rgba(22, 33, 29, 0.04);
 }
 
 .metricLabel {
@@ -398,8 +398,8 @@
   gap: 0.95rem;
   padding: 1.2rem;
   border-radius: 24px;
-  border: 1px solid rgba(20, 32, 51, 0.08);
-  background: rgba(27, 42, 64, 0.03);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
+  background: rgba(22, 33, 29, 0.03);
 }
 
 .studioCard .studioHeader {
@@ -453,7 +453,7 @@
 .primaryButton {
   color: var(--cta-solid-fg);
   background: linear-gradient(135deg, var(--cta-solid-bg) 0%, var(--cta-solid-bg-end) 72%, var(--orange) 190%);
-  box-shadow: 0 16px 28px rgba(11, 18, 32, 0.14);
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.14);
 }
 
 .primaryButton:hover {
@@ -482,7 +482,7 @@
   gap: 1rem;
   padding: 1.4rem;
   border-radius: 30px;
-  border: 1px solid rgba(20, 32, 51, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background:
     radial-gradient(circle at top right, rgba(16, 185, 129, 0.1), transparent 32%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 247, 241, 0.95));
@@ -541,7 +541,7 @@
   min-height: 42px;
   padding: 0.55rem 0.9rem;
   border-radius: 999px;
-  border: 1px solid rgba(27, 42, 64, 0.1);
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, transparent);
   background: rgba(255, 255, 255, 0.72);
   color: var(--blue-dark);
   box-shadow: none;
@@ -565,8 +565,8 @@
   gap: 0.7rem;
   padding: 0.95rem;
   border-radius: 20px;
-  border: 1px solid rgba(27, 42, 64, 0.08);
-  background: rgba(27, 42, 64, 0.035);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
+  background: rgba(22, 33, 29, 0.035);
 }
 
 .availableCard {
@@ -620,7 +620,7 @@
   align-items: center;
   min-height: 40px;
   border-radius: 999px;
-  background: rgba(27, 42, 64, 0.92);
+  background: color-mix(in srgb, var(--surface-inverse) 92%, transparent);
   color: #f8f5ef;
   font-size: 0.82rem;
   font-weight: 800;
@@ -631,12 +631,12 @@
 }
 
 :global([data-theme="light"]) .heroPanel {
-  border: 1px solid rgba(20, 32, 51, 0.075);
+  border: 1px solid color-mix(in srgb, var(--brand) 7.5%, transparent);
   background:
-    radial-gradient(circle at 78% 18%, rgba(90, 124, 226, 0.1), transparent 28%),
+    radial-gradient(circle at 78% 18%, color-mix(in srgb, var(--brand) 10%, transparent), transparent 28%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 249, 253, 0.92) 58%, rgba(238, 242, 250, 0.84) 100%),
     url("/images/room-premium-executive-300-v5.webp") center / cover;
-  box-shadow: 0 22px 48px rgba(11, 18, 32, 0.09);
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.09);
 }
 
 :global([data-theme="light"]) .kicker,
@@ -655,13 +655,13 @@
 :global([data-theme="light"]) .linkGhost {
   color: var(--blue-darker);
   background: rgba(255, 255, 255, 0.82);
-  border-color: rgba(20, 32, 51, 0.12);
+  border-color: color-mix(in srgb, var(--brand) 12%, transparent);
 }
 
 :global([data-theme="light"]) .summaryCard {
   background: rgba(255, 255, 255, 0.72);
-  border-color: rgba(20, 32, 51, 0.08);
-  box-shadow: 0 18px 34px rgba(11, 18, 32, 0.08);
+  border-color: color-mix(in srgb, var(--brand) 8%, transparent);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.08);
 }
 
 :global([data-theme="light"]) .summaryValue {
@@ -679,7 +679,7 @@
 [data-theme="dark"] .availabilityPanel,
 [data-theme="dark"] .availabilityCard {
   border-color: rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 96%, transparent) 100%);
 }
 
 [data-theme="dark"] .sidebarTitle,
@@ -733,8 +733,8 @@
 }
 
 [data-theme="dark"] .panelBadge {
-  background: rgba(137, 163, 255, 0.18);
-  color: #d8e2ff;
+  background: color-mix(in srgb, var(--brand) 18%, transparent);
+  color: var(--ink);
 }
 
 [data-theme="dark"] .secondaryButton {

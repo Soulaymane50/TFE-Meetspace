@@ -1,15 +1,18 @@
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../context/ThemeContext";
 import styles from "./ThemeToggle.module.css";
 
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <button
+      type="button"
       onClick={toggleTheme}
       className={styles.toggle}
-      aria-label={theme === "light" ? "Activer le mode sombre" : "Activer le mode clair"}
-      title={theme === "light" ? "Mode sombre" : "Mode clair"}
+      aria-label={t(theme === "light" ? "nav.enableDarkTheme" : "nav.enableLightTheme")}
+      title={t(theme === "light" ? "nav.darkTheme" : "nav.lightTheme")}
     >
       {theme === "light" ? (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

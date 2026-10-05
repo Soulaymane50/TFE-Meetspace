@@ -95,7 +95,7 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #6c7890;
+  color: var(--text-secondary);
 }
 
 .passwordRules ul {
@@ -113,7 +113,7 @@
   gap: 0.55rem;
   font-size: 0.9rem;
   font-weight: 650;
-  color: #6f7a8e;
+  color: var(--text-secondary);
 }
 
 .passwordRuleValid {
@@ -159,11 +159,11 @@
 }
 
 :global([data-theme="dark"]) .passwordRulesTitle {
-  color: #aeb9cb;
+  color: var(--text-secondary);
 }
 
 :global([data-theme="dark"]) .passwordRule {
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 :global([data-theme="dark"]) .passwordRuleValid {
@@ -171,8 +171,8 @@
 }
 
 :global([data-theme="dark"]) .passwordRuleDot {
-  background: #64748b;
-  box-shadow: 0 0 0 4px rgba(100, 116, 139, 0.18);
+  background: var(--surface-muted);
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.18);
 }
 
 :global([data-theme="dark"]) .passwordRuleValid .passwordRuleDot {

@@ -9,6 +9,7 @@ export default {
     },
     "system": {
       "requestTimeout": "Le chargement a pris trop de temps. Réessayez.",
+      "writeOutcomeUnknown": "La réponse n’est pas arrivée à temps. L’action a peut-être été enregistrée : vérifiez votre compte avant de la relancer.",
       "requestFailed": "Le service est temporairement indisponible. Réessayez.",
       "partialData": "Certaines données n’ont pas pu être chargées : {{sections}}.",
       "unavailableData": "Données indisponibles"
@@ -127,6 +128,7 @@ export default {
     },
     "system": {
       "requestTimeout": "Loading took too long. Please try again.",
+      "writeOutcomeUnknown": "The response did not arrive in time. Your action may have been saved: check your account before trying again.",
       "requestFailed": "The service is temporarily unavailable. Please try again.",
       "partialData": "Some data could not be loaded: {{sections}}.",
       "unavailableData": "Data unavailable"
@@ -245,6 +247,7 @@ export default {
     },
     "system": {
       "requestTimeout": "Het laden duurde te lang. Probeer opnieuw.",
+      "writeOutcomeUnknown": "Het antwoord kwam niet op tijd. Uw actie is mogelijk opgeslagen: controleer uw account voordat u opnieuw probeert.",
       "requestFailed": "De dienst is tijdelijk niet beschikbaar. Probeer opnieuw.",
       "partialData": "Sommige gegevens konden niet worden geladen: {{sections}}.",
       "unavailableData": "Gegevens niet beschikbaar"

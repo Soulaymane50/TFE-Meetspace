@@ -4,7 +4,7 @@
   gap: 1rem;
   padding: clamp(1.1rem, 2vw, 1.45rem);
   border-radius: 30px;
-  border: 1px solid rgba(20, 32, 51, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background:
     radial-gradient(circle at 88% 12%, rgba(16, 185, 129, 0.12), transparent 30%),
     radial-gradient(circle at 10% 92%, rgba(181, 138, 76, 0.1), transparent 28%),
@@ -82,7 +82,7 @@
   padding: 0.72rem;
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.68);
-  border: 1px solid rgba(20, 32, 51, 0.06);
+  border: 1px solid color-mix(in srgb, var(--brand) 6%, transparent);
 }
 
 .controls label,
@@ -113,7 +113,7 @@
   min-height: 40px;
   padding: 0.55rem 0.82rem;
   border-radius: 999px;
-  border: 1px solid rgba(27, 42, 64, 0.1);
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, transparent);
   background: rgba(255, 255, 255, 0.86);
   color: var(--blue-dark);
   box-shadow: none;
@@ -147,7 +147,7 @@
 .resetButton {
   margin-left: auto;
   color: var(--text-secondary) !important;
-  background: rgba(27, 42, 64, 0.04) !important;
+  background: rgba(22, 33, 29, 0.04) !important;
 }
 
 .results {
@@ -206,7 +206,7 @@
 }
 
 .roomTopline span {
-  color: var(--orange);
+  color: var(--accent-strong);
   font-weight: 900;
   white-space: nowrap;
 }
@@ -263,7 +263,7 @@
   gap: 0.8rem;
   padding: 1rem;
   border-radius: 20px;
-  background: rgba(27, 42, 64, 0.04);
+  background: rgba(22, 33, 29, 0.04);
   color: var(--text-secondary);
   font-weight: 800;
 }
@@ -274,7 +274,7 @@
   align-items: center;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  background: rgba(27, 42, 64, 0.08);
+  background: rgba(22, 33, 29, 0.08);
   color: var(--blue-darker);
   font-weight: 850;
 }
@@ -284,7 +284,7 @@
   background:
     radial-gradient(circle at 88% 12%, rgba(16, 185, 129, 0.12), transparent 30%),
     radial-gradient(circle at 10% 92%, rgba(207, 162, 101, 0.1), transparent 28%),
-    linear-gradient(180deg, rgba(18, 26, 37, 0.98), rgba(12, 18, 27, 0.96));
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent), color-mix(in srgb, var(--surface-inverse) 96%, transparent));
 }
 
 [data-theme="dark"] .header h2,
@@ -324,20 +324,20 @@
 [data-theme="dark"] .roomMeta span,
 [data-theme="dark"] .state a {
   border-color: rgba(226, 232, 240, 0.16);
-  background: rgba(15, 23, 42, 0.82);
+  background: color-mix(in srgb, var(--surface-inverse) 82%, transparent);
   color: #e5eefc;
 }
 
 [data-theme="dark"] .durationGroup button:hover,
 [data-theme="dark"] .presets button:hover {
   border-color: rgba(244, 215, 168, 0.32);
-  background: rgba(30, 41, 59, 0.96);
+  background: color-mix(in srgb, var(--surface-inverse) 96%, transparent);
 }
 
 [data-theme="dark"] .durationActive,
 [data-theme="dark"] .presetActive {
   border-color: rgba(244, 215, 168, 0.5) !important;
-  background: linear-gradient(135deg, rgba(43, 61, 91, 0.98), rgba(181, 138, 76, 0.9)) !important;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent), rgba(181, 138, 76, 0.9)) !important;
   color: #ffffff !important;
 }
 

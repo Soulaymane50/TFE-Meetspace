@@ -70,7 +70,7 @@
 
 .actions button {
   background: var(--brand);
-  color: white;
+  color: var(--cta-solid-fg);
 }
 
 .actions a {

@@ -182,8 +182,8 @@
 .dayFull {
   cursor: not-allowed;
   opacity: 0.55;
-  border-color: rgba(148, 163, 184, 0.22);
-  background: rgba(148, 163, 184, 0.1);
+  border-color: color-mix(in srgb, var(--border-strong) 22%, transparent);
+  background: color-mix(in srgb, var(--ink-soft) 10%, transparent);
 }
 
 .dayLoading {
@@ -348,6 +348,8 @@
 
 .hoursGrid .hourSelected {
   border-color: var(--accent);
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
   background: linear-gradient(135deg, var(--brand-strong), var(--brand));
   color: var(--text-on-inverse);
 }
@@ -449,7 +451,7 @@
 }
 
 [data-theme="dark"] .dayFull {
-  background: rgba(148, 163, 184, 0.08);
+  background: color-mix(in srgb, var(--ink-soft) 8%, transparent);
 }
 
 [data-theme="dark"] .dayLoading {
@@ -460,7 +462,7 @@
 
 [data-theme="dark"] .daySelected {
   border-color: var(--brand);
-  background: linear-gradient(135deg, var(--brand-soft), var(--brand-strong));
+  background: var(--brand-soft);
 }
 
 [data-theme="dark"] .legend {
@@ -470,27 +472,27 @@
 [data-theme="dark"] .durationGroup button,
 [data-theme="dark"] .hoursGrid button {
   border-color: rgba(226, 232, 240, 0.16);
-  background: rgba(15, 23, 42, 0.86);
+  background: color-mix(in srgb, var(--surface-inverse) 86%, transparent);
   color: #e5eefc;
 }
 
 [data-theme="dark"] .durationGroup button:hover:not(:disabled),
 [data-theme="dark"] .hoursGrid button:hover:not(:disabled) {
   border-color: rgba(244, 215, 168, 0.34);
-  background: rgba(30, 41, 59, 0.96);
+  background: color-mix(in srgb, var(--surface-inverse) 96%, transparent);
 }
 
 [data-theme="dark"] .durationGroup button:disabled,
 [data-theme="dark"] .hoursGrid button:disabled {
-  background: rgba(15, 23, 42, 0.38);
+  background: rgba(22, 33, 29, 0.38);
   color: rgba(203, 213, 225, 0.46);
-  border-color: rgba(148, 163, 184, 0.1);
+  border-color: color-mix(in srgb, var(--border-strong) 10%, transparent);
 }
 
 [data-theme="dark"] .durationGroup .durationActive,
 [data-theme="dark"] .hoursGrid .hourSelected {
   border-color: var(--brand);
-  background: linear-gradient(135deg, var(--brand-soft), var(--brand-strong));
+  background: var(--brand-soft);
   color: var(--text-primary);
 }
 
@@ -570,5 +572,5 @@
 .dayIndicator { display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
 .dayPartial .dayIndicator { background: var(--accent); }
 .dayFull .dayIndicator, .dayLoading .dayIndicator { background: var(--text-muted); }
-.scheduler .daysGrid .daySelected { background: var(--brand-strong); color: var(--text-on-inverse); border-color: var(--brand-strong); }
+.scheduler .daysGrid .daySelected { background: var(--brand-soft); color: var(--brand-strong); border-color: var(--brand-strong); }
 .daySelected .dayIndicator { background: currentColor; }

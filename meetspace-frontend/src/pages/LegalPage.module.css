@@ -12,7 +12,7 @@
   background:
     radial-gradient(circle at top right, rgba(181, 138, 76, 0.12), transparent 34%),
     rgba(255, 255, 255, 0.84);
-  box-shadow: 0 22px 52px rgba(11, 18, 32, 0.08);
+  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.08);
 }
 
 .hero p {
@@ -54,7 +54,7 @@
 :global([data-theme="dark"]) .hero,
 :global([data-theme="dark"]) .section {
   border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(18, 26, 37, 0.82);
+  background: color-mix(in srgb, var(--surface-inverse) 82%, transparent);
 }
 
 :global([data-theme="dark"]) .hero p,

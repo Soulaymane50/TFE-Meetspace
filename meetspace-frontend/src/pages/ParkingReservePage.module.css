@@ -8,13 +8,13 @@
   padding: 1.9rem;
   border-radius: 30px;
   background:
-    linear-gradient(135deg, rgba(11, 18, 32, 0.9) 0%, rgba(26, 39, 58, 0.84) 52%, rgba(90, 124, 226, 0.62) 180%),
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 90%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 84%, transparent) 52%, var(--hero-bg) 180%),
     var(--hero-image),
-    radial-gradient(circle at top right, rgba(90, 124, 226, 0.16), transparent 30%),
-    linear-gradient(135deg, rgba(11, 18, 32, 0.98) 0%, rgba(26, 39, 58, 0.98) 52%, rgba(90, 124, 226, 0.82) 180%);
+    radial-gradient(circle at top right, color-mix(in srgb, var(--brand) 16%, transparent), transparent 30%),
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 52%, var(--hero-bg) 180%);
   background-position: center;
   background-size: cover;
-  box-shadow: 0 28px 54px rgba(11, 18, 32, 0.16);
+  box-shadow: 0 28px 54px rgba(0, 0, 0, 0.16);
 }
 
 .heroText {
@@ -82,8 +82,8 @@
   border-radius: 22px;
   overflow: hidden;
   background:
-    linear-gradient(135deg, rgba(11, 18, 32, 0.2), rgba(90, 124, 226, 0.14)),
-    linear-gradient(135deg, rgba(25, 39, 59, 0.96), rgba(59, 74, 96, 0.9));
+    linear-gradient(135deg, rgba(22, 33, 29, 0.2), color-mix(in srgb, var(--brand) 14%, transparent)),
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 96%, transparent), color-mix(in srgb, var(--surface-inverse) 90%, transparent));
   background-position: center;
   background-size: cover;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
@@ -93,7 +93,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(9, 15, 28, 0.02) 0%, rgba(9, 15, 28, 0.34) 100%);
+  background: linear-gradient(180deg, rgba(22, 33, 29, 0.02) 0%, rgba(22, 33, 29, 0.34) 100%);
 }
 
 .metricGrid {
@@ -107,7 +107,7 @@
   gap: 0.35rem;
   padding: 0.95rem 1rem;
   border-radius: 20px;
-  background: rgba(27, 42, 64, 0.04);
+  background: rgba(22, 33, 29, 0.04);
 }
 
 .metricLabel,
@@ -132,8 +132,8 @@
   gap: 0.85rem;
   padding: 1rem 1.1rem;
   border-radius: 20px;
-  background: linear-gradient(135deg, rgba(90, 124, 226, 0.12) 0%, rgba(181, 138, 76, 0.1) 100%);
-  border: 1px solid rgba(90, 124, 226, 0.16);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 12%, transparent) 0%, rgba(181, 138, 76, 0.1) 100%);
+  border: 1px solid color-mix(in srgb, var(--brand) 16%, transparent);
   color: var(--blue-dark);
 }
 
@@ -143,7 +143,7 @@
   width: 34px;
   height: 34px;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--brand-navy) 0%, #28415f 100%);
+  background: linear-gradient(135deg, var(--brand-navy) 0%, var(--surface-inverse) 100%);
   color: #fff;
   font-weight: 800;
 }
@@ -198,11 +198,11 @@
   display: grid;
   gap: 0.75rem;
   padding: 1.1rem;
-  border: 1px solid rgba(27, 42, 64, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   border-radius: 24px;
   background:
     radial-gradient(circle at top right, rgba(16, 185, 129, 0.16), transparent 32%),
-    rgba(27, 42, 64, 0.035);
+    rgba(22, 33, 29, 0.035);
 }
 
 .capacityHeader {
@@ -226,14 +226,14 @@
   height: 14px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(27, 42, 64, 0.09);
+  background: rgba(22, 33, 29, 0.09);
 }
 
 .capacityTrack span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #10b981 0%, #5a7ce2 56%, #b58a4c 100%);
+  background: linear-gradient(90deg, #10b981 0%, var(--hero-bg) 56%, #b58a4c 100%);
   transition: width var(--transition-medium);
 }
 
@@ -249,7 +249,7 @@
   min-height: 56px;
   padding: 0;
   border-radius: 18px;
-  border: 1px solid rgba(27, 42, 64, 0.1);
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, transparent);
   background: rgba(255, 255, 255, 0.82);
   color: var(--blue-darker);
   box-shadow: none;
@@ -268,9 +268,9 @@
   min-height: 74px;
   padding: 0.8rem 1rem;
   border-radius: 24px;
-  background: linear-gradient(135deg, rgba(27, 42, 64, 0.96), rgba(47, 74, 112, 0.92));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 96%, transparent), var(--hero-bg));
   color: #fff;
-  box-shadow: 0 18px 38px rgba(27, 42, 64, 0.18);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.18);
 }
 
 .quantityValue strong {
@@ -297,7 +297,7 @@
   min-height: 42px;
   padding: 0.55rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(27, 42, 64, 0.1);
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, transparent);
   background: rgba(255, 255, 255, 0.8);
   color: var(--blue-dark);
   box-shadow: none;
@@ -306,7 +306,7 @@
 
 .quickSelection .quickSelectionActive {
   border-color: rgba(181, 138, 76, 0.38);
-  background: linear-gradient(135deg, #1b2a40, #b58a4c);
+  background: linear-gradient(135deg, var(--surface-inverse), #b58a4c);
   color: #fff;
 }
 
@@ -333,7 +333,7 @@
   gap: 1rem;
   padding: 1.15rem 1.25rem;
   border-radius: 22px;
-  background: linear-gradient(135deg, rgba(11, 18, 32, 0.95) 0%, rgba(34, 52, 79, 0.95) 60%, rgba(181, 138, 76, 0.95) 160%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 95%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 95%, transparent) 60%, rgba(181, 138, 76, 0.95) 160%);
   color: #f8f5ef;
 }
 
@@ -362,7 +362,7 @@
 }
 
 .secondaryAction {
-  border: 1px solid rgba(27, 42, 64, 0.14);
+  border: 1px solid color-mix(in srgb, var(--brand) 14%, transparent);
   background: rgba(255, 255, 255, 0.8);
   color: var(--blue-dark);
   box-shadow: none;
@@ -375,14 +375,14 @@
 }
 
 :global([data-theme="light"]) .heroPanel {
-  border: 1px solid rgba(20, 32, 51, 0.075);
+  border: 1px solid color-mix(in srgb, var(--brand) 7.5%, transparent);
   background:
-    radial-gradient(circle at 78% 18%, rgba(90, 124, 226, 0.16), transparent 28%),
+    radial-gradient(circle at 78% 18%, color-mix(in srgb, var(--brand) 16%, transparent), transparent 28%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 249, 253, 0.84) 58%, rgba(235, 244, 241, 0.78) 100%),
     var(--hero-image);
   background-position: center;
   background-size: cover;
-  box-shadow: 0 30px 70px rgba(11, 18, 32, 0.12);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.12);
 }
 
 :global([data-theme="light"]) .kicker {
@@ -402,7 +402,7 @@
 [data-theme="dark"] .info,
 [data-theme="dark"] .loadingBox {
   border-color: rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 96%, transparent) 100%);
 }
 
 [data-theme="dark"] .panelTitle,
@@ -453,7 +453,7 @@
 
 [data-theme="dark"] .quantityValue,
 [data-theme="dark"] .quickSelection .quickSelectionActive {
-  background: linear-gradient(135deg, rgba(47, 74, 112, 0.98), rgba(181, 138, 76, 0.9));
+  background: linear-gradient(135deg, var(--hero-bg), rgba(181, 138, 76, 0.9));
 }
 
 @media (max-width: 1080px) {

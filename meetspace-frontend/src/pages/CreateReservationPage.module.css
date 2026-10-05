@@ -8,13 +8,13 @@
   padding: 1.9rem;
   border-radius: 30px;
   background:
-    linear-gradient(135deg, rgba(11, 18, 32, 0.9) 0%, rgba(26, 39, 58, 0.84) 55%, rgba(181, 138, 76, 0.66) 180%),
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 90%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 84%, transparent) 55%, rgba(181, 138, 76, 0.66) 180%),
     var(--hero-image),
     radial-gradient(circle at top right, rgba(181, 138, 76, 0.18), transparent 28%),
-    linear-gradient(135deg, rgba(11, 18, 32, 0.98) 0%, rgba(26, 39, 58, 0.98) 55%, rgba(181, 138, 76, 0.88) 180%);
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 55%, rgba(181, 138, 76, 0.88) 180%);
   background-position: center;
   background-size: cover;
-  box-shadow: 0 28px 54px rgba(11, 18, 32, 0.16);
+  box-shadow: 0 28px 54px rgba(0, 0, 0, 0.16);
 }
 
 .heroText {
@@ -98,8 +98,8 @@
   border-radius: 22px;
   overflow: hidden;
   background:
-    linear-gradient(135deg, rgba(11, 18, 32, 0.22), rgba(181, 138, 76, 0.16)),
-    linear-gradient(135deg, rgba(25, 39, 59, 0.96), rgba(59, 74, 96, 0.9));
+    linear-gradient(135deg, rgba(22, 33, 29, 0.22), rgba(181, 138, 76, 0.16)),
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 96%, transparent), color-mix(in srgb, var(--surface-inverse) 90%, transparent));
   background-position: center;
   background-size: cover;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
@@ -109,7 +109,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(9, 15, 28, 0.02) 0%, rgba(9, 15, 28, 0.34) 100%);
+  background: linear-gradient(180deg, rgba(22, 33, 29, 0.02) 0%, rgba(22, 33, 29, 0.34) 100%);
 }
 
 .panelTitle {
@@ -128,7 +128,7 @@
   gap: 0.35rem;
   padding: 0.95rem 1rem;
   border-radius: 20px;
-  background: rgba(27, 42, 64, 0.04);
+  background: rgba(22, 33, 29, 0.04);
 }
 
 .metricLabel,
@@ -167,7 +167,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 0.6rem;
   padding: 0.65rem;
-  border: 1px solid rgba(27, 42, 64, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.72);
   box-shadow: var(--shadow-soft);
@@ -202,20 +202,20 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: rgba(27, 42, 64, 0.08);
+  background: rgba(22, 33, 29, 0.08);
   color: var(--blue-dark);
   font-size: 0.78rem;
 }
 
 .progressStepActive {
   background: linear-gradient(135deg, var(--brand-strong), var(--brand));
-  color: #fff;
+  color: var(--cta-solid-fg);
   box-shadow: 0 14px 32px rgba(7, 65, 56, 0.16);
 }
 
 .progressStepActive strong {
   background: rgba(255, 255, 255, 0.14);
-  color: #fff;
+  color: var(--cta-solid-fg);
 }
 
 .stepActions {
@@ -225,7 +225,7 @@
   gap: 1rem;
   padding: 1rem;
   border-radius: 22px;
-  border: 1px solid rgba(27, 42, 64, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background: rgba(255, 255, 255, 0.72);
 }
 
@@ -286,7 +286,7 @@
   margin-top: 0.2rem;
   padding: 1.15rem 1.25rem;
   border-radius: 22px;
-  background: linear-gradient(135deg, rgba(11, 18, 32, 0.95) 0%, rgba(34, 52, 79, 0.95) 60%, rgba(181, 138, 76, 0.95) 160%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--surface-inverse) 95%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 95%, transparent) 60%, rgba(181, 138, 76, 0.95) 160%);
   color: #f8f5ef;
 }
 
@@ -317,7 +317,7 @@
 }
 
 .primaryAction {
-  background: linear-gradient(135deg, var(--brand-navy) 0%, #22344f 58%, var(--orange) 180%);
+  background: linear-gradient(135deg, var(--brand-navy) 0%, var(--surface-inverse) 58%, var(--orange) 180%);
 }
 
 .primaryAction:disabled,
@@ -334,7 +334,7 @@
 
 .secondaryAction,
 .backButton {
-  border: 1px solid rgba(27, 42, 64, 0.14);
+  border: 1px solid color-mix(in srgb, var(--brand) 14%, transparent);
   background: rgba(255, 255, 255, 0.8);
   color: var(--blue-dark);
   box-shadow: none;
@@ -347,13 +347,13 @@
 }
 
 :global([data-theme="light"]) .heroPanel {
-  border: 1px solid rgba(20, 32, 51, 0.075);
+  border: 1px solid color-mix(in srgb, var(--brand) 7.5%, transparent);
   background:
     linear-gradient(90deg, rgba(7, 65, 56, 0.88) 0%, rgba(7, 65, 56, 0.64) 48%, rgba(7, 65, 56, 0.24) 100%),
     var(--hero-image);
   background-position: center;
   background-size: cover;
-  box-shadow: 0 30px 70px rgba(11, 18, 32, 0.12);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.12);
 }
 
 :global([data-theme="light"]) .kicker {
@@ -374,7 +374,7 @@
 [data-theme="dark"] .info,
 [data-theme="dark"] .loadingBox {
   border-color: rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 96%, transparent) 100%);
 }
 
 [data-theme="dark"] .panelTitle,
@@ -418,12 +418,16 @@
 
 [data-theme="dark"] .progressStepActive {
   background: linear-gradient(135deg, var(--brand-strong), var(--brand));
-  color: #fff;
+  color: var(--cta-solid-fg);
+}
+
+[data-theme="dark"] .progressStepActive strong {
+  color: var(--cta-solid-fg);
 }
 
 [data-theme="dark"] .primaryAction:disabled,
 [data-theme="dark"] .premiumAction:disabled {
-  background: rgba(51, 65, 85, 0.72);
+  background: color-mix(in srgb, var(--surface-inverse) 72%, transparent);
   color: rgba(226, 232, 240, 0.72);
 }
 

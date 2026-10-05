@@ -74,7 +74,7 @@
 }
 
 .cancelButton {
-  border: 1px solid rgba(27, 42, 64, 0.14);
+  border: 1px solid color-mix(in srgb, var(--brand) 14%, transparent);
   background: rgba(255, 255, 255, 0.8);
   color: var(--blue-dark);
   box-shadow: none;
@@ -95,7 +95,7 @@
   border-color: rgba(255, 255, 255, 0.08);
   background:
     radial-gradient(circle at top right, rgba(207, 162, 101, 0.06), transparent 34%),
-    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 96%, transparent) 100%);
   color: var(--text-primary);
 }
 

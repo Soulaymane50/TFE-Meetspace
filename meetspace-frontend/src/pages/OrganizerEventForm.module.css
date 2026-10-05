@@ -24,7 +24,7 @@
   min-height: 44px;
   padding: 0.7rem 1rem;
   border-radius: 999px;
-  border: 1px solid rgba(27, 42, 64, 0.12);
+  border: 1px solid color-mix(in srgb, var(--brand) 12%, transparent);
   background: rgba(255, 255, 255, 0.78);
   color: var(--blue-dark);
   font-weight: 700;
@@ -40,7 +40,7 @@
 
 .header {
   padding: 1.8rem 2rem 1.2rem;
-  border-bottom: 1px solid rgba(27, 42, 64, 0.07);
+  border-bottom: 1px solid color-mix(in srgb, var(--brand) 7%, transparent);
 }
 
 .title {
@@ -180,7 +180,7 @@
 .checkboxRow {
   padding: 1rem;
   border-radius: 20px;
-  background: rgba(27, 42, 64, 0.045);
+  background: rgba(22, 33, 29, 0.045);
   margin-bottom: 1rem;
 }
 
@@ -390,7 +390,7 @@
   margin-top: 1.25rem;
   padding: 1rem;
   border-radius: 26px;
-  border: 1px solid rgba(27, 42, 64, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background:
     radial-gradient(circle at top right, rgba(207, 162, 101, 0.12), transparent 34%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(246, 249, 253, 0.82));
@@ -427,7 +427,7 @@
   gap: 0.8rem;
   padding: 1rem;
   border-radius: 24px;
-  border: 1px solid rgba(27, 42, 64, 0.08);
+  border: 1px solid color-mix(in srgb, var(--brand) 8%, transparent);
   background: rgba(255, 255, 255, 0.84);
 }
 
@@ -467,7 +467,7 @@
   min-height: 32px;
   padding: 0.25rem 0.65rem;
   border-radius: 999px;
-  background: rgba(27, 42, 64, 0.07);
+  background: rgba(22, 33, 29, 0.07);
   color: var(--blue-dark);
   font-size: 0.78rem;
   font-weight: 900;
@@ -492,7 +492,7 @@
 
 .cancelBtn {
   background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(27, 42, 64, 0.12);
+  border: 1px solid color-mix(in srgb, var(--brand) 12%, transparent);
   color: var(--blue-dark);
   box-shadow: none;
 }
@@ -511,14 +511,14 @@
 [data-theme="dark"] .previewPanel,
 [data-theme="dark"] .previewCard {
   border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(18, 26, 37, 0.94);
+  background: color-mix(in srgb, var(--surface-inverse) 94%, transparent);
   color: var(--text-primary);
 }
 
 [data-theme="dark"] .formContainer {
   background:
     radial-gradient(circle at top right, rgba(207, 162, 101, 0.08), transparent 34%),
-    linear-gradient(180deg, rgba(18, 26, 37, 0.98) 0%, rgba(12, 18, 27, 0.96) 100%);
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-inverse) 98%, transparent) 0%, color-mix(in srgb, var(--surface-inverse) 96%, transparent) 100%);
 }
 
 [data-theme="dark"] .header,
@@ -592,12 +592,12 @@
 }
 
 [data-theme="dark"] .select {
-  background-color: rgba(18, 26, 37, 0.96) !important;
+  background-color: color-mix(in srgb, var(--surface-inverse) 96%, transparent) !important;
   color: var(--text-primary);
 }
 
 [data-theme="dark"] .select option {
-  background-color: #111827;
+  background-color: var(--surface-inverse);
   color: #f9fafb;
 }
 

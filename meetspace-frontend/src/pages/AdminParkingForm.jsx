@@ -152,8 +152,8 @@ export default function AdminParkingForm() {
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
-          <label className={styles.label}>{t("common.title")} :</label>
-          <input
+          <label className={styles.label} htmlFor="AdminParkingForm-title">{t("common.title")} :</label>
+          <input id="AdminParkingForm-title"
             type="text"
             name="title"
             value={parkingSlotForm.title}
@@ -164,8 +164,8 @@ export default function AdminParkingForm() {
         </div>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>{t("common.description")} :</label>
-          <textarea
+          <label className={styles.label} htmlFor="AdminParkingForm-description">{t("common.description")} :</label>
+          <textarea id="AdminParkingForm-description"
             name="description"
             value={parkingSlotForm.description}
             onChange={handleChange}
@@ -177,8 +177,8 @@ export default function AdminParkingForm() {
         </div>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>{t("common.date")} :</label>
-          <input
+          <label className={styles.label} htmlFor="AdminParkingForm-slotDate">{t("common.date")} :</label>
+          <input id="AdminParkingForm-slotDate"
             type="date"
             name="slotDate"
             value={parkingSlotForm.slotDate}
@@ -190,8 +190,8 @@ export default function AdminParkingForm() {
 
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("reservation.startTime")} :</label>
-            <input
+            <label className={styles.label} htmlFor="AdminParkingForm-startTime">{t("reservation.startTime")} :</label>
+            <input id="AdminParkingForm-startTime"
               type="time"
               name="startTime"
               value={parkingSlotForm.startTime}
@@ -201,8 +201,8 @@ export default function AdminParkingForm() {
             />
           </div>
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("reservation.endTime")} :</label>
-            <input
+            <label className={styles.label} htmlFor="AdminParkingForm-endTime">{t("reservation.endTime")} :</label>
+            <input id="AdminParkingForm-endTime"
               type="time"
               name="endTime"
               value={parkingSlotForm.endTime}
@@ -215,8 +215,8 @@ export default function AdminParkingForm() {
 
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("parking.places")} :</label>
-            <input
+            <label className={styles.label} htmlFor="AdminParkingForm-parkingCapacity">{t("parking.places")} :</label>
+            <input id="AdminParkingForm-parkingCapacity"
               type="number"
               name="parkingCapacity"
               value={parkingSlotForm.parkingCapacity}
@@ -228,8 +228,8 @@ export default function AdminParkingForm() {
             />
           </div>
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t("parking.rateLabel")} ({"\u20ac"}) :</label>
-            <input
+            <label className={styles.label} htmlFor="AdminParkingForm-parkingRate">{t("parking.rateLabel")} ({"\u20ac"}) :</label>
+            <input id="AdminParkingForm-parkingRate"
               type="number"
               name="parkingRate"
               value={parkingSlotForm.parkingRate}

@@ -320,6 +320,7 @@ html [class*="_durationSwitch_"] button {
 
 html [class*="_dateChipActive_"],
 html [class*="_dayButtonActive_"],
+html [class*="_daySelected_"],
 html [class*="_durationActive_"] {
   border-color: var(--brand) !important;
   background: var(--brand-soft) !important;
@@ -476,7 +477,7 @@ html [class*="_payButton_"]:hover,
 html [class*="_button_"]:not([class*="_dayButton_"]):hover {
   border-color: var(--brand-strong) !important;
   background: var(--brand-strong) !important;
-  color: #fff !important;
+  color: var(--cta-solid-fg) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -553,7 +554,7 @@ html [class*="_totalPanel_"] {
   border: 0 !important;
   border-left: 4px solid var(--accent) !important;
   border-radius: var(--radius-md) !important;
-  background: var(--brand-strong) !important;
+  background: var(--surface-inverse) !important;
   color: var(--text-on-inverse) !important;
   box-shadow: none !important;
 }

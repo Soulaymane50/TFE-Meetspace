@@ -7,6 +7,7 @@ import { getEspaces, getParkingSlot, getPublicEvents } from "../services/api";
 import PageState from "../components/PageState";
 import { getEventImage, getSpaceImage, PARKING_IMAGE } from "../utils/mediaAssets";
 import { downloadCalendarEvent } from "../utils/calendar";
+import { getSpaceProfileKey } from "../utils/spaceProfiles";
 import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./CatalogDetailPage.module.css";
 
@@ -63,20 +64,19 @@ export default function CatalogDetailPage({ type }) {
       return {
         title: item.name,
         eyebrow: item.type === "PREMIUM_ROOM" ? t("spaceType.PREMIUM_ROOM") : t("spaceType.SALLE"),
-        description: t("detail.spaceDescription", {
-          defaultValue: "Un espace professionnel prêt à accueillir votre réunion, votre atelier ou votre événement à Bruxelles.",
-        }),
+        description: t(`spaces.profiles.${getSpaceProfileKey(item)}.description`),
         image: getSpaceImage(item),
         price: `${formatMoney(item.basePrice, locale)} ${t("common.perHour")}`,
-        status: t("status.available"),
+        status: t("detail.availabilityByDate"),
         available: true,
+        availabilityByDate: true,
         cta: `/reservations/new/${item.id}`,
         ctaLabel: user ? t("spaces.reserve") : t("spaces.loginToReserve"),
         facts: [
           [t("common.capacity"), `${formatNumber(item.capacity, locale)} ${t("common.persons")}`],
           [t("common.price"), `${formatMoney(item.basePrice, locale)} ${t("common.perHour")}`],
           [t("detail.bookingMode", { defaultValue: "Réservation" }), item.type === "PREMIUM_ROOM"
-            ? t("detail.onRequest", { defaultValue: "Validation sous 24 h" })
+            ? t("detail.onRequest", { defaultValue: "Validation administrateur" })
             : t("detail.instant", { defaultValue: "Confirmation immédiate" })],
         ],
       };
@@ -213,7 +213,7 @@ export default function CatalogDetailPage({ type }) {
       <section className={styles.hero}>
         <div className={styles.media}>
           <img src={model.image} alt="" />
-          <span className={`${styles.availability} ${!model.available ? styles.unavailable : ""}`}>{model.status}</span>
+          <span className={`${styles.availability} ${!model.available ? styles.unavailable : model.availabilityByDate ? styles.availabilityByDate : ""}`}>{model.status}</span>
         </div>
 
         <div className={styles.intro}>
