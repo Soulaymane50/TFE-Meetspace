@@ -24,6 +24,10 @@ Le produit couvre quatre usages distincts : la consultation publique, la réserv
 
 Les sections salles et événements de l’accueil se chargent indépendamment. Les lectures des catalogues publics et du calendrier des salles sont limitées à 15 secondes ; les appels identiques simultanés sont regroupés, sans conserver les disponibilités en cache après leur réponse. Un échec de chargement de l’accueil ou du parking affiche un message et permet de réessayer.
 
+L’accueil présente une salle du catalogue avec un lien vers sa fiche, le nombre de salles et la capacité de la plus grande salle. Les descriptions des salles sont communes au catalogue et aux fiches. La présence d’une salle au catalogue ne garantit pas un créneau libre ; ses dates sont vérifiées dans le calendrier. L’accès organisateur se demande depuis la page Contact.
+
+Les deux thèmes utilisent les verts, les tons ivoire et les accents brique de MeetSpace. Les fonds des formulaires, calendriers, menus et espaces de gestion suivent les mêmes variables de couleur ; les textes des boutons et des sélections s’adaptent au thème. Les champs des formulaires de gestion et d’inscription sont associés à leurs libellés.
+
 ### Disponibilités et conservation des réservations
 
 Les réservations annulées ou refusées libèrent la salle. Les autres statuts continuent à bloquer les chevauchements. Le calendrier vérifie les horaires à la minute, conserve la durée exacte lors d'un déplacement et désactive la validation tant que les disponibilités du mois affiché ne sont pas chargées. Un chargement invalide affiche une erreur avec possibilité de réessayer.
@@ -216,11 +220,17 @@ set E2E_ADMIN_PASSWORD=MeetSpaceDemo!2026
 npm test
 ```
 
-La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La suite comprend 169 tests backend et 71 cas Playwright : 7 scénarios API et 64 scénarios navigateur, parcours métier et accessibilité. Les tests Node complètent la validation des lectures HTTP, des disponibilités et du paiement. Les scénarios financiers utilisent un adaptateur de paiement simulé ; leur réussite ne remplace pas une recette Stripe en mode test.
+La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La suite comprend 186 tests backend et 71 cas Playwright : 7 scénarios API et 64 scénarios navigateur, parcours métier et accessibilité. Les tests Node complètent la validation des lectures HTTP, des disponibilités et du paiement. Les scénarios financiers utilisent un adaptateur de paiement simulé ; leur réussite ne remplace pas une recette Stripe en mode test.
 
 ## Disponibilités, statuts et remboursements
 
 Une journée disponible contient au moins un départ possible pour la durée sélectionnée ; elle peut aussi contenir des périodes occupées. Le calendrier distingue les réservations et événements bloquants, les créneaux limités et les réponses indisponibles. Une réponse invalide ne devient pas une journée libre. Les lectures privées et la sonde de santé disposent également d'un délai et d'une issue explicite.
+
+Le calendrier public des salles et la vérification d'un créneau incluent les blocages temporaires actifs de paiement, sans exposer de jeton ou d'identité du payeur. Les blocages expirés, annulés ou consommés ne sont plus affichés. Un blocage reste distinct d'une réservation, y compris lorsque leurs identifiants numériques sont identiques.
+
+Les écritures HTTP ont également un délai maximal de 15 secondes. Une réponse trop lente indique que l'action a peut-être été enregistrée et invite à vérifier son état avant de la recommencer. Les exports d'agenda interprètent les horaires sans fuseau comme des horaires de Bruxelles, indépendamment du fuseau du navigateur. Les justificatifs se rechargent lors d'un changement de réservation et s'impriment sur fond blanc dans les deux thèmes.
+
+Un changement de rôle ou de statut, un bannissement ou une désactivation invalide les sessions existantes ; une réactivation ne restaure pas les anciens jetons. Le bannissement annule les réservations futures selon leurs conditions de remboursement et désactive les accès parking correspondants, tout en conservant les réservations passées. Une salle liée à des réservations, des événements ou un paiement en cours ne peut pas être supprimée : elle peut être rendue indisponible pour conserver l'historique. Les offres de liste d'attente concernent uniquement les événements publiés et les comptes actifs.
 
 Le formulaire administrateur crée par défaut un événement en attente d'approbation. Son statut est transmis lors de la création et de la modification, avec les mêmes contrôles que la route dédiée. Une annulation est définitive ; un événement publié ne retourne pas en attente. La publication d'un événement organisateur respecte son approbation et son acompte. Les champs financiers détaillés ne sont pas exposés dans les réponses publiques.
 
