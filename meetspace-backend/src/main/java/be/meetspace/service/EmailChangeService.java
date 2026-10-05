@@ -41,6 +41,9 @@ public class EmailChangeService {
 
     @Transactional
     public void request(User user, String newEmail, String currentPassword) {
+        if (user.isEmailDeliveryDisabled()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "L’envoi d’emails est désactivé pour ce compte.");
+        }
         String normalized = normalize(newEmail);
         if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CURRENT_PASSWORD_INVALID");

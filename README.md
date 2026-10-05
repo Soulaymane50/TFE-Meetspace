@@ -132,7 +132,7 @@ Le jeu de démonstration est séparé dans `meetspace-backend/src/main/resources
 - désactivé par défaut ;
 - chargé uniquement si `APP_DEMO_SEED_ENABLED=true` ;
 - refusé par le chargeur automatique avec le profil `prod` ;
-- composé de comptes réservés au domaine `meetspace-demo.test`.
+- composé de comptes fictifs dont la livraison d’e-mails est désactivée.
 
 Il contient 31 comptes, 35 événements répartis de janvier à décembre 2026, 8 salles, des créneaux de parking, des réservations, des inscriptions, des paiements, quelques remboursements de démonstration, des notifications et des éléments en attente de validation. Plusieurs événements partagent une même date dans des salles différentes afin de représenter une programmation réaliste et de vérifier les conflits de planning.
 
@@ -140,9 +140,9 @@ Il contient 31 comptes, 35 événements répartis de janvier à décembre 2026, 
 
 | Rôle | Adresse | Mot de passe |
 | --- | --- | --- |
-| Administrateur | `admin.demo@meetspace-demo.test` | `MeetSpaceDemo!2026` |
-| Organisateur | `ines.peeters@meetspace-demo.test` | `MeetSpaceDemo!2026` |
-| Client | `alice.moreau@meetspace-demo.test` | `MeetSpaceDemo!2026` |
+| Administrateur | `nora.jacquet@hotmail.com` | `MeetSpaceDemo!2026` |
+| Organisateur | `ines.peeters@outlook.fr` | `MeetSpaceDemo!2026` |
+| Client | `alice.moreau@outlook.be` | `MeetSpaceDemo!2026` |
 
 Ces identifiants sont exclusivement destinés au développement et à la démonstration locale.
 
@@ -215,12 +215,12 @@ Recette API, navigateur et accessibilité :
 cd meetspace-frontend
 set FRONT_URL=http://127.0.0.1:5174
 set API_URL=http://127.0.0.1:8080
-set E2E_ADMIN_EMAIL=admin.demo@meetspace-demo.test
+set E2E_ADMIN_EMAIL=nora.jacquet@hotmail.com
 set E2E_ADMIN_PASSWORD=MeetSpaceDemo!2026
 npm test
 ```
 
-La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La suite comprend 186 tests backend et 71 cas Playwright : 7 scénarios API et 64 scénarios navigateur, parcours métier et accessibilité. Les tests Node complètent la validation des lectures HTTP, des disponibilités et du paiement. Les scénarios financiers utilisent un adaptateur de paiement simulé ; leur réussite ne remplace pas une recette Stripe en mode test.
+La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La suite comprend 201 tests backend et 71 cas Playwright : 7 scénarios API et 64 scénarios navigateur, parcours métier et accessibilité. Les tests Node complètent la validation des lectures HTTP, des disponibilités et du paiement. Les scénarios financiers utilisent un adaptateur de paiement simulé ; leur réussite ne remplace pas une recette Stripe en mode test.
 
 ## Disponibilités, statuts et remboursements
 
@@ -283,7 +283,7 @@ Points de contrôle après chaque déploiement :
 - `SUPPORT_ADMIN_EMAIL` contient une adresse distribuable ;
 - Brevo est prioritaire, puis Resend, puis SMTP ;
 - une configuration Resend sans domaine vérifié reste limitée à l’adresse du compte Resend ;
-- les comptes de démonstration en `.test` ne reçoivent volontairement aucun e-mail ;
+- les adresses fictives en `.test`, `.local`, `example.com`, `example.net` et `example.org` sont bloquées avant la livraison d’e-mails ;
 - le frontend charge la configuration de paiement depuis `GET /api/payments/config` après connexion ;
 - un même billet peut être scanné plusieurs fois sans créer plusieurs entrées : le contrôle est idempotent.
 - une même réservation de parking conserve un QR code unique, contrôlable depuis l’espace administrateur.
@@ -294,7 +294,8 @@ Lors de la vérification du 1er septembre 2026, les catalogues publics de produc
 
 - Les versements automatiques aux organisateurs par Stripe Connect ne sont pas encore activés.
 - Les tableaux financiers servent au pilotage et à la démonstration ; ils ne constituent pas une comptabilité certifiée.
-- Les comptes de démonstration utilisant le domaine `.test` ne peuvent pas recevoir de véritables e-mails.
+- Les comptes fictifs utilisent des noms variés et des adresses prénom.nom aux formats Gmail, Hotmail et Outlook. Le marqueur interne `email_delivery_disabled`, repris par la migration V13, interdit leurs envois, y compris les confirmations et changements d’adresse, indépendamment du domaine. Les comptes réels ne sont pas bloqués.
+- Le marqueur interne `technical_account`, repris par la migration V12, conserve l’exclusion financière des comptes techniques après un changement d’adresse. Les comptes du catalogue de démonstration restent distincts de ces comptes techniques.
 - Les faux paiements sont réservés au profil local et restent bloqués en production.
 
 ## Sécurité et règles de dépôt

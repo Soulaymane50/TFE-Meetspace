@@ -48,11 +48,11 @@ function catalog() {
   return events;
 }
 function clients() {
-  const first = ['Amélie','Sofiane','Célia','Gabriel','Salma','Adrien','Aïcha','Valentin','Lucie','Ilyes','Océane','Baptiste','Hana','Florian','Mélissa','Dylan','Yara','Axel','Anaïs','Idriss','Maëlle','Raphaël','Léonie','Nassim','Élodie','Quentin','Sana','Théo','Inaya','Martin'];
-  const last = ['Delcourt','Bensaïd','Verhaegen','Diallo','Lemaire','Piret'];
-  return Array.from({length:180},(_,i) => ({id:12000+i,first_name:first[i%30],last_name:last[Math.floor(i/30)],email:`client.${String(i+1).padStart(3,'0')}@presentation.meetspace.test`,role:'MEMBER'})).concat([
-    {id:12200,first_name:'Clémence',last_name:'Delaunay',email:'clemence.delaunay@presentation.meetspace.test',role:'ORGANIZER'},
-    {id:12201,first_name:'Nabil',last_name:'Azzouzi',email:'nabil.azzouzi@presentation.meetspace.test',role:'ORGANIZER'},
+  const { clientIdentity, emailFor } = require('./presentation-identities.cjs');
+  return Array.from({ length: 180 }, (_, i) => clientIdentity(i)).concat([
+    {id:12200,first_name:'Clémence',last_name:'Delaunay',email:emailFor(12200,'Clémence','Delaunay'),email_delivery_disabled:1,role:'ORGANIZER'},
+    {id:12201,first_name:'Nabil',last_name:'Azzouzi',email:emailFor(12201,'Nabil','Azzouzi'),email_delivery_disabled:1,role:'ORGANIZER'},
   ]);
 }
+
 module.exports = { catalog, clients };

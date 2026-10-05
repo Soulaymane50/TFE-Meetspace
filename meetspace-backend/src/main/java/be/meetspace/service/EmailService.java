@@ -26,7 +26,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -36,9 +35,9 @@ public class EmailService {
     private static final Locale EMAIL_LOCALE = Locale.FRANCE;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-    private static final Set<String> NON_DELIVERABLE_TLDS = Set.of("local", "invalid", "test", "example", "admin");
 
     private final EmailDeliveryService mailDelivery;
+    private final EmailRecipientPolicy recipientPolicy;
 
     @Value("${app.support.admin-email:}")
     private String supportAdminEmail;
@@ -46,8 +45,9 @@ public class EmailService {
     @Value("${app.frontend-url:http://localhost:5174}")
     private String frontendUrl;
 
-    public EmailService(EmailDeliveryService mailDelivery) {
+    public EmailService(EmailDeliveryService mailDelivery, EmailRecipientPolicy recipientPolicy) {
         this.mailDelivery = mailDelivery;
+        this.recipientPolicy = recipientPolicy;
     }
 
     @PostConstruct
@@ -356,20 +356,7 @@ public class EmailService {
     }
 
     private boolean isDeliverableRecipient(String email) {
-        if (!StringUtils.hasText(email)) {
-            return false;
-        }
-        String normalized = email.trim().toLowerCase(Locale.ROOT);
-        int separator = normalized.lastIndexOf('@');
-        if (separator <= 0 || separator == normalized.length() - 1) {
-            return false;
-        }
-        String domain = normalized.substring(separator + 1);
-        int lastDot = domain.lastIndexOf('.');
-        if (lastDot <= 0 || lastDot == domain.length() - 1) {
-            return false;
-        }
-        return !NON_DELIVERABLE_TLDS.contains(domain.substring(lastDot + 1));
+        return recipientPolicy.canDeliver(email);
     }
 
     private String frontendPath(String path) {

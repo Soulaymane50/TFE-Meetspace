@@ -2,14 +2,27 @@ package be.meetspace.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mail.javamail.JavaMailSender;
+import be.meetspace.repository.UserRepository;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class EmailDeliveryServiceTest {
 
     private final JavaMailSender mailSender = mock(JavaMailSender.class);
+    private final UserRepository users = mock(UserRepository.class);
+
+    @Test
+    void disabledAccountNeverReachesTheSmtpProvider() {
+        when(users.existsByEmailIgnoreCaseAndEmailDeliveryDisabledTrue("alice.mertens@gmail.com")).thenReturn(true);
+        EmailDeliveryService service = service("", "", "", "", "smtp.example.com", "mailer@example.com", "fixture", "mailer@example.com");
+        assertThrows(IllegalStateException.class, () -> service.send("alice.mertens@gmail.com", "Confirmation", null, null));
+        verifyNoInteractions(mailSender);
+    }
 
     @Test
     void prefersBrevoForProductionHttpsDelivery() {
@@ -91,6 +104,7 @@ class EmailDeliveryServiceTest {
                                          String smtpFrom) {
         return new EmailDeliveryService(
                 mailSender,
+                new EmailRecipientPolicy(users),
                 true,
                 smtpHost,
                 smtpUsername,

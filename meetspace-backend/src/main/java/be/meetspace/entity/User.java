@@ -22,6 +22,14 @@ public class User {
     @Column(nullable = false, unique = true, length = 120)
     private String email;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Column(nullable = false)
+    private boolean technicalAccount;
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Column(nullable = false)
+    private boolean emailDeliveryDisabled;
+
     @Column(nullable = false)
     private String passwordHash;
 
@@ -87,6 +95,14 @@ public class User {
     public String getEmail() { return email; }
 
     public void setEmail(String email) { this.email = email; }
+
+    public boolean isTechnicalAccount() { return technicalAccount; }
+
+    public void setTechnicalAccount(boolean technicalAccount) { this.technicalAccount = technicalAccount; }
+
+    public boolean isEmailDeliveryDisabled() { return emailDeliveryDisabled; }
+
+    public void setEmailDeliveryDisabled(boolean emailDeliveryDisabled) { this.emailDeliveryDisabled = emailDeliveryDisabled; }
 
     public String getPasswordHash() { return passwordHash; }
 

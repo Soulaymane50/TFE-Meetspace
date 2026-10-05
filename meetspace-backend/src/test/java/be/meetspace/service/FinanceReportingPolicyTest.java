@@ -27,4 +27,24 @@ class FinanceReportingPolicyTest {
         when(user.getEmail()).thenReturn(email);
         return user;
     }
+
+    @Test
+    void technicalAccountRemainsExcludedAfterRenaming() {
+        User account = new User();
+        account.setEmail("leonie.jacquet@example.net");
+        account.setTechnicalAccount(true);
+        assertTrue(FinanceReportingPolicy.isTechnicalUser(account));
+    }
+
+    @Test
+    void ordinaryFictitiousAccountRemainsIncluded() {
+        assertFalse(FinanceReportingPolicy.isTechnicalUser(user("amelie.mertens@example.com")));
+    }
+
+    @Test
+    void technicalMarkerDoesNotDependOnHavingAnEmail() {
+        User account = new User();
+        account.setTechnicalAccount(true);
+        assertTrue(FinanceReportingPolicy.isTechnicalUser(account));
+    }
 }

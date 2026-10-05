@@ -1,47 +1,48 @@
 -- Rich, deterministic MeetSpace demonstration dataset.
 -- This script is executed only when APP_DEMO_SEED_ENABLED=true outside prod.
--- All identities use the reserved .test domain and cannot receive email.
+-- Fictitious accounts have email delivery disabled regardless of their address.
 -- Demo password for every account: MeetSpaceDemo!2026
 
 INSERT INTO utilisateur (
-    id, first_name, last_name, email, password_hash, role, status,
+    email_delivery_disabled, id, first_name, last_name, email, password_hash, role, status,
     created_at, updated_at, token_version, pending_email,
     password_reset_token_hash, password_reset_expires_at,
     account_deletion_token_hash, account_deletion_expires_at,
     email_change_token_hash, email_change_expires_at
 ) VALUES
-    (9001, 'Nora', 'Lambert', 'admin.demo@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'ADMIN', 'ACTIVE', '2025-11-03 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9010, 'Ines', 'Peeters', 'ines.peeters@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'ORGANIZER', 'ACTIVE', '2025-11-10 10:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9011, 'Yassine', 'Boulanger', 'yassine.boulanger@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'ORGANIZER', 'ACTIVE', '2025-11-12 10:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9012, 'Emma', 'Jacobs', 'emma.jacobs@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'ORGANIZER', 'ACTIVE', '2025-11-18 10:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9013, 'Rayan', 'Diallo', 'rayan.diallo@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'ORGANIZER', 'ACTIVE', '2025-12-02 10:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9014, 'Julie', 'Van den Broeck', 'julie.vdb@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'ORGANIZER', 'ACTIVE', '2025-12-08 10:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9015, 'Karim', 'El Amrani', 'karim.elamrani@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'ORGANIZER', 'ACTIVE', '2025-12-15 10:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9101, 'Alice', 'Moreau', 'alice.moreau@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2025-12-20 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9102, 'Adam', 'Vermeulen', 'adam.vermeulen@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2025-12-21 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9103, 'Sarah', 'Nguyen', 'sarah.nguyen@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2025-12-22 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9104, 'Thomas', 'Leroy', 'thomas.leroy@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-01-04 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9105, 'Lina', 'Ait Benali', 'lina.aitbenali@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-01-06 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9106, 'Victor', 'Maes', 'victor.maes@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-01-09 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9107, 'Chloe', 'Dumont', 'chloe.dumont@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-01-12 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9108, 'Bilal', 'Ouali', 'bilal.ouali@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-01-15 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9109, 'Laura', 'Claes', 'laura.claes@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-01-18 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9110, 'Noah', 'Martin', 'noah.martin@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-02-01 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9111, 'Camille', 'Simon', 'camille.simon@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-02-04 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9112, 'Mehdi', 'Haddad', 'mehdi.haddad@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-02-08 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9113, 'Eva', 'Willems', 'eva.willems@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-02-12 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9114, 'Louis', 'Renard', 'louis.renard@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-02-16 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9115, 'Maya', 'Cisse', 'maya.cisse@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-03-02 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9116, 'Arthur', 'Devos', 'arthur.devos@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-03-07 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9117, 'Nina', 'Rossi', 'nina.rossi@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-03-11 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9118, 'Elias', 'Bernard', 'elias.bernard@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-03-15 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9119, 'Lea', 'Mertens', 'lea.mertens@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-04-01 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9120, 'Hugo', 'Petit', 'hugo.petit@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-04-05 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9121, 'Manon', 'Janssens', 'manon.janssens@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-04-10 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9122, 'Samir', 'Kaya', 'samir.kaya@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-04-14 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9123, 'Compte', 'Inactif', 'inactive@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'INACTIVE', '2026-04-18 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-    (9124, 'Compte', 'Suspendu', 'suspended@meetspace-demo.test', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'BANNED', '2026-04-20 09:00:00', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+    (1, 9001, 'Nora', 'Jacquet', 'nora.jacquet@hotmail.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'ADMIN', 'ACTIVE', '2025-11-03 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9010, 'Ines', 'Peeters', 'ines.peeters@outlook.fr', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'ORGANIZER', 'ACTIVE', '2025-11-10 10:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9011, 'Yassine', 'Boulanger', 'yassine.boulanger@outlook.be', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'ORGANIZER', 'ACTIVE', '2025-11-12 10:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9012, 'Emma', 'Jacobs', 'emma.jacobs@gmail.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'ORGANIZER', 'ACTIVE', '2025-11-18 10:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9013, 'Rayan', 'Diallo', 'rayan.diallo@hotmail.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'ORGANIZER', 'ACTIVE', '2025-12-02 10:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9014, 'Julie', 'Van den Broeck', 'julie.vandenbroeck@outlook.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'ORGANIZER', 'ACTIVE', '2025-12-08 10:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9015, 'Karim', 'El Amrani', 'karim.elamrani@hotmail.fr', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'ORGANIZER', 'ACTIVE', '2025-12-15 10:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9101, 'Alice', 'Moreau', 'alice.moreau@outlook.be', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2025-12-20 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9102, 'Adam', 'Vermeulen', 'adam.vermeulen@gmail.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2025-12-21 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9103, 'Sarah', 'Nguyen', 'sarah.nguyen@hotmail.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2025-12-22 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9104, 'Thomas', 'Leroy', 'thomas.leroy@outlook.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-01-04 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9105, 'Lina', 'Ait Benali', 'lina.aitbenali@hotmail.fr', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-01-06 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9106, 'Victor', 'Maes', 'victor.maes@outlook.fr', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-01-09 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9107, 'Chloe', 'Dumont', 'chloe.dumont@outlook.be', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-01-12 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9108, 'Bilal', 'Ouali', 'bilal.ouali@gmail.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-01-15 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9109, 'Laura', 'Claes', 'laura.claes@hotmail.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-01-18 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9110, 'Noah', 'Martin', 'noah.martin@outlook.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-02-01 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9111, 'Camille', 'Simon', 'camille.simon@hotmail.fr', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-02-04 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9112, 'Mehdi', 'Haddad', 'mehdi.haddad@outlook.fr', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-02-08 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9113, 'Eva', 'Willems', 'eva.willems@outlook.be', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-02-12 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9114, 'Louis', 'Renard', 'louis.renard@gmail.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-02-16 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9115, 'Maya', 'Cisse', 'maya.cisse@hotmail.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-03-02 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9116, 'Arthur', 'Devos', 'arthur.devos@outlook.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-03-07 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9117, 'Nina', 'Rossi', 'nina.rossi@hotmail.fr', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-03-11 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9118, 'Elias', 'Bernard', 'elias.bernard@outlook.fr', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-03-15 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9119, 'Lea', 'Mertens', 'lea.mertens@outlook.be', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-04-01 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9120, 'Hugo', 'Petit', 'hugo.petit@gmail.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-04-05 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9121, 'Manon', 'Janssens', 'manon.janssens@hotmail.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-04-10 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9122, 'Samir', 'Kaya', 'samir.kaya@outlook.com', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'ACTIVE', '2026-04-14 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9123, 'Compte', 'Inactif', 'compte.inactif@hotmail.fr', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'INACTIVE', '2026-04-18 09:00:00', NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    (1, 9124, 'Compte', 'Suspendu', 'compte.suspendu@outlook.fr', '$2a$10$m76oj29dOzzratcPCuvIUe5HxOh3tv/vNo4KW0XbvOshrbv3bPG2y', 'MEMBER', 'BANNED', '2026-04-20 09:00:00', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 ON DUPLICATE KEY UPDATE
+    email_delivery_disabled = VALUES(email_delivery_disabled),
     first_name = VALUES(first_name), last_name = VALUES(last_name),
     password_hash = VALUES(password_hash), role = VALUES(role), status = VALUES(status),
     updated_at = VALUES(updated_at), token_version = VALUES(token_version);
@@ -138,7 +139,7 @@ ON DUPLICATE KEY UPDATE
 
 INSERT INTO event_registration (
     id, utilisateur_id, event_id, number_of_participants, total_price,
-    status, version, payment_intent_id, created_at
+    status, version, payment_intent_id, created_at, ticket_token
 )
 SELECT
     50000 + ((e.id - 9500) * 100) + (u.id - 9100),
@@ -149,7 +150,8 @@ SELECT
     CASE WHEN MOD(u.id + e.id, 17) = 0 THEN 'CANCELLED' ELSE 'CONFIRMED' END,
     0,
     CONCAT('demo_event_', 50000 + ((e.id - 9500) * 100) + (u.id - 9100)),
-    DATE_SUB(e.start_date_time, INTERVAL (20 + MOD(u.id, 60)) DAY)
+    DATE_SUB(e.start_date_time, INTERVAL (20 + MOD(u.id, 60)) DAY),
+    LOWER(HEX(RANDOM_BYTES(24)))
 FROM utilisateur u
 CROSS JOIN event e
 WHERE u.id BETWEEN 9101 AND 9122

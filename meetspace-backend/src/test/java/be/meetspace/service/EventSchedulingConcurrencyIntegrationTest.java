@@ -71,7 +71,7 @@ class EventSchedulingConcurrencyIntegrationTest {
 
     @Test
     void concurrentCreationsCannotOccupyTheSameRoomAndWindow() throws Exception {
-        LocalDateTime start = LocalDateTime.now().plusDays(30).withNano(0);
+        LocalDateTime start = LocalDateTime.now().plusDays(30).withHour(9).withMinute(0).withSecond(0).withNano(0);
         LocalDateTime end = start.plusHours(3);
         CountDownLatch firstEventSaved = new CountDownLatch(1);
         CountDownLatch allowFirstCommit = new CountDownLatch(1);
@@ -112,7 +112,7 @@ class EventSchedulingConcurrencyIntegrationTest {
     @Test
     void simultaneousEventsRemainAllowedInDifferentRooms() throws Exception {
         Espace secondRoom = espaceRepository.saveAndFlush(room("Deuxième salle"));
-        LocalDateTime start = LocalDateTime.now().plusDays(35).withNano(0);
+        LocalDateTime start = LocalDateTime.now().plusDays(35).withHour(9).withMinute(0).withSecond(0).withNano(0);
         LocalDateTime end = start.plusHours(2);
 
         Future<Long> first = createEvent(room.getId(), start, end, "Conférence A");

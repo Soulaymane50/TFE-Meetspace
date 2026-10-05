@@ -22,6 +22,7 @@ class EmailDeliveryService {
     private static final Logger LOGGER = LoggerFactory.getLogger(EmailDeliveryService.class);
 
     private final JavaMailSender mailSender;
+    private final EmailRecipientPolicy recipientPolicy;
     private final RestClient brevoRestClient;
     private final RestClient resendRestClient;
     private final boolean enabled;
@@ -36,6 +37,7 @@ class EmailDeliveryService {
     private final String resendFrom;
 
     EmailDeliveryService(JavaMailSender mailSender,
+                         EmailRecipientPolicy recipientPolicy,
                          @Value("${app.mail.enabled:false}") boolean enabled,
                          @Value("${spring.mail.host:}") String smtpHost,
                          @Value("${spring.mail.username:}") String smtpUsername,
@@ -49,6 +51,7 @@ class EmailDeliveryService {
                          @Value("${app.mail.resend.from:}") String resendFrom,
                          @Value("${app.mail.resend.api-url:https://api.resend.com/emails}") String resendApiUrl) {
         this.mailSender = mailSender;
+        this.recipientPolicy = recipientPolicy;
         this.enabled = enabled;
         this.smtpHost = clean(smtpHost);
         this.smtpUsername = clean(smtpUsername);
@@ -84,6 +87,9 @@ class EmailDeliveryService {
               String subject,
               EmailTemplateRenderer.EmailContent content,
               String replyTo) {
+        if (!recipientPolicy.canDeliver(to)) {
+            throw new IllegalStateException("Livraison email désactivée pour ce destinataire");
+        }
         if (!canSend()) {
             throw new IllegalStateException("Service email non configure");
         }
