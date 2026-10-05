@@ -1,4 +1,4 @@
-const CACHE_NAME = "meetspace-shell-v3";
+const CACHE_NAME = "meetspace-shell-v4";
 const APP_SHELL = [
   "/",
   "/offline.html",

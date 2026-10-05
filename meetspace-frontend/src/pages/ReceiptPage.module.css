@@ -59,10 +59,11 @@
 }
 
 @media print {
+  .page { --surface: #ffffff; --surface-muted: #f3f2ed; --text-primary: #16211d; --text-secondary: #31453f; --text-muted: #51615b; --brand: #176b5a; --brand-strong: #0d3b33; --accent-strong: #a3472e; --border: #ccd3cf; }
   :global(body) { background: white !important; }
   .page { width: 100%; }
   .screenActions { display: none; }
-  .document { border-color: #ccd3cf; color: #16211d; }
+  .document { border-color: #ccd3cf; background: #ffffff; color: #16211d; }
   .ticket { break-inside: avoid; background: #f3f2ed; }
   .ticketCopy { color: #16211d; }
   .ticketCopy > span, .ticketCode small { color: #51615b; }

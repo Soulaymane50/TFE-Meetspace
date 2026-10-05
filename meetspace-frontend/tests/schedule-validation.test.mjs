@@ -7,6 +7,7 @@ test("ignore seulement le bon type de bloc et le bon identifiant", () => {
   const self = { id: 17, blockType: "RESERVATION", ...range };
   assert.equal(isCalendarRangeAvailable({ ...range, blocks: [self], ignoreBlockId: 17, ignoreBlockType: "RESERVATION" }), true);
   assert.equal(isCalendarRangeAvailable({ ...range, blocks: [{ ...self, blockType: "EVENT" }], ignoreBlockId: 17, ignoreBlockType: "RESERVATION" }), false);
+  assert.equal(isCalendarRangeAvailable({ ...range, blocks: [{ ...self, blockType: "PAYMENT_HOLD" }], ignoreBlockId: 17, ignoreBlockType: "RESERVATION" }), false);
 });
 test("refuse créneau commencé même si la fin est future", () => {
   assert.equal(isCalendarRangeAvailable({ ...range, earliestStart: "2026-11-10T10:15" }), false);

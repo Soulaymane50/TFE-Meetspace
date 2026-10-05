@@ -16,7 +16,6 @@ async function publicRead(...args) {
 
 async function request(url, options = {}) {
   try {
-    if ((options.method || "GET").toUpperCase() !== "GET") return await globalThis.fetch(url, options);
     const response = await privateRead(url, options);
     return { ...response,
       json: () => response.json().catch((error) => { throw readableError(error); }),

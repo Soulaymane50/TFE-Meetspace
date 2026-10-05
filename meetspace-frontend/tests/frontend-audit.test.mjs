@@ -68,6 +68,11 @@ test("F09 deadline couvre le corps après réception immédiate des headers", as
   const res = await privateRead("/api/admin/stats", {}, 20, async () => ({ ok: true, status: 200, headers: new Headers(), json: () => new Promise(() => {}) }));
   await assert.rejects(res.json(), { code: "REQUEST_TIMEOUT" });
 });
+test("a stalled write stops once and reports an uncertain outcome without automatic retry", async () => {
+  let calls = 0;
+  await assert.rejects(privateRead("/api/public/reservations", { method: "POST" }, 20, () => { calls++; return new Promise(() => {}); }), { code: "WRITE_OUTCOME_UNKNOWN" });
+  assert.equal(calls, 1);
+});
 test("F09 retry indépendant et absence de partage entre deux comptes", async () => {
   const calls = [];
   const fetcher = async (_, options) => { calls.push(options.headers.Authorization); return new Response(JSON.stringify({ token: options.headers.Authorization }), { headers: { "Content-Type": "application/json" } }); };
@@ -75,4 +80,13 @@ test("F09 retry indépendant et absence de partage entre deux comptes", async ()
   assert.deepEqual(await a.json(), { token: "A" });
   assert.deepEqual(await b.json(), { token: "B" });
   assert.deepEqual(calls, ["A", "B"]);
+});
+import { parseVenueDate } from "../src/utils/calendar.js";
+test("calendar exports preserve the Brussels instant in summer, winter and DST transitions", () => {
+  assert.equal(parseVenueDate("2026-07-20T10:00:00").toISOString(), "2026-07-20T08:00:00.000Z");
+  assert.equal(parseVenueDate("2026-11-20T10:00:00").toISOString(), "2026-11-20T09:00:00.000Z");
+  assert.equal(parseVenueDate("2026-10-25T02:30:00").toISOString(), "2026-10-25T00:30:00.000Z");
+  assert.ok(Number.isNaN(parseVenueDate("2026-03-29T02:30:00").getTime()));
+  assert.ok(Number.isNaN(parseVenueDate("2026-02-30T10:00:00").getTime()));
+  assert.equal(parseVenueDate("2026-11-20T10:00:00+01:00").toISOString(), "2026-11-20T09:00:00.000Z");
 });

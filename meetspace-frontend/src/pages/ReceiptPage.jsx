@@ -58,6 +58,12 @@ async function copyText(value) {
 
 export default function ReceiptPage() {
   const { type, id } = useParams();
+  const { user } = useAuth();
+  return <ReceiptDocument key={`${type}:${id}:${user?.id}`} />;
+}
+
+function ReceiptDocument() {
+  const { type, id } = useParams();
   const { token, user } = useAuth();
   const { t, i18n } = useTranslation();
   const [record, setRecord] = useState(null);
@@ -207,7 +213,7 @@ export default function ReceiptPage() {
           </section>
         ) : null}
 
-        {type === "parking" && record.accessPasses?.length ? (
+        {type === "parking" && record.accessPasses?.some((pass) => pass.status !== "CANCELLED") ? (
           <section className={styles.parkingTickets} aria-labelledby="parking-ticket-title">
             <div className={styles.ticketCopy}>
               <p>{t("parking.accessKicker", { defaultValue: "Accès au parking" })}</p>
