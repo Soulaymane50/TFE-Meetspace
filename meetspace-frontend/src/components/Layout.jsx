@@ -46,8 +46,11 @@ function PageExperience() {
     document.querySelector('meta[property="og:title"]')?.setAttribute("content", pageTitle);
     document.querySelector('meta[property="og:description"]')?.setAttribute("content", pageDescription);
     document.querySelector('link[rel="canonical"]')?.setAttribute("href", window.location.origin + location.pathname);
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [location.pathname, location.search, pageDescription, pageTitle, i18n.language, i18n.resolvedLanguage]);
+  }, [location.pathname, pageDescription, pageTitle, i18n.language, i18n.resolvedLanguage]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [location.pathname]);
 
   return (
     <p className={styles.routeAnnouncement} aria-live="polite" aria-atomic="true">

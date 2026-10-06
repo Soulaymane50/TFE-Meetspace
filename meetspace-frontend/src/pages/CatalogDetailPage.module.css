@@ -401,3 +401,21 @@
   color: var(--ink);
   border: 1px solid var(--border);
 }
+
+.retryActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.retryActions > a,
+.retryActions > button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+[data-theme="dark"] .retryActions > button {
+  color: #0b2b24;
+}

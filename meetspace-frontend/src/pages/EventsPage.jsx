@@ -46,7 +46,7 @@ export default function EventsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const [loadError, setLoadError] = useState(null);
   const [priceFilter, setPriceFilter] = useState(() => searchParams.get("price") || "all");
   const [availabilityFilter, setAvailabilityFilter] = useState(() => searchParams.get("availability") || "all");
   const [parkingFilter, setParkingFilter] = useState(() => searchParams.get("parking") || "all");
@@ -71,7 +71,7 @@ export default function EventsPage() {
       .catch((error) => {
         console.error(error);
         setEvents([]);
-        setLoadError(true);
+        setLoadError(error);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -93,7 +93,7 @@ export default function EventsPage() {
 
   const retryEvents = () => {
     setLoading(true);
-    setLoadError(false);
+    setLoadError(null);
     fetchEvents();
   };
 
@@ -228,7 +228,7 @@ export default function EventsPage() {
       <PageState
         type="error"
         title={t("common.error")}
-        message={t("events.resultsHint")}
+        message={t(loadError.code === "REQUEST_TIMEOUT" ? "events.fetchTimeout" : "events.fetchError")}
         action={
           <button type="button" onClick={retryEvents}>
             {t("common.retry")}

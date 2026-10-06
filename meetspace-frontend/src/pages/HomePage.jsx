@@ -15,6 +15,10 @@ function getLocale(language) {
   return "en-BE";
 }
 
+function isEventFull(event) {
+  return Number(event.availablePlaces ?? event.capacity) <= 0;
+}
+
 function getSpaceUse(space, t) {
   const capacity = Number(space?.capacity) || 0;
   if (capacity >= 250) return t("home.roomUseConference");
@@ -243,11 +247,11 @@ export default function HomePage() {
             <div className={styles.simpleState}>{t("home.noUpcomingEventsTitle")}</div>
           ) : upcomingEvents.map((event) => (
             <article key={event.id} className={styles.eventCard}>
-              <span>{dateFormatter.format(new Date(event.startDateTime))}</span>
+              <span>{dateFormatter.format(new Date(event.startDateTime))}{isEventFull(event) && <> · {t("events.full")}</>}</span>
               <strong>{event.title}</strong>
               <p>{event.location || t("common.toBeAnnounced")}</p>
               <Link to={`/events/register/${event.id}`}>
-                {user ? t("events.register") : t("events.loginToRegister")}
+                {isEventFull(event) ? t("events.ctaWaitlist") : user ? t("events.register") : t("events.loginToRegister")}
               </Link>
             </article>
           ))}

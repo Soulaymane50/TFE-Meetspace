@@ -129,7 +129,7 @@ export default function ParkingPage() {
         <div className={styles.summaryGrid}>
           <div className={styles.summaryCard}>
             <span className={styles.summaryValue}>{formatNumber(parkingSlots.length, locale)}</span>
-            <span className={styles.summaryLabel}>{t("nav.parking")}</span>
+            <span className={styles.summaryLabel}>{t("parking.sessionPlural")}</span>
           </div>
           <div className={styles.summaryCard}>
             <span className={styles.summaryValue}>{formatNumber(openSlotsCount, locale)}</span>
@@ -141,7 +141,7 @@ export default function ParkingPage() {
           </div>
           <div className={styles.summaryCard}>
             <span className={styles.summaryValue}>{formatMoney(averageRate, locale)}</span>
-            <span className={styles.summaryLabel}>{t("parking.rateLabel")}</span>
+            <span className={styles.summaryLabel}>{t("parking.averageRate")}</span>
           </div>
         </div>
       </section>
@@ -261,7 +261,7 @@ export default function ParkingPage() {
                       <div className={styles.slotContent}>
                         <div className={styles.slotTopline}>
                           <p className={styles.slotTime}>
-                            {slot.startTime} - {slot.endTime}
+                            {slot.startTime.slice(0, 5)} – {slot.endTime.slice(0, 5)}
                           </p>
                           <span className={`${styles.statusBadge} ${status.className}`}>{status.label}</span>
                         </div>

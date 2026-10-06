@@ -196,12 +196,12 @@ export default function ParkingReservePage() {
               <div className={styles.metricGrid}>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("common.date")}</span>
-                  <span className={styles.metricValue}>{parkingSlot.slotDate}</span>
+                  <span className={styles.metricValue}>{new Date(`${parkingSlot.slotDate}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</span>
                 </div>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("common.time")}</span>
                   <span className={styles.metricValue}>
-                    {parkingSlot.startTime} - {parkingSlot.endTime}
+                    {parkingSlot.startTime.slice(0, 5)} – {parkingSlot.endTime.slice(0, 5)}
                   </span>
                 </div>
                 <div className={styles.metricCard}>
@@ -212,7 +212,7 @@ export default function ParkingReservePage() {
                 </div>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("parking.rateLabel")}</span>
-                  <span className={styles.metricValue}>{formatMoney(parkingSlot.parkingRate, locale)}</span>
+                  <span className={styles.metricValue}>{formatMoney(parkingSlot.parkingRate, locale)} / {t("parking.perSpace")}</span>
                 </div>
               </div>
 

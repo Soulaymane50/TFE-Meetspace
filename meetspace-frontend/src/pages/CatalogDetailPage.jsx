@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
@@ -6,7 +6,7 @@ import { useFeedback } from "../context/FeedbackContext";
 import { getEspaces, getParkingSlot, getPublicEvents } from "../services/api";
 import PageState from "../components/PageState";
 import { getEventImage, getSpaceImage, PARKING_IMAGE } from "../utils/mediaAssets";
-import { downloadCalendarEvent } from "../utils/calendar";
+import { downloadCalendarEvent, parseVenueDate } from "../utils/calendar";
 import { getSpaceProfileKey } from "../utils/spaceProfiles";
 import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
 import styles from "./CatalogDetailPage.module.css";
@@ -21,6 +21,10 @@ const dateTime = (date, time = "00:00") => `${date}T${time.length === 5 ? `${tim
 
 export default function CatalogDetailPage({ type }) {
   const { id } = useParams();
+  return <CatalogDetail key={`${type}:${id}`} type={type} id={id} />;
+}
+
+function CatalogDetail({ type, id }) {
   const location = useLocation();
   const { user } = useAuth();
   const { notify } = useFeedback();
@@ -29,13 +33,22 @@ export default function CatalogDetailPage({ type }) {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [notFound, setNotFound] = useState(false);
+  const loadVersion = useRef(0);
   const config = CONFIG[type];
 
   const loadItem = useCallback(async () => {
+    const version = ++loadVersion.current;
     setLoading(true);
     setError("");
+    setNotFound(false);
     try {
       const numericId = Number(id);
+      if (!Number.isSafeInteger(numericId) || numericId <= 0) {
+        setNotFound(true);
+        setItem(null);
+        return;
+      }
       let result;
       if (type === "space") {
         result = (await getEspaces()).find((entry) => entry.id === numericId);
@@ -44,17 +57,19 @@ export default function CatalogDetailPage({ type }) {
       } else {
         result = await getParkingSlot(numericId);
       }
-      if (!result) throw new Error(t("detail.notFound", { defaultValue: "Cette offre n’est plus disponible." }));
-      setItem(result);
+      if (version !== loadVersion.current) return;
+      setNotFound(!result);
+      setItem(result || null);
     } catch (loadError) {
-      setError(loadError.message || t("common.error"));
+      if (version === loadVersion.current) setError(loadError.message || t("common.error"));
     } finally {
-      setLoading(false);
+      if (version === loadVersion.current) setLoading(false);
     }
   }, [id, t, type]);
 
   useEffect(() => {
     loadItem();
+    return () => { loadVersion.current += 1; };
   }, [loadItem]);
 
   const model = useMemo(() => {
@@ -84,14 +99,14 @@ export default function CatalogDetailPage({ type }) {
 
     if (type === "event") {
       const available = item.availablePlaces == null ? Number(item.capacity) : Math.max(0, Number(item.availablePlaces));
-      const start = new Date(item.startDateTime);
-      const end = new Date(item.endDateTime);
+      const start = parseVenueDate(item.startDateTime);
+      const end = parseVenueDate(item.endDateTime);
       return {
         title: item.title,
         eyebrow: t("detail.publicEvent", { defaultValue: "Événement public" }),
         description: item.description,
         image: getEventImage(item),
-        price: Number(item.price) > 0 ? formatMoney(item.price, locale) : t("events.free"),
+        price: Number(item.price) > 0 ? `${formatMoney(item.price, locale)} / ${t("events.participant", { count: 1 })}` : t("events.free"),
         status: available > 0
           ? t("detail.placesAvailable", { count: available, defaultValue: `${available} places disponibles` })
           : t("events.full"),
@@ -103,8 +118,8 @@ export default function CatalogDetailPage({ type }) {
         end,
         location: item.location || t("common.toBeAnnounced"),
         facts: [
-          [t("common.date"), start.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" })],
-          [t("common.time"), `${start.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })} – ${end.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}`],
+          [t("common.date"), start.toLocaleDateString(locale, { timeZone: "Europe/Brussels", weekday: "long", day: "numeric", month: "long", year: "numeric" })],
+          [t("common.time"), `${start.toLocaleTimeString(locale, { timeZone: "Europe/Brussels", hour: "2-digit", minute: "2-digit" })} – ${end.toLocaleTimeString(locale, { timeZone: "Europe/Brussels", hour: "2-digit", minute: "2-digit" })}`],
           [t("common.location"), item.location || t("common.toBeAnnounced")],
           [t("events.remainingPlaces"), `${formatNumber(available, locale)} / ${formatNumber(item.capacity, locale)}`],
           [t("detail.parking", { defaultValue: "Parking" }), item.parkingSlotId
@@ -115,8 +130,8 @@ export default function CatalogDetailPage({ type }) {
     }
 
     const available = Math.max(0, Number(item.availableSpaces) || 0);
-    const start = new Date(dateTime(item.slotDate, item.startTime));
-    const end = new Date(dateTime(item.slotDate, item.endTime));
+    const start = parseVenueDate(dateTime(item.slotDate, item.startTime));
+    const end = parseVenueDate(dateTime(item.slotDate, item.endTime));
     return {
       title: item.title || t("nav.parking"),
       eyebrow: t("detail.parkingSession", { defaultValue: "Session parking" }),
@@ -124,7 +139,7 @@ export default function CatalogDetailPage({ type }) {
         defaultValue: "Réservez votre arrivée au parking MeetSpace à l’avance et rejoignez votre rendez-vous sans détour.",
       }),
       image: PARKING_IMAGE,
-      price: formatMoney(item.parkingRate, locale),
+      price: `${formatMoney(item.parkingRate, locale)} / ${t("parking.perSpace")}`,
       status: available > 0
         ? t("detail.placesAvailable", { count: available, defaultValue: `${available} places disponibles` })
         : t("parking.full"),
@@ -135,10 +150,10 @@ export default function CatalogDetailPage({ type }) {
       end,
       location: "MeetSpace Brussels",
       facts: [
-        [t("common.date"), start.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" })],
-        [t("common.time"), `${item.startTime} – ${item.endTime}`],
+        [t("common.date"), start.toLocaleDateString(locale, { timeZone: "Europe/Brussels", weekday: "long", day: "numeric", month: "long", year: "numeric" })],
+        [t("common.time"), `${start.toLocaleTimeString(locale, { timeZone: "Europe/Brussels", hour: "2-digit", minute: "2-digit" })} – ${end.toLocaleTimeString(locale, { timeZone: "Europe/Brussels", hour: "2-digit", minute: "2-digit" })}`],
         [t("parking.remainingLabel"), `${formatNumber(available, locale)} / ${formatNumber(item.parkingCapacity, locale)}`],
-        [t("common.price"), formatMoney(item.parkingRate, locale)],
+        [t("common.price"), `${formatMoney(item.parkingRate, locale)} / ${t("parking.perSpace")}`],
       ],
     };
   }, [item, locale, t, type, user]);
@@ -177,7 +192,7 @@ export default function CatalogDetailPage({ type }) {
   };
 
   const handleCalendar = () => {
-    downloadCalendarEvent({
+    const downloaded = downloadCalendarEvent({
       title: model.title,
       description: model.description,
       location: model.location,
@@ -185,6 +200,7 @@ export default function CatalogDetailPage({ type }) {
       end: model.end,
       filename: `meetspace-${model.title}`,
     });
+    if (!downloaded) notify({ type: "error", title: t("common.error"), message: t("detail.calendarError") });
   };
 
   if (loading) {
@@ -195,15 +211,18 @@ export default function CatalogDetailPage({ type }) {
     return (
       <PageState
         type="error"
-        title={t("detail.notFoundTitle", { defaultValue: "Offre introuvable" })}
-        message={error}
-        action={<Link to={config.back}>{t("detail.backToCatalog", { defaultValue: "Retour au catalogue" })}</Link>}
+        title={notFound ? t("detail.notFoundTitle", { defaultValue: "Offre introuvable" }) : t("common.error")}
+        message={error || t("detail.notFound", { defaultValue: "Cette offre n’est plus disponible." })}
+        action={<div className={styles.retryActions}>
+          {!notFound && <button type="button" onClick={loadItem}>{t("common.retry")}</button>}
+          <Link to={config.back}>{t("detail.backToCatalog", { defaultValue: "Retour au catalogue" })}</Link>
+        </div>}
       />
     );
   }
 
   return (
-    <main className={styles.page}>
+    <div className={styles.page}>
       <nav className={styles.breadcrumb} aria-label={t("detail.breadcrumb", { defaultValue: "Fil d’Ariane" })}>
         <Link to={config.back}>← {t(config.collectionKey)}</Link>
         <span aria-hidden="true">/</span>
@@ -279,6 +298,6 @@ export default function CatalogDetailPage({ type }) {
           </div>
         ))}
       </section>
-    </main>
+    </div>
   );
 }

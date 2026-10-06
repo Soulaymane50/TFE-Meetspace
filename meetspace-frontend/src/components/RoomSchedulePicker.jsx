@@ -396,7 +396,7 @@ export default function RoomSchedulePicker({
             <span>{t("calendar.selectedSlot")}</span>
             <strong>
               {startDateTime && endDateTime
-                ? `${startDateTime.replace("T", " ")} → ${endDateTime.slice(11, 16)}`
+                ? `${selectedDateFormatter.format(new Date(startDateTime))} · ${timeFormatter.format(new Date(startDateTime))} – ${timeFormatter.format(new Date(endDateTime))}`
                 : t("calendar.noSlotSelected", { duration })}
             </strong>
           </div>

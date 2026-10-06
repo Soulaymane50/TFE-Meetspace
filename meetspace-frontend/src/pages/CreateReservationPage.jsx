@@ -253,7 +253,8 @@ export default function CreateReservationPage() {
     } />;
   }
 
-  const selectedRange = selectedDate && startTime && endTime ? `${selectedDate} - ${startTime} - ${endTime}` : t("calendar.selectTime");
+  const formattedSelectedDate = selectedDate ? new Date(`${selectedDate}T12:00:00`).toLocaleDateString(locale, { dateStyle: "medium" }) : "";
+  const selectedRange = selectedDate && startTime && endTime ? `${formattedSelectedDate} · ${startTime} – ${endTime}` : t("calendar.selectTime");
   const displaySelectedRange = selectedRange;
   const spaceImage = espace ? getSpaceImage(espace) : "/images/room-atlas-100-v5.webp";
 
@@ -299,7 +300,7 @@ export default function CreateReservationPage() {
               <PaymentForm
                 token={token}
                 amount={totalPrice}
-                description={`${t("reservation.newReservation")}: ${espace.name} - ${selectedDate} ${startTime} ${t("common.to").toLowerCase()} ${endTime}`}
+                description={`${t("reservation.newReservation")}: ${espace.name} · ${displaySelectedRange}`}
                 reservationType="SPACE"
                 metadata={{
                   espaceId: Number(espaceId),
@@ -432,7 +433,7 @@ export default function CreateReservationPage() {
               <div className={styles.metricGrid}>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("common.date")}</span>
-                  <span className={styles.metricValue}>{selectedDate}</span>
+                  <span className={styles.metricValue}>{formattedSelectedDate}</span>
                 </div>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("common.time")}</span>
