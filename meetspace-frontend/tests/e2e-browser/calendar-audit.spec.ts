@@ -29,7 +29,7 @@ test("déplacement ignore sa réservation mais pas un événement de même id, c
   await expect(page.getByRole("button",{name:"Confirmer le nouveau créneau"})).toBeEnabled();
   await expect(page.getByRole("button",{name:"13:00",exact:true})).toBeDisabled();
   await page.getByRole("button",{name:"09:00",exact:true}).click();
-  await expect(page.getByText("2026-11-10 09:00 → 10:30",{exact:true})).toBeVisible();
+  await expect(page.getByText("mardi 10 novembre · 09:00 – 10:30",{exact:true})).toBeVisible();
 });
 
 test("navigation mensuelle invalide le créneau jusqu'au retour du bon calendrier", async ({page}) => {

@@ -76,7 +76,7 @@ test("changing duration never keeps a newly conflicting room slot", async ({ pag
   const elevenOClock = page.getByRole("button", { name: "11:00", exact: true });
   await expect(elevenOClock).toBeEnabled();
   await elevenOClock.click();
-  await expect(page.getByText("2026-08-31 11:00 → 12:00")).toBeVisible();
+  await expect(page.getByText("lundi 31 août · 11:00 – 12:00")).toBeVisible();
 
   await page.getByRole("button", { name: "2h", exact: true }).click();
   await expect(elevenOClock).toBeDisabled();

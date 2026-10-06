@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @org.springframework.context.annotation.Import(be.meetspace.service.EventParkingInventoryTestConfig.class)
-@SpringBootTest
+@SpringBootTest(properties = "spring.datasource.url=jdbc:h2:mem:event-scheduling-concurrency;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE")
 @ActiveProfiles("test")
 class EventSchedulingConcurrencyIntegrationTest {
     @Autowired be.meetspace.repository.ParkingInventoryRepository inventory;
