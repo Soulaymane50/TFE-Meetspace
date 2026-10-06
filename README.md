@@ -30,6 +30,8 @@ Les deux thèmes utilisent les verts, les tons ivoire et les accents brique de M
 
 ### Disponibilités et conservation des réservations
 
+Une demande de salle approuvée doit être payée dans les 48 heures, et toujours avant le début du créneau. À expiration, elle est annulée automatiquement et reste dans l’historique ; elle ne compte plus comme paiement à finaliser. Pour les anciennes demandes sans échéance enregistrée, la date d’approbation sert de référence. La création du paiement et sa finalisation vérifient aussi cette limite côté serveur.
+
 Les réservations annulées ou refusées libèrent la salle. Les autres statuts continuent à bloquer les chevauchements. Le calendrier vérifie les horaires à la minute, conserve la durée exacte lors d'un déplacement et désactive la validation tant que les disponibilités du mois affiché ne sont pas chargées. Un chargement invalide affiche une erreur avec possibilité de réessayer.
 
 Une publication administrative respecte aussi l'acompte requis pour les événements payants créés par un organisateur. Le paiement du solde exige un événement publié. La suppression d'un événement avec des inscriptions ou des paiements est refusée pour préserver son historique ; un créneau de parking avec des réservations clientes est également conservé. Les seuls accès organisateur gratuits, sans paiement, peuvent être supprimés avec leur créneau.
@@ -220,7 +222,7 @@ set E2E_ADMIN_PASSWORD=MeetSpaceDemo!2026
 npm test
 ```
 
-La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La suite comprend 201 tests backend et 71 cas Playwright : 7 scénarios API et 64 scénarios navigateur, parcours métier et accessibilité. Les tests Node complètent la validation des lectures HTTP, des disponibilités et du paiement. Les scénarios financiers utilisent un adaptateur de paiement simulé ; leur réussite ne remplace pas une recette Stripe en mode test.
+La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La suite comprend 226 tests backend et 71 cas Playwright : 7 scénarios API et 64 scénarios navigateur, parcours métier et accessibilité. Les tests Node complètent la validation des lectures HTTP, des disponibilités et du paiement. Les scénarios financiers utilisent un adaptateur de paiement simulé ; leur réussite ne remplace pas une recette Stripe en mode test.
 
 ## Disponibilités, statuts et remboursements
 
@@ -287,6 +289,8 @@ Points de contrôle après chaque déploiement :
 - le frontend charge la configuration de paiement depuis `GET /api/payments/config` après connexion ;
 - un même billet peut être scanné plusieurs fois sans créer plusieurs entrées : le contrôle est idempotent.
 - une même réservation de parking conserve un QR code unique, contrôlable depuis l’espace administrateur.
+- l’administration charge les comptes et le journal indépendamment du tableau de bord ; ses sections s’affichent progressivement et peuvent être relancées après une erreur ;
+- l’historique complet des réservations est chargé à la demande pour l’export, et les lectures financières regroupent les inscriptions sans charger les accès QR du parking.
 
 Lors de la vérification du 1er septembre 2026, les catalogues publics de production exposaient 8 espaces, 22 événements et 22 sessions de parking. Les dates de démonstration enrichies comportent plusieurs événements dans des salles différentes. Aucun chevauchement salle-événement ni salle-réservation n’a été détecté.
 
@@ -310,3 +314,18 @@ Lors de la vérification du 1er septembre 2026, les catalogues publics de produc
 - les contraintes MySQL protègent capacités, périodes, quantités et montants négatifs.
 
 Les indicateurs financiers servent au pilotage et à la démonstration. Ils ne remplacent pas une comptabilité légale.
+
+Les filtres des catalogues conservent la position de lecture. L’accueil distingue les événements complets et leur liste d’attente. Le parking indique le nombre de sessions, le tarif moyen par place et des horaires sans secondes ; les dates suivent la langue choisie. Les rappels de réservation générés dans l’interface sont traduits en français, anglais et néerlandais. L’administration parking charge uniquement l’onglet consulté, conserve sa navigation en cas d’erreur et permet de réessayer ; les capacités des sessions sont lues en groupe.
+
+Les formulaires administrateur de salles et de parking attendent la lecture des données avant de permettre un enregistrement, proposent une reprise après erreur et bloquent les soumissions simultanées. L’édition parking conserve le tarif nul et utilise le quota configuré (`configuredCapacity`), distinct de l’allocation disponible ; ses statuts suivent OPEN/FULL/CANCELLED. Les scanners libèrent aussi un flux caméra obtenu après une sortie de page et protègent le démarrage contre les clics répétés.
+
+Le profil conserve les modifications non enregistrées lors d’un changement de langue ou d’une réponse de chargement tardive. Le formulaire de contact protège les demandes en cours contre les doubles soumissions et les saisies effacées par une réponse précédente. La redirection après réinitialisation du mot de passe est annulée lorsque l’utilisateur quitte la page.
+
+Les justificatifs permettent de réessayer après un échec de lecture, distinguent une panne d’une réservation absente et signalent la copie de chaque code parking. Une génération QR en échec conserve le code écrit et peut être relancée. Le changement de réservation à déplacer réinitialise le formulaire ; le calendrier est protégé pendant la sauvegarde et les soumissions simultanées sont bloquées.
+
+Les fiches ignorent les réponses de chargement obsolètes et permettent de réessayer après une indisponibilité temporaire. Les horaires des événements et du parking restent ceux de Bruxelles, y compris dans les calendriers téléchargés depuis un autre fuseau horaire. Les formulaires d’accès empêchent les envois simultanés et une réponse de connexion ou d’inscription reçue après avoir quitté le formulaire ne réactive pas la session.
+
+Les listes d’événements administrateur et organisateur utilisent une somme groupée des participants. Les capacités parking du portefeuille organisateur sont calculées en groupe, en conservant le partage des 150 places. Le calendrier de salle sélectionne en base uniquement les événements qui chevauchent le mois demandé, sans charger leurs associations. Les vues administrateur des réservations parking ne chargent pas les QR codes inutilisés. Une lecture HTTP peut être reprise une seule fois après une coupure réseau ou une réponse 502/503/504, dans le délai global existant de 15 secondes ; les écritures et les refus d’accès ne sont jamais rejoués automatiquement.
+Les réservations parking personnelles réutilisent les accès déjà chargés, sans effectuer une nouvelle lecture des codes pour chaque réservation.
+
+Les espaces membre et organisateur affichent les dix éléments passés les plus récents, puis permettent d’ouvrir les éléments plus anciens par groupes de dix. Les réservations à venir, événements en cours et actions financières en attente restent visibles ; les totaux et les données sont conservés.
