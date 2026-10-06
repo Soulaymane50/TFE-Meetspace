@@ -291,6 +291,7 @@ Points de contrôle après chaque déploiement :
 - une même réservation de parking conserve un QR code unique, contrôlable depuis l’espace administrateur.
 - l’administration charge les comptes et le journal indépendamment du tableau de bord ; ses sections s’affichent progressivement et peuvent être relancées après une erreur ;
 - l’historique complet des réservations est chargé à la demande pour l’export, et les lectures financières regroupent les inscriptions sans charger les accès QR du parking.
+- le planning administratif s’ouvre sur la journée actuelle ; le calendrier et les flèches permettent de consulter les autres dates sans afficher tout l’historique. Les horaires des événements sur plusieurs jours sont limités à la journée consultée.
 
 Lors de la vérification du 1er septembre 2026, les catalogues publics de production exposaient 8 espaces, 22 événements et 22 sessions de parking. Les dates de démonstration enrichies comportent plusieurs événements dans des salles différentes. Aucun chevauchement salle-événement ni salle-réservation n’a été détecté.
 

@@ -468,7 +468,12 @@
     "noConflict": "No conflict",
     "conflictDetected": "Time conflict",
     "occupancy": "occupancy",
-    "unscheduled": "Unscheduled"
+    "unscheduled": "Unscheduled",
+    "previousDay": "Previous day",
+    "nextDay": "Next day",
+    "chooseDate": "Choose a date",
+    "today": "Today",
+    "noEvent": "No event"
   },
   "auth": {
     "login": "Login",

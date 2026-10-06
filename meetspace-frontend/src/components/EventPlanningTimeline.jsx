@@ -8,7 +8,7 @@ const getDateLocale = (lang) => {
   return locales[lang] || "fr-BE";
 };
 
-import { eventDays, eventsConflict, getResourceKey, isBlockingEvent } from "../utils/eventPlanning";
+import { eventDays, eventTimeOnDay, eventsConflict, getResourceKey, isBlockingEvent } from "../utils/eventPlanning";
 
 export default function EventPlanningTimeline({ events = [], title, subtitle, getEventHref, maxDays }) {
   const { t, i18n } = useTranslation();
@@ -114,6 +114,7 @@ export default function EventPlanningTimeline({ events = [], title, subtitle, ge
             <div className={styles.eventStack}>
               {group.events.map((event) => {
                 const hasConflict = events.some((other) => eventsConflict(event, other));
+                const dayTime = eventTimeOnDay(event, group.key);
                 const occupancy = event.capacity
                   ? Math.min(100, Math.round(((event.registeredCount || 0) / event.capacity) * 100))
                   : 0;
@@ -129,8 +130,8 @@ export default function EventPlanningTimeline({ events = [], title, subtitle, ge
                     className={`${styles.eventRow} ${eventHref ? styles.eventRowLink : ""} ${hasConflict ? styles.eventConflict : ""}`}
                   >
                     <div className={styles.timeCell}>
-                      <strong>{formatTime(new Date(event.startDateTime) < new Date(`${group.key}T00:00:00`) ? `${group.key}T00:00:00` : event.startDateTime)}</strong>
-                      <span>{eventDays(event).at(-1) !== group.key ? "24:00" : formatTime(event.endDateTime)}</span>
+                      <strong>{formatTime(dayTime.start)}</strong>
+                      <span>{dayTime.endsAtMidnight ? "24:00" : formatTime(dayTime.end)}</span>
                     </div>
                     <div className={styles.eventBody}>
                       <div className={styles.eventTopline}>

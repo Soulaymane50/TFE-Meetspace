@@ -1,4 +1,4 @@
-import { eventDays, eventsConflict, isBlockingEvent } from "../utils/eventPlanning";
+import { eventDays, eventTimeOnDay, eventsConflict, isBlockingEvent } from "../utils/eventPlanning";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -54,7 +54,7 @@ export default function AdminEventsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filterStatus, setFilterStatus] = useState("ALL");
-  const [selectedPlanningDay, setSelectedPlanningDay] = useState("");
+  const [selectedPlanningDay, setSelectedPlanningDay] = useState(() => getDateKey(new Date()));
 
   const [rejectingId, setRejectingId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -205,13 +205,19 @@ export default function AdminEventsPage() {
     return Array.from(dayMap.values()).sort((a, b) => a.date - b.date);
   }, [events]);
 
-  useEffect(() => {
-    if (!planningDays.some((day) => day.key === selectedPlanningDay) && planningDays.length > 0) {
-      setSelectedPlanningDay((planningDays.find((day) => day.key >= getDateKey(new Date())) || planningDays[0]).key);
-    }
-  }, [planningDays, selectedPlanningDay]);
-
-  const activePlanningDay = planningDays.find((day) => day.key === selectedPlanningDay) || planningDays[0];
+  const activePlanningDay = planningDays.find((day) => day.key === selectedPlanningDay) || {
+    key: selectedPlanningDay,
+    date: new Date(selectedPlanningDay + "T12:00:00"),
+    events: [],
+  };
+  const changePlanningDay = (offset) => {
+    const day = new Date(selectedPlanningDay + "T12:00:00");
+    day.setDate(day.getDate() + offset);
+    setSelectedPlanningDay(getDateKey(day));
+  };
+  const upcomingPlanningEvents = events.filter((event) =>
+    isBlockingEvent(event) && new Date(event.endDateTime || event.startDateTime) > new Date(),
+  );
 
   const getEventsForRoom = (room) =>
     (activePlanningDay?.events || [])
@@ -286,18 +292,16 @@ export default function AdminEventsPage() {
                   <h2>{t("admin.roomPlanningTitle")}</h2>
                   <span>{t("admin.roomPlanningSubtitle")}</span>
                 </div>
-                <div className={styles.daySwitch}>
-                  {planningDays.map((day) => (
-                    <button
-                      key={day.key}
-                      type="button"
-                      className={`${styles.dayButton} ${activePlanningDay?.key === day.key ? styles.dayButtonActive : ""}`}
-                      onClick={() => setSelectedPlanningDay(day.key)}
-                    >
-                      <strong>{day.date.toLocaleDateString(getDateLocale(), { weekday: "short" })}</strong>
-                      <small>{day.date.toLocaleDateString(getDateLocale(), { day: "2-digit", month: "2-digit" })}</small>
-                    </button>
-                  ))}
+                <div className={styles.daySwitch} role="group" aria-label={t("admin.roomPlanningTitle")}>
+                  <strong className={styles.planningDate}>
+                    {activePlanningDay.date.toLocaleDateString(getDateLocale(), { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+                  </strong>
+                  <div className={styles.dayControls}>
+                    <button type="button" className={styles.dayNav} aria-label={t("planning.previousDay")} onClick={() => changePlanningDay(-1)}>←</button>
+                    <input id="room-planning-date" className={styles.dayInput} type="date" aria-label={t("planning.chooseDate")} value={selectedPlanningDay} onChange={(event) => { if (event.target.value) setSelectedPlanningDay(event.target.value); }} />
+                    <button type="button" className={styles.dayNav} aria-label={t("planning.nextDay")} onClick={() => changePlanningDay(1)}>→</button>
+                    <button type="button" className={styles.todayButton} onClick={() => setSelectedPlanningDay(getDateKey(new Date()))}>{t("planning.today")}</button>
+                  </div>
                 </div>
               </div>
 
@@ -318,12 +322,13 @@ export default function AdminEventsPage() {
                       <div className={styles.roomSchedule}>
                         {roomEvents.length === 0 ? (
                           <div className={styles.roomEmpty}>
-                            <span>{t("admin.roomAvailable")}</span>
+                            <span>{t("planning.noEvent")}</span>
                             <small>{t("admin.roomNoEvent")}</small>
                           </div>
                         ) : (
                           roomEvents.map((event) => {
                             const conflict = eventsOverlap(event, roomEvents);
+                            const dayTime = eventTimeOnDay(event, selectedPlanningDay);
                             const occupancy =
                               event.capacity && event.availablePlaces !== undefined
                                 ? Math.round(((event.capacity - event.availablePlaces) / event.capacity) * 100)
@@ -336,7 +341,7 @@ export default function AdminEventsPage() {
                                 className={`${styles.roomBlock} ${conflict ? styles.roomBlockConflict : ""}`}
                               >
                                 <span className={styles.roomTime}>
-                                  {formatTime(event.startDateTime, getDateLocale())} - {formatTime(event.endDateTime, getDateLocale())}
+                                  {formatTime(dayTime.start, getDateLocale())} - {dayTime.endsAtMidnight ? "24:00" : formatTime(dayTime.end, getDateLocale())}
                                 </span>
                                 <strong>{event.title}</strong>
                                 <small>
@@ -367,7 +372,7 @@ export default function AdminEventsPage() {
           )}
 
           <EventPlanningTimeline
-            events={events}
+            events={upcomingPlanningEvents}
             title={t("planning.adminTitle")}
             subtitle={t("planning.adminSubtitle")}
             getEventHref={(event) => `/admin/events/${event.id}/edit`}

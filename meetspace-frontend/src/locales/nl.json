@@ -420,7 +420,12 @@
                      "noConflict":  "Geen conflict",
                      "conflictDetected":  "Tijdconflict",
                      "occupancy":  "bezetting",
-                     "unscheduled":  "Niet gepland"
+                     "unscheduled":  "Niet gepland",
+                     "previousDay": "Vorige dag",
+                     "nextDay": "Volgende dag",
+                     "chooseDate": "Kies een datum",
+                     "today": "Vandaag",
+                     "noEvent": "Geen evenement"
                  },
     "auth":  {
                  "login":  "Inloggen",

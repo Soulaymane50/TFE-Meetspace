@@ -22,3 +22,12 @@ export function eventDays(event) {
   }
   return days;
 }
+
+export function eventTimeOnDay(event, dayKey) {
+  const dayStart = new Date(dayKey + "T00:00:00");
+  const dayEnd = new Date(dayStart);
+  dayEnd.setDate(dayEnd.getDate() + 1);
+  const start = new Date(Math.max(new Date(event.startDateTime).getTime(), dayStart.getTime()));
+  const end = new Date(Math.min(new Date(event.endDateTime).getTime(), dayEnd.getTime()));
+  return { start, end, endsAtMidnight: end.getTime() === dayEnd.getTime() };
+}

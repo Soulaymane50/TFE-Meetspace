@@ -420,7 +420,12 @@
         "noConflict": "Aucun conflit",
         "conflictDetected": "Conflit horaire",
         "occupancy": "remplissage",
-        "unscheduled": "Non planifié"
+        "unscheduled": "Non planifié",
+        "previousDay": "Jour précédent",
+        "nextDay": "Jour suivant",
+        "chooseDate": "Choisir une date",
+        "today": "Aujourd’hui",
+        "noEvent": "Aucun événement"
     },
     "auth": {
         "login": "Connexion",
