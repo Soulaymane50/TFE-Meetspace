@@ -72,7 +72,7 @@ test("F03 tous les jours admin restent sélectionnables, F04 annulation ne bloqu
   events.push({ ...events[8], id: 99, status: "CANCELLED", title: "Annulé" });
   await page.route("**/api/admin/events", route => route.fulfill({ json: events }));
   await page.goto(`${BASE}/admin/events`);
-  await page.getByRole("button", { name: /09\/11/ }).click();
+  await page.getByLabel("Choose a date", { exact: true }).fill("2026-11-09");
   const schedule = page.locator('a[href="/admin/events/9/edit"]').first();
   await expect(schedule).toBeVisible();
   await expect(schedule).not.toContainText("Time conflict");
