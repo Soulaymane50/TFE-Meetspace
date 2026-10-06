@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
   adminGetStats,
@@ -149,6 +149,9 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [partialErrors, setPartialErrors] = useState([]);
+  const [loadingSections, setLoadingSections] = useState([]);
+  const [exportLoading, setExportLoading] = useState(false);
+  const loadVersion = useRef(0);
 
   const [stats, setStats] = useState(null);
   const [financeSummary, setFinanceSummary] = useState(null);
@@ -156,7 +159,6 @@ export default function AdminDashboard() {
   const [pendingReservations, setPendingReservations] = useState([]);
   const [events, setEvents] = useState([]);
   const [spaceReservations, setSpaceReservations] = useState([]);
-  const [allReservations, setAllReservations] = useState([]);
   const [parkingSlots, setParkingSlots] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -164,65 +166,51 @@ export default function AdminDashboard() {
   const [loadingDetails, setLoadingDetails] = useState(false);
 
   const loadData = useCallback(async () => {
+    const version = ++loadVersion.current;
+    const current = () => version === loadVersion.current;
     setLoading(true);
     setError("");
     setPartialErrors([]);
+    setLoadingSections([]);
     try {
-      const [
-        statsResult,
-        financeResult,
-        pendingEventsResult,
-        pendingReservationsResult,
-        eventsResult,
-        spaceReservationsResult,
-        allReservationsResult,
-        parkingSlotsResult,
-        usersResult,
-      ] = await Promise.allSettled([
-        adminGetStats(token),
-        adminGetFinanceSummary(token),
-        adminGetPendingEvents(token),
-        adminGetPendingReservations(token),
-        adminGetEvents(token),
-        adminGetAllSpaceReservations(token),
-        adminGetAllReservations(token),
-        adminGetParkingSlots(token),
-        adminGetUsers(token),
-      ]);
-
-      const criticalError =
-        statsResult.status === "rejected"
-          ? statsResult.reason
-          : usersResult.status === "rejected"
-            ? usersResult.reason
-            : null;
-
-      if (criticalError) {
-        if (criticalError.status === 401 || criticalError.status === 403) {
-          await logout();
-          navigate("/login", { replace: true });
-          return;
-        }
-        setError(criticalError.message);
+      if (activeTab === "audit") return;
+      if (activeTab === "users") {
+        const accounts = await adminGetUsers(token);
+        if (current()) setUsers(accounts);
         return;
       }
-
-      setPartialErrors([
-        ["finance", financeResult], ["pendingEvents", pendingEventsResult],
-        ["pendingReservations", pendingReservationsResult], ["events", eventsResult],
-        ["spaceReservations", spaceReservationsResult], ["allReservations", allReservationsResult],
-        ["parking", parkingSlotsResult],
-      ].filter(([, result]) => result.status === "rejected").map(([key]) => key));
-      setStats(statsResult.value);
-      setFinanceSummary(financeResult.status === "fulfilled" ? financeResult.value : null);
-      setUsers(usersResult.value);
-      setPendingEvents(pendingEventsResult.status === "fulfilled" ? pendingEventsResult.value : []);
-      setPendingReservations(pendingReservationsResult.status === "fulfilled" ? pendingReservationsResult.value : []);
-      setEvents(eventsResult.status === "fulfilled" ? eventsResult.value : []);
-      setSpaceReservations(spaceReservationsResult.status === "fulfilled" ? spaceReservationsResult.value : []);
-      setAllReservations(allReservationsResult.status === "fulfilled" ? allReservationsResult.value : []);
-      setParkingSlots(parkingSlotsResult.status === "fulfilled" ? parkingSlotsResult.value : []);
+      const overview = await adminGetStats(token);
+      if (!current()) return;
+      setStats(overview);
+      const sections = [
+        ["users", adminGetUsers, setUsers],
+        ["finance", adminGetFinanceSummary, setFinanceSummary],
+        ["pendingEvents", adminGetPendingEvents, setPendingEvents],
+        ["pendingReservations", adminGetPendingReservations, setPendingReservations],
+        ["events", adminGetEvents, setEvents],
+        ["spaceReservations", adminGetAllSpaceReservations, setSpaceReservations],
+        ["parking", adminGetParkingSlots, setParkingSlots],
+      ];
+      setLoadingSections(sections.map(([key]) => key));
+      for (const [key, read, update] of sections) {
+        read(token).then((value) => {
+          if (current()) update(value);
+        }).catch(async (err) => {
+          if (!current()) return;
+          if (err.status === 401 || err.status === 403) {
+            ++loadVersion.current;
+            await logout();
+            navigate("/login", { replace: true });
+            return;
+          }
+          update(key === "finance" ? null : []);
+          setPartialErrors((prev) => [...prev, key]);
+        }).finally(() => {
+          if (current()) setLoadingSections((prev) => prev.filter((section) => section !== key));
+        });
+      }
     } catch (err) {
+      if (!current()) return;
       if (err.status === 401 || err.status === 403) {
         await logout();
         navigate("/login", { replace: true });
@@ -230,9 +218,9 @@ export default function AdminDashboard() {
       }
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (current()) setLoading(false);
     }
-  }, [logout, navigate, token]);
+  }, [activeTab, logout, navigate, token]);
 
   useEffect(() => {
     if (!user || user.role !== "ADMIN") {
@@ -245,6 +233,8 @@ export default function AdminDashboard() {
     };
 
     run();
+    const versions = loadVersion;
+    return () => { ++versions.current; };
   }, [loadData, navigate, user]);
 
   const handleUpdateUserRole = async (userId, newRole) => {
@@ -337,8 +327,6 @@ export default function AdminDashboard() {
   };
 
   if (!user || user.role !== "ADMIN") return null;
-  if (loading) return <PageState type="loading" title={t("common.loading")} message={t("admin.dashboardSubtitle")} />;
-  if (error) return <PageState type="error" title={t("common.error")} message={error} actionLabel={t("common.retry")} onAction={loadData} />;
 
   const totalPending = pendingEvents.length + pendingReservations.length;
   const confirmedParkingReservations = stats?.confirmedParkingReservations ?? 0;
@@ -420,6 +408,26 @@ export default function AdminDashboard() {
     { id: "audit", label: t("admin.auditLogs", "Logs d'audit") },
   ];
 
+  if (loading || error) return (
+    <div className={styles.container}>
+      <WorkspaceNav scope="admin" />
+      <div className={styles.tabs} role="tablist">
+        {tabs.map((tab) => (
+          <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id}
+            className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ""}`}
+            onClick={() => setActiveTab(tab.id)}>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <PageState type={error ? "error" : "loading"}
+        title={t(error ? "common.error" : "common.loading")}
+        message={error || t("admin.dashboardSubtitle")}
+        actionLabel={error ? t("common.retry") : undefined}
+        onAction={error ? loadData : undefined} />
+    </div>
+  );
+
   const roleOptions = [
     { value: "MEMBER", label: t("admin.roles.member") },
     { value: "ORGANIZER", label: t("admin.roles.organizer") },
@@ -457,7 +465,7 @@ export default function AdminDashboard() {
     {
       icon: "users",
       label: t("admin.activeUsers"),
-      value: activeUsers,
+      value: loadingSections.includes("users") || partialErrors.includes("users") ? "—" : activeUsers,
       helper: t("admin.activeUsersHelp"),
       tone: styles.statPurple,
     },
@@ -467,22 +475,22 @@ export default function AdminDashboard() {
     {
       icon: "pending",
       label: t("admin.eventsPendingShort"),
-      value: partialErrors.includes("pendingEvents") ? "—" : pendingEvents.length,
-      meta: partialErrors.includes("pendingEvents") ? t("system.unavailableData") : pendingEvents.length > 0 ? t("admin.requiresReview") : t("admin.noImmediateAction"),
+      value: loadingSections.includes("pendingEvents") || partialErrors.includes("pendingEvents") ? "—" : pendingEvents.length,
+      meta: loadingSections.includes("pendingEvents") ? t("common.loading") : partialErrors.includes("pendingEvents") ? t("system.unavailableData") : pendingEvents.length > 0 ? t("admin.requiresReview") : t("admin.noImmediateAction"),
       to: "/admin/events",
     },
     {
       icon: "spaces",
       label: t("admin.roomRequestsPendingShort"),
-      value: partialErrors.includes("pendingReservations") ? "—" : pendingReservations.length,
-      meta: partialErrors.includes("pendingReservations") ? t("system.unavailableData") : pendingReservations.length > 0 ? t("admin.requiresReview") : t("admin.noImmediateAction"),
+      value: loadingSections.includes("pendingReservations") || partialErrors.includes("pendingReservations") ? "—" : pendingReservations.length,
+      meta: loadingSections.includes("pendingReservations") ? t("common.loading") : partialErrors.includes("pendingReservations") ? t("system.unavailableData") : pendingReservations.length > 0 ? t("admin.requiresReview") : t("admin.noImmediateAction"),
       to: "/admin/espaces",
     },
     {
       icon: "parking",
       label: t("admin.parkingOccupancy"),
-      value: partialErrors.includes("parking") ? "—" : `${formatStat(parkingOccupancy)}%`,
-      meta: partialErrors.includes("parking") ? t("system.unavailableData") : t("admin.futureParkingHelp", {
+      value: loadingSections.includes("parking") || partialErrors.includes("parking") ? "—" : `${formatStat(parkingOccupancy)}%`,
+      meta: loadingSections.includes("parking") ? t("common.loading") : partialErrors.includes("parking") ? t("system.unavailableData") : t("admin.futureParkingHelp", {
         reserved: formatStat(futureParkingReserved),
         capacity: formatStat(futureParkingCapacity),
       }),
@@ -490,7 +498,7 @@ export default function AdminDashboard() {
     },
   ];
 
-  const exportCurrentView = () => {
+  const exportCurrentView = async () => {
     const stamp = new Date().toISOString().slice(0, 10);
     if (activeTab === "users") {
       downloadCsv(`meetspace-utilisateurs-${stamp}.csv`, [
@@ -505,7 +513,12 @@ export default function AdminDashboard() {
       return;
     }
 
-    downloadCsv(`meetspace-reservations-${stamp}.csv`, [
+    const version = loadVersion.current;
+    setExportLoading(true);
+    try {
+      const reservations = await adminGetAllReservations(token);
+      if (version !== loadVersion.current) return;
+      downloadCsv(`meetspace-reservations-${stamp}.csv`, [
       { label: "Identifiant", value: "id" },
       { label: "Type", value: "typeName" },
       { label: "Client", value: "userFullName" },
@@ -517,7 +530,12 @@ export default function AdminDashboard() {
       { label: "Statut", value: "status" },
       { label: "Payé", value: (row) => row.paid ? "Oui" : "Non" },
       { label: "Créé le", value: "createdAt" },
-    ], allReservations);
+      ], reservations);
+    } catch (err) {
+      if (version === loadVersion.current) notify({ type: "error", title: t("common.error"), message: err.message });
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   return (
@@ -530,8 +548,8 @@ export default function AdminDashboard() {
           <p className={styles.subtitle}>{t("admin.dashboardSubtitle")}</p>
         </div>
         <div className={styles.headerActions}>
-          <button type="button" className={styles.exportButton} onClick={exportCurrentView} disabled={activeTab !== "users" && partialErrors.includes("allReservations")}>
-            {activeTab === "users"
+          <button type="button" className={styles.exportButton} onClick={exportCurrentView} disabled={exportLoading}>
+            {exportLoading ? t("common.loading") : activeTab === "users"
               ? t("admin.exportUsers", { defaultValue: "Exporter les comptes" })
               : t("admin.exportReservations", { defaultValue: "Exporter les réservations" })}
           </button>
@@ -598,7 +616,7 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <span>{item.label}</span>
-                  <strong>{formatStat(item.value)}</strong>
+                  <strong>{typeof item.value === "number" ? formatStat(item.value) : item.value}</strong>
                   <small>{item.helper}</small>
                 </div>
               </div>
@@ -615,6 +633,7 @@ export default function AdminDashboard() {
                 </div>
                 <Link to="/admin/finances">{t("adminFinance.openDashboard")}</Link>
               </div>
+              {loadingSections.includes("finance") && <p role="status">{t("common.loading")}</p>}
               {financeSummary && (
                 <div className={styles.financePreviewMetrics}>
                   <div>
@@ -678,7 +697,7 @@ export default function AdminDashboard() {
                     </span>
                   </Link>
                 )) : (
-                  <p className={styles.emptyLine}>{t(partialErrors.includes("events") ? "system.unavailableData" : "admin.noUpcomingEvents")}</p>
+                  <p className={styles.emptyLine}>{t(loadingSections.includes("events") ? "common.loading" : partialErrors.includes("events") ? "system.unavailableData" : "admin.noUpcomingEvents")}</p>
                 )}
               </div>
             </div>
@@ -702,7 +721,7 @@ export default function AdminDashboard() {
                     </span>
                   </Link>
                 )) : (
-                  <p className={styles.emptyLine}>{t(partialErrors.includes("spaceReservations") ? "system.unavailableData" : "admin.noUpcomingRooms")}</p>
+                  <p className={styles.emptyLine}>{t(loadingSections.includes("spaceReservations") ? "common.loading" : partialErrors.includes("spaceReservations") ? "system.unavailableData" : "admin.noUpcomingRooms")}</p>
                 )}
               </div>
             </div>
@@ -728,7 +747,7 @@ export default function AdminDashboard() {
                     </span>
                   </Link>
                 )) : (
-                  <p className={styles.emptyLine}>{t(partialErrors.includes("parking") ? "system.unavailableData" : "admin.noUpcomingParking")}</p>
+                  <p className={styles.emptyLine}>{t(loadingSections.includes("parking") ? "common.loading" : partialErrors.includes("parking") ? "system.unavailableData" : "admin.noUpcomingParking")}</p>
                 )}
               </div>
             </div>

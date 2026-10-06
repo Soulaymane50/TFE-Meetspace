@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -28,22 +28,25 @@ export default function AdminParkingPage() {
   const [error, setError] = useState("");
   const [filterStatus, setFilterStatus] = useState("ALL");
 
+  const requestVersion = useRef(0);
+
   const loadData = useCallback(async () => {
+    const version = ++requestVersion.current;
     setLoading(true);
     setError("");
     try {
-      const [parkingSlotsData, parkingReservationsData] = await Promise.all([
-        adminGetParkingSlots(token),
-        adminGetAllParkingReservations(token),
-      ]);
-      setParkingSlots(parkingSlotsData);
-      setParkingReservations(parkingReservationsData);
+      const data = activeTab === "parkingSlots"
+        ? await adminGetParkingSlots(token)
+        : await adminGetAllParkingReservations(token);
+      if (version !== requestVersion.current) return;
+      if (activeTab === "parkingSlots") setParkingSlots(data);
+      else setParkingReservations(data);
     } catch (err) {
-      setError(err.message);
+      if (version === requestVersion.current) setError(err.message);
     } finally {
-      setLoading(false);
+      if (version === requestVersion.current) setLoading(false);
     }
-  }, [token]);
+  }, [activeTab, token]);
 
   useEffect(() => {
     if (!user || user.role !== "ADMIN") {
@@ -56,6 +59,7 @@ export default function AdminParkingPage() {
     };
 
     run();
+    return () => { requestVersion.current += 1; };
   }, [loadData, navigate, user]);
 
   const handleDeleteParkingSlot = async (id) => {
@@ -85,8 +89,6 @@ export default function AdminParkingPage() {
   });
 
   if (!user || user.role !== "ADMIN") return null;
-  if (loading) return <PageState type="loading" title={t("common.loading")} message={t("admin.parkingManagement")} />;
-  if (error) return <PageState type="error" title={t("common.error")} message={error} />;
 
   const tabs = [
     { id: "parkingSlots", label: t("admin.parkingManagement") },
@@ -129,8 +131,11 @@ export default function AdminParkingPage() {
         ))}
       </div>
 
+      {loading && <PageState type="loading" title={t("common.loading")} message={t(activeTab === "parkingSlots" ? "admin.parkingManagement" : "admin.parkingReservations")} />}
+      {!loading && error && <PageState type="error" title={t("common.error")} message={error} actionLabel={t("common.retry")} onAction={loadData} />}
+
       {/* Onglet: Liste des sessions */}
-      {activeTab === "parkingSlots" && (
+      {!loading && !error && activeTab === "parkingSlots" && (
         <section className={styles.section}>
           <div className={styles.tableContainer}>
             <table className={styles.table}>
@@ -154,8 +159,8 @@ export default function AdminParkingPage() {
                   parkingSlots.map((parkingSlot) => (
                     <tr key={parkingSlot.id}>
                       <td className={styles.nameCell}>{parkingSlot.title || t("nav.parking")}</td>
-                      <td>{parkingSlot.slotDate}</td>
-                      <td>{parkingSlot.startTime} - {parkingSlot.endTime}</td>
+                      <td>{new Date(`${parkingSlot.slotDate}T00:00:00`).toLocaleDateString(locale, { dateStyle: "medium" })}</td>
+                      <td>{parkingSlot.startTime.slice(0, 5)} – {parkingSlot.endTime.slice(0, 5)}</td>
                       <td>
                         <span className={styles.capacityBadge}>
                           {formatNumber(parkingSlot.availableSpaces, locale)} / {formatNumber(parkingSlot.parkingCapacity, locale)}
@@ -190,7 +195,7 @@ export default function AdminParkingPage() {
       )}
 
       {/* Onglet: Réservations */}
-      {activeTab === "parkingReservations" && (
+      {!loading && !error && activeTab === "parkingReservations" && (
         <section className={styles.section}>
           <div className={styles.filterBar}>
             <label>{t("admin.filterByStatus")}</label>
@@ -233,7 +238,7 @@ export default function AdminParkingPage() {
                           {parkingReservation.userFullName && <small className={styles.emailSmall}>{parkingReservation.userEmail}</small>}
                         </div>
                       </td>
-                      <td>{parkingReservation.slotDate}</td>
+                      <td>{new Date(`${parkingReservation.slotDate}T00:00:00`).toLocaleDateString(locale, { dateStyle: "medium" })}</td>
                       <td>{formatNumber(parkingReservation.reservedSpaces, locale)}</td>
                       <td>{formatMoney(parkingReservation.totalPrice, locale)}</td>
                       <td>

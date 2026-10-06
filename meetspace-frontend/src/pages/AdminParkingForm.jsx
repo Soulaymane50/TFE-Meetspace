@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   adminCreateParkingSlot,
@@ -29,11 +29,15 @@ export default function AdminParkingForm() {
     status: "OPEN",
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(isEditingParkingSlot);
+  const [loadError, setLoadError] = useState("");
+  const [retryVersion, setRetryVersion] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const saveLock = useRef(false);
   const [error, setError] = useState("");
   const statusOptions = [
     { value: "OPEN", label: t("status.open") },
-    { value: "CLOSED", label: t("status.closed") },
+    { value: "FULL", label: t("status.full") },
     { value: "CANCELLED", label: t("status.cancelled") },
   ];
 
@@ -43,25 +47,28 @@ export default function AdminParkingForm() {
 
       const loadParkingSlot = async () => {
         setLoading(true);
-        setError("");
+        setLoadError("");
 
         try {
           const parkingSlot = await adminGetParkingSlot(id, token);
           if (!cancelled) {
+            if (!Number.isInteger(parkingSlot.configuredCapacity) || parkingSlot.configuredCapacity < 1) {
+              throw new Error(t("parking.configurationUnavailable"));
+            }
             setParkingSlotForm({
               title: parkingSlot.title || "",
               description: parkingSlot.description || "",
               slotDate: parkingSlot.slotDate || "",
               startTime: parkingSlot.startTime || "",
               endTime: parkingSlot.endTime || "",
-              parkingCapacity: parkingSlot.parkingCapacity || "",
-              parkingRate: parkingSlot.parkingRate || "",
+              parkingCapacity: parkingSlot.configuredCapacity,
+              parkingRate: parkingSlot.parkingRate ?? "",
               status: parkingSlot.status || "OPEN",
             });
           }
         } catch (err) {
           if (!cancelled) {
-            setError(err.message);
+            setLoadError(err.message);
           }
         } finally {
           if (!cancelled) {
@@ -76,7 +83,7 @@ export default function AdminParkingForm() {
         cancelled = true;
       };
     }
-  }, [id, isEditingParkingSlot, token]);
+  }, [id, isEditingParkingSlot, token, retryVersion, t]);
 
   const handleChange = (e) => {
     setParkingSlotForm({ ...parkingSlotForm, [e.target.name]: e.target.value });
@@ -84,6 +91,7 @@ export default function AdminParkingForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading || loadError || saveLock.current) return;
     setError("");
 
     if (!parkingSlotForm.description || parkingSlotForm.description.trim().length < 10) {
@@ -122,6 +130,8 @@ export default function AdminParkingForm() {
       parkingRate: rate,
     };
 
+    saveLock.current = true;
+    setSaving(true);
     try {
       if (isEditingParkingSlot) {
         await adminUpdateParkingSlot(id, parkingSlotPayload, token);
@@ -131,12 +141,17 @@ export default function AdminParkingForm() {
       navigate("/admin/parking");
     } catch (err) {
       setError(err.message);
+    } finally {
+      saveLock.current = false;
+      setSaving(false);
     }
   };
 
   if (loading) {
     return <PageState type="loading" title={t("common.loading")} message={t("admin.parkingManagement")} />;
   }
+
+  if (loadError) return <PageState type="error" title={t("common.error")} message={loadError} action={<><button type="button" onClick={() => { setLoading(true); setRetryVersion(value => value + 1); }}>{t("common.retry")}</button><Link to="/admin/parking">{t("admin.backToList")}</Link></>} />;
 
   return (
     <div className={styles.container}>
@@ -261,8 +276,8 @@ export default function AdminParkingForm() {
           >
             {t("common.cancel")}
           </button>
-          <button type="submit" className={styles.submitButton}>
-            {isEditingParkingSlot ? t("common.save") : t("common.create")}
+          <button type="submit" className={styles.submitButton} disabled={saving}>
+            {saving ? t("common.saving") : isEditingParkingSlot ? t("common.save") : t("common.create")}
           </button>
         </div>
       </form>

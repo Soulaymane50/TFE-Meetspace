@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
   adminCreateEspace,
@@ -7,6 +7,7 @@ import {
 } from "../services/api";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import PageState from "../components/PageState";
 import SelectDropdown from "../components/SelectDropdown";
 import styles from "./AdminEspaceForm.module.css";
 
@@ -26,6 +27,11 @@ export default function AdminEspaceForm() {
     status: "AVAILABLE",
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(isEditMode);
+  const [loadError, setLoadError] = useState("");
+  const [retryVersion, setRetryVersion] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const saveLock = useRef(false);
   const typeOptions = [
     { value: "SALLE", label: t("spaceType.salle") },
     { value: "PREMIUM_ROOM", label: t("spaceType.premiumRoom") },
@@ -41,20 +47,22 @@ export default function AdminEspaceForm() {
       return;
     }
 
-    if (isEditMode) {
-      adminGetEspace(id, token)
-        .then((e) =>
-          setForm({
-            name: e.name || "",
-            type: e.type || "",
-            capacity: e.capacity || 0,
-            basePrice: e.basePrice || 0,
-            status: e.status || "AVAILABLE",
-          })
-        )
-        .catch((err) => setError(err.message));
-    }
-  }, [user, token, id, isEditMode, navigate]);
+    if (!isEditMode) { setLoading(false); return; }
+    let cancelled = false;
+    setLoading(true);
+    setLoadError("");
+    adminGetEspace(id, token)
+      .then((entry) => {
+        if (!cancelled) setForm({
+          name: entry.name || "", type: entry.type || "SALLE",
+          capacity: entry.capacity ?? 1, basePrice: entry.basePrice ?? 0,
+          status: entry.status || "AVAILABLE",
+        });
+      })
+      .catch((err) => { if (!cancelled) setLoadError(err.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [user, token, id, isEditMode, navigate, retryVersion]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -69,6 +77,9 @@ export default function AdminEspaceForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading || loadError || saveLock.current) return;
+    saveLock.current = true;
+    setSaving(true);
     setError("");
 
     try {
@@ -80,10 +91,15 @@ export default function AdminEspaceForm() {
       navigate("/admin");
     } catch (err) {
       setError(err.message);
+    } finally {
+      saveLock.current = false;
+      setSaving(false);
     }
   };
 
   if (!user || user.role !== "ADMIN") return null;
+  if (loading) return <PageState type="loading" title={t("common.loading")} message={t("admin.editSpace")} />;
+  if (loadError) return <PageState type="error" title={t("common.error")} message={loadError} action={<><button type="button" onClick={() => { setLoading(true); setRetryVersion(value => value + 1); }}>{t("common.retry")}</button><Link to="/admin/espaces">{t("common.back")}</Link></>} />;
 
   return (
     <div className={styles.container}>
@@ -170,8 +186,8 @@ export default function AdminEspaceForm() {
           >
             {t('common.cancel')}
           </button>
-          <button type="submit" className={styles.submitButton}>
-            {isEditMode ? t('common.save') : t('common.create')}
+          <button type="submit" className={styles.submitButton} disabled={saving}>
+            {saving ? t('common.saving') : isEditMode ? t('common.save') : t('common.create')}
           </button>
         </div>
       </form>

@@ -1,5 +1,6 @@
 export default {
   "fr": {
+    "users": "Comptes",
     "finance": "Finances",
     "pendingEvents": "Événements en attente",
     "pendingReservations": "Demandes de salles",
@@ -9,6 +10,7 @@ export default {
     "parking": "Parking"
   },
   "en": {
+    "users": "Accounts",
     "finance": "Finance",
     "pendingEvents": "Pending events",
     "pendingReservations": "Room requests",
@@ -18,6 +20,7 @@ export default {
     "parking": "Parking"
   },
   "nl": {
+    "users": "Accounts",
     "finance": "Financiën",
     "pendingEvents": "Evenementen in afwachting",
     "pendingReservations": "Zaalaanvragen",
