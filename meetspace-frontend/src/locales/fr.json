@@ -266,7 +266,8 @@
         "location": "Lieu",
         "toBeAnnounced": "À annoncer",
         "placesAvailable": "{{count}} disponible(s)",
-        "full": "Complet"
+        "full": "Complet",
+        "saving": "Enregistrement…"
     },
     "nav": {
         "enableDarkTheme": "Activer le mode sombre",
@@ -656,7 +657,9 @@
         "markersPlanned": "repères prévus",
         "emptySpacesHint": "Comparez les salles MeetSpace et choisissez un créneau disponible.",
         "emptyEventsHint": "Explorez les événements professionnels à venir et inscrivez-vous en quelques secondes.",
-        "emptyParkingHint": "Consultez les disponibilités parking liées aux événements et réservez votre accès."
+        "emptyParkingHint": "Consultez les disponibilités parking liées aux événements et réservez votre accès.",
+        "paymentExpired": "Paiement expiré",
+        "paymentExpiredHint": "Demande annulée : le délai de paiement ou le début du créneau est dépassé."
     },
     "workspace": {
         "navigation": "Navigation de l’espace",
@@ -802,7 +805,16 @@
         "existingSpace": "Salle MeetSpace",
         "startDate": "Date de début",
         "endDate": "Date de fin",
-        "parkingOption": "Option parking"
+        "parkingOption": "Option parking",
+        "fetchError": "Impossible de charger les événements pour le moment. Réessayez dans quelques instants.",
+        "fetchTimeout": "Les événements mettent trop de temps à répondre. Réessayez dans quelques instants.",
+        "ticketPriceIfAvailable": "Tarif du billet si une place se libère",
+        "waitlistExplanation": "L’événement est complet. Indiquez le nombre de places souhaitées : vous recevrez une notification dans votre compte si suffisamment de places se libèrent. La liste d’attente ne garantit pas votre participation.",
+        "waitlistRequestedPlaces": "Places souhaitées",
+        "waitlistSummary": "Votre demande sur la liste d’attente",
+        "waitlistCost": "Inscription à la liste d’attente",
+        "waitlistFree": "Gratuit — aucun paiement",
+        "waitlistNextStep": "Si des places se libèrent, vous devrez confirmer votre inscription et payer le billet si l’événement est payant. Vous choisirez le parking à ce moment-là."
     },
     "parking": {
         "kicker": "MeetSpace • Accès parking",
@@ -891,7 +903,9 @@
         "availableChoicesTitle": "Choisir un créneau parking",
         "availableChoicesHint": "Comparez rapidement les dates, les places restantes, le tarif et le remplissage avant de réserver.",
         "availableOnDay": "places disponibles sur {{count}} places allouées ce jour",
-        "availableAcrossDays": "places disponibles sur {{count}} places allouées dans les quotas affichés"
+        "availableAcrossDays": "places disponibles sur {{count}} places allouées dans les quotas affichés",
+        "configurationUnavailable": "Impossible de charger le quota configuré de ce créneau. Réessayez.",
+        "averageRate": "Tarif moyen / place"
     },
     "payment": {
         "title": "Paiement",
@@ -912,16 +926,7 @@
         "successTitle": "Paiement validé",
         "spaceSuccessMessage": "Votre réservation de salle est confirmée. Un email de confirmation vous est envoyé si le service email est disponible.",
         "eventSuccessMessage": "Votre inscription à l'événement est confirmée. Un email de confirmation vous est envoyé si le service email est disponible.",
-        "parkingSuccessMessage": "Votre réservation parking est confirmée. Un email de confirmation vous est envoyé si le service email est disponible.",
-        "testMode": "Mode démonstration Stripe",
-        "testModeHelp": "Ces cartes simulent le paiement. Aucun débit réel n'est effectué.",
-        "testCardSuccess": "Paiement accepté",
-        "testCardAuthentication": "Authentification 3D Secure",
-        "testCardDeclined": "Paiement refusé",
-        "testCardDetails": "Expiration : 12/34 · CVC : 123 · Nom : au choix",
-        "copyTestCard": "Copier",
-        "testCardCopied": "Copié",
-        "copyFailed": "Impossible de copier le numéro. Sélectionnez-le manuellement."
+        "parkingSuccessMessage": "Votre réservation parking est confirmée. Un email de confirmation vous est envoyé si le service email est disponible."
     },
     "profile": {
         "title": "Mon profil",
@@ -1170,7 +1175,8 @@
         "pending_approval": "En attente d'approbation",
         "awaiting_deposit": "Acompte à payer",
         "approved": "Approuvé",
-        "rejected": "Refusé"
+        "rejected": "Refusé",
+        "full": "Complet"
     },
     "organizer": {
         "myEvents": "Mes événements professionnels",
@@ -1416,7 +1422,8 @@
         "calendarReadyHint": "Le fichier peut être ouvert dans votre calendrier habituel.",
         "roomCalendarDescription": "Réservation de salle MeetSpace",
         "eventCalendarDescription": "Inscription à un événement MeetSpace",
-        "parkingCalendarDescription": "Réservation parking MeetSpace"
+        "parkingCalendarDescription": "Réservation parking MeetSpace",
+        "calendarError": "Le calendrier ne peut pas être créé : les horaires de cette fiche sont indisponibles."
     },
     "adminFinance": {
         "navLabel": "Finances",
@@ -1513,5 +1520,27 @@
         "404Description": "La page que vous recherchez n'existe pas ou a été déplacée.",
         "backToHome": "Retour à l'accueil",
         "generic": "Une erreur est survenue"
+    },
+    "receipt": {
+        "qrUnavailable": "Le QR code ne peut pas être affiché. Vous pouvez présenter le code écrit ci-dessous."
+    },
+    "activity": {
+        "roomTitle": "Salle réservée",
+        "roomDescription": "Réservation de salle MeetSpace",
+        "eventTitle": "Événement professionnel",
+        "paymentPendingTitle": "Paiement en attente",
+        "paymentPendingText": "{{title}} attend une confirmation de paiement.",
+        "spaceConfirmedTitle": "Réservation validée",
+        "spaceConfirmedText": "{{title}} est confirmée.",
+        "eventUpcomingTitle": "Événement à venir",
+        "parkingReservedTitle": "Parking réservé",
+        "participants_one": "{{count}} participant",
+        "participants_other": "{{count}} participants",
+        "spaces_one": "{{count}} place",
+        "spaces_other": "{{count}} places"
+    },
+    "history": {
+        "moreReservations": "Afficher les réservations plus anciennes",
+        "moreEvents": "Afficher les événements plus anciens"
     }
 }

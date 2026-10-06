@@ -266,7 +266,8 @@
                    "toBeAnnounced":  "Nog aan te kondigen",
                    "placesAvailable": "{{count}} beschikbaar",
                    "full": "Volzet",
-                   "select": "Selecteren"
+                   "select": "Selecteren",
+                   "saving": "Opslaan…"
                },
     "nav":  {
                   "enableDarkTheme": "Donkere modus inschakelen",
@@ -659,7 +660,9 @@
                         "stepScheduleHint": "Stap 1: kies een vrij tijdslot",
                         "continueToSummary": "Verder naar samenvatting",
                         "editSlot": "Tijdslot wijzigen",
-                        "slotUnavailable": "Dit tijdslot is niet meer beschikbaar. Kies een vrij tijdslot in de planning."
+                        "slotUnavailable": "Dit tijdslot is niet meer beschikbaar. Kies een vrij tijdslot in de planning.",
+                        "paymentExpired": "Betaling verlopen",
+                        "paymentExpiredHint": "Aanvraag geannuleerd: de betaaltermijn of het begin van het tijdslot is verstreken."
                     },
     "workspace": {
                     "navigation": "Navigatie van de werkruimte",
@@ -805,7 +808,16 @@
         "existingSpace": "MeetSpace-zaal",
         "startDate": "Startdatum",
         "endDate": "Einddatum",
-        "parkingOption": "Parkingoptie"
+        "parkingOption": "Parkingoptie",
+                   "fetchError": "De evenementen kunnen momenteel niet worden geladen. Probeer het over enkele ogenblikken opnieuw.",
+                   "fetchTimeout": "Het laden van de evenementen duurt te lang. Probeer het over enkele ogenblikken opnieuw.",
+                   "ticketPriceIfAvailable": "Ticketprijs als er een plaats vrijkomt",
+                   "waitlistExplanation": "Dit evenement is volzet. Geef aan hoeveel plaatsen u wenst: u krijgt een melding in uw account als er voldoende plaatsen vrijkomen. De wachtlijst garandeert geen deelname.",
+                   "waitlistRequestedPlaces": "Gewenste plaatsen",
+                   "waitlistSummary": "Uw aanvraag op de wachtlijst",
+                   "waitlistCost": "Inschrijving op de wachtlijst",
+                   "waitlistFree": "Gratis — geen betaling",
+                   "waitlistNextStep": "Als er plaatsen vrijkomen, moet u uw inschrijving bevestigen en het ticket betalen als het evenement betalend is. U kunt dan ook parking kiezen."
     },
     "parking":  {
                       "kicker":  "MeetSpace • Parkingtoegang",
@@ -894,7 +906,9 @@
                       "availableChoicesTitle": "Kies een parkingslot",
                       "availableChoicesHint": "Vergelijk snel data, resterende plaatsen, tarief en bezetting voor u reserveert.",
                       "availableOnDay": "plaatsen beschikbaar op {{count}} toegewezen plaatsen die dag",
-                      "availableAcrossDays": "plaatsen beschikbaar op {{count}} plaatsen toegewezen in de getoonde quota"
+                      "availableAcrossDays": "plaatsen beschikbaar op {{count}} plaatsen toegewezen in de getoonde quota",
+                      "configurationUnavailable": "De ingestelde capaciteit van dit tijdslot kan niet worden geladen. Probeer opnieuw.",
+                      "averageRate": "Gemiddeld tarief / plaats"
                   },
     "payment":  {
                     "title":  "Betaling",
@@ -915,16 +929,7 @@
                     "successTitle": "Betaling bevestigd",
                     "spaceSuccessMessage": "Uw zaalreservatie is bevestigd. Er wordt een bevestigingsmail verzonden als de e-mailservice beschikbaar is.",
                     "eventSuccessMessage": "Uw inschrijving voor het evenement is bevestigd. Er wordt een bevestigingsmail verzonden als de e-mailservice beschikbaar is.",
-                    "parkingSuccessMessage": "Uw parkingreservatie is bevestigd. Er wordt een bevestigingsmail verzonden als de e-mailservice beschikbaar is.",
-                    "testMode": "Stripe-demomodus",
-                    "testModeHelp": "Deze kaarten simuleren een betaling. Er wordt niets echt aangerekend.",
-                    "testCardSuccess": "Betaling geslaagd",
-                    "testCardAuthentication": "3D Secure-authenticatie",
-                    "testCardDeclined": "Betaling geweigerd",
-                    "testCardDetails": "Vervaldatum: 12/34 · CVC: 123 · Naam: vrije keuze",
-                    "copyTestCard": "Kopiëren",
-                    "testCardCopied": "Gekopieerd",
-                    "copyFailed": "Het nummer kan niet worden gekopieerd. Selecteer het handmatig."
+                    "parkingSuccessMessage": "Uw parkingreservatie is bevestigd. Er wordt een bevestigingsmail verzonden als de e-mailservice beschikbaar is."
                 },
     "profile":  {
                     "title":  "Mijn profiel",
@@ -1173,7 +1178,8 @@
                    "pending_approval":  "In afwachting van goedkeuring",
                    "awaiting_deposit":  "Voorschot te betalen",
                    "approved":  "Goedgekeurd",
-                   "rejected":  "Geweigerd"
+                   "rejected":  "Geweigerd",
+                   "full": "Volzet"
                },
     "organizer":  {
                       "myEvents":  "Mijn professionele evenementen",
@@ -1419,7 +1425,8 @@
         "calendarReadyHint": "Het bestand kan in uw gebruikelijke kalender worden geopend.",
         "roomCalendarDescription": "MeetSpace-zaalreservering",
         "eventCalendarDescription": "MeetSpace-evenementinschrijving",
-        "parkingCalendarDescription": "MeetSpace-parkeerreservering"
+        "parkingCalendarDescription": "MeetSpace-parkeerreservering",
+        "calendarError": "De agenda-afspraak kan niet worden gemaakt omdat de tijden van deze aanbieding ontbreken."
     },
     "adminFinance": {
         "navLabel": "Financiën",
@@ -1516,5 +1523,27 @@
                   "404Description":  "De pagina die u zoekt bestaat niet of is verplaatst.",
                   "backToHome":  "Terug naar home",
                   "generic":  "Er is een fout opgetreden"
-              }
+              },
+    "receipt": {
+      "qrUnavailable": "De QR-code kan niet worden weergegeven. U kunt de onderstaande geschreven code tonen."
+    },
+    "activity": {
+      "roomTitle": "Gereserveerde zaal",
+      "roomDescription": "MeetSpace-zaalreservering",
+      "eventTitle": "Professioneel evenement",
+      "paymentPendingTitle": "Betaling in afwachting",
+      "paymentPendingText": "{{title}} wacht op een betalingsbevestiging.",
+      "spaceConfirmedTitle": "Reservering bevestigd",
+      "spaceConfirmedText": "{{title}} is bevestigd.",
+      "eventUpcomingTitle": "Aankomend evenement",
+      "parkingReservedTitle": "Parking gereserveerd",
+      "participants_one": "{{count}} deelnemer",
+      "participants_other": "{{count}} deelnemers",
+      "spaces_one": "{{count}} plaats",
+      "spaces_other": "{{count}} plaatsen"
+    },
+    "history": {
+      "moreReservations": "Oudere reserveringen tonen",
+      "moreEvents": "Oudere evenementen tonen"
+    }
 }

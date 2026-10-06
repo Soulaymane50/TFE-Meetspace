@@ -5,6 +5,8 @@ export function parseDateTime(dateValue, timeValue) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+import { normalizeReservationPayment } from "./reservationPayment.js";
+
 export function getDateKey(date) {
   if (!date) return "";
   const year = date.getFullYear();
@@ -15,12 +17,13 @@ export function getDateKey(date) {
 
 export function formatDate(date, locale = "fr-BE", options = {}) {
   if (!date) return "";
-  return new Intl.DateTimeFormat(locale, {
+  const resolvedOptions = options.dateStyle || options.timeStyle ? options : {
     weekday: "long",
     day: "2-digit",
     month: "long",
     ...options,
-  }).format(date);
+  };
+  return new Intl.DateTimeFormat(locale, resolvedOptions).format(date);
 }
 
 export function formatTime(date) {
@@ -54,8 +57,12 @@ function isWithinHours(date, hours) {
   return date >= now && date <= limit;
 }
 
-export function buildUserActivityItems({ spaces = [], events = [], parking = [] }) {
-  const spaceItems = spaces
+function activityText(t, key, defaultValue, values = {}) {
+  return t ? t(`activity.${key}`, { defaultValue, ...values }) : defaultValue;
+}
+
+export function buildUserActivityItems({ spaces = [], events = [], parking = [] }, t) {
+  const spaceItems = spaces.map((reservation) => normalizeReservationPayment(reservation))
     .map((reservation) => {
       const start = parseDateTime(reservation.startDateTime);
       const end = parseDateTime(reservation.endDateTime);
@@ -63,8 +70,8 @@ export function buildUserActivityItems({ spaces = [], events = [], parking = [] 
         id: `space-${reservation.id}`,
         sourceId: reservation.id,
         type: "space",
-        title: reservation.espace?.name || reservation.espaceName || "Salle réservée",
-        description: reservation.justification || "Réservation de salle MeetSpace",
+        title: reservation.espace?.name || reservation.espaceName || activityText(t, "roomTitle", "Salle réservée"),
+        description: reservation.justification || activityText(t, "roomDescription", "Réservation de salle MeetSpace"),
         status: reservation.status,
         start,
         end,
@@ -81,8 +88,8 @@ export function buildUserActivityItems({ spaces = [], events = [], parking = [] 
         id: `event-${registration.id}`,
         sourceId: registration.id,
         type: "event",
-        title: registration.eventTitle || "Événement professionnel",
-        description: `${registration.numberOfParticipants || 1} participant(s)`,
+        title: registration.eventTitle || activityText(t, "eventTitle", "Événement professionnel"),
+        description: activityText(t, "participants", `${registration.numberOfParticipants || 1} participant(s)`, { count: registration.numberOfParticipants || 1 }),
         status: registration.status,
         start,
         end: null,
@@ -100,8 +107,8 @@ export function buildUserActivityItems({ spaces = [], events = [], parking = [] 
         id: `parking-${reservation.id}`,
         sourceId: reservation.id,
         type: "parking",
-        title: reservation.parkingSlotTitle || "Parking réservé",
-        description: `${reservation.reservedSpaces || 1} place(s)`,
+        title: reservation.parkingSlotTitle || activityText(t, "parkingReservedTitle", "Parking réservé"),
+        description: activityText(t, "spaces", `${reservation.reservedSpaces || 1} place(s)`, { count: reservation.reservedSpaces || 1 }),
         status: reservation.status,
         start,
         end,
@@ -116,7 +123,7 @@ export function buildUserActivityItems({ spaces = [], events = [], parking = [] 
     .sort((a, b) => a.start - b.start);
 }
 
-export function buildUserNotifications(items) {
+export function buildUserNotifications(items, t) {
   const now = new Date();
   const todayKey = getDateKey(now);
   const upcoming = items.filter((item) => item.start >= now || item.dateKey === todayKey);
@@ -127,8 +134,8 @@ export function buildUserNotifications(items) {
       id: `payment-${item.id}`,
       tone: "warning",
       badge: true,
-      title: "Paiement en attente",
-      message: `${item.title} attend une confirmation de paiement.`,
+      title: activityText(t, "paymentPendingTitle", "Paiement en attente"),
+      message: activityText(t, "paymentPendingText", `${item.title} attend une confirmation de paiement.`, { title: item.title }),
       date: item.start,
       to: item.to,
     }));
@@ -139,8 +146,8 @@ export function buildUserNotifications(items) {
       id: `space-valid-${item.id}`,
       tone: "success",
       badge: isWithinHours(item.start, 48),
-      title: "Réservation validée",
-      message: `${item.title} est confirmée.`,
+      title: activityText(t, "spaceConfirmedTitle", "Réservation validée"),
+      message: activityText(t, "spaceConfirmedText", `${item.title} est confirmée.`, { title: item.title }),
       date: item.start,
       to: item.to,
     }));
@@ -151,7 +158,7 @@ export function buildUserNotifications(items) {
       id: `event-soon-${item.id}`,
       tone: "info",
       badge: isWithinHours(item.start, 48),
-      title: "Événement à venir",
+      title: activityText(t, "eventUpcomingTitle", "Événement à venir"),
       message: item.title,
       date: item.start,
       to: item.to,
@@ -163,7 +170,7 @@ export function buildUserNotifications(items) {
       id: `parking-reserved-${item.id}`,
       tone: "success",
       badge: isWithinHours(item.start, 48),
-      title: "Parking réservé",
+      title: activityText(t, "parkingReservedTitle", "Parking réservé"),
       message: `${item.title} - ${item.description}`,
       date: item.start,
       to: item.to,

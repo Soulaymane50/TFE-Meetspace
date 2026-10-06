@@ -52,11 +52,13 @@ export default function EventRegisterPage() {
   const parkingUnit = event?.parkingPrice || 0;
   const availableParticipantPlaces = Math.max(0, event?.availablePlaces ?? event?.capacity ?? 0);
   const maxParticipants = event ? Math.max(0, Math.min(event.capacity ?? availableParticipantPlaces, availableParticipantPlaces)) : 1;
+  const isWaitlist = maxParticipants <= 0;
+  const participantLimit = isWaitlist ? Math.max(1, Math.min(20, event?.capacity ?? 20)) : maxParticipants;
   const maxParkingSpaces = Math.max(0, event?.parkingAvailableSpaces ?? event?.parkingCapacity ?? 0);
   const eventTotal = eventPrice * numberOfParticipants;
   const parkingTotal = hasParking && addParking ? parkingUnit * reservedSpaces : 0;
   const totalAmount = eventTotal + parkingTotal;
-  const requiresPayment = totalAmount > 0;
+  const requiresPayment = !isWaitlist && totalAmount > 0;
   const locale = normalizeLocale(i18n.language);
   const formattedTotalAmount = formatMoney(totalAmount, locale);
 
@@ -67,7 +69,7 @@ export default function EventRegisterPage() {
   };
 
   const handleParticipantsChange = (value) => {
-    setNumberOfParticipants(clampNumber(value, 1, maxParticipants || 1));
+    setNumberOfParticipants(clampNumber(value, 1, participantLimit));
   };
 
   const handleParkingSpacesChange = (value) => {
@@ -111,7 +113,7 @@ export default function EventRegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (maxParticipants <= 0) {
+    if (isWaitlist) {
       setIsJoiningWaitlist(true);
       try {
         await joinEventWaitlist(parseInt(id, 10), numberOfParticipants, token);
@@ -224,7 +226,7 @@ export default function EventRegisterPage() {
     <div className={styles.page}>
       <section className={styles.heroPanel} style={{ "--hero-image": `url(${eventImage})` }}>
         <div className={styles.heroText}>
-          <p className={styles.kicker}>{t("events.registerFor")}</p>
+          <p className={styles.kicker}>{t(isWaitlist ? "events.waitlist" : "events.registerFor")}</p>
           <h1 className={styles.title}>{event?.title}</h1>
           <p className={styles.subtitle}>{event?.description}</p>
         </div>
@@ -239,7 +241,7 @@ export default function EventRegisterPage() {
               <div className={styles.metricGrid}>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("common.date")}</span>
-                  <span className={styles.metricValue}>{event.startDateTime.replace("T", " ")}</span>
+                  <span className={styles.metricValue}>{new Date(event.startDateTime).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" })}</span>
                 </div>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>{t("common.capacity")}</span>
@@ -248,12 +250,12 @@ export default function EventRegisterPage() {
                   </span>
                 </div>
                 <div className={styles.metricCard}>
-                  <span className={styles.metricLabel}>{t("common.price")}</span>
+                  <span className={styles.metricLabel}>{t(isWaitlist ? "events.ticketPriceIfAvailable" : "common.price")}</span>
                   <span className={styles.metricValue}>
                     {eventPrice > 0 ? `${formatMoney(eventPrice, locale)} / ${t("events.participant", { count: 1 })}` : t("events.free")}
                   </span>
                 </div>
-                {hasParking && (
+                {hasParking && !isWaitlist && (
                   <div className={styles.metricCard}>
                     <span className={styles.metricLabel}>{t("events.parkingOption")}</span>
                     <span className={styles.metricValue}>
@@ -268,13 +270,14 @@ export default function EventRegisterPage() {
 
         <form onSubmit={handleSubmit} className={styles.mainColumn}>
           <div className={styles.flowPanel}>
-            <h3 className={styles.sectionTitle}>{t("events.numberOfParticipants")}</h3>
+            <h3 className={styles.sectionTitle}>{t(isWaitlist ? "events.waitlist" : "events.numberOfParticipants")}</h3>
+            {isWaitlist && <p className={styles.helperText}>{t("events.waitlistExplanation")}</p>}
             <div className={styles.inputRow}>
-              <label className={styles.label} htmlFor="EventRegisterPage-participants">{t("events.numberOfParticipants")}</label>
+              <label className={styles.label} htmlFor="EventRegisterPage-participants">{t(isWaitlist ? "events.waitlistRequestedPlaces" : "events.numberOfParticipants")}</label>
               <input id="EventRegisterPage-participants"
                 type="number"
                 min="1"
-                max={maxParticipants || 1}
+                max={participantLimit}
                 value={numberOfParticipants}
                 onChange={(e) => handleParticipantsChange(e.target.value)}
                 disabled={false}
@@ -288,7 +291,7 @@ export default function EventRegisterPage() {
             </div>
           </div>
 
-          {hasParking && (
+          {hasParking && !isWaitlist && (
             <div className={styles.flowPanel}>
               <div className={styles.serviceHeader}>
                 <span className={styles.serviceIcon}>P</span>
@@ -337,18 +340,27 @@ export default function EventRegisterPage() {
           )}
 
           <div className={styles.flowPanel}>
-            <h3 className={styles.sectionTitle}>{t("calendar.reservationSummary")}</h3>
+            <h3 className={styles.sectionTitle}>{t(isWaitlist ? "events.waitlistSummary" : "calendar.reservationSummary")}</h3>
             <div className={styles.metricGrid}>
               <div className={styles.metricCard}>
-                <span className={styles.metricLabel}>{t("events.numberOfParticipants")}</span>
+                <span className={styles.metricLabel}>{t(isWaitlist ? "events.waitlistRequestedPlaces" : "events.numberOfParticipants")}</span>
                 <span className={styles.metricValue}>{formatNumber(numberOfParticipants, locale)}</span>
               </div>
-              <div className={styles.metricCard}>
-                <span className={styles.metricLabel}>{t("events.parkingOption")}</span>
-                <span className={styles.metricValue}>
-                  {hasParking && addParking ? formatNumber(reservedSpaces, locale) : t("events.withoutParking")}
-                </span>
-              </div>
+              {!isWaitlist && (
+                <div className={styles.metricCard}>
+                  <span className={styles.metricLabel}>{t("events.parkingOption")}</span>
+                  <span className={styles.metricValue}>
+                    {hasParking && addParking ? formatNumber(reservedSpaces, locale) : t("events.withoutParking")}
+                  </span>
+                </div>
+              )}
+              {isWaitlist && (
+                <div className={styles.metricCard}>
+                  <span className={styles.metricLabel}>{t("events.waitlistCost")}</span>
+                  <strong className={styles.metricValue}>{t("events.waitlistFree")}</strong>
+                  <p className={styles.helperText}>{t("events.waitlistNextStep")}</p>
+                </div>
+              )}
             </div>
 
             {requiresPayment && (
@@ -367,7 +379,7 @@ export default function EventRegisterPage() {
               <button type="submit" className={styles.primaryAction} disabled={isRegistering || isJoiningWaitlist}>
                 {isRegistering || isJoiningWaitlist
                   ? t("common.loading")
-                  : maxParticipants <= 0
+                  : isWaitlist
                     ? t("events.joinWaitlist", { defaultValue: "Rejoindre la liste d’attente" })
                     : requiresPayment
                       ? t("reservation.proceedPayment")

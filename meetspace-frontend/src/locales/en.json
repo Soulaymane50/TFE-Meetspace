@@ -223,6 +223,7 @@
     "viewAllRooms": "View all rooms"
   },
   "common": {
+    "saving": "Saving…",
     "loading": "Loading...",
     "error": "An error occurred",
     "retry": "Try again",
@@ -268,7 +269,6 @@
     "full": "Full",
     "select": "Select"
   },
-
   "nav": {
     "enableDarkTheme": "Enable dark mode",
     "enableLightTheme": "Enable light mode",
@@ -343,40 +343,88 @@
       "title": "Legal notice",
       "intro": "MeetSpace is a platform for booking rooms, events and parking in Brussels, presented as a demonstration/TFE project.",
       "sections": [
-        { "title": "Presentation", "text": "MeetSpace lets users browse rooms, professional events and parking options from one interface." },
-        { "title": "Contact", "text": "Service-related requests can be sent through the Contact / Support page." },
-        { "title": "Liability", "text": "The information is provided for an academic demonstration and may be adjusted before real-world use." },
-        { "title": "Content", "text": "Texts, data and availability are used to illustrate MeetSpace booking flows." }
+        {
+          "title": "Presentation",
+          "text": "MeetSpace lets users browse rooms, professional events and parking options from one interface."
+        },
+        {
+          "title": "Contact",
+          "text": "Service-related requests can be sent through the Contact / Support page."
+        },
+        {
+          "title": "Liability",
+          "text": "The information is provided for an academic demonstration and may be adjusted before real-world use."
+        },
+        {
+          "title": "Content",
+          "text": "Texts, data and availability are used to illustrate MeetSpace booking flows."
+        }
       ]
     },
     "privacy": {
       "title": "Privacy policy",
       "intro": "This page briefly explains which data MeetSpace uses to run the demo.",
       "sections": [
-        { "title": "Account data", "text": "MeetSpace uses name, email and role information to authenticate users and personalize their workspace." },
-        { "title": "Bookings", "text": "Room, event, parking and payment data are used to show confirmations and user history." },
-        { "title": "Support", "text": "Messages sent through the contact form are used only to process the request." },
-        { "title": "Security", "text": "Passwords are stored as hashes and sensitive information must never be placed in the code." }
+        {
+          "title": "Account data",
+          "text": "MeetSpace uses name, email and role information to authenticate users and personalize their workspace."
+        },
+        {
+          "title": "Bookings",
+          "text": "Room, event, parking and payment data are used to show confirmations and user history."
+        },
+        {
+          "title": "Support",
+          "text": "Messages sent through the contact form are used only to process the request."
+        },
+        {
+          "title": "Security",
+          "text": "Passwords are stored as hashes and sensitive information must never be placed in the code."
+        }
       ]
     },
     "terms": {
       "title": "Terms of use",
       "intro": "These terms summarize the basic rules for using MeetSpace in the demo context.",
       "sections": [
-        { "title": "MeetSpace role", "text": "MeetSpace centralizes room bookings, event registrations and parking reservations." },
-        { "title": "User", "text": "Users must provide accurate information and respect the booking rules shown on the platform." },
-        { "title": "Organizer", "text": "An organizer can submit professional events for validation before publication." },
-        { "title": "Availability", "text": "Availability, prices and capacities may vary according to demonstration data." }
+        {
+          "title": "MeetSpace role",
+          "text": "MeetSpace centralizes room bookings, event registrations and parking reservations."
+        },
+        {
+          "title": "User",
+          "text": "Users must provide accurate information and respect the booking rules shown on the platform."
+        },
+        {
+          "title": "Organizer",
+          "text": "An organizer can submit professional events for validation before publication."
+        },
+        {
+          "title": "Availability",
+          "text": "Availability, prices and capacities may vary according to demonstration data."
+        }
       ]
     },
     "cancellation": {
       "title": "Cancellation / refund",
       "intro": "One predictable policy applies to paid rooms, events and parking bookings on MeetSpace.",
       "sections": [
-        { "title": "At least 48 hours before", "text": "100% of the paid amount is refunded, including parking options linked to an event registration." },
-        { "title": "Between 24 and 48 hours before", "text": "50% of the paid amount is refunded to the original payment method." },
-        { "title": "Less than 24 hours before", "text": "No automatic refund is granted because capacity was held for the booking." },
-        { "title": "Processing", "text": "The exact amount is shown before confirmation. The Stripe refund starts immediately and then follows bank processing times." }
+        {
+          "title": "At least 48 hours before",
+          "text": "100% of the paid amount is refunded, including parking options linked to an event registration."
+        },
+        {
+          "title": "Between 24 and 48 hours before",
+          "text": "50% of the paid amount is refunded to the original payment method."
+        },
+        {
+          "title": "Less than 24 hours before",
+          "text": "No automatic refund is granted because capacity was held for the booking."
+        },
+        {
+          "title": "Processing",
+          "text": "The exact amount is shown before confirmation. The Stripe refund starts immediately and then follows bank processing times."
+        }
       ]
     }
   },
@@ -422,7 +470,6 @@
     "occupancy": "occupancy",
     "unscheduled": "Unscheduled"
   },
-
   "auth": {
     "login": "Login",
     "register": "Create an account",
@@ -498,7 +545,6 @@
     "invalidLinkDescription": "This reset link is invalid or has expired.",
     "requestNewLink": "Request a new link"
   },
-
   "spaces": {
     "kicker": "MeetSpace rooms",
     "title": "Meeting rooms and premium conference rooms",
@@ -606,14 +652,12 @@
       }
     }
   },
-
   "spaceType": {
     "salle": "Meeting room",
     "SALLE": "Meeting room",
     "premiumRoom": "Premium conference room",
     "PREMIUM_ROOM": "Premium conference room"
   },
-
   "reservation": {
     "operationFailed": "This reservation could not be processed. Check its status in your reservations before trying again.",
     "newReservation": "New room reservation",
@@ -635,6 +679,8 @@
     "cancellationConfirmed": "Cancellation confirmed",
     "refundConfirmed": "Refund applied: {{percent}}% ({{amount}}).",
     "paymentDeadline": "Pay before",
+    "paymentExpired": "Payment expired",
+    "paymentExpiredHint": "Request cancelled: the payment deadline or the start of the time slot has passed.",
     "passed": "Passed",
     "justification": "Business context",
     "justificationLabel": "Premium room request context",
@@ -666,20 +712,18 @@
     "editSlot": "Edit slot",
     "slotUnavailable": "This time slot is no longer available. Choose a free slot in the schedule."
   },
-
   "workspace": {
     "navigation": "Workspace navigation",
     "adminLabel": "Administration",
     "organizerLabel": "Organizer workspace",
     "accountLabel": "Personal workspace"
   },
-
   "calendar": {
-        "dayOverview": "Your day at a glance",
-        "occupied": "Occupied",
-        "unoccupied": "No booking",
-        "startsForDuration": "{{count}} possible start times for {{duration}} h. Choose a time below.",
-        "noStartsForDuration": "No start times available for {{duration}} h. Try another duration or day.",
+    "dayOverview": "Your day at a glance",
+    "occupied": "Occupied",
+    "unoccupied": "No booking",
+    "startsForDuration": "{{count}} possible start times for {{duration}} h. Choose a time below.",
+    "noStartsForDuration": "No start times available for {{duration}} h. Try another duration or day.",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
     "mon": "Mon",
@@ -731,7 +775,6 @@
     "noSlotSelected": "Choose a start time for {{duration}}h",
     "statusForDuration": "Calendar statuses are calculated for the selected duration: {{duration}}h."
   },
-
   "events": {
     "kicker": "MeetSpace • Booking platform",
     "title": "Upcoming professional events",
@@ -791,6 +834,8 @@
     "viewMode": "View mode",
     "viewCards": "Cards",
     "viewPlanning": "Planning",
+    "fetchError": "Events could not be loaded. Please try again shortly.",
+    "fetchTimeout": "Events are taking too long to respond. Please try again shortly.",
     "resultsHint": "Check the programme and remaining places before registering.",
     "activeFilters": "active filters",
     "badgeAvailable": "Available",
@@ -801,6 +846,13 @@
     "remainingPlaces": "places left",
     "statusParkingIncluded": "Parking quota open",
     "statusParkingUnavailable": "No parking",
+    "ticketPriceIfAvailable": "Ticket price if a place becomes available",
+    "waitlistExplanation": "This event is full. Tell us how many places you need: you will receive a notification in your account if enough places become available. The waiting list does not guarantee admission.",
+    "waitlistRequestedPlaces": "Places requested",
+    "waitlistSummary": "Your waiting list request",
+    "waitlistCost": "Joining the waiting list",
+    "waitlistFree": "Free — no payment",
+    "waitlistNextStep": "If places become available, you will need to confirm your registration and pay for the ticket if the event is paid. You can choose parking at that point.",
     "ctaWaitlist": "Waitlist",
     "dailyAgenda": "Daily agenda",
     "full": "Full",
@@ -815,8 +867,8 @@
     "endDate": "End date",
     "parkingOption": "Parking option"
   },
-
   "parking": {
+    "configurationUnavailable": "Unable to load the configured capacity for this session. Please try again.",
     "kicker": "MeetSpace • Parking access",
     "title": "Parking - Available slots",
     "myReservations": "My parking reservations",
@@ -825,6 +877,7 @@
     "reserve": "Book",
     "reservePlace": "Book a parking slot",
     "reservedSpacesLabel": "Number of spaces",
+    "averageRate": "Average rate / space",
     "rateLabel": "Rate",
     "places": "Parking spaces",
     "placesAvailable": "Available parking spaces",
@@ -867,9 +920,9 @@
     "automaticOrganizerHelp": "MeetSpace shares the 150 physical spaces between overlapping events. One free space is reserved for your team; attendees then book their own space.",
     "automaticAdminHelp": "The 150 physical spaces are shared automatically between overlapping events. Consecutive time slots reuse the full capacity.",
     "place": "space",
-    "previewAutomatic": "Shared parking \u00b7 {{price}} / vehicle",
-    "currentAllocation": "Shared parking \u2014 current allocation",
-    "organizerAllocationSummary": "{{available}} spaces still bookable out of {{allocated}} \u00b7 {{price}} / vehicle",
+    "previewAutomatic": "Shared parking · {{price}} / vehicle",
+    "currentAllocation": "Shared parking — current allocation",
+    "organizerAllocationSummary": "{{available}} spaces still bookable out of {{allocated}} · {{price}} / vehicle",
     "scanAccess": "Scan an access pass",
     "sharedCapacity": "out of 150 shared physical spaces",
     "sharedCapacitySummary": "Shared physical capacity, reused by schedule and divided between simultaneous events.",
@@ -905,7 +958,6 @@
     "availableOnDay": "spaces available out of {{count}} allocated that day",
     "availableAcrossDays": "spaces available out of {{count}} spaces allocated in the displayed quotas"
   },
-
   "payment": {
     "title": "Payment",
     "secure": "Secure payment",
@@ -921,22 +973,12 @@
     "error": "An error occurred. Please try again.",
     "unavailableTitle": "Payment unavailable",
     "unavailableMessage": "Payment is not configured for this environment. Please try again later or contact the MeetSpace team.",
-        "securedBy": "Secured by Stripe",
+    "securedBy": "Secured by Stripe",
     "successTitle": "Payment confirmed",
     "spaceSuccessMessage": "Your room reservation is confirmed. A confirmation email is sent if the email service is available.",
     "eventSuccessMessage": "Your event registration is confirmed. A confirmation email is sent if the email service is available.",
-    "parkingSuccessMessage": "Your parking reservation is confirmed. A confirmation email is sent if the email service is available.",
-    "testMode": "Stripe demonstration mode",
-    "testModeHelp": "These cards simulate payment. No real charge is made.",
-    "testCardSuccess": "Successful payment",
-    "testCardAuthentication": "3D Secure authentication",
-    "testCardDeclined": "Declined payment",
-    "testCardDetails": "Expiry: 12/34 · CVC: 123 · Name: any value",
-    "copyTestCard": "Copy",
-    "testCardCopied": "Copied",
-    "copyFailed": "Unable to copy the number. Select it manually."
+    "parkingSuccessMessage": "Your parking reservation is confirmed. A confirmation email is sent if the email service is available."
   },
-
   "profile": {
     "title": "My profile",
     "accountKicker": "MeetSpace account",
@@ -978,7 +1020,6 @@
     "sessionExpired": "Your session is no longer valid. Please log in again before continuing.",
     "deleteRequestFailed": "Unable to start account deletion validation."
   },
-
   "emailChange": {
     "kicker": "Account security",
     "confirmingTitle": "Validating change",
@@ -992,7 +1033,6 @@
     "loginAgain": "Log in again",
     "back": "Back to profile"
   },
-
   "accountDeletion": {
     "kicker": "Account security",
     "title": "Deletion validation",
@@ -1007,7 +1047,6 @@
     "invalidTitle": "Invalid link",
     "missingToken": "The validation link does not contain a token."
   },
-
   "admin": {
     "dashboard": "Admin Dashboard",
     "dashboardSubtitle": "Manage professional events, rooms, parking and registrations",
@@ -1070,7 +1109,7 @@
     "backToList": "Back to list",
     "confirmDelete": "Delete this item?",
     "confirmDeleteSpace": "Delete this room?",
-    "confirmDeleteEvent": "Delete this event?",
+    "confirmDeleteEvent": "Are you sure you want to delete this event?",
     "confirmDeleteSession": "Delete this slot?",
     "noSpaces": "No rooms configured",
     "noEvents": "No professional events",
@@ -1129,19 +1168,12 @@
     "addressRequired": "Please provide the event venue",
     "addSession": "Add parking slot",
     "viewAllReservations": "View all reservations",
-    "totalUsers": "Users",
-    "totalSpaces": "Rooms",
-    "totalEvents": "Professional events",
-    "totalSessions": "Parking slots",
-    "totalRevenue": "Total revenue",
-    "confirmDeleteEvent": "Are you sure you want to delete this event?",
     "pendingReservations": "Pending premium approvals",
     "noPendingReservations": "No premium conference room requests pending",
     "premiumRoomReservationsPending": "premium conference room request(s) pending approval",
     "rejectReservation": "Reject reservation",
     "rejectReservationMessage": "Please provide the reason for rejecting this premium conference room request.",
     "confirmApproveRoomRequest": "Do you want to approve this premium conference room request?",
-    "confirmReject": "Confirm rejection",
     "usersManagement": "User Management",
     "noUsers": "No users",
     "role": "Role",
@@ -1173,7 +1205,6 @@
     "roomTimeConflict": "Time conflict",
     "roomPlanningEmptyMessage": "Add a first event to populate the room planning view."
   },
-
   "validation": {
     "required": "This field is required",
     "invalidEmail": "Invalid email",
@@ -1182,8 +1213,8 @@
     "endBeforeStart": "End date must be after start date",
     "pricePositive": "Price must be positive"
   },
-
   "status": {
+    "full": "Full",
     "available": "Available",
     "unavailable": "Unavailable",
     "confirmed": "Confirmed",
@@ -1198,7 +1229,6 @@
     "approved": "Approved",
     "rejected": "Rejected"
   },
-
   "organizer": {
     "myEvents": "My professional events",
     "manageYourEvents": "Manage your conferences, seminars, workshops and training sessions, and track their status.",
@@ -1296,7 +1326,6 @@
     "previewRoomUsage": "{{usage}}% of the room",
     "previewCapacityFallback": "Capacity to complete"
   },
-
   "finance": {
     "adminTitle": "Estimated revenue",
     "organizerTitle": "Financial estimate",
@@ -1385,7 +1414,11 @@
     "commissionShort": "Commission",
     "roomShort": "Room",
     "periodLabel": "Financial period",
-    "period": { "all": "All", "year": "This year", "30d": "30 days" },
+    "period": {
+      "all": "All",
+      "year": "This year",
+      "30d": "30 days"
+    },
     "grossCollected": "Gross collected",
     "refundedAmount": "Refunded",
     "processingFees": "Estimated payment fees",
@@ -1399,7 +1432,6 @@
     "refreshError": "The period could not be refreshed. The last valid figures remain displayed.",
     "netShort": "Estimated net"
   },
-
   "detail": {
     "notFound": "This offer is no longer available.",
     "notFoundTitle": "Offer not found",
@@ -1445,7 +1477,8 @@
     "calendarReadyHint": "The file can be opened in your usual calendar.",
     "roomCalendarDescription": "MeetSpace room booking",
     "eventCalendarDescription": "MeetSpace event registration",
-    "parkingCalendarDescription": "MeetSpace parking booking"
+    "parkingCalendarDescription": "MeetSpace parking booking",
+    "calendarError": "The calendar entry cannot be created because the times for this listing are unavailable."
   },
   "adminFinance": {
     "navLabel": "Finance",
@@ -1455,7 +1488,11 @@
     "kicker": "Finance and control",
     "title": "Platform finance.",
     "subtitle": "Track commercial revenue, payments actually collected and outstanding amounts separately.",
-    "period": { "30d": "30 days", "90d": "90 days", "year": "This year" },
+    "period": {
+      "30d": "30 days",
+      "90d": "90 days",
+      "year": "This year"
+    },
     "keyFigures": "Key financial indicators",
     "commercialRevenueHelp": "Rooms, parking and event contribution",
     "cashHelp": "Payments received after refunds and fees",
@@ -1488,6 +1525,9 @@
     "previewHelp": "Three figures to monitor the position without overloading the operational dashboard.",
     "openDashboard": "Open finance",
     "previewNote": "Charts, payment details and history are grouped in the Finance area."
+  },
+  "receipt": {
+    "qrUnavailable": "The QR code cannot be displayed. You can present the written code below."
   },
   "checkIn": {
     "openConsole": "Manage check-in",
@@ -1542,5 +1582,24 @@
     "404Description": "The page you are looking for does not exist or has been moved.",
     "backToHome": "Back to home",
     "generic": "An error occurred"
+  },
+  "activity": {
+    "roomTitle": "Booked room",
+    "roomDescription": "MeetSpace room booking",
+    "eventTitle": "Professional event",
+    "paymentPendingTitle": "Payment pending",
+    "paymentPendingText": "{{title}} is awaiting payment confirmation.",
+    "spaceConfirmedTitle": "Booking confirmed",
+    "spaceConfirmedText": "{{title}} is confirmed.",
+    "eventUpcomingTitle": "Upcoming event",
+    "parkingReservedTitle": "Parking booked",
+    "participants_one": "{{count}} participant",
+    "participants_other": "{{count}} participants",
+    "spaces_one": "{{count}} space",
+    "spaces_other": "{{count}} spaces"
+  },
+  "history": {
+    "moreReservations": "Show older reservations",
+    "moreEvents": "Show older events"
   }
 }

@@ -250,13 +250,13 @@ export default function UserNotificationCenter({ token, user }) {
 
   const notifications = useMemo(() => {
     const roleItems = roleNotifications;
-    const items = buildUserActivityItems(activity);
+    const items = buildUserActivityItems(activity, t);
     const activityItems = roleItems.length === 0 && persistentNotifications.length === 0
-      ? buildUserNotifications(items)
+      ? buildUserNotifications(items, t)
       : [];
     return [...persistentNotifications, ...roleItems, ...activityItems]
       .sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [activity, persistentNotifications, roleNotifications]);
+  }, [activity, persistentNotifications, roleNotifications, t]);
 
   const urgentUnread = useMemo(
     () => notifications.filter((notification) => notification.badge && !readIds.includes(notification.id)),
