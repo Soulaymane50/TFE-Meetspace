@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { resetPasswordRequest } from "../services/api";
@@ -15,12 +15,20 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const submitLock = useRef(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const passwordChecks = getPasswordChecks(password);
 
+  useEffect(() => {
+    if (!success) return undefined;
+    const timer = window.setTimeout(() => navigate("/login"), 3000);
+    return () => window.clearTimeout(timer);
+  }, [success, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitLock.current) return;
     setError("");
 
     if (password !== confirmPassword) {
@@ -33,12 +41,13 @@ export default function ResetPasswordPage() {
       return;
     }
 
+    submitLock.current = true;
     setLoading(true);
 
     try {
       await resetPasswordRequest(token, password);
       setSuccess(true);
-      setTimeout(() => navigate("/login"), 3000);
+
     } catch (err) {
       if (err.message === "PASSWORD_WEAK") {
         setError(t("auth.passwordRequirementsError"));
@@ -50,6 +59,7 @@ export default function ResetPasswordPage() {
         setError(t("auth.resetPasswordError"));
       }
     } finally {
+      submitLock.current = false;
       setLoading(false);
     }
   };
@@ -121,8 +131,11 @@ export default function ResetPasswordPage() {
 
           <form onSubmit={handleSubmit}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>{t("profile.newPassword")}</label>
+              <label className={styles.label} htmlFor="reset-new-password">{t("profile.newPassword")}</label>
               <input
+                id="reset-new-password"
+                autoComplete="new-password"
+                disabled={loading}
                 type="password"
                 placeholder={t("profile.newPassword")}
                 value={password}
@@ -149,8 +162,11 @@ export default function ResetPasswordPage() {
             </div>
 
             <div className={styles.formGroup}>
-              <label className={styles.label}>{t("profile.confirmPassword")}</label>
+              <label className={styles.label} htmlFor="reset-confirm-password">{t("profile.confirmPassword")}</label>
               <input
+                id="reset-confirm-password"
+                autoComplete="new-password"
+                disabled={loading}
                 type="password"
                 placeholder={t("profile.confirmPassword")}
                 value={confirmPassword}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { registerRequest } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link, useLocation } from "react-router-dom";
@@ -15,6 +15,10 @@ export default function RegisterPage() {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const requestVersion = useRef(0);
+  const submitLock = useRef(false);
+  useEffect(() => () => { requestVersion.current += 1; }, []);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,7 +28,7 @@ export default function RegisterPage() {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (isSubmitting) return;
+    if (submitLock.current) return;
 
     setError("");
 
@@ -38,6 +42,8 @@ export default function RegisterPage() {
       return;
     }
 
+    submitLock.current = true;
+    const version = requestVersion.current;
     try {
       setIsSubmitting(true);
       const data = await registerRequest({
@@ -47,9 +53,11 @@ export default function RegisterPage() {
         password,
         confirmPassword,
       });
+      if (version !== requestVersion.current) return;
       login(data.user, data.token);
       navigate(location.state?.from || "/espace", { replace: true });
     } catch (err) {
+      if (version !== requestVersion.current) return;
       const message = err?.message;
       if (message === "EMAIL_ALREADY_EXISTS") {
         setError(t("auth.emailAlreadyExists"));
@@ -61,7 +69,10 @@ export default function RegisterPage() {
         setError(t("auth.registerError"));
       }
     } finally {
-      setIsSubmitting(false);
+      if (version === requestVersion.current) {
+        submitLock.current = false;
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -87,11 +98,15 @@ export default function RegisterPage() {
           <p className={styles.cardEyebrow}>{t("auth.registerCardEyebrow")}</p>
           <h2 className={styles.title}>{t("auth.register")}</h2>
           <p className={styles.subtitle}>{t("auth.registerSubtitle")}</p>
-          <form onSubmit={submit}>
+          <form onSubmit={submit} aria-busy={isSubmitting}>
             <div className={styles.formRow}>
               <div className={styles.formGroup}>
-                <label className={styles.label}>{t("auth.firstName")}</label>
+                <label htmlFor="register-firstName" className={styles.label}>{t("auth.firstName")}</label>
                 <input
+                  id="register-firstName"
+                  name="firstName"
+                  autoComplete="given-name"
+                  disabled={isSubmitting}
                   type="text"
                   placeholder={t("auth.firstName")}
                   value={firstName}
@@ -101,8 +116,12 @@ export default function RegisterPage() {
                 />
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>{t("auth.lastName")}</label>
+                <label htmlFor="register-lastName" className={styles.label}>{t("auth.lastName")}</label>
                 <input
+                  id="register-lastName"
+                  name="lastName"
+                  autoComplete="family-name"
+                  disabled={isSubmitting}
                   type="text"
                   placeholder={t("auth.lastName")}
                   value={lastName}
@@ -113,8 +132,12 @@ export default function RegisterPage() {
               </div>
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.label}>{t("auth.email")}</label>
+              <label htmlFor="register-email" className={styles.label}>{t("auth.email")}</label>
               <input
+                id="register-email"
+                name="email"
+                autoComplete="email"
+                disabled={isSubmitting}
                 type="email"
                 placeholder={t("auth.email")}
                 value={email}
@@ -124,8 +147,12 @@ export default function RegisterPage() {
               />
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.label}>{t("auth.password")}</label>
+              <label htmlFor="register-password" className={styles.label}>{t("auth.password")}</label>
               <input
+                id="register-password"
+                name="password"
+                autoComplete="new-password"
+                disabled={isSubmitting}
                 type="password"
                 placeholder={t("auth.password")}
                 value={password}
@@ -149,8 +176,12 @@ export default function RegisterPage() {
               </ul>
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.label}>{t("auth.confirmPassword")}</label>
+              <label htmlFor="register-confirmPassword" className={styles.label}>{t("auth.confirmPassword")}</label>
               <input
+                id="register-confirmPassword"
+                name="confirmPassword"
+                autoComplete="new-password"
+                disabled={isSubmitting}
                 type="password"
                 placeholder={t("auth.confirmPassword")}
                 value={confirmPassword}
@@ -163,7 +194,7 @@ export default function RegisterPage() {
               {isSubmitting ? t("auth.registeringButton") : t("auth.registerButton")}
             </button>
           </form>
-          {error && <p className={styles.error}>{error}</p>}
+          {error && <p className={styles.error} role="alert">{error}</p>}
           <div className={styles.footer}>
             <p className={styles.link}>
               {t("auth.hasAccount")} <Link to="/login" state={{ from: location.state?.from }}>{t("auth.loginLink")}</Link>

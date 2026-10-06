@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getMyProfile, updateMyProfile, changeMyPassword, requestAccountDeletion, requestEmailChange } from "../services/api";
@@ -20,6 +20,10 @@ export default function ProfilePage() {
   const { user, token, login, logout, rememberSession } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const userId = user?.id;
+  const profileDirty = useRef(false);
+  const profileSaveLock = useRef(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const [profile, setProfile] = useState(() => profileFromUser(user));
   const [msg, setMsg] = useState("");
@@ -43,34 +47,42 @@ export default function ProfilePage() {
   const [emailSaving, setEmailSaving] = useState(false);
 
   useEffect(() => {
-    if (token) {
-      getMyProfile(token)
-        .then((data) => {
-          setProfile({
-            firstName: data.firstName || user?.firstName || "",
-            lastName: data.lastName || user?.lastName || "",
-            email: data.email || user?.email || "",
-          });
-        })
-        .catch((err) => {
-          if (err?.status === 401 || err?.status === 403) {
-            logout();
-            return;
-          }
-
-          setError(t("profile.loadFailed"));
-        });
-    }
-  }, [token, user, logout, t]);
+    if (!token) return undefined;
+    let cancelled = false;
+    setLoadFailed(false);
+    getMyProfile(token)
+      .then((data) => {
+        if (!cancelled && !profileDirty.current) {
+          setProfile((current) => ({
+            firstName: data.firstName ?? current.firstName,
+            lastName: data.lastName ?? current.lastName,
+            email: data.email ?? current.email,
+          }));
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (err?.status === 401 || err?.status === 403) {
+          logout();
+          return;
+        }
+        setLoadFailed(true);
+      });
+    return () => { cancelled = true; };
+  }, [token, userId, logout]);
 
   const submitProfile = async (e) => {
     e.preventDefault();
+    if (profileSaveLock.current) return;
+    profileSaveLock.current = true;
     setMsg("");
     setError("");
 
     setProfileSaving(true);
     try {
       const updated = await updateMyProfile(profile, token);
+      profileDirty.current = false;
+      setProfile(profileFromUser(updated));
       setMsg(t("profile.updateSuccess"));
 
       if (user) {
@@ -92,6 +104,7 @@ export default function ProfilePage() {
         setError(t("profile.updateFailed"));
       }
     } finally {
+      profileSaveLock.current = false;
       setProfileSaving(false);
     }
   };
@@ -229,9 +242,9 @@ export default function ProfilePage() {
           <div className={styles.formGroup}>
             <label className={styles.label} htmlFor="profile-first-name">{t("auth.firstName")}</label>
             <input
-              id="profile-first-name" autoComplete="given-name"
+              id="profile-first-name" disabled={profileSaving} autoComplete="given-name"
               value={profile.firstName}
-              onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+              onChange={(e) => { profileDirty.current = true; setProfile({ ...profile, firstName: e.target.value }); }}
               className={styles.input}
             />
           </div>
@@ -239,9 +252,9 @@ export default function ProfilePage() {
           <div className={styles.formGroup}>
             <label className={styles.label} htmlFor="profile-last-name">{t("auth.lastName")}</label>
             <input
-              id="profile-last-name" autoComplete="family-name"
+              id="profile-last-name" disabled={profileSaving} autoComplete="family-name"
               value={profile.lastName}
-              onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+              onChange={(e) => { profileDirty.current = true; setProfile({ ...profile, lastName: e.target.value }); }}
               className={styles.input}
             />
           </div>
@@ -262,6 +275,7 @@ export default function ProfilePage() {
           </button>
         </form>
         {msg && <p className={styles.success}>{msg}</p>}
+        {loadFailed && <p className={styles.error} role="alert">{t("profile.loadFailed")}</p>}
         {error && <p className={styles.error}>{error}</p>}
 
         <div className={styles.inlineDivider} />

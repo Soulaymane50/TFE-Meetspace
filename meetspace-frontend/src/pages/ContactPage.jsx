@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { sendSupportContactRequest } from "../services/api";
@@ -18,6 +18,7 @@ export default function ContactPage() {
   const { user, token } = useAuth();
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
+  const submitLock = useRef(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
@@ -59,6 +60,7 @@ export default function ContactPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitLock.current) return;
     setError("");
     setSuccess("");
 
@@ -68,6 +70,7 @@ export default function ContactPage() {
       return;
     }
 
+    submitLock.current = true;
     setLoading(true);
     try {
       await sendSupportContactRequest(form, token);
@@ -80,6 +83,7 @@ export default function ContactPage() {
     } catch {
       setError(t("support.errors.generic"));
     } finally {
+      submitLock.current = false;
       setLoading(false);
     }
   };
@@ -110,6 +114,7 @@ export default function ContactPage() {
             <label className={styles.field}>
               <span>{t("support.name")}</span>
               <input
+                disabled={loading}
                 value={form.name}
                 onChange={(event) => updateField("name", event.target.value)}
                 maxLength={120}
@@ -120,6 +125,7 @@ export default function ContactPage() {
             <label className={styles.field}>
               <span>{t("support.email")}</span>
               <input
+                disabled={loading}
                 type="email"
                 value={form.email}
                 onChange={(event) => updateField("email", event.target.value)}
@@ -132,6 +138,7 @@ export default function ContactPage() {
           <label className={styles.field}>
             <span>{t("support.category")}</span>
             <select
+                disabled={loading}
               value={form.category}
               onChange={(event) => updateField("category", event.target.value)}
             >
@@ -146,6 +153,7 @@ export default function ContactPage() {
           <label className={styles.field}>
             <span>{t("support.subject")}</span>
             <input
+                disabled={loading}
               value={form.subject}
               onChange={(event) => updateField("subject", event.target.value)}
               maxLength={160}
@@ -156,6 +164,7 @@ export default function ContactPage() {
           <label className={styles.field}>
             <span>{t("support.message")}</span>
             <textarea
+                disabled={loading}
               value={form.message}
               onChange={(event) => updateField("message", event.target.value)}
               maxLength={3000}
@@ -167,6 +176,7 @@ export default function ContactPage() {
           <label className={styles.field}>
             <span>{t("support.reference")}</span>
             <input
+                disabled={loading}
               value={form.reservationReference}
               onChange={(event) => updateField("reservationReference", event.target.value)}
               maxLength={120}
@@ -174,8 +184,8 @@ export default function ContactPage() {
             />
           </label>
 
-          {error && <p className={styles.error}>{error}</p>}
-          {success && <p className={styles.success}>{success}</p>}
+          {error && <p className={styles.error} role="alert">{error}</p>}
+          {success && <p className={styles.success} role="status">{success}</p>}
 
           <button type="submit" disabled={loading}>
             {loading ? t("common.loading") : t("support.submit")}

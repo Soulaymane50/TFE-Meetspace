@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { loginRequest } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link, useLocation } from "react-router-dom";
@@ -12,6 +12,10 @@ export default function LoginPage() {
   const location = useLocation();
   const { t } = useTranslation();
 
+  const requestVersion = useRef(0);
+  const submitLock = useRef(false);
+  useEffect(() => () => { requestVersion.current += 1; }, []);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,14 +24,18 @@ export default function LoginPage() {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (isSubmitting) return;
+    if (submitLock.current) return;
     setError("");
+    submitLock.current = true;
+    const version = requestVersion.current;
     try {
       setIsSubmitting(true);
       const data = await loginRequest(email, password);
+      if (version !== requestVersion.current) return;
       login(data.user, data.token, { remember });
       navigate(location.state?.from || "/espace", { replace: true });
     } catch (err) {
+      if (version !== requestVersion.current) return;
       if (err.message === "ACCOUNT_BANNED") {
         setError(t("auth.accountBanned"));
       } else if (err.message === "ACCOUNT_DELETED") {
@@ -40,7 +48,10 @@ export default function LoginPage() {
         setError(t("auth.loginError"));
       }
     } finally {
-      setIsSubmitting(false);
+      if (version === requestVersion.current) {
+        submitLock.current = false;
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -71,10 +82,14 @@ export default function LoginPage() {
               {t("auth.sessionExpired")}
             </p>
           )}
-          <form onSubmit={submit}>
+          <form onSubmit={submit} aria-busy={isSubmitting}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>{t("auth.email")}</label>
+              <label htmlFor="login-email" className={styles.label}>{t("auth.email")}</label>
               <input
+                id="login-email"
+                name="email"
+                autoComplete="email"
+                disabled={isSubmitting}
                 type="email"
                 placeholder={t("auth.email")}
                 value={email}
@@ -84,8 +99,12 @@ export default function LoginPage() {
               />
             </div>
             <div className={styles.formGroup}>
-              <label className={styles.label}>{t("auth.password")}</label>
+              <label htmlFor="login-password" className={styles.label}>{t("auth.password")}</label>
               <input
+                id="login-password"
+                name="password"
+                autoComplete="current-password"
+                disabled={isSubmitting}
                 type="password"
                 placeholder={t("auth.password")}
                 value={password}
@@ -97,6 +116,7 @@ export default function LoginPage() {
             <label className={styles.rememberRow}>
               <input
                 type="checkbox"
+                disabled={isSubmitting}
                 checked={remember}
                 onChange={(event) => setRemember(event.target.checked)}
               />
@@ -112,7 +132,7 @@ export default function LoginPage() {
           <p className={styles.forgotLink}>
             <Link to="/forgot-password">{t("auth.forgotPassword")}</Link>
           </p>
-          {error && <p className={styles.error}>{error}</p>}
+          {error && <p className={styles.error} role="alert">{error}</p>}
           <div className={styles.footer}>
             <p className={styles.link}>
               {t("auth.noAccount")} <Link to="/register" state={{ from: location.state?.from }}>{t("auth.createAccount")}</Link>

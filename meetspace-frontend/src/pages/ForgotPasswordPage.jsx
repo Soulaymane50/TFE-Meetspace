@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { forgotPasswordRequest } from "../services/api";
@@ -7,6 +7,10 @@ import styles from "./ForgotPasswordPage.module.css";
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();
+  const requestVersion = useRef(0);
+  const submitLock = useRef(false);
+  useEffect(() => () => { requestVersion.current += 1; }, []);
+
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -14,16 +18,24 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitLock.current) return;
+    submitLock.current = true;
+    const version = requestVersion.current;
     setLoading(true);
     setError("");
 
     try {
-      await forgotPasswordRequest(email);
+      await forgotPasswordRequest(email.trim().toLowerCase());
+      if (version !== requestVersion.current) return;
       setSuccess(true);
     } catch {
+      if (version !== requestVersion.current) return;
       setError(t("auth.forgotPasswordError"));
     } finally {
-      setLoading(false);
+      if (version === requestVersion.current) {
+        submitLock.current = false;
+        setLoading(false);
+      }
     }
   };
 
@@ -74,10 +86,14 @@ export default function ForgotPasswordPage() {
           <h2 className={styles.title}>{t("auth.forgotPassword")}</h2>
           <p className={styles.subtitle}>{t("auth.forgotPasswordDescription")}</p>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} aria-busy={loading}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>{t("auth.email")}</label>
+              <label htmlFor="recovery-email" className={styles.label}>{t("auth.email")}</label>
               <input
+                id="recovery-email"
+                name="email"
+                autoComplete="email"
+                disabled={loading}
                 type="email"
                 placeholder={t("auth.emailPlaceholder")}
                 value={email}
@@ -87,7 +103,7 @@ export default function ForgotPasswordPage() {
               />
             </div>
 
-            {error && <p className={styles.error}>{error}</p>}
+            {error && <p className={styles.error} role="alert">{error}</p>}
 
             <button type="submit" className={styles.button} disabled={loading}>
               {loading ? t("common.loading") : t("auth.sendResetLink")}
