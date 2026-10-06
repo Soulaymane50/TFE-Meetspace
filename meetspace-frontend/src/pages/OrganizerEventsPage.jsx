@@ -1,3 +1,4 @@
+import { recentHistory } from "../utils/recentHistory";
 import { canEditOrganizerEvent } from "../utils/eventPlanning";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -101,6 +102,7 @@ export default function OrganizerEventsPage() {
   const [financeSummary, setFinanceSummary] = useState(null);
   const [financeError, setFinanceError] = useState(false);
   const [paymentEvent, setPaymentEvent] = useState(null);
+  const [historyLimits, setHistoryLimits] = useState({});
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -212,11 +214,23 @@ export default function OrganizerEventsPage() {
     return aIsPast ? bTime - aTime : aTime - bTime;
   });
   const filteredEvents = filter === "ALL" ? sortedEvents : sortedEvents.filter((event) => event.status === filter);
+  const planningEvents = filteredEvents.filter((event) => new Date(event.endDateTime || event.startDateTime).getTime() > now);
   const upcomingEvents = sortedEvents.filter((event) => new Date(event.endDateTime) >= new Date());
   const nextEvent = upcomingEvents[0] || sortedEvents[0];
   const publicationRate = stats.total > 0 ? Math.round((stats.published / stats.total) * 100) : 0;
   const activeEvents = stats.published + stats.pending;
-  const filteredCount = filteredEvents.length;
+  const historyKey = `${user?.id}:${filter}`;
+  const eventHistory = recentHistory(filteredEvents, {
+    getEnd: (event) => event.endDateTime || event.startDateTime,
+    limit: historyLimits[historyKey] || 10,
+    now,
+    keep: (event) => ["PENDING_APPROVAL", "AWAITING_DEPOSIT"].includes(event.status)
+      || (event.status === "PUBLISHED" && !event.balancePaidAt && Number(event.balanceDueCents) > 0),
+  });
+  const revealMoreHistory = () => setHistoryLimits((current) => ({
+    ...current, [historyKey]: (current[historyKey] || 10) + 10,
+  }));
+  const filteredCount = eventHistory.visible.length;
   const financeEvents = financeSummary?.events ?? [];
   const financeByEventId = new Map(financeEvents.map((item) => [item.eventId, item]));
   const getStatusCount = (status) => (status === "ALL" ? stats.total : events.filter((e) => e.status === status).length);
@@ -353,9 +367,9 @@ export default function OrganizerEventsPage() {
         ))}
       </div>
 
-      {filteredEvents.length > 0 && (
+      {planningEvents.length > 0 && (
         <EventPlanningTimeline
-          events={filteredEvents}
+          events={planningEvents}
           title={t("planning.organizerTitle")}
           subtitle={t("planning.organizerSubtitle")}
           getEventHref={(event) => canEditOrganizerEvent(event) ? `/organizer/events/edit/${event.id}` : event.status === "PUBLISHED" ? `/events/${event.id}` : null}
@@ -373,7 +387,7 @@ export default function OrganizerEventsPage() {
         </div>
       ) : (
         <div className={styles.eventsGrid}>
-          {filteredEvents.map((e) => {
+          {eventHistory.visible.map((e) => {
             const eventFinance = financeByEventId.get(e.id);
             return (
             <div key={e.id} className={styles.eventCard}>
@@ -490,6 +504,12 @@ export default function OrganizerEventsPage() {
             );
           })}
         </div>
+      )}
+
+      {eventHistory.hiddenCount > 0 && (
+        <button type="button" className={styles.historyMore} onClick={revealMoreHistory}>
+          {t("history.moreEvents")}
+        </button>
       )}
 
       {paymentEvent && (

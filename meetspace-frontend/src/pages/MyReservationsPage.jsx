@@ -1,3 +1,4 @@
+import { recentHistory } from "../utils/recentHistory";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -21,6 +22,7 @@ import { downloadCalendarEvent } from "../utils/calendar";
 import { buildUserActivityItems, formatDate, formatTime, getDateKey, getStatusTone } from "../utils/userActivity";
 import styles from "./MyReservationsPage.module.css";
 import WorkspaceNav from "../components/WorkspaceNav";
+import { normalizeReservationPayment } from "../utils/reservationPayment";
 
 const RESERVATION_TABS = new Set(["day", "spaces", "events", "parking"]);
 const getReservationTab = (searchParams) => RESERVATION_TABS.has(searchParams.get("tab")) ? searchParams.get("tab") : "spaces";
@@ -85,14 +87,30 @@ export default function MyReservationsPage() {
   const [partialErrors, setPartialErrors] = useState({});
 
   const [spaceReservations, setSpaceReservations] = useState([]);
+  const [paymentNow, setPaymentNow] = useState(Date.now);
+  const visibleSpaceReservations = useMemo(
+    () => spaceReservations.map((reservation) => normalizeReservationPayment(reservation, paymentNow)),
+    [spaceReservations, paymentNow],
+  );
+  useEffect(() => {
+    const timer = window.setInterval(() => setPaymentNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
   const [payingReservation, setPayingReservation] = useState(null);
   const [processingPayment, setProcessingPayment] = useState(false);
+  useEffect(() => {
+    if (payingReservation && normalizeReservationPayment(payingReservation, paymentNow).paymentExpired) {
+      setPayingReservation(null);
+      notify({ type: "warning", title: t("reservation.paymentExpired"), message: t("reservation.paymentExpiredHint") });
+    }
+  }, [payingReservation, paymentNow, notify, t]);
 
   const [eventRegistrations, setEventRegistrations] = useState([]);
   const [eventWaitlist, setEventWaitlist] = useState([]);
 
   const [parkingReservations, setParkingReservations] = useState([]);
   const [selectedDay, setSelectedDay] = useState("");
+  const [historyLimits, setHistoryLimits] = useState({});
   const locale = normalizeLocale(i18n.language);
 
   const addToCalendar = ({ title, description, location = "MeetSpace Brussels", start, end }) => {
@@ -329,11 +347,11 @@ export default function MyReservationsPage() {
   const dayItems = useMemo(() => {
     const todayKey = getDateKey(new Date());
     return buildUserActivityItems({
-      spaces: spaceReservations,
+      spaces: visibleSpaceReservations,
       events: eventRegistrations,
       parking: parkingReservations,
-    }).filter((item) => item.dateKey >= todayKey);
-  }, [eventRegistrations, parkingReservations, spaceReservations]);
+    }, t).filter((item) => item.dateKey >= todayKey);
+  }, [eventRegistrations, parkingReservations, visibleSpaceReservations, t]);
 
   const groupedDays = useMemo(() => {
     const groups = new Map();
@@ -358,8 +376,8 @@ export default function MyReservationsPage() {
 
   const activeDay = groupedDays.find((day) => day.dateKey === selectedDay) || groupedDays[0];
   const orderedSpaceReservations = useMemo(
-    () => orderByTimeline(spaceReservations, (reservation) => reservation.startDateTime),
-    [spaceReservations],
+    () => orderByTimeline(visibleSpaceReservations, (reservation) => reservation.startDateTime),
+    [visibleSpaceReservations],
   );
   const orderedEventRegistrations = useMemo(
     () => orderByTimeline(eventRegistrations, (registration) => registration.eventStartDateTime),
@@ -371,11 +389,25 @@ export default function MyReservationsPage() {
   );
   const approvedSpaceReservations = orderedSpaceReservations.filter((r) => r.status === "APPROVED");
   const otherSpaceReservations = orderedSpaceReservations.filter((r) => r.status !== "APPROVED");
+  const historyKey = `${user?.id}:${activeTab}`;
+  const historyLimit = historyLimits[historyKey] || 10;
+  const spaceHistory = recentHistory(otherSpaceReservations, {
+    getEnd: (r) => r.endDateTime || r.startDateTime, limit: historyLimit,
+  });
+  const eventHistory = recentHistory(orderedEventRegistrations, {
+    getEnd: (r) => r.eventEndDateTime || r.eventStartDateTime, limit: historyLimit,
+  });
+  const parkingHistory = recentHistory(orderedParkingReservations, {
+    getEnd: (r) => r.slotDate && r.endTime ? `${r.slotDate}T${r.endTime}` : null, limit: historyLimit,
+  });
+  const revealMoreHistory = () => setHistoryLimits((current) => ({
+    ...current, [historyKey]: (current[historyKey] || 10) + 10,
+  }));
   const activeEventWaitlist = eventWaitlist.filter((entry) => ["WAITING", "OFFERED"].includes(entry.status));
   const totalReservations = spaceReservations.length + eventRegistrations.length + parkingReservations.length + activeEventWaitlist.length;
   const formattedTotalReservations = formatNumber(totalReservations, locale);
   const activeReservations = dayItems.length;
-  const committedAmount = [...spaceReservations, ...eventRegistrations, ...parkingReservations]
+  const committedAmount = [...visibleSpaceReservations, ...eventRegistrations, ...parkingReservations]
     .filter((reservation) => !["CANCELLED", "REJECTED"].includes(reservation.status))
     .reduce((total, reservation) => total + Number(reservation.totalPrice || 0), 0);
   const nextActivity = dayItems[0];
@@ -391,8 +423,8 @@ export default function MyReservationsPage() {
         <div className={styles.paymentCard}>
           <h3>{payingReservation.espace?.name}</h3>
           <p>
-            <strong>{t("common.date")} :</strong> {payingReservation.startDateTime.replace("T", " ")} -{" "}
-            {payingReservation.endDateTime.split("T")[1]}
+            <strong>{t("common.date")} :</strong> {new Date(payingReservation.startDateTime).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" })} –{" "}
+            {formatTime(new Date(payingReservation.endDateTime))}
           </p>
           <p>
             <strong>{t("reservation.totalPrice")} :</strong> {formatMoney(payingReservation.totalPrice, locale)}
@@ -568,7 +600,7 @@ export default function MyReservationsPage() {
                     eyebrow={t("nav.spaces")}
                     title={r.espace?.name || r.espaceName}
                     details={[
-                      { label: t("common.date"), value: formatDate(new Date(r.startDateTime), locale) },
+                      { label: t("common.date"), value: formatDate(new Date(r.startDateTime), locale, { year: "numeric" }) },
                       { label: t("common.time"), value: `${formatTime(new Date(r.startDateTime))}–${formatTime(new Date(r.endDateTime))}` },
                       ...(r.paymentDueAt ? [{
                         label: t("reservation.paymentDeadline"),
@@ -601,7 +633,7 @@ export default function MyReservationsPage() {
           ) : (
             otherSpaceReservations.length > 0 && (
               <div className={styles.recordList}>
-                {otherSpaceReservations.map((r) => {
+                {spaceHistory.visible.map((r) => {
                   const isPast = new Date(r.startDateTime) < new Date();
                   const canCancel = !isPast && r.status !== "CANCELLED" && r.status !== "REJECTED";
                   const canReschedule = r.status === "CONFIRMED"
@@ -612,12 +644,13 @@ export default function MyReservationsPage() {
                       eyebrow={t("nav.spaces")}
                       title={r.espace?.name || r.espaceName}
                       details={[
-                        { label: t("common.date"), value: formatDate(new Date(r.startDateTime), locale) },
+                        { label: t("common.date"), value: formatDate(new Date(r.startDateTime), locale, { year: "numeric" }) },
                         { label: t("common.time"), value: `${formatTime(new Date(r.startDateTime))}–${formatTime(new Date(r.endDateTime))}` },
+                        ...(r.paymentExpired ? [{ label: t("reservation.paymentExpired"), value: t("reservation.paymentExpiredHint") }] : []),
                       ]}
                       amount={formatMoney(r.totalPrice, locale)}
                       status={r.status}
-                      statusLabel={t(`status.${r.status.toLowerCase()}`)}
+                      statusLabel={r.paymentExpired ? t("reservation.paymentExpired") : t(`status.${r.status.toLowerCase()}`)}
                       statusClass={getStatusClass(r.status)}
                       action={(
                         <div className={styles.recordActionGroup}>
@@ -655,6 +688,11 @@ export default function MyReservationsPage() {
                 })}
               </div>
             )
+          )}
+          {spaceHistory.hiddenCount > 0 && (
+            <button type="button" className={styles.historyMore} onClick={revealMoreHistory}>
+              {t("history.moreReservations")}
+            </button>
           )}
         </div>
       )}
@@ -698,7 +736,7 @@ export default function MyReservationsPage() {
             />
           ) : (
             <div className={styles.recordList}>
-              {orderedEventRegistrations.map((r) => {
+              {eventHistory.visible.map((r) => {
                 const isPast = new Date(r.eventStartDateTime) < new Date();
                 const canCancel = !isPast && r.status !== "CANCELLED";
                 return (
@@ -745,6 +783,11 @@ export default function MyReservationsPage() {
               })}
             </div>
           )}
+          {eventHistory.hiddenCount > 0 && (
+            <button type="button" className={styles.historyMore} onClick={revealMoreHistory}>
+              {t("history.moreReservations")}
+            </button>
+          )}
         </div>
       )}
 
@@ -759,7 +802,7 @@ export default function MyReservationsPage() {
             />
           ) : (
             <div className={styles.recordList}>
-              {orderedParkingReservations.map((r) => {
+              {parkingHistory.visible.map((r) => {
                 const isPast = new Date(`${r.slotDate}T${r.startTime}`) <= new Date();
                 const canCancel = !isPast && r.status !== "CANCELLED";
                 return (
@@ -769,7 +812,7 @@ export default function MyReservationsPage() {
                     title={r.parkingSlotTitle}
                     details={[
                       { label: t("common.date"), value: formatDate(new Date(`${r.slotDate}T${r.startTime}`), locale) },
-                      { label: t("common.time"), value: `${r.startTime}–${r.endTime}` },
+                      { label: t("common.time"), value: `${r.startTime.slice(0, 5)}–${r.endTime.slice(0, 5)}` },
                       { label: t("parking.places"), value: formatNumber(r.reservedSpaces, locale) },
                     ]}
                     amount={formatMoney(r.totalPrice, locale)}
@@ -806,6 +849,11 @@ export default function MyReservationsPage() {
                 );
               })}
             </div>
+          )}
+          {parkingHistory.hiddenCount > 0 && (
+            <button type="button" className={styles.historyMore} onClick={revealMoreHistory}>
+              {t("history.moreReservations")}
+            </button>
           )}
         </div>
       )}

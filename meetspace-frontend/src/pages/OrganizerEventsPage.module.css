@@ -590,3 +590,26 @@
   background: var(--surface);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
 }
+
+.historyMore {
+  display: block;
+  min-height: 44px;
+  margin-top: 1.5rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.historyMore:hover {
+  background: var(--brand-soft);
+}
+
+.historyMore:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
