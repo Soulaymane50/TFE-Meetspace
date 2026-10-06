@@ -1,3 +1,5 @@
+import { fetchWithReadRecovery } from "./readTransport.js";
+
 // One deadline covers both response headers and body. Authenticated reads are never shared.
 export async function privateRead(url, options = {}, timeoutMs = 15000, fetcher = globalThis.fetch) {
   const controller = new AbortController();
@@ -18,7 +20,7 @@ export async function privateRead(url, options = {}, timeoutMs = 15000, fetcher 
     options.signal?.removeEventListener("abort", abort);
   };
   try {
-    const response = await Promise.race([Promise.resolve().then(() => fetcher(url, { ...options, signal: controller.signal })), deadline]);
+    const response = await Promise.race([Promise.resolve().then(() => fetchWithReadRecovery(url, { ...options, signal: controller.signal }, fetcher)), deadline]);
     if (response.status === 204 || response.status === 205 || options.method?.toUpperCase() === "HEAD") cleanup();
     const read = (method) => Promise.race([Promise.resolve().then(() => response[method]()), deadline]).finally(cleanup);
     return { ok: response.ok, status: response.status, headers: response.headers,

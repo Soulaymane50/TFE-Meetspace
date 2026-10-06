@@ -1,3 +1,5 @@
+import { fetchWithReadRecovery } from "./readTransport.js";
+
 const pendingReads = new Map();
 
 export const PUBLIC_READ_TIMEOUT_MS = 15000;
@@ -16,7 +18,7 @@ export function publicRead(url, readResponse, timeoutMs = PUBLIC_READ_TIMEOUT_MS
     }, timeoutMs);
   });
   const request = Promise.race([
-    Promise.resolve().then(() => fetch(url, { signal: controller.signal })).then(readResponse),
+    Promise.resolve().then(() => fetchWithReadRecovery(url, { signal: controller.signal })).then(readResponse),
     deadline,
   ]).finally(() => {
     clearTimeout(timer);
