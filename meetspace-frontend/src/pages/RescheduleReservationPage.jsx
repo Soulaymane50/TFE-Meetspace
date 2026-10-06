@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import RoomSchedulePicker from "../components/RoomSchedulePicker";
@@ -17,6 +17,12 @@ function durationHours(start, end) {
 
 export default function RescheduleReservationPage() {
   const { id } = useParams();
+  const { user } = useAuth();
+  return <RescheduleForm key={`${id}:${user?.id}`} />;
+}
+
+function RescheduleForm() {
+  const { id } = useParams();
   const { token } = useAuth();
   const { t, i18n } = useTranslation();
   const { notify } = useFeedback();
@@ -26,6 +32,7 @@ export default function RescheduleReservationPage() {
   const [schedule, setSchedule] = useState({ startDateTime: "", endDateTime: "", available: false });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const saveLock = useRef(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -45,7 +52,7 @@ export default function RescheduleReservationPage() {
     return () => { cancelled = true; };
   }, [id, token]);
 
-  const handleScheduleChange = useCallback((next) => setSchedule(next), []);
+  const handleScheduleChange = useCallback((next) => { if (!saveLock.current) setSchedule(next); }, []);
   const duration = useMemo(
     () => reservation ? durationHours(reservation.startDateTime, reservation.endDateTime) : 1,
     [reservation],
@@ -53,7 +60,8 @@ export default function RescheduleReservationPage() {
 
   const submit = async (event) => {
     event.preventDefault();
-    if (!schedule.available || !schedule.startDateTime || !schedule.endDateTime) return;
+    if (saveLock.current || !schedule.available || !schedule.startDateTime || !schedule.endDateTime) return;
+    saveLock.current = true;
     setSaving(true);
     try {
       await rescheduleReservation(id, {
@@ -69,6 +77,7 @@ export default function RescheduleReservationPage() {
     } catch (err) {
       notify({ type: "error", title: t("common.error"), message: t(err.status === 409 ? "reservation.slotUnavailable" : "reservation.operationFailed") });
     } finally {
+      saveLock.current = false;
       setSaving(false);
     }
   };
@@ -93,6 +102,7 @@ export default function RescheduleReservationPage() {
       </header>
 
       <form onSubmit={submit} className={styles.form}>
+        <fieldset disabled={saving} className={styles.scheduleFields}>
         <RoomSchedulePicker
           spaceId={reservation.espace?.id}
           spaceName={reservation.espace?.name}
@@ -104,6 +114,7 @@ export default function RescheduleReservationPage() {
           minimumStartDateTime={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()}
           lockedDuration={duration}
         />
+        </fieldset>
         <footer className={styles.actions}>
           <Link to="/my-reservations?tab=spaces">{t("common.cancel")}</Link>
           <button type="submit" disabled={saving || !schedule.available}>

@@ -35,6 +35,9 @@ export default function OrganizerCheckInPage() {
   const [result, setResult] = useState(null);
   const [search, setSearch] = useState("");
   const [cameraActive, setCameraActive] = useState(false);
+  const [cameraStarting, setCameraStarting] = useState(false);
+  const cameraStartingRef = useRef(false);
+  const cameraVersionRef = useRef(0);
   const [cameraMessage, setCameraMessage] = useState("");
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -64,6 +67,9 @@ export default function OrganizerCheckInPage() {
   useEffect(() => { loadData(); }, [loadData]);
 
   const stopCamera = useCallback(() => {
+    cameraVersionRef.current += 1;
+    cameraStartingRef.current = false;
+    setCameraStarting(false);
     cameraRunningRef.current = false;
     if (frameRef.current) cancelAnimationFrame(frameRef.current);
     frameRef.current = null;
@@ -73,7 +79,7 @@ export default function OrganizerCheckInPage() {
     setCameraActive(false);
   }, []);
 
-  useEffect(() => () => stopCamera(), [stopCamera]);
+  useEffect(() => () => stopCamera(), [stopCamera, id, token]);
 
   const validateTicket = useCallback(async (rawTicket) => {
     const value = normalizeTicketValue(rawTicket);
@@ -98,6 +104,7 @@ export default function OrganizerCheckInPage() {
   }, [checking, id, t, token]);
 
   const startCamera = async () => {
+    if (cameraStartingRef.current || streamRef.current) return;
     setCameraMessage("");
     setResult(null);
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -105,6 +112,9 @@ export default function OrganizerCheckInPage() {
       return;
     }
 
+    const version = ++cameraVersionRef.current;
+    cameraStartingRef.current = true;
+    setCameraStarting(true);
     try {
       let detector = null;
       if ("BarcodeDetector" in window) {
@@ -121,15 +131,20 @@ export default function OrganizerCheckInPage() {
         video: { facingMode: { ideal: "environment" } },
         audio: false,
       });
+      if (version !== cameraVersionRef.current || !videoRef.current) {
+        stream.getTracks().forEach(track => track.stop());
+        return;
+      }
       streamRef.current = stream;
       if (!videoRef.current) return;
       videoRef.current.srcObject = stream;
       await videoRef.current.play();
+      if (version !== cameraVersionRef.current) return;
       cameraRunningRef.current = true;
       setCameraActive(true);
 
       const scanFrame = async () => {
-        if (!cameraRunningRef.current || !videoRef.current) return;
+        if (version !== cameraVersionRef.current || !cameraRunningRef.current || !videoRef.current) return;
         try {
           let value = "";
           if (detector) {
@@ -150,6 +165,7 @@ export default function OrganizerCheckInPage() {
               }
             }
           }
+          if (version !== cameraVersionRef.current || !cameraRunningRef.current) return;
           if (value && !scanLockRef.current) {
             scanLockRef.current = true;
             stopCamera();
@@ -160,12 +176,21 @@ export default function OrganizerCheckInPage() {
         } catch {
           // A decoding miss is expected while the camera is moving.
         }
-        frameRef.current = requestAnimationFrame(scanFrame);
+        if (version === cameraVersionRef.current && cameraRunningRef.current) {
+          frameRef.current = requestAnimationFrame(scanFrame);
+        }
       };
       frameRef.current = requestAnimationFrame(scanFrame);
     } catch {
-      stopCamera();
-      setCameraMessage(t("checkIn.cameraError"));
+      if (version === cameraVersionRef.current) {
+        stopCamera();
+        setCameraMessage(t("checkIn.cameraError"));
+      }
+    } finally {
+      if (version === cameraVersionRef.current) {
+        cameraStartingRef.current = false;
+        setCameraStarting(false);
+      }
     }
   };
 
@@ -206,7 +231,7 @@ export default function OrganizerCheckInPage() {
         </dl>
       </header>
 
-      <main className={styles.layout}>
+      <div className={styles.layout}>
         <section className={styles.scanPanel}>
           <div className={styles.sectionHeading}>
             <div><p>{t("checkIn.scanKicker")}</p><h2>{t("checkIn.scanTitle")}</h2></div>
@@ -218,8 +243,8 @@ export default function OrganizerCheckInPage() {
             <canvas ref={canvasRef} className={styles.scanCanvas} aria-hidden="true" />
             {!cameraActive ? <div><strong>{t("checkIn.cameraReady")}</strong><span>{t("checkIn.cameraReadyHint")}</span></div> : null}
           </div>
-          <button type="button" className={styles.cameraButton} onClick={cameraActive ? stopCamera : startCamera}>
-            {cameraActive ? t("checkIn.stopCamera") : t("checkIn.startCamera")}
+          <button type="button" className={styles.cameraButton} disabled={cameraStarting || checking} onClick={cameraActive ? stopCamera : startCamera}>
+            {cameraStarting ? t("common.loading") : cameraActive ? t("checkIn.stopCamera") : t("checkIn.startCamera")}
           </button>
           {cameraMessage ? <p className={styles.cameraMessage}>{cameraMessage}</p> : null}
 
@@ -263,7 +288,7 @@ export default function OrganizerCheckInPage() {
             </ul>
           ) : <p className={styles.empty}>{t("checkIn.noAttendees")}</p>}
         </section>
-      </main>
+      </div>
     </div>
   );
 }

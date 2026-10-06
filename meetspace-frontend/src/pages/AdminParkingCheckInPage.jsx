@@ -21,6 +21,9 @@ export default function AdminParkingCheckInPage() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [cameraActive, setCameraActive] = useState(false);
+  const [cameraStarting, setCameraStarting] = useState(false);
+  const cameraStartingRef = useRef(false);
+  const cameraVersionRef = useRef(0);
   const [cameraMessage, setCameraMessage] = useState("");
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -30,6 +33,9 @@ export default function AdminParkingCheckInPage() {
   const lockRef = useRef(false);
 
   const stopCamera = useCallback(() => {
+    cameraVersionRef.current += 1;
+    cameraStartingRef.current = false;
+    setCameraStarting(false);
     runningRef.current = false;
     if (frameRef.current) cancelAnimationFrame(frameRef.current);
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -38,7 +44,7 @@ export default function AdminParkingCheckInPage() {
     setCameraActive(false);
   }, []);
 
-  useEffect(() => () => stopCamera(), [stopCamera]);
+  useEffect(() => () => stopCamera(), [stopCamera, token]);
 
   const validatePass = useCallback(async (rawValue) => {
     const value = normalizePass(rawValue);
@@ -58,26 +64,35 @@ export default function AdminParkingCheckInPage() {
   }, [checking, t, token]);
 
   const startCamera = async () => {
+    if (cameraStartingRef.current || streamRef.current) return;
     setCameraMessage("");
     setResult(null);
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraMessage(t("checkIn.cameraUnsupported"));
       return;
     }
+    const version = ++cameraVersionRef.current;
+    cameraStartingRef.current = true;
+    setCameraStarting(true);
     try {
       let detector = null;
       if ("BarcodeDetector" in window) {
         try { detector = new window.BarcodeDetector({ formats: ["qr_code"] }); } catch { detector = null; }
       }
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+      if (version !== cameraVersionRef.current || !videoRef.current) {
+        stream.getTracks().forEach(track => track.stop());
+        return;
+      }
       streamRef.current = stream;
       videoRef.current.srcObject = stream;
       await videoRef.current.play();
+      if (version !== cameraVersionRef.current) return;
       runningRef.current = true;
       setCameraActive(true);
 
       const scan = async () => {
-        if (!runningRef.current || !videoRef.current) return;
+        if (version !== cameraVersionRef.current || !runningRef.current || !videoRef.current) return;
         try {
           let value = "";
           if (detector) {
@@ -91,6 +106,7 @@ export default function AdminParkingCheckInPage() {
             const frame = context.getImageData(0, 0, canvas.width, canvas.height);
             value = jsQR(frame.data, canvas.width, canvas.height, { inversionAttempts: "attemptBoth" })?.data || "";
           }
+          if (version !== cameraVersionRef.current || !runningRef.current) return;
           if (value && !lockRef.current) {
             lockRef.current = true;
             stopCamera();
@@ -99,12 +115,21 @@ export default function AdminParkingCheckInPage() {
             return;
           }
         } catch { /* Le décodage échoue normalement tant que le QR n'est pas cadré. */ }
-        frameRef.current = requestAnimationFrame(scan);
+        if (version === cameraVersionRef.current && runningRef.current) {
+          frameRef.current = requestAnimationFrame(scan);
+        }
       };
       frameRef.current = requestAnimationFrame(scan);
     } catch {
-      stopCamera();
-      setCameraMessage(t("checkIn.cameraError"));
+      if (version === cameraVersionRef.current) {
+        stopCamera();
+        setCameraMessage(t("checkIn.cameraError"));
+      }
+    } finally {
+      if (version === cameraVersionRef.current) {
+        cameraStartingRef.current = false;
+        setCameraStarting(false);
+      }
     }
   };
 
@@ -119,7 +144,7 @@ export default function AdminParkingCheckInPage() {
           <span>{t("parking.accessControlHelp", { defaultValue: "Chaque QR correspond à un seul véhicule et ne peut être contrôlé qu'une fois." })}</span>
         </div>
       </header>
-      <main className={styles.layout}>
+      <div className={styles.layout}>
         <section className={styles.scanPanel}>
           <div className={styles.sectionHeading}>
             <div><p>{t("checkIn.scanKicker")}</p><h2>{t("parking.scanPass", { defaultValue: "Scanner un laissez-passer" })}</h2></div>
@@ -130,8 +155,8 @@ export default function AdminParkingCheckInPage() {
             <canvas ref={canvasRef} className={styles.scanCanvas} aria-hidden="true" />
             {!cameraActive ? <div><strong>{t("checkIn.cameraReady")}</strong><span>{t("checkIn.cameraReadyHint")}</span></div> : null}
           </div>
-          <button type="button" className={styles.cameraButton} onClick={cameraActive ? stopCamera : startCamera}>
-            {cameraActive ? t("checkIn.stopCamera") : t("checkIn.startCamera")}
+          <button type="button" className={styles.cameraButton} disabled={cameraStarting || checking} onClick={cameraActive ? stopCamera : startCamera}>
+            {cameraStarting ? t("common.loading") : cameraActive ? t("checkIn.stopCamera") : t("checkIn.startCamera")}
           </button>
           {cameraMessage ? <p className={styles.cameraMessage}>{cameraMessage}</p> : null}
           <div className={styles.separator}><span>{t("checkIn.orManual")}</span></div>
@@ -156,7 +181,7 @@ export default function AdminParkingCheckInPage() {
           </div>
           <p className={styles.empty}>{t("parking.adminAccessNote", { defaultValue: "Les réservations annulées sont refusées. Un second scan signale immédiatement que le véhicule est déjà entré." })}</p>
         </section>
-      </main>
+      </div>
     </div>
   );
 }

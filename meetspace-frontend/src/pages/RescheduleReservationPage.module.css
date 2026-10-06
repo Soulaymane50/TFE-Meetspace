@@ -110,3 +110,5 @@
   .actions { display: grid; }
   .actions a, .actions button { justify-content: center; }
 }
+
+.scheduleFields { min-width: 0; margin: 0; padding: 0; border: 0; }

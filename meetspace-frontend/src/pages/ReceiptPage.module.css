@@ -69,3 +69,7 @@
   .ticketCopy > span, .ticketCode small { color: #51615b; }
   .ticketCode code { color: #16211d; }
 }
+
+.qrFallback { display: grid; justify-items: center; gap: .65rem; max-width: 28ch; text-align: center; font-size: .75rem; line-height: 1.5; }
+.qrFallback button { min-height: 42px; padding: .5rem .75rem; border: 1px solid #b8c3be; border-radius: var(--radius-sm); background: #fffdf8; color: #183b33; font-weight: 800; }
+.screenActions button:disabled { opacity: .6; cursor: wait; }

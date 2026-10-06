@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import QRCode from "qrcode";
@@ -70,7 +70,17 @@ function ReceiptDocument() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [qrCodes, setQrCodes] = useState({});
-  const [copyStatus, setCopyStatus] = useState("");
+  const [copyStatus, setCopyStatus] = useState(null);
+  const copyTimer = useRef(null);
+  const copyVersion = useRef(0);
+  const [retryAttempt, setRetryAttempt] = useState(0);
+  const [qrErrors, setQrErrors] = useState({});
+  const [qrRetry, setQrRetry] = useState(0);
+
+  useEffect(() => () => {
+    copyVersion.current += 1;
+    window.clearTimeout(copyTimer.current);
+  }, []);
   const locale = normalizeLocale(i18n.language);
   const loader = LOADERS[type];
 
@@ -85,7 +95,7 @@ function ReceiptDocument() {
       .catch((err) => !cancelled && setError(err.message))
       .finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
-  }, [id, loader, token]);
+  }, [id, loader, token, retryAttempt]);
 
   const details = useMemo(() => {
     if (!record) return null;
@@ -127,39 +137,55 @@ function ReceiptDocument() {
 
   useEffect(() => {
     let cancelled = false;
-    const generation = ticketPayloads.length === 0 ? Promise.resolve([]) : Promise.all(
-      ticketPayloads.map(async (payload) => [payload.key, await QRCode.toDataURL(payload.value, {
-        width: 280,
-        margin: 1,
-        errorCorrectionLevel: "M",
-        color: { dark: "#0d3b33", light: "#fffdf8" },
-      })]),
-    );
-    generation
-      .then((entries) => !cancelled && setQrCodes(Object.fromEntries(entries)));
+    Promise.all(ticketPayloads.map(async (payload) => {
+      try {
+        return { key: payload.key, image: await QRCode.toDataURL(payload.value, {
+          width: 280, margin: 1, errorCorrectionLevel: "M",
+          color: { dark: "#0d3b33", light: "#fffdf8" },
+        }) };
+      } catch {
+        return { key: payload.key, failed: true };
+      }
+    })).then((entries) => {
+      if (cancelled) return;
+      setQrCodes(Object.fromEntries(entries.filter(entry => entry.image).map(entry => [entry.key, entry.image])));
+      setQrErrors(Object.fromEntries(entries.filter(entry => entry.failed).map(entry => [entry.key, true])));
+    });
     return () => { cancelled = true; };
-  }, [ticketPayloads]);
+  }, [ticketPayloads, qrRetry]);
 
   const copyTicket = async (value) => {
+    const version = ++copyVersion.current;
+    window.clearTimeout(copyTimer.current);
+    setCopyStatus(null);
+    let state;
     try {
       await copyText(value);
-      setCopyStatus("copied");
+      state = "copied";
     } catch {
-      setCopyStatus("error");
+      state = "error";
     }
-    window.setTimeout(() => setCopyStatus(""), 2400);
+    if (version !== copyVersion.current) return;
+    setCopyStatus({ key: value, state });
+    copyTimer.current = window.setTimeout(() => setCopyStatus(null), 2400);
   };
+
+  const qrFallback = <div className={styles.qrFallback}>
+    <span role="status">{t("receipt.qrUnavailable")}</span>
+    <button type="button" onClick={() => setQrRetry(value => value + 1)}>{t("common.retry")}</button>
+  </div>;
 
   if (!loader) return <PageState type="error" title={t("receipt.notFound", { defaultValue: "Justificatif introuvable" })} message={t("receipt.notFoundHint", { defaultValue: "Cette réservation n’existe pas dans votre compte." })} action={<Link to="/my-reservations">{t("common.back", { defaultValue: "Retour" })}</Link>} />;
   if (loading) return <PageState type="loading" title={t("common.loading")} message={t("receipt.title", { defaultValue: "Justificatif" })} />;
-  if (error || !record || !details) return <PageState type="error" title={t("receipt.notFound", { defaultValue: "Justificatif introuvable" })} message={error || t("receipt.notFoundHint", { defaultValue: "Cette réservation n’existe pas dans votre compte." })} action={<Link to="/my-reservations">{t("common.back", { defaultValue: "Retour" })}</Link>} />;
+  if (error) return <PageState type="error" title={t("common.error")} message={error} action={<><button type="button" onClick={() => { setLoading(true); setError(""); setRetryAttempt(value => value + 1); }}>{t("common.retry")}</button><Link to="/my-reservations">{t("common.back")}</Link></>} />;
+  if (!record || !details) return <PageState type="error" title={t("receipt.notFound", { defaultValue: "Justificatif introuvable" })} message={error || t("receipt.notFoundHint", { defaultValue: "Cette réservation n’existe pas dans votre compte." })} action={<Link to="/my-reservations">{t("common.back", { defaultValue: "Retour" })}</Link>} />;
 
   const reference = buildReference(type, record.id, record.createdAt || details.startsAt);
   return (
     <div className={styles.page}>
       <nav className={styles.screenActions} aria-label={t("receipt.actions", { defaultValue: "Actions du justificatif" })}>
         <Link to="/my-reservations">← {t("nav.myReservations")}</Link>
-        <button type="button" onClick={() => window.print()}>{t("receipt.print", { defaultValue: "Imprimer ou enregistrer en PDF" })}</button>
+        <button type="button" disabled={ticketPayloads.some(payload => !qrCodes[payload.key] && !qrErrors[payload.key])} onClick={() => window.print()}>{t("receipt.print", { defaultValue: "Imprimer ou enregistrer en PDF" })}</button>
       </nav>
 
       <article className={styles.document}>
@@ -200,14 +226,14 @@ function ReceiptDocument() {
               <div className={styles.ticketCode}>
                 <small>{t("checkIn.ticketCode")}</small>
                 <code>{record.ticketToken.match(/.{1,4}/g)?.join(" ") || record.ticketToken}</code>
-                <button type="button" onClick={() => copyTicket(record.ticketToken)}>{copyStatus === "copied" ? t("checkIn.copied") : t("checkIn.copyCode")}</button>
-                {copyStatus === "error" ? (
+                <button type="button" onClick={() => copyTicket(record.ticketToken)}>{copyStatus?.key === record.ticketToken && copyStatus.state === "copied" ? t("checkIn.copied") : t("checkIn.copyCode")}</button>
+                {copyStatus?.key === record.ticketToken && copyStatus.state === "error" ? (
                   <span className={styles.copyError} role="status">{t("checkIn.copyFailed")}</span>
                 ) : null}
               </div>
             </div>
             <div className={styles.qrPanel}>
-              {qrCodes[record.ticketToken] ? <img src={qrCodes[record.ticketToken]} alt={t("checkIn.qrAlt", { event: details.title })} /> : <span>{t("common.loading")}</span>}
+              {qrCodes[record.ticketToken] ? <img src={qrCodes[record.ticketToken]} alt={t("checkIn.qrAlt", { event: details.title })} /> : qrErrors[record.ticketToken] ? qrFallback : <span>{t("common.loading")}</span>}
               <small>{t("checkIn.presentQr")}</small>
             </div>
           </section>
@@ -224,10 +250,11 @@ function ReceiptDocument() {
               {record.accessPasses.filter((pass) => pass.status !== "CANCELLED").map((pass, index) => (
                 <article key={pass.id || pass.token} className={styles.passCard}>
                   <strong>{t("parking.vehicleNumber", { defaultValue: "Véhicule {{count}}", count: index + 1 })}</strong>
-                  {qrCodes[pass.token] ? <img src={qrCodes[pass.token]} alt={t("parking.qrAlt", { defaultValue: "QR d’accès parking" })} /> : <span>{t("common.loading")}</span>}
+                  {qrCodes[pass.token] ? <img src={qrCodes[pass.token]} alt={t("parking.qrAlt", { defaultValue: "QR d’accès parking" })} /> : qrErrors[pass.token] ? qrFallback : <span>{t("common.loading")}</span>}
                   <code>{pass.token.match(/.{1,4}/g)?.join(" ") || pass.token}</code>
                   <small>{pass.status === "USED" ? t("parking.accessUsed", { defaultValue: "Accès déjà contrôlé" }) : t("parking.accessReady", { defaultValue: "Prêt à présenter" })}</small>
-                  <button type="button" onClick={() => copyTicket(pass.token)}>{t("checkIn.copyCode")}</button>
+                  <button type="button" onClick={() => copyTicket(pass.token)}>{copyStatus?.key === pass.token && copyStatus.state === "copied" ? t("checkIn.copied") : t("checkIn.copyCode")}</button>
+                  {copyStatus?.key === pass.token ? <span className={copyStatus.state === "error" ? styles.copyError : undefined} role="status">{t(copyStatus.state === "error" ? "checkIn.copyFailed" : "checkIn.copied")}</span> : null}
                 </article>
               ))}
             </div>
