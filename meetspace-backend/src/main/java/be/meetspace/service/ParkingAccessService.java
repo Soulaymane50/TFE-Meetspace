@@ -21,7 +21,7 @@ public class ParkingAccessService {
 
     public List<ParkingAccessPass> ensurePasses(ParkingReservation reservation) {
         List<ParkingAccessPass> passes = new ArrayList<>(
-                passRepository.findByParkingReservationIdOrderByIdAsc(reservation.getId()));
+                reservation.getAccessPasses());
         int expected = reservation.getReservedSpaces() != null ? reservation.getReservedSpaces() : 0;
         while (passes.size() < expected) {
             ParkingAccessPass pass = new ParkingAccessPass();

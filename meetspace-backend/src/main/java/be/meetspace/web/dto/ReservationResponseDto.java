@@ -19,6 +19,7 @@ public class ReservationResponseDto {
     private LocalDateTime approvedAt;
     private LocalDateTime paymentDueAt;
     private LocalDateTime createdAt;
+    private boolean paymentExpired;
 
     public static ReservationResponseDto fromEntity(Reservation reservation) {
         ReservationResponseDto dto = new ReservationResponseDto();
@@ -32,7 +33,11 @@ public class ReservationResponseDto {
         dto.justification = reservation.getJustification();
         dto.rejectionReason = reservation.getRejectionReason();
         dto.approvedAt = reservation.getApprovedAt();
-        dto.paymentDueAt = reservation.getPaymentDueAt();
+        dto.paymentDueAt = reservation.getStatus() == ReservationStatus.APPROVED
+                ? reservation.getEffectivePaymentDueAt() : reservation.getPaymentDueAt();
+        dto.paymentExpired = reservation.isApprovalPaymentExpired(LocalDateTime.now())
+                || (reservation.getStatus() == ReservationStatus.CANCELLED
+                && "Delai de paiement expire".equals(reservation.getRejectionReason()));
         dto.createdAt = reservation.getCreatedAt();
         return dto;
     }
@@ -48,6 +53,7 @@ public class ReservationResponseDto {
     public String getRejectionReason() { return rejectionReason; }
     public LocalDateTime getApprovedAt() { return approvedAt; }
     public LocalDateTime getPaymentDueAt() { return paymentDueAt; }
+    public boolean isPaymentExpired() { return paymentExpired; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 }
 

@@ -256,6 +256,11 @@ public class ReservationController {
                 "Cette reservation n'est pas en attente de paiement. Statut actuel: " + reservation.getStatus());
         }
 
+        if (reservation.isApprovalPaymentExpired(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Le délai de paiement de cette demande est expiré. Aucun paiement ne peut être finalisé.");
+        }
+
         long expectedAmountCents = Math.round(reservation.getTotalPrice() * 100D);
         paymentLifecycleService.consume(
                 request.getPaymentIntentId(), user, PaymentType.PREMIUM_ROOM, expectedAmountCents, reservation.getId());
@@ -428,6 +433,7 @@ public class ReservationController {
     }
 
     @GetMapping("/espace/{espaceId}/calendar")
+    @Transactional(readOnly = true)
     public List<CalendarReservationDto> getReservationsForCalendar(
             @PathVariable Long espaceId,
             @RequestParam int year,
@@ -453,11 +459,7 @@ public class ReservationController {
                 .map(CalendarReservationDto::fromEntity)
                 .collect(Collectors.toList());
 
-        eventRepository.findBySpaceId(espaceId).stream()
-                .filter(event -> event.getStatus() != EventStatus.CANCELLED && event.getStatus() != EventStatus.REJECTED)
-                .filter(event -> event.getStartDateTime().isBefore(endOfMonth) && event.getEndDateTime().isAfter(startOfMonth))
-                .map(CalendarReservationDto::fromEvent)
-                .forEach(blockedSlots::add);
+        blockedSlots.addAll(eventRepository.findCalendarBlocks(espaceId, startOfMonth, endOfMonth));
 
         bookingHoldService.activeSpaceHolds(espaceId, startOfMonth, endOfMonth).stream()
                 .map(CalendarReservationDto::fromHold)

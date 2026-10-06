@@ -13,6 +13,15 @@ public class CalendarReservationDto {
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
 
+    public CalendarReservationDto() {}
+
+    public CalendarReservationDto(Long id, String blockType, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        this.id = id;
+        this.blockType = blockType;
+        this.startDateTime = startDateTime;
+        this.endDateTime = endDateTime;
+    }
+
     public static CalendarReservationDto fromEntity(Reservation reservation) {
         CalendarReservationDto dto = new CalendarReservationDto();
         dto.id = reservation.getId();

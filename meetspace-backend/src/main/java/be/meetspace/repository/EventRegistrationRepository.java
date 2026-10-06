@@ -19,7 +19,7 @@ import java.util.Optional;
 public interface EventRegistrationRepository extends JpaRepository<EventRegistration, Long> {
 
     @Override
-    @EntityGraph(attributePaths = {"user", "event"})
+    @EntityGraph(attributePaths = {"user", "event", "event.parkingSlot"})
     List<EventRegistration> findAll();
 
     @Override
@@ -35,6 +35,10 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
 
     @Query("SELECT er FROM EventRegistration er JOIN FETCH er.user JOIN FETCH er.event WHERE er.event.id = :eventId ORDER BY er.createdAt")
     List<EventRegistration> findByEventId(@Param("eventId") Long eventId);
+
+    @Query("SELECT er FROM EventRegistration er JOIN FETCH er.user JOIN FETCH er.event e " +
+            "LEFT JOIN FETCH e.parkingSlot WHERE e.id IN :eventIds ORDER BY er.createdAt")
+    List<EventRegistration> findByEventIdsForFinance(@Param("eventIds") List<Long> eventIds);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT er FROM EventRegistration er JOIN FETCH er.user JOIN FETCH er.event WHERE er.ticketToken = :ticketToken")

@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/parking")
@@ -38,11 +40,23 @@ public class AdminParkingController {
     }
 
     @GetMapping("/sessions")
+    @Transactional(readOnly = true)
     public List<ParkingSlotResponseDto> listSessions() {
-        return sessionRepository.findAll()
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        List<ParkingSlot> slots = sessionRepository.findAll();
+        if (slots.isEmpty()) return List.of();
+        Map<Long, ParkingCapacityService.CapacitySnapshot> capacities = parkingCapacityService.snapshots(slots);
+        Map<Long, Integer> reservedBySlot = new HashMap<>();
+        for (var row : reservationRepository.sumReservedSpacesByParkingSlotIds(
+                slots.stream().map(ParkingSlot::getId).toList())) {
+            reservedBySlot.put(row.getSlotId(), Math.toIntExact(row.getReservedSpaces()));
+        }
+        return slots.stream().map(slot -> {
+            var capacity = capacities.getOrDefault(slot.getId(),
+                    new ParkingCapacityService.CapacitySnapshot(BusinessRules.TOTAL_PARKING_SPACES, 0, 0, 0, 0, 0));
+            return ParkingSlotResponseDto.fromEntity(slot, reservedBySlot.getOrDefault(slot.getId(), 0),
+                    capacity.allocatedSpaces(), capacity.availableSpaces(), capacity.physicalCapacity(),
+                    capacity.globalRemainingSpaces());
+        }).toList();
     }
 
     @PostMapping("/sessions")

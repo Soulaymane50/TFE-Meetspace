@@ -54,6 +54,7 @@ public class AdminReservationsController {
     }
 
     @GetMapping("/all")
+    @Transactional(readOnly = true)
     public List<AdminReservationDto> getAllReservations() {
         List<AdminReservationDto> allReservations = new ArrayList<>();
 
@@ -65,7 +66,7 @@ public class AdminReservationsController {
             allReservations.add(AdminReservationDto.fromEventRegistration(r));
         });
 
-        parkingReservationRepository.findAll().forEach(r -> {
+        parkingReservationRepository.findAllForReporting().forEach(r -> {
             allReservations.add(AdminReservationDto.fromParkingReservation(r));
         });
 
@@ -75,6 +76,7 @@ public class AdminReservationsController {
     }
 
     @GetMapping("/spaces")
+    @Transactional(readOnly = true)
     public List<AdminSpaceReservationDto> getSpaceReservationsDetailed() {
         return reservationRepository.findAll().stream()
                 .map(AdminSpaceReservationDto::fromEntity)
@@ -83,6 +85,7 @@ public class AdminReservationsController {
     }
 
     @GetMapping("/events")
+    @Transactional(readOnly = true)
     public List<AdminEventRegistrationDto> getEventRegistrationsDetailed() {
         return eventRegistrationRepository.findAll().stream()
                 .map(AdminEventRegistrationDto::fromEntity)
@@ -91,14 +94,16 @@ public class AdminReservationsController {
     }
 
     @GetMapping("/parking")
+    @Transactional(readOnly = true)
     public List<AdminParkingReservationDto> getParkingReservationsDetailed() {
-        return parkingReservationRepository.findAll().stream()
+        return parkingReservationRepository.findAllForReporting().stream()
                 .map(AdminParkingReservationDto::fromEntity)
                 .sorted(Comparator.comparing(AdminParkingReservationDto::getCreatedAt).reversed())
                 .toList();
     }
 
     @GetMapping("/espaces")
+    @Transactional(readOnly = true)
     public List<AdminReservationDto> getEspaceReservations() {
         return reservationRepository.findAll().stream()
                 .map(AdminReservationDto::fromEspaceReservation)
@@ -107,8 +112,9 @@ public class AdminReservationsController {
     }
 
     @GetMapping("/parking-summary")
+    @Transactional(readOnly = true)
     public List<AdminReservationDto> getParkingReservations() {
-        return parkingReservationRepository.findAll().stream()
+        return parkingReservationRepository.findAllForReporting().stream()
                 .map(AdminReservationDto::fromParkingReservation)
                 .sorted(Comparator.comparing(AdminReservationDto::getCreatedAt).reversed())
                 .toList();
@@ -157,10 +163,17 @@ public class AdminReservationsController {
         ReservationStatus oldStatus = reservation.getStatus();
 
         if (request.getApproved()) {
+            LocalDateTime now = LocalDateTime.now();
+            if (!reservation.getStartDateTime().isAfter(now)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Ce créneau a déjà commencé. La demande ne peut plus être approuvée.");
+            }
+            LocalDateTime deadline = now.plusHours(48);
+            if (reservation.getStartDateTime().isBefore(deadline)) deadline = reservation.getStartDateTime();
             reservation.setStatus(ReservationStatus.APPROVED);
             reservation.setApprovedBy(admin);
-            reservation.setApprovedAt(LocalDateTime.now());
-            reservation.setPaymentDueAt(LocalDateTime.now().plusHours(48));
+            reservation.setApprovedAt(now);
+            reservation.setPaymentDueAt(deadline);
 
             auditService.log(AuditAction.RESERVATION_APPROVE, "RESERVATION", reservation.getId(),
                     "Réservation approuvée pour l'espace: " + reservation.getEspace().getName(),

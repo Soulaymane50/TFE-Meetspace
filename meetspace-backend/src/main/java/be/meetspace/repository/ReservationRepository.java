@@ -100,8 +100,13 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Query("SELECT COALESCE(SUM(r.totalPrice), 0) FROM Reservation r WHERE r.status = :status")
     Double sumTotalPriceByStatus(@Param("status") ReservationStatus status);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT r FROM Reservation r JOIN FETCH r.user JOIN FETCH r.espace " +
-           "WHERE r.status = 'APPROVED' AND r.paymentDueAt IS NOT NULL AND r.paymentDueAt < :now")
-    List<Reservation> findExpiredApprovedReservations(@Param("now") LocalDateTime now);
+           "WHERE r.status = 'APPROVED' AND (r.startDateTime <= :now " +
+           "OR r.paymentDueAt <= :now " +
+           "OR (r.paymentDueAt IS NULL AND r.approvedAt <= :legacyApprovalCutoff))")
+    List<Reservation> findExpiredApprovedReservations(
+            @Param("now") LocalDateTime now,
+            @Param("legacyApprovalCutoff") LocalDateTime legacyApprovalCutoff);
 }
 

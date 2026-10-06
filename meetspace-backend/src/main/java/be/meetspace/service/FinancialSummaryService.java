@@ -27,6 +27,8 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class FinancialSummaryService {
@@ -59,11 +61,10 @@ public class FinancialSummaryService {
 
     @Transactional(readOnly = true)
     public FinanceSummaryDto getAdminSummary(LocalDate from, LocalDate to) {
-        List<EventFinanceDto> eventFinances = eventRepository.findAllByOrderByCreatedAtDesc().stream()
+        List<Event> financialEvents = eventRepository.findAllByOrderByCreatedAtDesc().stream()
                 .filter(this::isMeetSpaceRevenueRelevant)
-                .map(event -> buildEventFinance(event, from, to))
-                .filter(Objects::nonNull)
                 .toList();
+        List<EventFinanceDto> eventFinances = buildEventFinances(financialEvents, from, to);
 
         double directRoomRevenue = reservationRepository.findAll().stream()
                 .filter(reservation -> reservation.getStatus() == ReservationStatus.CONFIRMED)
@@ -71,7 +72,7 @@ public class FinancialSummaryService {
                 .filter(reservation -> inPeriod(reservation.getCreatedAt(), from, to))
                 .mapToDouble(reservation -> valueOrZero(reservation.getTotalPrice()))
                 .sum();
-        double parkingRevenue = parkingReservationRepository.findAll().stream()
+        double parkingRevenue = parkingReservationRepository.findAllForReporting().stream()
                 .filter(reservation -> reservation.getStatus() == ParkingReservationStatus.CONFIRMED)
                 .filter(reservation -> !FinanceReportingPolicy.isTechnicalUser(reservation.getUser()))
                 .filter(reservation -> inPeriod(reservation.getCreatedAt(), from, to))
@@ -85,11 +86,10 @@ public class FinancialSummaryService {
     @Transactional(readOnly = true)
     public FinanceSummaryDto getOrganizerSummary(String email, boolean adminView, LocalDate from, LocalDate to) {
         User organizer = findUser(email);
-        List<EventFinanceDto> eventFinances = eventRepository.findByCreatedByIdOrderByCreatedAtDesc(organizer.getId()).stream()
+        List<Event> financialEvents = eventRepository.findByCreatedByIdOrderByCreatedAtDesc(organizer.getId()).stream()
                 .filter(this::isFinanciallyRelevant)
-                .map(event -> buildEventFinance(event, from, to))
-                .filter(Objects::nonNull)
                 .toList();
+        List<EventFinanceDto> eventFinances = buildEventFinances(financialEvents, from, to);
         FinanceTransactionMetricsService.Metrics metrics =
                 transactionMetricsService.forOrganizer(organizer.getId(), from, to);
 
@@ -174,8 +174,23 @@ public class FinancialSummaryService {
         return buildEventFinance(event, null, null);
     }
 
+    private List<EventFinanceDto> buildEventFinances(List<Event> events, LocalDate from, LocalDate to) {
+        if (events.isEmpty()) return List.of();
+        Map<Long, List<EventRegistration>> registrations = eventRegistrationRepository
+                .findByEventIdsForFinance(events.stream().map(Event::getId).toList()).stream()
+                .collect(Collectors.groupingBy(registration -> registration.getEvent().getId()));
+        return events.stream().map(event -> buildEventFinance(event, from, to,
+                registrations.getOrDefault(event.getId(), List.of())))
+                .filter(Objects::nonNull).toList();
+    }
+
     private EventFinanceDto buildEventFinance(Event event, LocalDate from, LocalDate to) {
-        List<EventRegistration> confirmedRegistrations = eventRegistrationRepository.findByEventId(event.getId()).stream()
+        return buildEventFinance(event, from, to, eventRegistrationRepository.findByEventId(event.getId()));
+    }
+
+    private EventFinanceDto buildEventFinance(Event event, LocalDate from, LocalDate to,
+                                              List<EventRegistration> registrations) {
+        List<EventRegistration> confirmedRegistrations = registrations.stream()
                 .filter(registration -> registration.getStatus() == EventRegistrationStatus.CONFIRMED)
                 .filter(registration -> !FinanceReportingPolicy.isTechnicalUser(registration.getUser()))
                 .filter(registration -> inPeriod(registration.getCreatedAt(), from, to))

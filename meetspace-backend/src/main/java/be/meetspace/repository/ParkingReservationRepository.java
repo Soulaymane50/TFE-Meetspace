@@ -22,6 +22,10 @@ public interface ParkingReservationRepository extends JpaRepository<ParkingReser
     @EntityGraph(attributePaths = {"user", "parkingSlot", "accessPasses"})
     List<ParkingReservation> findAll();
 
+    @EntityGraph(attributePaths = {"user", "parkingSlot"})
+    @Query("SELECT pr FROM ParkingReservation pr")
+    List<ParkingReservation> findAllForReporting();
+
     @Override
     @EntityGraph(attributePaths = {"user", "parkingSlot"})
     Optional<ParkingReservation> findById(Long id);

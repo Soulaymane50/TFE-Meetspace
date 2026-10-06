@@ -28,6 +28,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/organizer/events")
@@ -100,15 +103,29 @@ public class OrganizerEventController {
     }
 
     @GetMapping("/my")
+    @Transactional(readOnly = true)
     public List<EventResponseDto> getMyEvents(Authentication authentication) {
         User organizer = getAuthenticatedUser(authentication);
+        List<Event> events = eventRepository.findByCreatedByIdOrderByCreatedAtDesc(organizer.getId());
+        if (events.isEmpty()) return List.of();
 
-        return eventRepository.findByCreatedByIdOrderByCreatedAtDesc(organizer.getId()).stream()
-                .map(e -> {
-                    int registered = registrationRepository.countTotalParticipantsByEventId(e.getId());
-                    return toResponse(e, registered);
-                })
-                .toList();
+        Map<Long, Long> participants = registrationRepository.sumParticipantsByEventIds(
+                events.stream().map(Event::getId).toList()).stream()
+                .collect(Collectors.toMap(EventRegistrationRepository.ParticipantsByEvent::getEventId,
+                        EventRegistrationRepository.ParticipantsByEvent::getParticipantCount));
+        var slots = events.stream().map(Event::getParkingSlot).filter(Objects::nonNull).distinct().toList();
+        var capacities = parkingCapacityService.snapshots(slots);
+        return events.stream().map(event -> {
+            EventResponseDto dto = EventResponseDto.fromEntity(event,
+                    Math.toIntExact(participants.getOrDefault(event.getId(), 0L)));
+            if (event.getParkingSlot() != null) {
+                var capacity = capacities.get(event.getParkingSlot().getId());
+                if (capacity == null) dto.applyParkingCapacity(0, 0, be.meetspace.service.BusinessRules.TOTAL_PARKING_SPACES, 0);
+                else dto.applyParkingCapacity(capacity.allocatedSpaces(), capacity.availableSpaces(),
+                        capacity.physicalCapacity(), capacity.globalRemainingSpaces());
+            }
+            return dto;
+        }).toList();
     }
 
     @GetMapping("/my/{id}/attendees")

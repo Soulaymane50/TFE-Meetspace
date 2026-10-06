@@ -26,6 +26,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin/events")
@@ -61,23 +63,25 @@ public class AdminEventController {
     }
 
     @GetMapping
+    @Transactional(readOnly = true)
     public List<EventResponseDto> getAllEvents() {
-        return eventRepository.findAllByOrderByCreatedAtDesc().stream()
-                .map(e -> {
-                    int registered = registrationRepository.countTotalParticipantsByEventId(e.getId());
-                    return EventResponseDto.fromEntity(e, registered);
-                })
-                .toList();
+        return eventResponses(eventRepository.findAllByOrderByCreatedAtDesc());
     }
 
     @GetMapping("/pending")
+    @Transactional(readOnly = true)
     public List<EventResponseDto> getPendingEvents() {
-        return eventRepository.findByStatusOrderByCreatedAtDesc(EventStatus.PENDING_APPROVAL).stream()
-                .map(e -> {
-                    int registered = registrationRepository.countTotalParticipantsByEventId(e.getId());
-                    return EventResponseDto.fromEntity(e, registered);
-                })
-                .toList();
+        return eventResponses(eventRepository.findByStatusOrderByCreatedAtDesc(EventStatus.PENDING_APPROVAL));
+    }
+
+    private List<EventResponseDto> eventResponses(List<Event> events) {
+        if (events.isEmpty()) return List.of();
+        Map<Long, Long> participants = registrationRepository.sumParticipantsByEventIds(
+                events.stream().map(Event::getId).toList()).stream()
+                .collect(Collectors.toMap(EventRegistrationRepository.ParticipantsByEvent::getEventId,
+                        EventRegistrationRepository.ParticipantsByEvent::getParticipantCount));
+        return events.stream().map(event -> EventResponseDto.fromEntity(event,
+                Math.toIntExact(participants.getOrDefault(event.getId(), 0L)))).toList();
     }
 
     @GetMapping("/{id}")

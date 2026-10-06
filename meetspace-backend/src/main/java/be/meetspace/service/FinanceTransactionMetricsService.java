@@ -96,7 +96,7 @@ public class FinanceTransactionMetricsService {
                     feeCents += addLegacyFee(transactionIds, legacyKey("room", reservation.getId(), reservation.getPaymentIntentId()), amount);
                 }
             }
-            for (ParkingReservation reservation : parkingReservationRepository.findAll()) {
+            for (ParkingReservation reservation : parkingReservationRepository.findAllForReporting()) {
                 if (reservation.getStatus() == ParkingReservationStatus.CONFIRMED
                         && !FinanceReportingPolicy.isTechnicalUser(reservation.getUser())
                         && inPeriod(reservation.getCreatedAt(), from, to)

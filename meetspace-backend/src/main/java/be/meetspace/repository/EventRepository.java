@@ -53,6 +53,19 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                            @Param("endDateTime") LocalDateTime endDateTime,
                                            @Param("excludeId") Long excludeId);
 
+    @Query("""
+            SELECT new be.meetspace.web.dto.CalendarReservationDto(e.id, 'EVENT', e.startDateTime, e.endDateTime)
+            FROM Event e
+            WHERE e.space.id = :spaceId
+              AND e.status NOT IN (be.meetspace.entity.EventStatus.CANCELLED, be.meetspace.entity.EventStatus.REJECTED)
+              AND e.startDateTime < :endDateTime
+              AND e.endDateTime > :startDateTime
+            """)
+    List<be.meetspace.web.dto.CalendarReservationDto> findCalendarBlocks(
+            @Param("spaceId") Long spaceId,
+            @Param("startDateTime") LocalDateTime startDateTime,
+            @Param("endDateTime") LocalDateTime endDateTime);
+
     @Query("SELECT e FROM Event e WHERE e.space.id = :spaceId")
     List<Event> findBySpaceId(@Param("spaceId") Long spaceId);
 }

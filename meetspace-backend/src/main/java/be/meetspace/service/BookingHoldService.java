@@ -132,8 +132,7 @@ public class BookingHoldService {
         if (reservation.getStatus() != ReservationStatus.APPROVED) {
             throw badRequest("Cette demande n'est pas en attente de paiement.");
         }
-        if (reservation.getPaymentDueAt() != null && !reservation.getPaymentDueAt().isAfter(LocalDateTime.now())) {
-            reservation.setStatus(ReservationStatus.CANCELLED);
+        if (reservation.isApprovalPaymentExpired(LocalDateTime.now())) {
             throw conflict("Le delai de paiement de cette demande est expire.");
         }
         return baseHold(reservation.getId(), amountCents);

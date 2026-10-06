@@ -23,7 +23,9 @@ public class PremiumPaymentExpiryService {
     @Scheduled(fixedDelayString = "${app.payments.premium-expiry-check-ms:300000}")
     @Transactional
     public void expireUnpaidApprovals() {
-        reservationRepository.findExpiredApprovedReservations(LocalDateTime.now()).forEach(reservation -> {
+        LocalDateTime now = LocalDateTime.now();
+        reservationRepository.findExpiredApprovedReservations(now, now.minusHours(48)).forEach(reservation -> {
+            if (!reservation.isApprovalPaymentExpired(now)) return;
             reservation.setStatus(ReservationStatus.CANCELLED);
             reservation.setRejectionReason("Delai de paiement expire");
             reservation.setPaymentDueAt(null);

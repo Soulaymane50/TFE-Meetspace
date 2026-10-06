@@ -16,6 +16,7 @@ public class ParkingSlotResponseDto {
     private LocalTime startTime;
     private LocalTime endTime;
     private Integer parkingCapacity;
+    private Integer configuredCapacity;
     private Integer registeredSpaces;
     private Integer availableSpaces;
     private Double parkingRate;
@@ -35,6 +36,7 @@ public class ParkingSlotResponseDto {
         dto.startTime = s.getStartTime();
         dto.endTime = s.getEndTime();
         dto.parkingCapacity = s.getCapacity();
+        dto.configuredCapacity = s.getCapacity();
         dto.parkingRate = s.getParkingRate();
         dto.status = s.getStatus();
         dto.createdAt = s.getCreatedAt();
@@ -67,6 +69,7 @@ public class ParkingSlotResponseDto {
     public LocalTime getStartTime() { return startTime; }
     public LocalTime getEndTime() { return endTime; }
     public Integer getParkingCapacity() { return parkingCapacity; }
+    public Integer getConfiguredCapacity() { return configuredCapacity; }
     public Integer getRegisteredSpaces() { return registeredSpaces; }
     public Integer getAvailableSpaces() { return availableSpaces; }
     public Double getParkingRate() { return parkingRate; }

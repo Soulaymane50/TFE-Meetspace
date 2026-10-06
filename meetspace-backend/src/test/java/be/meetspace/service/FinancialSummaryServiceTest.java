@@ -48,7 +48,7 @@ class FinancialSummaryServiceTest {
 
         when(eventRepository.findAllByOrderByCreatedAtDesc()).thenReturn(List.of());
         when(reservationRepository.findAll()).thenReturn(List.of(recentRoom, oldRoom));
-        when(parkingReservationRepository.findAll()).thenReturn(List.of(recentParking, oldParking));
+        when(parkingReservationRepository.findAllForReporting()).thenReturn(List.of(recentParking, oldParking));
         when(transactionMetricsService.forAdmin(from, to)).thenReturn(emptyMetrics(from, to));
 
         FinanceSummaryDto summary = service().getAdminSummary(from, to);

@@ -100,5 +100,20 @@ public class Reservation {
     public LocalDateTime getPaymentDueAt() { return paymentDueAt; }
     public void setPaymentDueAt(LocalDateTime paymentDueAt) { this.paymentDueAt = paymentDueAt; }
 
+    /** Payment closes at the earlier of its deadline and the start of the room slot. */
+    public LocalDateTime getEffectivePaymentDueAt() {
+        LocalDateTime deadline = paymentDueAt != null ? paymentDueAt
+                : approvedAt != null ? approvedAt.plusHours(48) : null;
+        if (startDateTime != null && (deadline == null || startDateTime.isBefore(deadline))) {
+            return startDateTime;
+        }
+        return deadline;
+    }
+
+    public boolean isApprovalPaymentExpired(LocalDateTime now) {
+        LocalDateTime deadline = getEffectivePaymentDueAt();
+        return status == ReservationStatus.APPROVED && deadline != null && !deadline.isAfter(now);
+    }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
 }
