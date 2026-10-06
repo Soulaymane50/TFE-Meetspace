@@ -846,38 +846,40 @@ export default function AdminDashboard() {
                         {t(`admin.userStatus.${u.status?.toLowerCase()}`, u.status)}
                       </span>
                     </td>
-                    <td className={styles.actionsCell}>
-                      <button
-                        className={styles.viewButton}
-                        onClick={() => handleViewUserDetails(u.id)}
-                        title={t("admin.viewDetails")}
-                      >
-                        <AdminIcon type="view" />
-                        <span>{t("common.view")}</span>
-                      </button>
-                      {u.id !== user.id && (
-                        <>
-                          {u.status === "ACTIVE" ? (
-                            <button
-                              className={styles.banButton}
-                              onClick={() => handleBanUser(u.id)}
-                              title={t("admin.banUser")}
-                            >
-                              <AdminIcon type="ban" />
-                              <span>{t("admin.banUser")}</span>
-                            </button>
-                          ) : (
-                            <button
-                              className={styles.reactivateButton}
-                              onClick={() => handleReactivateUser(u.id)}
-                              title={t("admin.reactivateUser")}
-                            >
-                              <AdminIcon type="reactivate" />
-                              <span>{t("admin.reactivateUser")}</span>
-                            </button>
-                          )}
-                        </>
-                      )}
+                    <td>
+                      <div className={styles.actionsCell}>
+                        <button
+                          className={styles.viewButton}
+                          onClick={() => handleViewUserDetails(u.id)}
+                          title={t("admin.viewDetails")}
+                        >
+                          <AdminIcon type="view" />
+                          <span>{t("common.view")}</span>
+                        </button>
+                        {u.id !== user.id && (
+                          <>
+                            {u.status === "ACTIVE" ? (
+                              <button
+                                className={styles.banButton}
+                                onClick={() => handleBanUser(u.id)}
+                                title={t("admin.banUser")}
+                              >
+                                <AdminIcon type="ban" />
+                                <span>{t("admin.banUser")}</span>
+                              </button>
+                            ) : (
+                              <button
+                                className={styles.reactivateButton}
+                                onClick={() => handleReactivateUser(u.id)}
+                                title={t("admin.reactivateUser")}
+                              >
+                                <AdminIcon type="reactivate" />
+                                <span>{t("admin.reactivateUser")}</span>
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
