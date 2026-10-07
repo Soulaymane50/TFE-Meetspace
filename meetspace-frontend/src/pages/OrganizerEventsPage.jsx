@@ -13,6 +13,7 @@ import WorkspaceNav from "../components/WorkspaceNav";
 import FinanceLedger from "../components/FinanceLedger";
 import styles from "./OrganizerEventsPage.module.css";
 import PaymentForm from "../components/PaymentForm";
+import EventSettlements from "../components/EventSettlements";
 
 const ORGANIZER_STATUS_FILTERS = ["ALL", "PENDING_APPROVAL", "AWAITING_DEPOSIT", "PUBLISHED", "REJECTED", "CANCELLED"];
 
@@ -143,6 +144,7 @@ export default function OrganizerEventsPage() {
   const handleCancel = async (id, title) => {
     const confirmed = await confirm({
       title: t("organizer.confirmCancelEvent", { title }),
+      message: t("organizer.roomCancellationPolicy"),
       confirmLabel: t("organizer.cancelEvent"),
       cancelLabel: t("common.cancel"),
       tone: "danger",
@@ -168,7 +170,7 @@ export default function OrganizerEventsPage() {
       }
       notify({
         type: "success",
-        title: paymentEvent.type === "deposit" ? t("organizer.depositPaidTitle") : t("organizer.balancePaidTitle"),
+        title: paymentEvent.type === "deposit" ? t("organizer.roomPaidTitle") : t("organizer.balancePaidTitle"),
         message: paymentEvent.type === "deposit"
           ? t("organizer.depositPaidMessage")
           : t("organizer.balancePaidMessage"),
@@ -267,6 +269,8 @@ export default function OrganizerEventsPage() {
         <p>{t("system.partialData", { sections: t("auditSections.finance") })}</p>
         <button type="button" onClick={fetchEvents}>{t("common.retry")}</button>
       </div>}
+
+      <EventSettlements token={token} />
 
       <div className={styles.commandDeck}>
         <section className={styles.mainConsole}>
@@ -466,12 +470,12 @@ export default function OrganizerEventsPage() {
               <div className={styles.eventActions}>
                 {e.status === "AWAITING_DEPOSIT" && (
                   <button className={styles.payButton} onClick={() => setPaymentEvent({ event: e, type: "deposit" })}>
-                    {t("organizer.payDeposit", {
+                    {t(e.roomPaymentMode === "FULL" ? "organizer.payRoom" : "organizer.payDeposit", {
                       amount: formatEuro((e.depositAmountCents || 0) / 100),
                     })}
                   </button>
                 )}
-                {e.status === "PUBLISHED" && !e.balancePaidAt && (e.balanceDueCents || 0) > 0 && (
+                {e.status === "PUBLISHED" && !e.balancePaidAt && (e.balanceDueCents || 0) > 0 && e.settlementStatus !== "PAID" && e.settlementStatus !== "READY_FOR_PAYOUT" && e.endDateTime && new Date(e.endDateTime) > new Date() && (!e.settlementDueAt || new Date(e.settlementDueAt) > new Date()) && (
                   <button className={styles.payButton} onClick={() => setPaymentEvent({ event: e, type: "balance" })}>
                     {t("organizer.payBalance", {
                       amount: formatEuro((e.balanceDueCents || 0) / 100),
@@ -482,7 +486,7 @@ export default function OrganizerEventsPage() {
                 {canEditOrganizerEvent(e) && <Link to={`/organizer/events/edit/${e.id}`} className={styles.editButton}>
                   {t("common.edit")}
                 </Link>}
-                {e.status !== "CANCELLED" && e.status !== "REJECTED" && (
+                {e.status !== "CANCELLED" && e.status !== "REJECTED" && e.settlementStatus !== "PAID" && new Date(e.endDateTime) > new Date() && (
                   <button onClick={() => handleCancel(e.id, e.title)} className={styles.cancelButton}>
                     {t("organizer.cancelEvent")}
                   </button>
@@ -520,7 +524,7 @@ export default function OrganizerEventsPage() {
               amount={(paymentEvent.type === "deposit"
                 ? paymentEvent.event.depositAmountCents
                 : paymentEvent.event.balanceDueCents) / 100}
-              description={`${t(paymentEvent.type === "deposit" ? "organizer.depositLabel" : "organizer.balanceLabel")} — ${paymentEvent.event.title}`}
+              description={`${t(paymentEvent.type === "deposit" ? "organizer.roomPaymentLabel" : "organizer.balanceLabel")} — ${paymentEvent.event.title}`}
               reservationType={paymentEvent.type === "deposit" ? "EVENT_DEPOSIT" : "EVENT_BALANCE"}
               metadata={{ eventId: paymentEvent.event.id }}
               onSuccess={handleChargePaid}

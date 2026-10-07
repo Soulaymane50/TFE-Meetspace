@@ -1198,3 +1198,19 @@ export async function adminGetAuditEntityTypes(token) {
   if (!res.ok) await throwApiError(res, "Erreur récupération types d'entités");
   return res.json();
 }
+
+// A payout is a recorded external bank transfer, never a card payment.
+export async function getEventSettlements(token, admin = false) {
+  const res = await request(API_URL + '/api/' + (admin ? 'admin' : 'organizer') + '/finance/settlements', { headers: authHeaders(token) });
+  if (!res.ok) await throwApiError(res, "Impossible de charger les décomptes.");
+  return res.json();
+}
+
+export async function recordEventPayout(eventId, reference, amountCents, token) {
+  const res = await request(API_URL + '/api/admin/events/' + eventId + '/payout', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+    body: JSON.stringify({ reference, amountCents }),
+  });
+  if (!res.ok) await throwApiError(res, "Impossible d’enregistrer le virement.");
+  return res.json();
+}

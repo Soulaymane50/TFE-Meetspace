@@ -41,6 +41,7 @@ export default function AdminEventForm() {
     status: "PENDING_APPROVAL",
   });
 
+  const [roomContractLocked, setRoomContractLocked] = useState(false);
   const [espaces, setEspaces] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -104,6 +105,7 @@ export default function AdminEventForm() {
         setEspaces(rooms);
         if (isEdit) {
           if (!ev || String(ev.id) !== String(id)) throw Object.assign(new Error(t("admin.eventNotFound")), { status: 404 });
+          setRoomContractLocked(Boolean(ev.roomContractLocked));
           setEventForm({
             title: ev.title || "", description: ev.description || "",
             startDateTime: ev.startDateTime || "", endDateTime: ev.endDateTime || "",
@@ -364,6 +366,7 @@ export default function AdminEventForm() {
           <div className={styles.field}>
             <label className={styles.label}>{t("events.locationType")} *</label>
             <SelectDropdown
+              disabled={roomContractLocked}
               value={eventForm.locationType}
               onChange={(value) => handleChange({ target: { name: "locationType", value } })}
               options={locationTypeOptions}
@@ -376,6 +379,7 @@ export default function AdminEventForm() {
             <div className={styles.field}>
               <label className={styles.label}>{t("spaces.space")}</label>
               <SelectDropdown
+                disabled={roomContractLocked}
                 value={String(eventForm.spaceId || "")}
                 onChange={(value) => handleChange({ target: { name: "spaceId", value } })}
                 options={roomOptions}
@@ -443,7 +447,12 @@ export default function AdminEventForm() {
           </div>
         )}
 
-        {eventForm.locationType === "EXISTING_SPACE" ? (
+        {roomContractLocked ? (
+          <div className={styles.field}>
+            <p>{t("organizer.roomContractLocked")}</p>
+            <strong>{new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(startDate)} — {new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(endDate)}</strong>
+          </div>
+        ) : eventForm.locationType === "EXISTING_SPACE" ? (
           <RoomSchedulePicker
             key={eventForm.spaceId || "admin-room-schedule"}
             spaceId={eventForm.spaceId}

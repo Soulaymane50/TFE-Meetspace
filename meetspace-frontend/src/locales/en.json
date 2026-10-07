@@ -174,7 +174,7 @@
     "eventsPreviewCta": "View all events",
     "organizerLabel": "Organizer space",
     "organizerBlockTitle": "Your next event at MeetSpace",
-    "organizerBlockText": "Book a room for your event, open registrations after approval and deposit payment, then manage attendees from your organizer account.",
+    "organizerBlockText": "Book a room for your event, open registration after approval and full room payment, then manage attendees from your organizer account.",
     "organizerBenefitRoom": "Choose a MeetSpace room that fits the capacity.",
     "organizerBenefitRegistrations": "Track registrations and publication status.",
     "organizerBenefitFinance": "Review revenue and cost estimates.",
@@ -340,94 +340,94 @@
   "legal": {
     "kicker": "Legal information",
     "legalNotice": {
-      "title": "Legal notice",
+          "title": "Legal notice",
       "intro": "MeetSpace is a platform for booking rooms, events and parking in Brussels, presented as a demonstration/TFE project.",
       "sections": [
-        {
+{
           "title": "Presentation",
           "text": "MeetSpace lets users browse rooms, professional events and parking options from one interface."
         },
-        {
+{
           "title": "Contact",
           "text": "Service-related requests can be sent through the Contact / Support page."
         },
-        {
+{
           "title": "Liability",
           "text": "The information is provided for an academic demonstration and may be adjusted before real-world use."
-        },
-        {
+},
+{
           "title": "Content",
           "text": "Texts, data and availability are used to illustrate MeetSpace booking flows."
-        }
-      ]
-    },
+}
+]
+},
     "privacy": {
-      "title": "Privacy policy",
+          "title": "Privacy policy",
       "intro": "This page briefly explains which data MeetSpace uses to run the demo.",
       "sections": [
-        {
+{
           "title": "Account data",
           "text": "MeetSpace uses name, email and role information to authenticate users and personalize their workspace."
         },
-        {
+{
           "title": "Bookings",
           "text": "Room, event, parking and payment data are used to show confirmations and user history."
-        },
-        {
+},
+{
           "title": "Support",
           "text": "Messages sent through the contact form are used only to process the request."
-        },
-        {
+},
+{
           "title": "Security",
           "text": "Passwords are stored as hashes and sensitive information must never be placed in the code."
-        }
-      ]
-    },
+}
+]
+},
     "terms": {
-      "title": "Terms of use",
+          "title": "Terms of use",
       "intro": "These terms summarize the basic rules for using MeetSpace in the demo context.",
       "sections": [
-        {
+{
           "title": "MeetSpace role",
           "text": "MeetSpace centralizes room bookings, event registrations and parking reservations."
         },
-        {
+{
           "title": "User",
           "text": "Users must provide accurate information and respect the booking rules shown on the platform."
-        },
-        {
+},
+{
           "title": "Organizer",
           "text": "An organizer can submit professional events for validation before publication."
-        },
-        {
+},
+{
           "title": "Availability",
           "text": "Availability, prices and capacities may vary according to demonstration data."
-        }
-      ]
-    },
+}
+]
+},
     "cancellation": {
-      "title": "Cancellation / refund",
+          "title": "Cancellation / refund",
       "intro": "One predictable policy applies to paid rooms, events and parking bookings on MeetSpace.",
       "sections": [
-        {
+{
           "title": "At least 48 hours before",
           "text": "100% of the paid amount is refunded, including parking options linked to an event registration."
         },
-        {
+{
           "title": "Between 24 and 48 hours before",
           "text": "50% of the paid amount is refunded to the original payment method."
-        },
-        {
+},
+{
           "title": "Less than 24 hours before",
           "text": "No automatic refund is granted because capacity was held for the booking."
-        },
-        {
+},
+{
           "title": "Processing",
           "text": "The exact amount is shown before confirmation. The Stripe refund starts immediately and then follows bank processing times."
-        }
-      ]
-    }
-  },
+}
+]
+}
+},
   "command": {
     "open": "Command",
     "eyebrow": "Quick navigation",
@@ -1230,7 +1230,7 @@
     "open": "Open",
     "closed": "Closed",
     "pending_approval": "Pending approval",
-    "awaiting_deposit": "Deposit due",
+    "awaiting_deposit": "Room rental due",
     "approved": "Approved",
     "rejected": "Rejected"
   },
@@ -1289,6 +1289,9 @@
     "modifyAndResubmit": "Modify it and resubmit for approval",
     "cancelEvent": "Cancel professional event",
     "awaitingApproval": "Awaiting approval",
+    "payRoom": "Pay room rental: {{amount}}",
+    "roomPaymentLabel": "Room rental",
+    "roomPaidTitle": "Room rental paid",
     "depositPaidTitle": "Deposit paid",
     "balancePaidTitle": "Balance paid",
     "depositPaidMessage": "The event is now published.",
@@ -1329,7 +1332,9 @@
     "previewParkingExcluded": "Parking not offered",
     "previewStatus": "Status after submission: pending approval",
     "previewRoomUsage": "{{usage}}% of the room",
-    "previewCapacityFallback": "Capacity to complete"
+    "previewCapacityFallback": "Capacity to complete",
+    "roomContractLocked": "The room and times are fixed by the approved rental. To change them, cancel this request and create a new one.",
+    "roomCancellationPolicy": "Participants receive a full refund. For the room rental already paid: 100% at least 48 hours before the start, 50% between 24 and 48 hours, and no refund less than 24 hours before."
   },
   "finance": {
     "adminTitle": "Estimated revenue",
@@ -1606,5 +1611,45 @@
   "history": {
     "moreReservations": "Show older reservations",
     "moreEvents": "Show older events"
+  },
+  "settlement": {
+    "title": "Organizer payouts",
+    "adminHelp": "Payout is available once the event ends and payments and refunds have been verified. Record transfers made to organizers here.",
+    "organizerHelp": "Ticket revenue after refunds, less the 10% commission. Parking revenue is excluded; room rent already paid is not deducted again.",
+    "refresh": "Refresh",
+    "loading": "Loading statements…",
+    "empty": "No published events to settle.",
+    "tickets": "Retained ticket revenue",
+    "commission": "MeetSpace commission (10%)",
+    "legacyBalance": "Remaining room balance",
+    "eventEnded": "Event ends: {{date}}",
+    "due": "Statement available on {{date}}.",
+    "paymentPendingHelp": "A payment is still being processed or awaiting confirmation. Payout is on hold.",
+    "pendingHelp": "A refund is still processing. The payout is on hold.",
+    "reviewHelp": "Payments must be reconciled before the payout amount can be confirmed.",
+    "recorded": "Transfer recorded on {{date}} · Reference: {{reference}}",
+    "openRecord": "Record a bank transfer",
+    "manualNotice": "Make the transfer through your bank, then enter its reference. This action records the transfer; it does not move money.",
+    "reference": "Bank transfer reference",
+    "acknowledge": "I confirm I have transferred the displayed amount to this organizer.",
+    "confirmTitle": "Confirm completed transfer",
+    "confirmMessage": "Record the {{amount}} transfer for “{{title}}”? This confirmation does not initiate a bank transfer.",
+    "confirmRecord": "Confirm transfer",
+    "saved": "Transfer recorded",
+    "saving": "Saving…",
+    "showMore": "Show more statements",
+    "status": {
+      "HOLDING_REVENUE": "Awaiting statement",
+      "READY_FOR_PAYOUT": "To be paid",
+      "PAID": "Transfer recorded",
+      "PAYMENT_PENDING": "Payment to verify",
+      "REFUND_PENDING": "Refund processing",
+      "REVIEW_REQUIRED": "Payments to review",
+      "NOTHING_TO_PAY": "No payout due",
+      "BALANCE_OUTSTANDING": "Room balance not covered",
+      "NOT_ELIGIBLE": "Payout unavailable",
+      "BENEFICIARY_UNAVAILABLE": "Recipient unavailable"
+    },
+    "beneficiaryHelp": "The recipient account must be active before its payout can be recorded."
   }
 }

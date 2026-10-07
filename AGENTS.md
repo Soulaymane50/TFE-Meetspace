@@ -32,7 +32,7 @@ Le code exécuté et les migrations priment sur les documents historiques. Quand
 - Le parking possède **150 places physiques au total par créneau simultané**. Ne jamais additionner des disponibilités de jours ou d'événements différents pour afficher une capacité globale.
 - Les allocations de parking doivent tenir compte de tous les événements et réservations qui se chevauchent. Une place participante produit un accès et un QR code propre, contrôlable de façon idempotente.
 - Un événement reste non publié tant que les conditions d'approbation et de paiement prévues ne sont pas remplies.
-- Après approbation administrative, l'acompte est exigible immédiatement ; sa confirmation autorise la publication. Le solde suit la règle métier configurée, notamment l'échéance de 48 h après l'événement.
+- Après approbation administrative, les nouveaux événements doivent payer 100 % de la location avant publication. Préserver les anciens acomptes déjà payés. Dès la fin de l’événement, le versement organisateur devient disponible si les paiements et remboursements sont rapprochés ; la salle déjà payée ne doit pas être déduite une seconde fois. Un ancien solde non payé est déduit du décompte et ne reste pas payable séparément après la fin. L’admin enregistre un virement bancaire externe, sans prétendre que cet enregistrement transfère de l’argent.
 - La commission MeetSpace reste à 10 % tant qu'une demande explicite ne modifie pas ce choix documenté.
 - Toute somme affichée côté client est indicative : le serveur recalcule le montant final à partir des données persistées.
 - Les paiements doivent être idempotents. Ne jamais faire confiance à un statut fourni par le navigateur ; vérifier les événements Stripe côté serveur.

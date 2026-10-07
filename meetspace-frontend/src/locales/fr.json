@@ -174,7 +174,7 @@
         "eventsPreviewCta": "Voir tous les événements",
         "organizerLabel": "Espace organisateur",
         "organizerBlockTitle": "Votre prochain événement chez MeetSpace",
-        "organizerBlockText": "Réservez une salle pour votre événement, ouvrez les inscriptions après validation et paiement de l’acompte, puis suivez les participants depuis votre compte organisateur.",
+        "organizerBlockText": "Réservez une salle pour votre événement, ouvrez les inscriptions après validation et paiement de la location, puis suivez les participants depuis votre compte organisateur.",
         "organizerBenefitRoom": "Choisir une salle MeetSpace adaptée à la capacité.",
         "organizerBenefitRegistrations": "Suivre les inscriptions et le statut de publication.",
         "organizerBenefitFinance": "Consulter les estimations de revenus et de coûts.",
@@ -343,43 +343,91 @@
             "title": "Mentions légales",
             "intro": "MeetSpace est une plateforme de réservation de salles, événements et parking à Bruxelles, présentée dans le cadre d'une démonstration/TFE.",
             "sections": [
-                { "title": "Présentation", "text": "MeetSpace permet de consulter des salles, des événements professionnels et des options de parking depuis une interface unique." },
-                { "title": "Contact", "text": "Les demandes relatives au service peuvent être envoyées via la page Contact / Support." },
-                { "title": "Responsabilité", "text": "Les informations sont fournies pour une démonstration académique et peuvent être ajustées avant un usage réel." },
-                { "title": "Contenu", "text": "Les textes, données et disponibilités affichés servent à illustrer les parcours de réservation MeetSpace." }
-            ]
+{
+            "title": "Présentation",
+                    "text": "MeetSpace permet de consulter des salles, des événements professionnels et des options de parking depuis une interface unique."
         },
+{
+                    "title": "Contact",
+                    "text": "Les demandes relatives au service peuvent être envoyées via la page Contact / Support."
+    },
+{
+                    "title": "Responsabilité",
+                    "text": "Les informations sont fournies pour une démonstration académique et peuvent être ajustées avant un usage réel."
+},
+{
+                    "title": "Contenu",
+                    "text": "Les textes, données et disponibilités affichés servent à illustrer les parcours de réservation MeetSpace."
+}
+]
+},
         "privacy": {
             "title": "Politique de confidentialité",
             "intro": "Cette page explique simplement quelles données sont utilisées par MeetSpace pour faire fonctionner la démonstration.",
             "sections": [
-                { "title": "Données de compte", "text": "MeetSpace utilise le nom, le prénom, l'email et le rôle pour authentifier l'utilisateur et personnaliser son espace." },
-                { "title": "Réservations", "text": "Les données de salles, événements, parking et paiement servent à afficher les confirmations et l'historique utilisateur." },
-                { "title": "Support", "text": "Les messages envoyés via le formulaire de contact sont utilisés uniquement pour traiter la demande." },
-                { "title": "Sécurité", "text": "Les mots de passe sont stockés sous forme hashée et les informations sensibles ne doivent jamais être placées dans le code." }
-            ]
-        },
+{
+                    "title": "Données de compte",
+                    "text": "MeetSpace utilise le nom, le prénom, l'email et le rôle pour authentifier l'utilisateur et personnaliser son espace."
+                },
+{
+                    "title": "Réservations",
+                    "text": "Les données de salles, événements, parking et paiement servent à afficher les confirmations et l'historique utilisateur."
+},
+{
+                    "title": "Support",
+                    "text": "Les messages envoyés via le formulaire de contact sont utilisés uniquement pour traiter la demande."
+},
+{
+                    "title": "Sécurité",
+                    "text": "Les mots de passe sont stockés sous forme hashée et les informations sensibles ne doivent jamais être placées dans le code."
+}
+]
+},
         "terms": {
             "title": "Conditions d'utilisation",
             "intro": "Ces conditions résument les règles de base pour utiliser MeetSpace dans le cadre de la démonstration.",
             "sections": [
-                { "title": "Rôle de MeetSpace", "text": "MeetSpace centralise les parcours de réservation de salles, d'inscription à des événements et de parking." },
-                { "title": "Utilisateur", "text": "L'utilisateur s'engage à fournir des informations exactes et à respecter les règles de réservation affichées." },
-                { "title": "Organisateur", "text": "Un organisateur peut proposer des événements professionnels soumis à validation avant publication." },
-                { "title": "Disponibilité", "text": "Les disponibilités, prix et capacités affichés peuvent varier selon les données de démonstration." }
-            ]
-        },
+{
+                    "title": "Rôle de MeetSpace",
+                    "text": "MeetSpace centralise les parcours de réservation de salles, d'inscription à des événements et de parking."
+                },
+{
+                    "title": "Utilisateur",
+                    "text": "L'utilisateur s'engage à fournir des informations exactes et à respecter les règles de réservation affichées."
+},
+{
+                    "title": "Organisateur",
+                    "text": "Un organisateur peut proposer des événements professionnels soumis à validation avant publication."
+},
+{
+                    "title": "Disponibilité",
+                    "text": "Les disponibilités, prix et capacités affichés peuvent varier selon les données de démonstration."
+}
+]
+},
         "cancellation": {
             "title": "Annulation / remboursement",
             "intro": "Une politique unique et prévisible s'applique aux salles, événements et réservations parking payés sur MeetSpace.",
             "sections": [
-                { "title": "Au moins 48 heures avant", "text": "Le montant payé est remboursé à 100 %, options parking comprises lorsqu'elles sont liées à l'inscription." },
-                { "title": "Entre 24 et 48 heures avant", "text": "50 % du montant payé est remboursé sur le moyen de paiement d'origine." },
-                { "title": "Moins de 24 heures avant", "text": "Aucun remboursement automatique n'est accordé, car la capacité a été immobilisée." },
-                { "title": "Traitement", "text": "Le montant exact est présenté avant confirmation. Le remboursement Stripe est déclenché immédiatement, puis apparaît selon les délais bancaires." }
-            ]
-        }
-    },
+{
+                    "title": "Au moins 48 heures avant",
+                    "text": "Le montant payé est remboursé à 100 %, options parking comprises lorsqu'elles sont liées à l'inscription."
+                },
+{
+                    "title": "Entre 24 et 48 heures avant",
+                    "text": "50 % du montant payé est remboursé sur le moyen de paiement d'origine."
+},
+{
+                    "title": "Moins de 24 heures avant",
+                    "text": "Aucun remboursement automatique n'est accordé, car la capacité a été immobilisée."
+},
+{
+                    "title": "Traitement",
+                    "text": "Le montant exact est présenté avant confirmation. Le remboursement Stripe est déclenché immédiatement, puis apparaît selon les délais bancaires."
+}
+]
+}
+},
     "command": {
         "open": "Commander",
         "eyebrow": "Navigation rapide",
@@ -869,33 +917,33 @@
         "capacityModelTitle": "Partage par créneau",
         "capacityModelText": "Tant qu’un événement est à plus de 48 h, 50 places restent en réserve partagée. Le reliquat est libéré à l’approche de l’événement s’il n’existe aucun chevauchement.",
         "automaticTitle": "Parking automatiquement inclus",
-        "automaticOrganizerHelp": "MeetSpace r\u00e9partit les 150 places physiques entre les \u00e9v\u00e9nements qui se chevauchent. Une place gratuite est r\u00e9serv\u00e9e \u00e0 votre \u00e9quipe ; les participants r\u00e9servent ensuite leur propre place.",
-        "automaticAdminHelp": "Les 150 places physiques sont r\u00e9parties automatiquement entre les \u00e9v\u00e9nements qui se chevauchent. Les cr\u00e9neaux successifs r\u00e9utilisent toute la capacit\u00e9.",
+        "automaticOrganizerHelp": "MeetSpace répartit les 150 places physiques entre les événements qui se chevauchent. Une place gratuite est réservée à votre équipe ; les participants réservent ensuite leur propre place.",
+        "automaticAdminHelp": "Les 150 places physiques sont réparties automatiquement entre les événements qui se chevauchent. Les créneaux successifs réutilisent toute la capacité.",
         "place": "place",
-        "previewAutomatic": "Parking partag\u00e9 \u00b7 {{price}} / v\u00e9hicule",
-        "currentAllocation": "Parking partag\u00e9 \u2014 allocation actuelle",
-        "organizerAllocationSummary": "{{available}} places encore r\u00e9servables sur {{allocated}} \u00b7 {{price}} / v\u00e9hicule",
-        "scanAccess": "Scanner un acc\u00e8s",
-        "sharedCapacity": "sur 150 places physiques partag\u00e9es",
+        "previewAutomatic": "Parking partagé · {{price}} / véhicule",
+        "currentAllocation": "Parking partagé — allocation actuelle",
+        "organizerAllocationSummary": "{{available}} places encore réservables sur {{allocated}} · {{price}} / véhicule",
+        "scanAccess": "Scanner un accès",
+        "sharedCapacity": "sur 150 places physiques partagées",
         "sharedCapacitySummary": "Capacité physique commune, réutilisée selon les horaires et partagée entre les événements simultanés.",
-        "accessKicker": "Acc\u00e8s au parking",
-        "accessControl": "Contr\u00f4le des acc\u00e8s parking",
-        "accessControlHelp": "Chaque QR correspond \u00e0 un seul v\u00e9hicule et ne peut \u00eatre contr\u00f4l\u00e9 qu\u2019une fois.",
+        "accessKicker": "Accès au parking",
+        "accessControl": "Contrôle des accès parking",
+        "accessControlHelp": "Chaque QR correspond à un seul véhicule et ne peut être contrôlé qu’une fois.",
         "scanPass": "Scanner un laissez-passer",
-        "scanHelp": "Cadrez le QR du v\u00e9hicule ou saisissez son code.",
+        "scanHelp": "Cadrez le QR du véhicule ou saisissez son code.",
         "passCode": "Code du laissez-passer",
-        "alreadyUsed": "Acc\u00e8s d\u00e9j\u00e0 contr\u00f4l\u00e9",
-        "accessGranted": "Acc\u00e8s autoris\u00e9",
-        "invalidAccess": "Acc\u00e8s parking invalide",
-        "rulesKicker": "R\u00e8gle d\u2019acc\u00e8s",
-        "oneQrPerVehicle": "Un v\u00e9hicule, un QR",
-        "adminAccessNote": "Les r\u00e9servations annul\u00e9es sont refus\u00e9es. Un second scan signale imm\u00e9diatement que le v\u00e9hicule est d\u00e9j\u00e0 entr\u00e9.",
-        "vehiclePasses": "Un QR code par v\u00e9hicule",
-        "vehiclePassHelp": "Pr\u00e9sentez un QR diff\u00e9rent \u00e0 la barri\u00e8re pour chaque v\u00e9hicule. Un code d\u00e9j\u00e0 utilis\u00e9 reste marqu\u00e9 comme contr\u00f4l\u00e9.",
-        "vehicleNumber": "V\u00e9hicule {{count}}",
-        "qrAlt": "QR d\u2019acc\u00e8s parking",
-        "accessUsed": "Acc\u00e8s d\u00e9j\u00e0 contr\u00f4l\u00e9",
-        "accessReady": "Pr\u00eat \u00e0 pr\u00e9senter",
+        "alreadyUsed": "Accès déjà contrôlé",
+        "accessGranted": "Accès autorisé",
+        "invalidAccess": "Accès parking invalide",
+        "rulesKicker": "Règle d’accès",
+        "oneQrPerVehicle": "Un véhicule, un QR",
+        "adminAccessNote": "Les réservations annulées sont refusées. Un second scan signale immédiatement que le véhicule est déjà entré.",
+        "vehiclePasses": "Un QR code par véhicule",
+        "vehiclePassHelp": "Présentez un QR différent à la barrière pour chaque véhicule. Un code déjà utilisé reste marqué comme contrôlé.",
+        "vehicleNumber": "Véhicule {{count}}",
+        "qrAlt": "QR d’accès parking",
+        "accessUsed": "Accès déjà contrôlé",
+        "accessReady": "Prêt à présenter",
         "dayOverviewLabel": "Vue jour",
         "sessionPlural": "créneaux",
         "almostFull": "Presque complet",
@@ -1178,7 +1226,7 @@
         "open": "Ouvert",
         "closed": "Fermé",
         "pending_approval": "En attente d'approbation",
-        "awaiting_deposit": "Acompte à payer",
+        "awaiting_deposit": "Location à payer",
         "approved": "Approuvé",
         "rejected": "Refusé",
         "full": "Complet"
@@ -1238,6 +1286,9 @@
         "modifyAndResubmit": "Modifiez-le et resoumettez-le pour approbation",
         "cancelEvent": "Annuler l'événement professionnel",
         "awaitingApproval": "En attente de validation",
+        "payRoom": "Payer la location de {{amount}}",
+        "roomPaymentLabel": "Location de salle",
+        "roomPaidTitle": "Location payée",
         "depositPaidTitle": "Acompte payé",
         "balancePaidTitle": "Solde payé",
         "depositPaidMessage": "L'événement est maintenant publié.",
@@ -1278,7 +1329,9 @@
         "previewParkingExcluded": "Parking non proposé",
         "previewStatus": "Statut après soumission : en attente d’approbation",
         "previewRoomUsage": "{{usage}}% de la salle",
-        "previewCapacityFallback": "Capacité à compléter"
+        "previewCapacityFallback": "Capacité à compléter",
+        "roomContractLocked": "La salle et les horaires sont fixés par la location approuvée. Pour les changer, annulez cette demande et créez-en une nouvelle.",
+        "roomCancellationPolicy": "Les participants sont remboursés intégralement. Pour la location déjà payée : 100 % à au moins 48 h du début, 50 % entre 24 et 48 h, puis aucun remboursement à moins de 24 h."
     },
     "finance": {
         "adminTitle": "Revenus estimes",
@@ -1368,7 +1421,11 @@
         "commissionShort": "Commission",
         "roomShort": "Salle",
         "periodLabel": "Période financière",
-        "period": { "all": "Tout", "year": "Cette année", "30d": "30 jours" },
+        "period": {
+            "all": "Tout",
+            "year": "Cette année",
+            "30d": "30 jours"
+        },
         "grossCollected": "Encaissé brut",
         "refundedAmount": "Remboursé",
         "processingFees": "Frais de paiement estimés",
@@ -1438,7 +1495,11 @@
         "kicker": "Finance et pilotage",
         "title": "Finances de la plateforme.",
         "subtitle": "Suivez séparément le revenu commercial, les paiements réellement encaissés et les montants encore attendus.",
-        "period": { "30d": "30 jours", "90d": "90 jours", "year": "Cette année" },
+        "period": {
+            "30d": "30 jours",
+            "90d": "90 jours",
+            "year": "Cette année"
+        },
         "keyFigures": "Indicateurs financiers principaux",
         "commercialRevenueHelp": "Salles, parking et contribution des événements",
         "cashHelp": "Paiements reçus après remboursements et frais",
@@ -1547,5 +1608,45 @@
     "history": {
         "moreReservations": "Afficher les réservations plus anciennes",
         "moreEvents": "Afficher les événements plus anciens"
+    },
+    "settlement": {
+        "title": "Versements organisateurs",
+        "adminHelp": "Le versement est disponible dès la fin de l’événement, lorsque les paiements et remboursements sont vérifiés. Enregistrez ici les virements effectués aux organisateurs.",
+        "organizerHelp": "Billetterie après remboursements, moins 10 % de commission. Les recettes parking sont exclues ; la salle déjà payée n’est pas déduite à nouveau.",
+        "refresh": "Actualiser",
+        "loading": "Chargement des décomptes…",
+        "empty": "Aucun événement publié à régler.",
+        "tickets": "Billetterie conservée",
+        "commission": "Commission MeetSpace (10 %)",
+        "legacyBalance": "Solde de location restant",
+        "eventEnded": "Fin de l’événement : {{date}}",
+        "due": "Décompte disponible le {{date}}.",
+        "paymentPendingHelp": "Un paiement est encore en traitement ou attend sa confirmation. Le versement est suspendu.",
+        "pendingHelp": "Un remboursement est encore en traitement. Le versement est suspendu.",
+        "reviewHelp": "Les paiements doivent être rapprochés avant de confirmer le montant à verser.",
+        "recorded": "Virement enregistré le {{date}} · Référence : {{reference}}",
+        "openRecord": "Enregistrer un virement",
+        "manualNotice": "Effectuez le virement depuis votre banque, puis renseignez sa référence. Cette action enregistre le versement ; elle ne transfère pas d’argent.",
+        "reference": "Référence du virement bancaire",
+        "acknowledge": "Je confirme avoir effectué le virement du montant indiqué à cet organisateur.",
+        "confirmTitle": "Confirmer le virement effectué",
+        "confirmMessage": "Enregistrer le virement de {{amount}} pour « {{title}} » ? Cette confirmation ne déclenche aucun transfert bancaire.",
+        "confirmRecord": "Confirmer le virement",
+        "saved": "Virement enregistré",
+        "saving": "Enregistrement…",
+        "showMore": "Afficher les autres décomptes",
+        "status": {
+            "HOLDING_REVENUE": "En attente du décompte",
+            "READY_FOR_PAYOUT": "À verser",
+            "PAID": "Virement enregistré",
+            "PAYMENT_PENDING": "Paiement à vérifier",
+            "REFUND_PENDING": "Remboursement en cours",
+            "REVIEW_REQUIRED": "Paiements à vérifier",
+            "NOTHING_TO_PAY": "Aucun versement dû",
+            "BALANCE_OUTSTANDING": "Solde de location non couvert",
+            "NOT_ELIGIBLE": "Versement indisponible",
+            "BENEFICIARY_UNAVAILABLE": "Bénéficiaire indisponible"
+        },
+        "beneficiaryHelp": "Le compte bénéficiaire doit être actif avant d’enregistrer son versement."
     }
 }

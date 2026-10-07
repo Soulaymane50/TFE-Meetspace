@@ -34,7 +34,7 @@ Une demande de salle approuvée doit être payée dans les 48 heures, et toujour
 
 Les réservations annulées ou refusées libèrent la salle. Les autres statuts continuent à bloquer les chevauchements. Le calendrier vérifie les horaires à la minute, conserve la durée exacte lors d'un déplacement et désactive la validation tant que les disponibilités du mois affiché ne sont pas chargées. Un chargement invalide affiche une erreur avec possibilité de réessayer.
 
-Une publication administrative respecte aussi l'acompte requis pour les événements payants créés par un organisateur. Le paiement du solde exige un événement publié. La suppression d'un événement avec des inscriptions ou des paiements est refusée pour préserver son historique ; un créneau de parking avec des réservations clientes est également conservé. Les seuls accès organisateur gratuits, sans paiement, peuvent être supprimés avec leur créneau.
+Une publication administrative respecte aussi le paiement intégral requis pour les événements payants créés par un organisateur. Le paiement du solde exige un événement publié. La suppression d'un événement avec des inscriptions ou des paiements est refusée pour préserver son historique ; un créneau de parking avec des réservations clientes est également conservé. Les seuls accès organisateur gratuits, sans paiement, peuvent être supprimés avec leur créneau.
 
 ## Rôles
 
@@ -222,7 +222,7 @@ set E2E_ADMIN_PASSWORD=MeetSpaceDemo!2026
 npm test
 ```
 
-La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La suite comprend 226 tests backend et 71 cas Playwright : 7 scénarios API et 64 scénarios navigateur, parcours métier et accessibilité. Les tests Node complètent la validation des lectures HTTP, des disponibilités et du paiement. Les scénarios financiers utilisent un adaptateur de paiement simulé ; leur réussite ne remplace pas une recette Stripe en mode test.
+La CI répète ces contrôles sur une base MySQL vide : tests backend, reconstruction Flyway, lint, build et recette Playwright. La suite comprend 263 tests backend et 78 cas Playwright : 7 scénarios API et 71 scénarios navigateur, parcours métier et accessibilité. Les tests Node complètent la validation des lectures HTTP, des disponibilités et du paiement. Les scénarios financiers utilisent un adaptateur de paiement simulé ; leur réussite ne remplace pas une recette Stripe en mode test.
 
 ## Disponibilités, statuts et remboursements
 
@@ -234,7 +234,7 @@ Les écritures HTTP ont également un délai maximal de 15 secondes. Une répons
 
 Un changement de rôle ou de statut, un bannissement ou une désactivation invalide les sessions existantes ; une réactivation ne restaure pas les anciens jetons. Le bannissement annule les réservations futures selon leurs conditions de remboursement et désactive les accès parking correspondants, tout en conservant les réservations passées. Une salle liée à des réservations, des événements ou un paiement en cours ne peut pas être supprimée : elle peut être rendue indisponible pour conserver l'historique. Les offres de liste d'attente concernent uniquement les événements publiés et les comptes actifs.
 
-Le formulaire administrateur crée par défaut un événement en attente d'approbation. Son statut est transmis lors de la création et de la modification, avec les mêmes contrôles que la route dédiée. Une annulation est définitive ; un événement publié ne retourne pas en attente. La publication d'un événement organisateur respecte son approbation et son acompte. Les champs financiers détaillés ne sont pas exposés dans les réponses publiques.
+Le formulaire administrateur crée par défaut un événement en attente d'approbation. Son statut est transmis lors de la création et de la modification, avec les mêmes contrôles que la route dédiée. Une annulation est définitive ; un événement publié ne retourne pas en attente. La publication d'un événement organisateur respecte son approbation et le paiement intégral de sa location. Les champs financiers détaillés ne sont pas exposés dans les réponses publiques.
 
 Les réservations et les blocages temporaires de paiement partagent l'inventaire de parking. La finalisation exclut uniquement le blocage correspondant au paiement, à son propriétaire et au créneau exact. Le contrôle des QR et les annulations prennent le même premier verrou afin de terminer sans conflit circulaire. Un créneau déjà vendu ne peut pas être déplacé ; les modifications d'allocation pendant un paiement actif sont refusées. Le parking d'un événement interne reste limité à une journée.
 
@@ -330,3 +330,13 @@ Les listes d’événements administrateur et organisateur utilisent une somme g
 Les réservations parking personnelles réutilisent les accès déjà chargés, sans effectuer une nouvelle lecture des codes pour chaque réservation.
 
 Les espaces membre et organisateur affichent les dix éléments passés les plus récents, puis permettent d’ouvrir les éléments plus anciens par groupes de dix. Les réservations à venir, événements en cours et actions financières en attente restent visibles ; les totaux et les données sont conservés.
+
+### Location et versements organisateurs
+
+Après approbation, les nouvelles demandes paient 100 % de la location avant publication. Les anciennes transactions conservent leurs montants et un éventuel solde ; aucun acompte payé n’est effacé ni débité une seconde fois. Les identifiants historiques EVENT_DEPOSIT et AWAITING_DEPOSIT restent compatibles, mais désignent le paiement de la location pour les nouvelles demandes.
+
+Le versement devient disponible dès la fin de l’événement, après vérification des paiements et remboursements : billetterie effectivement encaissée après remboursements, moins 10 % de commission, hors parking. La salle déjà payée ne diminue pas une seconde fois le versement. Un ancien solde non payé est déduit sans pénalité ; son paiement séparé en ligne est fermé à la fin de l’événement pour éviter une double facturation. Les paiements en traitement ou non finalisés, les remboursements en cours et les paiements historiques non rapprochés bloquent la confirmation. Le résultat économique après coût de salle reste distinct du montant à verser.
+
+Les horaires et la salle d’une location approuvée ou payée restent fixes afin de préserver son prix. Une annulation par l’organisateur rembourse la location payée selon le barème 48 h / 24 h ; une annulation administrative restitue intégralement la location. Les billets des participants sont restitués intégralement lorsque leur événement est annulé. Le journal conserve le barème de la première demande pour reprendre un remboursement interrompu sans changer son montant.
+
+Dans Administration → Finances, l’administrateur peut enregistrer un virement bancaire effectué hors application avec une référence et une confirmation explicite. Le serveur recalcule le montant, refuse un événement non éligible ou un doublon et conserve le bénéficiaire, le montant, la date et l’administrateur. L’organisateur retrouve ce suivi dans Mes événements. Cette action ne déclenche pas de transfert Stripe Connect ni de virement bancaire.

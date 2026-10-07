@@ -174,7 +174,7 @@
     "eventsPreviewCta": "Alle evenementen bekijken",
     "organizerLabel": "Organisatorruimte",
     "organizerBlockTitle": "Uw volgende evenement bij MeetSpace",
-    "organizerBlockText": "Reserveer een zaal voor uw evenement, open de inschrijvingen na goedkeuring en betaling van het voorschot en volg de deelnemers via uw organisatorenaccount.",
+    "organizerBlockText": "Reserveer een zaal voor uw evenement, open inschrijvingen na goedkeuring en volledige betaling van de zaalhuur en volg de deelnemers vanuit uw organisatoraccount.",
     "organizerBenefitRoom": "Kies een MeetSpace-zaal die past bij de capaciteit.",
     "organizerBenefitRegistrations": "Volg inschrijvingen en publicatiestatus op.",
     "organizerBenefitFinance": "Bekijk inkomsten- en kostenramingen.",
@@ -343,43 +343,91 @@
             "title": "Juridische vermeldingen",
             "intro": "MeetSpace is een platform voor het reserveren van zalen, evenementen en parking in Brussel, voorgesteld als demonstratie/TFE-project.",
             "sections": [
-                { "title": "Voorstelling", "text": "MeetSpace laat gebruikers zalen, professionele evenementen en parkingopties bekijken vanuit een enkele interface." },
-                { "title": "Contact", "text": "Aanvragen over de dienst kunnen via de pagina Contact / Support worden verzonden." },
-                { "title": "Aansprakelijkheid", "text": "De informatie wordt verstrekt voor een academische demonstratie en kan worden aangepast voor echt gebruik." },
-                { "title": "Inhoud", "text": "Teksten, gegevens en beschikbaarheden illustreren de reservatieflows van MeetSpace." }
-            ]
+{
+            "title": "Voorstelling",
+                    "text": "MeetSpace laat gebruikers zalen, professionele evenementen en parkingopties bekijken vanuit een enkele interface."
         },
+{
+                    "title": "Contact",
+                    "text": "Aanvragen over de dienst kunnen via de pagina Contact / Support worden verzonden."
+    },
+{
+                    "title": "Aansprakelijkheid",
+                    "text": "De informatie wordt verstrekt voor een academische demonstratie en kan worden aangepast voor echt gebruik."
+},
+{
+                    "title": "Inhoud",
+                    "text": "Teksten, gegevens en beschikbaarheden illustreren de reservatieflows van MeetSpace."
+}
+]
+},
         "privacy": {
             "title": "Privacybeleid",
             "intro": "Deze pagina legt kort uit welke gegevens MeetSpace gebruikt om de demo te laten werken.",
             "sections": [
-                { "title": "Accountgegevens", "text": "MeetSpace gebruikt naam, e-mail en rol om gebruikers te authenticeren en hun omgeving te personaliseren." },
-                { "title": "Reservaties", "text": "Gegevens over zalen, evenementen, parking en betaling tonen bevestigingen en gebruikershistoriek." },
-                { "title": "Support", "text": "Berichten via het contactformulier worden alleen gebruikt om de aanvraag te behandelen." },
-                { "title": "Beveiliging", "text": "Wachtwoorden worden gehasht opgeslagen en gevoelige informatie hoort nooit in de code." }
-            ]
-        },
+{
+                    "title": "Accountgegevens",
+                    "text": "MeetSpace gebruikt naam, e-mail en rol om gebruikers te authenticeren en hun omgeving te personaliseren."
+                },
+{
+                    "title": "Reservaties",
+                    "text": "Gegevens over zalen, evenementen, parking en betaling tonen bevestigingen en gebruikershistoriek."
+},
+{
+                    "title": "Support",
+                    "text": "Berichten via het contactformulier worden alleen gebruikt om de aanvraag te behandelen."
+},
+{
+                    "title": "Beveiliging",
+                    "text": "Wachtwoorden worden gehasht opgeslagen en gevoelige informatie hoort nooit in de code."
+}
+]
+},
         "terms": {
             "title": "Gebruiksvoorwaarden",
             "intro": "Deze voorwaarden vatten de basisregels samen voor het gebruik van MeetSpace in de democontext.",
             "sections": [
-                { "title": "Rol van MeetSpace", "text": "MeetSpace centraliseert zaalreservaties, evenementinschrijvingen en parkingreservaties." },
-                { "title": "Gebruiker", "text": "De gebruiker geeft correcte informatie en respecteert de reservatieregels op het platform." },
-                { "title": "Organisator", "text": "Een organisator kan professionele evenementen indienen die voor publicatie worden gevalideerd." },
-                { "title": "Beschikbaarheid", "text": "Beschikbaarheid, prijzen en capaciteiten kunnen variëren volgens de demogegevens." }
-            ]
-        },
+{
+                    "title": "Rol van MeetSpace",
+                    "text": "MeetSpace centraliseert zaalreservaties, evenementinschrijvingen en parkingreservaties."
+                },
+{
+                    "title": "Gebruiker",
+                    "text": "De gebruiker geeft correcte informatie en respecteert de reservatieregels op het platform."
+},
+{
+                    "title": "Organisator",
+                    "text": "Een organisator kan professionele evenementen indienen die voor publicatie worden gevalideerd."
+},
+{
+                    "title": "Beschikbaarheid",
+                    "text": "Beschikbaarheid, prijzen en capaciteiten kunnen variëren volgens de demogegevens."
+}
+]
+},
         "cancellation": {
             "title": "Annulering / terugbetaling",
             "intro": "Eén voorspelbaar beleid geldt voor betaalde zalen, evenementen en parkingreservaties op MeetSpace.",
             "sections": [
-                { "title": "Minstens 48 uur vooraf", "text": "100% van het betaalde bedrag wordt terugbetaald, inclusief gekoppelde parkingopties." },
-                { "title": "Tussen 24 en 48 uur vooraf", "text": "50% van het betaalde bedrag wordt teruggestort via de oorspronkelijke betaalmethode." },
-                { "title": "Minder dan 24 uur vooraf", "text": "Er is geen automatische terugbetaling omdat de capaciteit voor de reservatie werd vastgehouden." },
-                { "title": "Verwerking", "text": "Het exacte bedrag wordt voor bevestiging getoond. De Stripe-terugbetaling start onmiddellijk en volgt daarna de banktermijnen." }
-            ]
-        }
-    },
+{
+                    "title": "Minstens 48 uur vooraf",
+                    "text": "100% van het betaalde bedrag wordt terugbetaald, inclusief gekoppelde parkingopties."
+                },
+{
+                    "title": "Tussen 24 en 48 uur vooraf",
+                    "text": "50% van het betaalde bedrag wordt teruggestort via de oorspronkelijke betaalmethode."
+},
+{
+                    "title": "Minder dan 24 uur vooraf",
+                    "text": "Er is geen automatische terugbetaling omdat de capaciteit voor de reservatie werd vastgehouden."
+},
+{
+                    "title": "Verwerking",
+                    "text": "Het exacte bedrag wordt voor bevestiging getoond. De Stripe-terugbetaling start onmiddellijk en volgt daarna de banktermijnen."
+}
+]
+}
+},
     "command":  {
                     "open":  "Commando",
                     "eyebrow":  "Snelle navigatie",
@@ -872,18 +920,18 @@
                       "capacityModelTitle":  "Delen per tijdslot",
                       "capacityModelText":  "Zolang een evenement meer dan 48 uur verwijderd is, blijven 50 plaatsen in een gedeelde reserve. De rest wordt vrijgegeven wanneer het evenement nadert en er geen overlap is.",
                       "automaticTitle":  "Parking automatisch inbegrepen",
-                      "automaticOrganizerHelp":  "MeetSpace verdeelt de 150 fysieke plaatsen over overlappende evenementen. E\u00e9n gratis plaats is voor uw team gereserveerd; deelnemers reserveren daarna hun eigen plaats.",
+                      "automaticOrganizerHelp": "MeetSpace verdeelt de 150 fysieke plaatsen over overlappende evenementen. Eén gratis plaats is voor uw team gereserveerd; deelnemers reserveren daarna hun eigen plaats.",
                       "automaticAdminHelp":  "De 150 fysieke plaatsen worden automatisch verdeeld over overlappende evenementen. Opeenvolgende tijdsloten hergebruiken de volledige capaciteit.",
                       "place":  "plaats",
-                      "previewAutomatic":  "Gedeelde parking \u00b7 {{price}} / voertuig",
-                      "currentAllocation":  "Gedeelde parking \u2014 huidige toewijzing",
-                      "organizerAllocationSummary":  "{{available}} plaatsen nog reserveerbaar van {{allocated}} \u00b7 {{price}} / voertuig",
+                      "previewAutomatic": "Gedeelde parking · {{price}} / voertuig",
+                      "currentAllocation": "Gedeelde parking — huidige toewijzing",
+                      "organizerAllocationSummary": "{{available}} plaatsen nog reserveerbaar van {{allocated}} · {{price}} / voertuig",
                       "scanAccess":  "Toegang scannen",
                       "sharedCapacity":  "van 150 gedeelde fysieke plaatsen",
                        "sharedCapacitySummary": "Gemeenschappelijke fysieke capaciteit, hergebruikt volgens het uurrooster en verdeeld over gelijktijdige evenementen.",
                       "accessKicker":  "Toegang tot de parking",
                       "accessControl":  "Toegangscontrole parking",
-                      "accessControlHelp":  "Elke QR-code hoort bij \u00e9\u00e9n voertuig en kan maar \u00e9\u00e9n keer worden gecontroleerd.",
+                      "accessControlHelp": "Elke QR-code hoort bij één voertuig en kan maar één keer worden gecontroleerd.",
                       "scanPass":  "Voertuigpas scannen",
                       "scanHelp":  "Breng de QR-code van het voertuig in beeld of voer de code in.",
                       "passCode":  "Code van de voertuigpas",
@@ -891,9 +939,9 @@
                       "accessGranted":  "Toegang toegestaan",
                       "invalidAccess":  "Ongeldige parkingtoegang",
                       "rulesKicker":  "Toegangsregel",
-                      "oneQrPerVehicle":  "E\u00e9n voertuig, \u00e9\u00e9n QR-code",
+                      "oneQrPerVehicle": "Eén voertuig, één QR-code",
                       "adminAccessNote":  "Geannuleerde reservaties worden geweigerd. Een tweede scan meldt meteen dat het voertuig al is binnengekomen.",
-                      "vehiclePasses":  "E\u00e9n QR-code per voertuig",
+                      "vehiclePasses": "Eén QR-code per voertuig",
                       "vehiclePassHelp":  "Toon aan de slagboom voor elk voertuig een andere QR-code. Een gebruikte code blijft als gecontroleerd gemarkeerd.",
                       "vehicleNumber":  "Voertuig {{count}}",
                       "qrAlt":  "QR-code voor parkingtoegang",
@@ -1181,7 +1229,7 @@
                    "open":  "Open",
                    "closed":  "Gesloten",
                    "pending_approval":  "In afwachting van goedkeuring",
-                   "awaiting_deposit":  "Voorschot te betalen",
+                   "awaiting_deposit": "Zaalhuur te betalen",
                    "approved":  "Goedgekeurd",
                    "rejected":  "Geweigerd",
                    "full": "Volzet"
@@ -1241,6 +1289,9 @@
                       "modifyAndResubmit":  "Pas het aan en dien het opnieuw in ter goedkeuring",
                       "cancelEvent":  "Professioneel evenement annuleren",
                       "awaitingApproval":  "Wacht op goedkeuring",
+        "payRoom": "Zaalhuur betalen: {{amount}}",
+        "roomPaymentLabel": "Zaalhuur",
+        "roomPaidTitle": "Zaalhuur betaald",
                       "depositPaidTitle":  "Voorschot betaald",
                       "balancePaidTitle":  "Saldo betaald",
                       "depositPaidMessage":  "Het evenement is nu gepubliceerd.",
@@ -1281,7 +1332,9 @@
                       "previewParkingExcluded":  "Parking niet aangeboden",
                       "previewStatus":  "Status na indiening: in afwachting van goedkeuring",
                       "previewRoomUsage":  "{{usage}}% van de zaal",
-                      "previewCapacityFallback":  "Capaciteit aanvullen"
+                      "previewCapacityFallback": "Capaciteit aanvullen",
+        "roomContractLocked": "De zaal en tijden liggen vast door de goedgekeurde huur. Annuleer deze aanvraag en maak een nieuwe om ze te wijzigen.",
+        "roomCancellationPolicy": "Deelnemers krijgen alles terugbetaald. Voor de reeds betaalde zaalhuur: 100% minstens 48 uur voor de start, 50% tussen 24 en 48 uur en geen terugbetaling minder dan 24 uur vooraf."
                   },
     "finance":  {
                   "adminTitle":  "Geschatte inkomsten",
@@ -1371,7 +1424,11 @@
                   "commissionShort":  "Commissie",
                   "roomShort":  "Zaal",
                   "periodLabel": "Financiële periode",
-                  "period": { "all": "Alles", "year": "Dit jaar", "30d": "30 dagen" },
+                  "period": {
+            "all": "Alles",
+            "year": "Dit jaar",
+            "30d": "30 dagen"
+        },
                   "grossCollected": "Bruto ontvangen",
                   "refundedAmount": "Terugbetaald",
                   "processingFees": "Geschatte betaalkosten",
@@ -1441,7 +1498,11 @@
         "kicker": "Financiën en opvolging",
         "title": "Platformfinanciën.",
         "subtitle": "Volg commerciële inkomsten, werkelijk ontvangen betalingen en openstaande bedragen afzonderlijk.",
-        "period": { "30d": "30 dagen", "90d": "90 dagen", "year": "Dit jaar" },
+        "period": {
+            "30d": "30 dagen",
+            "90d": "90 dagen",
+            "year": "Dit jaar"
+        },
         "keyFigures": "Belangrijkste financiële indicatoren",
         "commercialRevenueHelp": "Zalen, parking en bijdrage van evenementen",
         "cashHelp": "Ontvangen betalingen na terugbetalingen en kosten",
@@ -1550,5 +1611,45 @@
     "history": {
       "moreReservations": "Oudere reserveringen tonen",
       "moreEvents": "Oudere evenementen tonen"
+    },
+    "settlement": {
+        "title": "Uitbetalingen aan organisatoren",
+        "adminHelp": "De uitbetaling is beschikbaar zodra het evenement is afgelopen en betalingen en terugbetalingen zijn gecontroleerd. Registreer hier de uitgevoerde overschrijvingen aan organisatoren.",
+        "organizerHelp": "Ticketopbrengsten na terugbetalingen, min 10% commissie. Parkeeropbrengsten tellen niet mee; reeds betaalde zaalhuur wordt niet opnieuw afgetrokken.",
+        "refresh": "Vernieuwen",
+        "loading": "Afrekeningen laden…",
+        "empty": "Geen gepubliceerde evenementen om af te rekenen.",
+        "tickets": "Behouden ticketopbrengsten",
+        "commission": "MeetSpace-commissie (10%)",
+        "legacyBalance": "Resterend huursaldo",
+        "eventEnded": "Einde van het evenement: {{date}}",
+        "due": "Afrekening beschikbaar op {{date}}.",
+        "paymentPendingHelp": "Een betaling wordt nog verwerkt of wacht op bevestiging. De uitbetaling is opgeschort.",
+        "pendingHelp": "Een terugbetaling wordt nog verwerkt. De uitbetaling is opgeschort.",
+        "reviewHelp": "De betalingen moeten worden gecontroleerd voordat het uit te betalen bedrag kan worden bevestigd.",
+        "recorded": "Overschrijving geregistreerd op {{date}} · Referentie: {{reference}}",
+        "openRecord": "Overschrijving registreren",
+        "manualNotice": "Voer de overschrijving uit via uw bank en vul daarna de referentie in. Deze actie registreert de betaling en maakt geen geld over.",
+        "reference": "Referentie van de bankoverschrijving",
+        "acknowledge": "Ik bevestig dat ik het getoonde bedrag aan deze organisator heb overgemaakt.",
+        "confirmTitle": "Uitgevoerde overschrijving bevestigen",
+        "confirmMessage": "De overschrijving van {{amount}} voor “{{title}}” registreren? Deze bevestiging start geen bankoverschrijving.",
+        "confirmRecord": "Overschrijving bevestigen",
+        "saved": "Overschrijving geregistreerd",
+        "saving": "Opslaan…",
+        "showMore": "Meer afrekeningen tonen",
+        "status": {
+            "HOLDING_REVENUE": "Wachten op afrekening",
+            "READY_FOR_PAYOUT": "Uit te betalen",
+            "PAID": "Overschrijving geregistreerd",
+            "PAYMENT_PENDING": "Betaling controleren",
+            "REFUND_PENDING": "Terugbetaling in behandeling",
+            "REVIEW_REQUIRED": "Betalingen controleren",
+            "NOTHING_TO_PAY": "Geen uitbetaling verschuldigd",
+            "BALANCE_OUTSTANDING": "Huursaldo niet gedekt",
+            "NOT_ELIGIBLE": "Uitbetaling niet beschikbaar",
+            "BENEFICIARY_UNAVAILABLE": "Begunstigde niet beschikbaar"
+        },
+        "beneficiaryHelp": "Het account van de begunstigde moet actief zijn voordat de uitbetaling wordt geregistreerd."
     }
 }

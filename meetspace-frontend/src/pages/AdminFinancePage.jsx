@@ -7,6 +7,7 @@ import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters"
 import PageState from "../components/PageState";
 import WorkspaceNav from "../components/WorkspaceNav";
 import styles from "./AdminFinancePage.module.css";
+import EventSettlements from "../components/EventSettlements";
 
 const PERIODS = ["30d", "90d", "year"];
 
@@ -249,6 +250,8 @@ export default function AdminFinancePage() {
           <small>{t("adminFinance.transactionsHelp")}</small>
         </article>
       </section>
+
+      <EventSettlements token={token} admin />
 
       <section className={styles.analyticsGrid} aria-label={t("adminFinance.chartsTitle")}>
         <LineChart
