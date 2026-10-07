@@ -110,6 +110,49 @@ class PremiumPaymentExpiryRegressionTest {
         return new AdminReservationsController(reservations, mock(EventRegistrationRepository.class), mock(ParkingReservationRepository.class), users, audit, mock(NotificationService.class));
     }
 
+    @Test void pendingQueueContainsOnlySlotsThatHaveNotStarted() {
+        Reservation past = booking(ReservationStatus.PENDING_APPROVAL, now.minusMonths(3), null, null);
+        Reservation started = booking(ReservationStatus.PENDING_APPROVAL, now, null, null);
+        Reservation future = booking(ReservationStatus.PENDING_APPROVAL, now.plusDays(1), null, null);
+        booking(ReservationStatus.CONFIRMED, now.plusDays(2), null, null);
+        assertThat(reservations.findPendingApproval(now)).extracting(Reservation::getId)
+                .containsExactly(future.getId());
+        assertThat(adminController().getPendingReservations()).extracting(ReservationResponseDto::getId)
+                .containsExactly(future.getId());
+        assertThat(reservations.findById(past.getId()).orElseThrow().getStatus()).isEqualTo(ReservationStatus.PENDING_APPROVAL);
+        assertThat(reservations.findById(started.getId()).orElseThrow().getStatus()).isEqualTo(ReservationStatus.PENDING_APPROVAL);
+    }
+
+    @Test void expiredUnapprovedRequestsAreArchivedOnceWithoutTouchingFutureOrPaidBookings() {
+        Reservation past = booking(ReservationStatus.PENDING_APPROVAL, now.minusMonths(3), null, null);
+        Reservation started = booking(ReservationStatus.PENDING_APPROVAL, now, null, null);
+        Reservation future = booking(ReservationStatus.PENDING_APPROVAL, now.plusDays(1), null, null);
+        Reservation confirmed = booking(ReservationStatus.CONFIRMED, now.minusDays(1), null, null);
+        confirmed.setPaymentIntentId("pi_completed_fixture");
+        expiry.expireUnpaidApprovals(); em.flush(); em.clear();
+        for (Reservation r : new Reservation[]{past, started}) {
+            Reservation saved = reservations.findById(r.getId()).orElseThrow();
+            assertThat(saved.getStatus()).isEqualTo(ReservationStatus.CANCELLED);
+            assertThat(saved.getRejectionReason()).contains("approbation expire");
+            assertThat(saved.getTotalPrice()).isEqualTo(640D);
+            assertThat(saved.getPaymentIntentId()).isNull();
+            assertThat(reservations.existsOverlappingReservation(room.getId(), r.getStartDateTime(), r.getEndDateTime())).isFalse();
+            verify(audit).log(eq(AuditAction.RESERVATION_CANCEL), eq("Reservation"), eq(r.getId()), anyString(), eq("system"));
+        }
+        assertThat(reservations.findById(future.getId()).orElseThrow().getStatus()).isEqualTo(ReservationStatus.PENDING_APPROVAL);
+        assertThat(reservations.findById(confirmed.getId()).orElseThrow().getPaymentIntentId()).isEqualTo("pi_completed_fixture");
+        expiry.expireUnpaidApprovals(); verifyNoMoreInteractions(audit);
+    }
+
+    @Test void anUnexpectedPaymentReferenceOnPendingHistoryIsNotSilentlyCancelled() {
+        Reservation past = booking(ReservationStatus.PENDING_APPROVAL, now.minusMonths(3), null, null);
+        past.setPaymentIntentId("pi_requires_review"); em.flush();
+        expiry.expireUnpaidApprovals(); em.flush(); em.clear();
+        assertThat(reservations.findById(past.getId()).orElseThrow().getStatus()).isEqualTo(ReservationStatus.PENDING_APPROVAL);
+        assertThat(adminController().getPendingReservations()).isEmpty();
+        verifyNoInteractions(audit);
+    }
+
     @Test void approvalCannotAuthorizeAPastSlot() {
         Reservation past = booking(ReservationStatus.PENDING_APPROVAL, now.minusHours(1), null, null);
         ReservationApprovalRequest request = new ReservationApprovalRequest(); request.setApproved(true);

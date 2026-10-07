@@ -85,9 +85,15 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     );
 
     @Query("SELECT r FROM Reservation r JOIN FETCH r.user JOIN FETCH r.espace " +
-           "WHERE r.status = 'PENDING_APPROVAL' " +
+           "WHERE r.status = 'PENDING_APPROVAL' AND r.startDateTime > :now " +
            "ORDER BY r.createdAt DESC")
-    List<Reservation> findPendingApproval();
+    List<Reservation> findPendingApproval(@Param("now") LocalDateTime now);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.user JOIN FETCH r.espace " +
+           "WHERE r.status = 'PENDING_APPROVAL' AND r.startDateTime <= :now " +
+           "AND r.paymentIntentId IS NULL")
+    List<Reservation> findExpiredPendingReservations(@Param("now") LocalDateTime now);
 
     @Modifying
     @Transactional

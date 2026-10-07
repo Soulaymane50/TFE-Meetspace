@@ -24,6 +24,13 @@ public class PremiumPaymentExpiryService {
     @Transactional
     public void expireUnpaidApprovals() {
         LocalDateTime now = LocalDateTime.now();
+        reservationRepository.findExpiredPendingReservations(now).forEach(reservation -> {
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            reservation.setRejectionReason("Delai approbation expire : le creneau a commence");
+            reservation.setPaymentDueAt(null);
+            auditService.log(AuditAction.RESERVATION_CANCEL, "Reservation", reservation.getId(),
+                    "Annulation automatique : demande non approuvee avant le debut du creneau", "system");
+        });
         reservationRepository.findExpiredApprovedReservations(now, now.minusHours(48)).forEach(reservation -> {
             if (!reservation.isApprovalPaymentExpired(now)) return;
             reservation.setStatus(ReservationStatus.CANCELLED);

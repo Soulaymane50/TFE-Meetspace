@@ -122,7 +122,7 @@ public class AdminReservationsController {
 
     @GetMapping("/pending")
     public List<ReservationResponseDto> getPendingReservations() {
-        return reservationRepository.findPendingApproval().stream()
+        return reservationRepository.findPendingApproval(LocalDateTime.now()).stream()
                 .map(ReservationResponseDto::fromEntity)
                 .toList();
     }
