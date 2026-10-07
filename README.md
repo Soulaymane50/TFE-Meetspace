@@ -331,6 +331,10 @@ Les réservations parking personnelles réutilisent les accès déjà chargés, 
 
 Les espaces membre et organisateur affichent les dix éléments passés les plus récents, puis permettent d’ouvrir les éléments plus anciens par groupes de dix. Les réservations à venir, événements en cours et actions financières en attente restent visibles ; les totaux et les données sont conservés.
 
+Les demandes de salle dont le créneau a déjà commencé ne figurent plus dans la file d’approbation. Les demandes restées sans approbation et sans référence de paiement sont automatiquement annulées et conservées dans l’historique ; aucune approbation rétroactive n’est possible.
+
+Dans Mes événements, les cartes Publiés, En attente et Portefeuille filtrent la liste et amènent directement aux résultats. Portefeuille rassemble tous les statuts. Les finances et le suivi des versements figurent après la liste et restent indépendants du filtre des événements. Le suivi distingue le montant que l’administrateur doit verser de celui que l’organisateur attend de MeetSpace.
+
 ### Location et versements organisateurs
 
 Après approbation, les nouvelles demandes paient 100 % de la location avant publication. Les anciennes transactions conservent leurs montants et un éventuel solde ; aucun acompte payé n’est effacé ni débité une seconde fois. Les identifiants historiques EVENT_DEPOSIT et AWAITING_DEPOSIT restent compatibles, mais désignent le paiement de la location pour les nouvelles demandes.

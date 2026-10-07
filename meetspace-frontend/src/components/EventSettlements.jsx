@@ -77,7 +77,7 @@ export default function EventSettlements({ token, admin = false }) {
   return (
     <section className={styles.panel} aria-labelledby={admin ? "admin-settlements" : "organizer-settlements"} data-testid="event-settlements">
       <header className={styles.heading}>
-        <div><h2 id={admin ? "admin-settlements" : "organizer-settlements"}>{t("settlement.title")}</h2><p>{t(admin ? "settlement.adminHelp" : "settlement.organizerHelp")}</p></div>
+        <div><h2 id={admin ? "admin-settlements" : "organizer-settlements"}>{t(admin ? "settlement.title" : "settlement.organizerTitle")}</h2><p>{t(admin ? "settlement.adminHelp" : "settlement.organizerHelp")}</p></div>
         <button type="button" onClick={load} disabled={loading || saving}>{t("settlement.refresh")}</button>
       </header>
       {loading && <p role="status">{t("settlement.loading")}</p>}
@@ -87,7 +87,7 @@ export default function EventSettlements({ token, admin = false }) {
         {sorted.slice(0, limit).map((row) => (
           <article className={styles.row} key={row.eventId}>
             <div className={styles.identity}><h3>{row.eventTitle}</h3>{admin && <p>{row.organizerName}{row.organizerEmail && <> · {row.organizerEmail}</>}</p>}<small>{t("settlement.eventEnded", { date: date(row.eventEndsAt) })}</small></div>
-            <div className={styles.state}><strong>{money(row.amountCents)}</strong><span>{t("settlement.status." + row.status)}</span></div>
+            <div className={styles.state}><strong>{money(row.amountCents)}</strong><span>{t(row.status === "READY_FOR_PAYOUT" ? (admin ? "settlement.readyAdmin" : "settlement.readyOrganizer") : "settlement.status." + row.status)}</span></div>
             <dl className={styles.breakdown}>
               <div><dt>{t("settlement.tickets")}</dt><dd>{money(row.ticketRevenueCents)}</dd></div>
               <div><dt>{t("settlement.commission")}</dt><dd>− {money(row.commissionCents)}</dd></div>

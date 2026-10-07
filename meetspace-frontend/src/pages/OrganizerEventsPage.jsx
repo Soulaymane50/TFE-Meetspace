@@ -1,6 +1,6 @@
 import { recentHistory } from "../utils/recentHistory";
 import { canEditOrganizerEvent } from "../utils/eventPlanning";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { organizerGetMyEvents, organizerCancelMyEvent, organizerGetFinanceSummary, organizerPayEventDeposit, organizerPayEventBalance } from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -96,10 +96,29 @@ export default function OrganizerEventsPage() {
   const filter = ORGANIZER_STATUS_FILTERS.includes(searchParams.get("status"))
     ? searchParams.get("status")
     : "ALL";
-  const setFilter = (status) => setSearchParams(
-    status === "ALL" || !ORGANIZER_STATUS_FILTERS.includes(status) ? {} : { status },
-    { replace: true },
-  );
+  const resultsRef = useRef(null);
+  const revealResults = useRef(false);
+  const setFilter = (status) => {
+    if (status === filter && resultsRef.current) {
+      resultsRef.current.focus({ preventScroll: true });
+      resultsRef.current.scrollIntoView({ block: "start", behavior: "instant" });
+      return;
+    }
+    revealResults.current = true;
+    setSearchParams(
+      status === "ALL" || !ORGANIZER_STATUS_FILTERS.includes(status) ? {} : { status },
+    );
+  };
+  useEffect(() => {
+    if (!revealResults.current || !resultsRef.current) return;
+    const frame = requestAnimationFrame(() => {
+      if (!resultsRef.current) return;
+      revealResults.current = false;
+      resultsRef.current.focus({ preventScroll: true });
+      resultsRef.current.scrollIntoView({ block: "start", behavior: "instant" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [searchParams]);
   const [financeSummary, setFinanceSummary] = useState(null);
   const [financeError, setFinanceError] = useState(false);
   const [paymentEvent, setPaymentEvent] = useState(null);
@@ -220,7 +239,7 @@ export default function OrganizerEventsPage() {
   const upcomingEvents = sortedEvents.filter((event) => new Date(event.endDateTime) >= new Date());
   const nextEvent = upcomingEvents[0] || sortedEvents[0];
   const publicationRate = stats.total > 0 ? Math.round((stats.published / stats.total) * 100) : 0;
-  const activeEvents = stats.published + stats.pending;
+  const activeEvents = stats.total;
   const historyKey = `${user?.id}:${filter}`;
   const eventHistory = recentHistory(filteredEvents, {
     getEnd: (event) => event.endDateTime || event.startDateTime,
@@ -243,9 +262,9 @@ export default function OrganizerEventsPage() {
     minute: "2-digit",
   });
   const signalCards = [
-    { icon: "published", label: t("organizer.publishedEvents"), value: stats.published, meta: `${publicationRate}%` },
-    { icon: "pending", label: t("organizer.pendingApproval"), value: stats.pending, meta: t("organizer.approvalFlow") },
-    { icon: "events", label: t("organizer.portfolio"), value: activeEvents, meta: t("organizer.eventsVisible") },
+    { icon: "published", filter: "PUBLISHED", label: t("organizer.publishedEvents"), value: stats.published, meta: `${publicationRate}%` },
+    { icon: "pending", filter: "PENDING_APPROVAL", label: t("organizer.pendingApproval"), value: stats.pending, meta: t("organizer.approvalFlow") },
+    { icon: "events", filter: "ALL", label: t("organizer.portfolio"), value: activeEvents, meta: t("organizer.eventsVisible") },
   ];
 
   if (!user || (user.role !== "ORGANIZER" && user.role !== "ADMIN")) return null;
@@ -269,8 +288,6 @@ export default function OrganizerEventsPage() {
         <p>{t("system.partialData", { sections: t("auditSections.finance") })}</p>
         <button type="button" onClick={fetchEvents}>{t("common.retry")}</button>
       </div>}
-
-      <EventSettlements token={token} />
 
       <div className={styles.commandDeck}>
         <section className={styles.mainConsole}>
@@ -310,7 +327,7 @@ export default function OrganizerEventsPage() {
 
           <div className={styles.signalGrid}>
             {signalCards.map((item) => (
-              <button key={item.label} type="button" className={styles.signalCard} onClick={() => setFilter(item.icon === "pending" ? "PENDING_APPROVAL" : item.icon === "published" ? "PUBLISHED" : "ALL")}>
+              <button key={item.filter} type="button" className={`${styles.signalCard} ${filter === item.filter ? styles.signalCardActive : ""}`} aria-pressed={filter === item.filter} aria-controls="organizer-event-results" onClick={() => setFilter(item.filter)}>
                 <span className={styles.signalIcon}><OrganizerIcon type={item.icon} /></span>
                 <span>
                   <small>{item.label}</small>
@@ -320,16 +337,6 @@ export default function OrganizerEventsPage() {
               </button>
             ))}
           </div>
-
-          <FinanceLedger
-            summary={financeSummary}
-            variant="organizer"
-            formatMoney={formatEuro}
-            formatNumber={formatStat}
-            onPeriodChange={async (period) => {
-              setFinanceSummary(await organizerGetFinanceSummary(token, period));
-            }}
-          />
         </section>
 
         <aside className={styles.statusPanel}>
@@ -354,167 +361,184 @@ export default function OrganizerEventsPage() {
         </aside>
       </div>
 
-      <div className={styles.filterTabs} role="group" aria-label={t("organizer.filterByStatus", { defaultValue: "Filtrer les événements par statut" })}>
-        {statusFilters.map((status) => (
-          <button
-            key={status}
-            type="button"
-            onClick={() => setFilter(status)}
-            aria-pressed={filter === status}
-            className={`${styles.filterTab} ${filter === status ? styles.filterTabActive : ""}`}
-          >
-            {t(status === "ALL" ? "common.all" : `status.${status.toLowerCase()}`)}
-            <span className={styles.filterCount}>
-              {formatStat(getStatusCount(status))}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {planningEvents.length > 0 && (
-        <EventPlanningTimeline
-          events={planningEvents}
-          title={t("planning.organizerTitle")}
-          subtitle={t("planning.organizerSubtitle")}
-          getEventHref={(event) => canEditOrganizerEvent(event) ? `/organizer/events/edit/${event.id}` : event.status === "PUBLISHED" ? `/events/${event.id}` : null}
-          maxDays={4}
-        />
-      )}
-
-      {filteredEvents.length === 0 ? (
-        <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}><OrganizerIcon type="events" /></div>
-          <p>{t("organizer.noEventsFound")}</p>
-          <Link to="/organizer/events/new" className={styles.createButtonSmall}>
-            {t("organizer.createEvent")}
-          </Link>
+      <section id="organizer-event-results" className={styles.results} aria-labelledby="organizer-results-heading">
+        <h2 id="organizer-results-heading" ref={resultsRef} tabIndex={-1} className={styles.resultsHeading}>
+          {t("organizer.eventResults", { status: t(filter === "ALL" ? "common.all" : `status.${filter.toLowerCase()}`), count: filteredEvents.length })}
+        </h2>
+        <div className={styles.filterTabs} role="group" aria-label={t("organizer.filterByStatus", { defaultValue: "Filtrer les événements par statut" })}>
+          {statusFilters.map((status) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setFilter(status)}
+              aria-pressed={filter === status}
+              className={`${styles.filterTab} ${filter === status ? styles.filterTabActive : ""}`}
+            >
+              {t(status === "ALL" ? "common.all" : `status.${status.toLowerCase()}`)}
+              <span className={styles.filterCount}>
+                {formatStat(getStatusCount(status))}
+              </span>
+            </button>
+          ))}
         </div>
-      ) : (
-        <div className={styles.eventsGrid}>
-          {eventHistory.visible.map((e) => {
-            const eventFinance = financeByEventId.get(e.id);
-            return (
-            <div key={e.id} className={styles.eventCard}>
-              <div className={styles.eventHeader}>
-                <h3 className={styles.eventTitle}>{e.title}</h3>
-                <span className={statusClass(e.status)}>{t(`status.${e.status.toLowerCase()}`)}</span>
-              </div>
 
-              {e.rejectionReason && (
-                <div className={styles.rejectionBox}>
-                  {t("organizer.rejectionReason")}: {e.rejectionReason}
-                </div>
-              )}
+        {planningEvents.length > 0 && (
+          <EventPlanningTimeline
+            events={planningEvents}
+            title={t("planning.organizerTitle")}
+            subtitle={t("planning.organizerSubtitle")}
+            getEventHref={(event) => canEditOrganizerEvent(event) ? `/organizer/events/edit/${event.id}` : event.status === "PUBLISHED" ? `/events/${event.id}` : null}
+            maxDays={4}
+          />
+        )}
 
-              <div className={styles.eventDetails}>
-                <div className={styles.eventDetail}>
-                  <span className={styles.detailIcon}><OrganizerIcon type="events" /></span>
-                  {new Date(e.startDateTime).toLocaleString(getDateLocale())} - {new Date(e.endDateTime).toLocaleTimeString(getDateLocale())}
+        {filteredEvents.length === 0 ? (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}><OrganizerIcon type="events" /></div>
+            <p>{t("organizer.noEventsFound")}</p>
+            <Link to="/organizer/events/new" className={styles.createButtonSmall}>
+              {t("organizer.createEvent")}
+            </Link>
+          </div>
+        ) : (
+          <div className={styles.eventsGrid} data-testid="organizer-event-list">
+            {eventHistory.visible.map((e) => {
+              const eventFinance = financeByEventId.get(e.id);
+              return (
+              <div key={e.id} className={styles.eventCard}>
+                <div className={styles.eventHeader}>
+                  <h3 className={styles.eventTitle}>{e.title}</h3>
+                  <span className={statusClass(e.status)}>{t(`status.${e.status.toLowerCase()}`)}</span>
                 </div>
-                <div className={styles.eventDetail}>
-                  <span className={styles.detailIcon}><OrganizerIcon type="location" /></span>
-                  {e.location || "-"}
-                </div>
-                <div className={styles.eventDetail}>
-                  <span className={styles.detailIcon}><OrganizerIcon type="capacity" /></span>
-                  {formatStat(e.capacity)} {t("common.persons")}
-                </div>
-                <div className={styles.eventDetail}>
-                  <span className={styles.detailIcon}><OrganizerIcon type="price" /></span>
-                  {e.price > 0 ? formatEuro(e.price) : t("events.free")}
-                </div>
-              </div>
 
-              {e.parkingRequired && e.parkingCapacity ? (
-                <div className={styles.parkingQuotaStrip}>
-                  <span>{t("parking.currentAllocation", { defaultValue: "Parking partagé — allocation actuelle" })}</span>
-                  <strong>
-                    {t("parking.organizerAllocationSummary", {
-                      defaultValue: "{{available}} places encore réservables sur {{allocated}} · {{price}} / véhicule",
-                      available: formatStat(e.parkingAvailableSpaces ?? e.parkingCapacity),
-                      allocated: formatStat(e.parkingCapacity),
-                      price: formatEuro(e.parkingPrice || 0),
-                    })}
-                  </strong>
-                </div>
-              ) : null}
+                {e.rejectionReason && (
+                  <div className={styles.rejectionBox}>
+                    {t("organizer.rejectionReason")}: {e.rejectionReason}
+                  </div>
+                )}
 
-              {eventFinance && (
-                <div className={styles.eventFinanceStrip}>
-                  <span>
-                    {t("finance.confirmedNetShort", { defaultValue: "Net confirmé" })}
-                    <strong>{formatEuro(eventFinance.organizerNetEstimate)}</strong>
-                  </span>
-                  <span>
-                    {t("finance.potentialNetShort", { defaultValue: "Net potentiel" })}
-                    <strong>{formatEuro(eventFinance.organizerPotentialNet ?? eventFinance.organizerNetEstimate)}</strong>
-                  </span>
-                  <span>
-                    {t("finance.occupancyShort", { defaultValue: "Remplissage" })}
-                    <strong>{formatStat(eventFinance.occupancyRate || 0)}%</strong>
-                  </span>
-                  <span>
-                    {t("finance.breakEvenShort", { defaultValue: "Seuil rentable" })}
+                <div className={styles.eventDetails}>
+                  <div className={styles.eventDetail}>
+                    <span className={styles.detailIcon}><OrganizerIcon type="events" /></span>
+                    {new Date(e.startDateTime).toLocaleString(getDateLocale())} - {new Date(e.endDateTime).toLocaleTimeString(getDateLocale())}
+                  </div>
+                  <div className={styles.eventDetail}>
+                    <span className={styles.detailIcon}><OrganizerIcon type="location" /></span>
+                    {e.location || "-"}
+                  </div>
+                  <div className={styles.eventDetail}>
+                    <span className={styles.detailIcon}><OrganizerIcon type="capacity" /></span>
+                    {formatStat(e.capacity)} {t("common.persons")}
+                  </div>
+                  <div className={styles.eventDetail}>
+                    <span className={styles.detailIcon}><OrganizerIcon type="price" /></span>
+                    {e.price > 0 ? formatEuro(e.price) : t("events.free")}
+                  </div>
+                </div>
+
+                {e.parkingRequired && e.parkingCapacity ? (
+                  <div className={styles.parkingQuotaStrip}>
+                    <span>{t("parking.currentAllocation", { defaultValue: "Parking partagé — allocation actuelle" })}</span>
                     <strong>
-                      {eventFinance.breakEvenParticipants >= 0
-                        ? `${formatStat(eventFinance.breakEvenParticipants)} ${t("common.persons")}`
-                        : t("finance.notReachable", { defaultValue: "Non atteignable" })}
+                      {t("parking.organizerAllocationSummary", {
+                        defaultValue: "{{available}} places encore réservables sur {{allocated}} · {{price}} / véhicule",
+                        available: formatStat(e.parkingAvailableSpaces ?? e.parkingCapacity),
+                        allocated: formatStat(e.parkingCapacity),
+                        price: formatEuro(e.parkingPrice || 0),
+                      })}
                     </strong>
-                  </span>
-                  <small>
-                    {formatStat(eventFinance.confirmedParticipants || 0)} / {formatStat(eventFinance.eventCapacity || 0)} {t("common.participants")}
-                  </small>
+                  </div>
+                ) : null}
+
+                {eventFinance && (
+                  <div className={styles.eventFinanceStrip}>
+                    <span>
+                      {t("finance.confirmedNetShort", { defaultValue: "Net confirmé" })}
+                      <strong>{formatEuro(eventFinance.organizerNetEstimate)}</strong>
+                    </span>
+                    <span>
+                      {t("finance.potentialNetShort", { defaultValue: "Net potentiel" })}
+                      <strong>{formatEuro(eventFinance.organizerPotentialNet ?? eventFinance.organizerNetEstimate)}</strong>
+                    </span>
+                    <span>
+                      {t("finance.occupancyShort", { defaultValue: "Remplissage" })}
+                      <strong>{formatStat(eventFinance.occupancyRate || 0)}%</strong>
+                    </span>
+                    <span>
+                      {t("finance.breakEvenShort", { defaultValue: "Seuil rentable" })}
+                      <strong>
+                        {eventFinance.breakEvenParticipants >= 0
+                          ? `${formatStat(eventFinance.breakEvenParticipants)} ${t("common.persons")}`
+                          : t("finance.notReachable", { defaultValue: "Non atteignable" })}
+                      </strong>
+                    </span>
+                    <small>
+                      {formatStat(eventFinance.confirmedParticipants || 0)} / {formatStat(eventFinance.eventCapacity || 0)} {t("common.participants")}
+                    </small>
+                  </div>
+                )}
+
+                <div className={styles.eventActions}>
+                  {e.status === "AWAITING_DEPOSIT" && (
+                    <button className={styles.payButton} onClick={() => setPaymentEvent({ event: e, type: "deposit" })}>
+                      {t(e.roomPaymentMode === "FULL" ? "organizer.payRoom" : "organizer.payDeposit", {
+                        amount: formatEuro((e.depositAmountCents || 0) / 100),
+                      })}
+                    </button>
+                  )}
+                  {e.status === "PUBLISHED" && !e.balancePaidAt && (e.balanceDueCents || 0) > 0 && e.settlementStatus !== "PAID" && e.settlementStatus !== "READY_FOR_PAYOUT" && e.endDateTime && new Date(e.endDateTime) > new Date() && (!e.settlementDueAt || new Date(e.settlementDueAt) > new Date()) && (
+                    <button className={styles.payButton} onClick={() => setPaymentEvent({ event: e, type: "balance" })}>
+                      {t("organizer.payBalance", {
+                        amount: formatEuro((e.balanceDueCents || 0) / 100),
+                      })}
+                    </button>
+                  )}
+
+                  {canEditOrganizerEvent(e) && <Link to={`/organizer/events/edit/${e.id}`} className={styles.editButton}>
+                    {t("common.edit")}
+                  </Link>}
+                  {e.status !== "CANCELLED" && e.status !== "REJECTED" && e.settlementStatus !== "PAID" && new Date(e.endDateTime) > new Date() && (
+                    <button onClick={() => handleCancel(e.id, e.title)} className={styles.cancelButton}>
+                      {t("organizer.cancelEvent")}
+                    </button>
+                  )}
+                  {e.status === "PUBLISHED" ? (
+                    <Link to={`/organizer/events/${e.id}/check-in`} className={styles.checkInButton}>
+                      {t("checkIn.openConsole")}
+                    </Link>
+                  ) : null}
+                  {e.status === "PUBLISHED" ? (
+                    <Link to={`/events/${e.id}`} className={styles.viewButton}>
+                      {t("detail.viewDetails", { defaultValue: "Voir la fiche" })}
+                    </Link>
+                  ) : e.status === "PENDING_APPROVAL" ? (
+                    <span className={styles.pendingNote}>{t("organizer.awaitingApproval")}</span>
+                  ) : null}
                 </div>
-              )}
-
-              <div className={styles.eventActions}>
-                {e.status === "AWAITING_DEPOSIT" && (
-                  <button className={styles.payButton} onClick={() => setPaymentEvent({ event: e, type: "deposit" })}>
-                    {t(e.roomPaymentMode === "FULL" ? "organizer.payRoom" : "organizer.payDeposit", {
-                      amount: formatEuro((e.depositAmountCents || 0) / 100),
-                    })}
-                  </button>
-                )}
-                {e.status === "PUBLISHED" && !e.balancePaidAt && (e.balanceDueCents || 0) > 0 && e.settlementStatus !== "PAID" && e.settlementStatus !== "READY_FOR_PAYOUT" && e.endDateTime && new Date(e.endDateTime) > new Date() && (!e.settlementDueAt || new Date(e.settlementDueAt) > new Date()) && (
-                  <button className={styles.payButton} onClick={() => setPaymentEvent({ event: e, type: "balance" })}>
-                    {t("organizer.payBalance", {
-                      amount: formatEuro((e.balanceDueCents || 0) / 100),
-                    })}
-                  </button>
-                )}
-
-                {canEditOrganizerEvent(e) && <Link to={`/organizer/events/edit/${e.id}`} className={styles.editButton}>
-                  {t("common.edit")}
-                </Link>}
-                {e.status !== "CANCELLED" && e.status !== "REJECTED" && e.settlementStatus !== "PAID" && new Date(e.endDateTime) > new Date() && (
-                  <button onClick={() => handleCancel(e.id, e.title)} className={styles.cancelButton}>
-                    {t("organizer.cancelEvent")}
-                  </button>
-                )}
-                {e.status === "PUBLISHED" ? (
-                  <Link to={`/organizer/events/${e.id}/check-in`} className={styles.checkInButton}>
-                    {t("checkIn.openConsole")}
-                  </Link>
-                ) : null}
-                {e.status === "PUBLISHED" ? (
-                  <Link to={`/events/${e.id}`} className={styles.viewButton}>
-                    {t("detail.viewDetails", { defaultValue: "Voir la fiche" })}
-                  </Link>
-                ) : e.status === "PENDING_APPROVAL" ? (
-                  <span className={styles.pendingNote}>{t("organizer.awaitingApproval")}</span>
-                ) : null}
               </div>
-            </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
 
-      {eventHistory.hiddenCount > 0 && (
-        <button type="button" className={styles.historyMore} onClick={revealMoreHistory}>
-          {t("history.moreEvents")}
-        </button>
-      )}
+        {eventHistory.hiddenCount > 0 && (
+          <button type="button" className={styles.historyMore} onClick={revealMoreHistory}>
+            {t("history.moreEvents")}
+          </button>
+        )}
+
+      </section>
+
+      <FinanceLedger
+        summary={financeSummary}
+        variant="organizer"
+        formatMoney={formatEuro}
+        formatNumber={formatStat}
+        onPeriodChange={async (period) => {
+          setFinanceSummary(await organizerGetFinanceSummary(token, period));
+        }}
+      />
+      <EventSettlements token={token} />
 
       {paymentEvent && (
         <div className={styles.paymentOverlay} role="dialog" aria-modal="true">

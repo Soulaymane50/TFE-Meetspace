@@ -209,8 +209,31 @@
   border-left: 1px solid var(--border);
 }
 
-.signalCard:hover {
-  background: var(--surface-hover);
+.signalCard:hover,
+.signalCardActive {
+  background: var(--brand-soft);
+  color: var(--text-primary);
+}
+
+.signalCardActive {
+  box-shadow: inset 0 -3px 0 var(--brand-strong);
+}
+
+.results {
+  display: grid;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+.resultsHeading {
+  margin: 0;
+  scroll-margin-top: 10rem;
+  font-size: 1.3rem;
+}
+
+.resultsHeading:focus-visible {
+  outline: 2px solid var(--brand-strong);
+  outline-offset: 5px;
 }
 
 .signalIcon,

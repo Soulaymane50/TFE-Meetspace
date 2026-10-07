@@ -34,7 +34,7 @@ test("an admin records only a confirmed external transfer and a refresh keeps it
   const writes = await setup(page);
   await page.goto(BASE_URL + "/admin/finances");
   const panel = page.getByTestId("event-settlements");
-  await expect(panel.getByText("À verser", { exact: true })).toBeVisible();
+  await expect(panel.getByText("À verser à l’organisateur", { exact: true })).toBeVisible();
   await panel.getByRole("button", { name: "Enregistrer un virement" }).click();
   await expect(panel.getByText(/elle ne transfère pas d’argent/)).toBeVisible();
   await panel.getByLabel("Référence du virement bancaire").fill("BANK-REF-1");
@@ -76,6 +76,8 @@ test("the organizer can read the statement without admin controls", async ({ pag
   await expect(panel.getByText(settlement.eventTitle)).toBeVisible();
   await expect(panel.getByRole("button", { name: "Enregistrer un virement" })).toHaveCount(0);
   await expect(panel.getByRole("textbox")).toHaveCount(0);
+  await expect(panel.getByText("Virement de MeetSpace en attente", { exact: true })).toBeVisible();
+  await expect(panel).toContainText("vous n’avez rien à payer");
 });
 
 test("an unavailable beneficiary has no transfer action", async ({ page }) => {

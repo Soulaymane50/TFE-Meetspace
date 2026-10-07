@@ -32,6 +32,7 @@ export default function AdminEspacesPage() {
   const [espaces, setEspaces] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [pendingReservations, setPendingReservations] = useState([]);
+  const [now, setNow] = useState(Date.now);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filterStatus, setFilterStatus] = useState("ALL");
@@ -52,7 +53,7 @@ export default function AdminEspacesPage() {
       ]);
       setEspaces(espacesData);
       setReservations(reservationsData);
-      setPendingReservations(pendingData);
+      setPendingReservations(pendingData.filter((reservation) => new Date(reservation.startDateTime).getTime() > Date.now()));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -134,6 +135,15 @@ export default function AdminEspacesPage() {
     }
   };
 
+  useEffect(() => {
+    const starts = pendingReservations.map((reservation) => new Date(reservation.startDateTime).getTime()).filter((start) => start > now);
+    if (!starts.length) return;
+    const delay = Math.min(Math.max(0, Math.min(...starts) - Date.now()) + 10, 2147483647);
+    const timer = setTimeout(() => setNow(Date.now()), delay);
+    return () => clearTimeout(timer);
+  }, [pendingReservations, now]);
+  const actionableRequests = pendingReservations.filter((reservation) => new Date(reservation.startDateTime).getTime() > now);
+
   const filteredReservations = reservations.filter((r) => {
     if (filterStatus === "ALL") return true;
     return r.status === filterStatus;
@@ -145,7 +155,7 @@ export default function AdminEspacesPage() {
 
   const tabs = [
     { id: "spaces", label: t("admin.spacesManagement") },
-    { id: "pending", label: t("admin.pendingReservations"), badge: pendingReservations.length },
+    { id: "pending", label: t("admin.pendingReservations"), badge: actionableRequests.length },
     { id: "reservations", label: t("admin.spaceReservations") },
   ];
 
@@ -171,10 +181,10 @@ export default function AdminEspacesPage() {
         </div>
       </div>
 
-      {pendingReservations.length > 0 && activeTab !== "pending" && (
+      {actionableRequests.length > 0 && activeTab !== "pending" && (
         <div className={styles.alertBanner}>
           <span className={styles.alertIcon}>!</span>
-          <span>{pendingReservations.length} {t("admin.premiumRoomReservationsPending")}</span>
+          <span>{actionableRequests.length} {t("admin.premiumRoomReservationsPending")}</span>
           <button className={styles.alertButton} onClick={() => setActiveTab("pending")}>
             {t("common.view")}
           </button>
@@ -246,11 +256,11 @@ export default function AdminEspacesPage() {
       {/* Onglet: Réservations en attente */}
       {activeTab === "pending" && (
         <section className={styles.section}>
-          {pendingReservations.length === 0 ? (
+          {actionableRequests.length === 0 ? (
             <p className={styles.info}>{t("admin.noPendingReservations")}</p>
           ) : (
             <div className={styles.cardsGrid}>
-              {pendingReservations.map((r) => (
+              {actionableRequests.map((r) => (
                 <div key={r.id} className={styles.card}>
                   <div className={styles.cardHeader}>
                     <div>
