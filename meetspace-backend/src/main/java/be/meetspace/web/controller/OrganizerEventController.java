@@ -270,12 +270,18 @@ public class OrganizerEventController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vous n'êtes pas le créateur de cet événement");
         }
 
-        if (event.getStatus() == EventStatus.CANCELLED) return;
+        if (event.getStatus() == EventStatus.CANCELLED) {
+            eventPlanningService.syncParkingStatus(event, false);
+            return;
+        }
+        if ("PAID".equals(event.getSettlementStatus()) || !event.getEndDateTime().isAfter(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Un événement terminé ou déjà réglé ne peut plus être annulé.");
+        }
 
         String oldStatus = event.getStatus().name();
         event.setStatus(EventStatus.CANCELLED);
         eventRepository.save(event);
-        eventPlanningService.syncParkingStatus(event);
+        eventPlanningService.syncParkingStatus(event, false);
 
         // Audit log
         String ipAddress = AuditService.getClientIpAddress(httpRequest);

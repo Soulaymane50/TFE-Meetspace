@@ -18,6 +18,9 @@ public interface PaymentRecordRepository extends JpaRepository<PaymentRecord, Lo
 
     Optional<PaymentRecord> findByPaymentIntentId(String paymentIntentId);
 
+    @EntityGraph(attributePaths = {"user", "bookingHold"})
+    List<PaymentRecord> findByResourceIdAndType(Long resourceId, be.meetspace.entity.PaymentType type);
+
     @Query("SELECT p.paymentIntentId FROM PaymentRecord p LEFT JOIN p.bookingHold h WHERE "
             + "(p.bookingEntityId IS NULL AND h IS NOT NULL AND "
             + "(h.expiresAt <= :now OR h.status IN (be.meetspace.entity.BookingHoldStatus.CANCELLED, "

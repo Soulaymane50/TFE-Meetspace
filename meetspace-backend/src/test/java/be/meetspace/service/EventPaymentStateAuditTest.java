@@ -44,12 +44,13 @@ class EventPaymentStateAuditTest {
         quotes = new PaymentQuoteService(events, spaces, parking, reservations);
         holdService = new BookingHoldService(holds, spaces, events, parking, reservations,
                 registrations, mock(ParkingReservationRepository.class), 15L);
-        billing = new EventBillingService(events, registrations, quotes, payments, planning);
+        billing = new EventBillingService(events, registrations, quotes, payments, planning, mock(EventSettlementService.class));
         owner = new User();
         owner.setId(1L);
         owner.setRole(Role.ORGANIZER);
         event = new Event();
         event.setId(10L);
+        event.setRoomPaymentMode("LEGACY_DEPOSIT");
         event.setCreatedBy(owner);
         event.setTitle("Audit evenement");
         event.setCapacity(20);
@@ -127,6 +128,64 @@ class EventPaymentStateAuditTest {
         event.setDepositPaidAt(null);
         assertDoesNotThrow(this::publishAsAdmin);
         assertEquals(EventStatus.PUBLISHED, event.getStatus());
+    }
+
+    @Test
+    void approvalRequestsFullRoomPaymentBeforePublication() {
+        event.setStatus(EventStatus.PENDING_APPROVAL);
+        event.setDepositPaidAt(null);
+        billing.prepareAfterApproval(event);
+        assertEquals(event.getEndDateTime(), event.getSettlementDueAt());
+        assertEquals("FULL", event.getRoomPaymentMode());
+        assertEquals(20000L, event.getRoomCostCents());
+        assertEquals(20000L, event.getDepositAmountCents());
+        assertEquals(0L, event.getBalanceDueCents());
+        assertEquals(EventStatus.AWAITING_DEPOSIT, event.getStatus());
+        assertThrows(ResponseStatusException.class, () -> billing.validatePaymentForPublication(event));
+        PaymentRequest request = new PaymentRequest();
+        request.setEventId(10L);
+        request.setReservationType("EVENT_DEPOSIT");
+        assertEquals(20000L, quotes.quote(request, owner).amountCents());
+        billing.payDeposit(10L, "full-room-payment", owner);
+        verify(payments).consume("full-room-payment", owner, PaymentType.EVENT_DEPOSIT, 20000L, 10L);
+        assertEquals(EventStatus.PUBLISHED, event.getStatus());
+        assertNotNull(event.getBalancePaidAt());
+        assertEquals(0L, event.getBalanceDueCents());
+        assertDoesNotThrow(() -> billing.validatePaymentForPublication(event));
+        assertThrows(ResponseStatusException.class, () -> billing.payDeposit(10L, "full-room-payment", owner));
+        verify(payments, times(1)).consume(anyString(), any(), any(), anyLong(), anyLong());
+        assertThrows(ResponseStatusException.class, () -> billing.payBalance(10L, "second-charge", owner));
+    }
+
+    @Test
+    void endedEventCannotQuoteHoldOrFinalizeLegacyBalanceWithOldDeadline() {
+        assertEquals(14000L, quotes.quote(balanceRequest(), owner).amountCents());
+        event.setEndDateTime(LocalDateTime.now().minusSeconds(1));
+        event.setSettlementDueAt(LocalDateTime.now().plusHours(47));
+        assertBalanceClosed();
+    }
+
+    @Test
+    void recordedPayoutPreventsSeparateBalanceEvenIfEventDateChanges() {
+        event.setSettlementStatus("PAID");
+        assertBalanceClosed();
+    }
+
+    @Test
+    void balanceClosesExactlyAtEventEnd() {
+        LocalDateTime boundary = event.getEndDateTime();
+        assertTrue(event.canPayRoomBalanceAt(boundary.minusNanos(1)));
+        assertFalse(event.canPayRoomBalanceAt(boundary));
+        assertFalse(event.canPayRoomBalanceAt(boundary.plusNanos(1)));
+    }
+
+    private void assertBalanceClosed() {
+        assertThrows(ResponseStatusException.class, () -> quotes.quote(balanceRequest(), owner));
+        assertThrows(ResponseStatusException.class,
+                () -> holdService.createHold(balanceRequest(), owner, PaymentType.EVENT_BALANCE, 14000L));
+        assertThrows(ResponseStatusException.class, () -> billing.payBalance(10L, "late-balance", owner));
+        verifyNoInteractions(payments);
+        verify(holds, never()).save(any());
     }
 
     private void publishAsAdmin() {

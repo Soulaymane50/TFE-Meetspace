@@ -16,35 +16,40 @@ import java.time.LocalDateTime;
 
 @Service
 public class EventBillingService {
-    public static final double DEPOSIT_RATE = 0.30D;
-    public static final double LATE_FEE_RATE = 0.05D;
-    private static final double COMMISSION_RATE = 0.10D;
+    // Historical field and payment type names remain readable for existing transactions.
+    public static final double DEPOSIT_RATE = 1.00D;
+    public static final double LATE_FEE_RATE = 0D;
+
 
     private final EventRepository eventRepository;
     private final EventRegistrationRepository registrationRepository;
     private final PaymentQuoteService quoteService;
     private final PaymentLifecycleService paymentLifecycleService;
     private final EventPlanningService eventPlanningService;
+    private final EventSettlementService settlementService;
 
     public EventBillingService(EventRepository eventRepository,
                                EventRegistrationRepository registrationRepository,
                                PaymentQuoteService quoteService,
                                PaymentLifecycleService paymentLifecycleService,
-                               EventPlanningService eventPlanningService) {
+                               EventPlanningService eventPlanningService,
+                               EventSettlementService settlementService) {
         this.eventRepository = eventRepository;
         this.registrationRepository = registrationRepository;
         this.quoteService = quoteService;
         this.paymentLifecycleService = paymentLifecycleService;
         this.eventPlanningService = eventPlanningService;
+        this.settlementService = settlementService;
     }
 
     public void prepareAfterApproval(Event event) {
         long roomCost = event.getSpace() == null ? 0L
                 : quoteService.calculateRoomPriceCents(event.getSpace(), event.getStartDateTime(), event.getEndDateTime());
+        event.setRoomPaymentMode("FULL");
         event.setRoomCostCents(roomCost);
         event.setDepositAmountCents(Math.round(roomCost * DEPOSIT_RATE));
         event.setBalanceDueCents(Math.max(0L, roomCost - event.getDepositAmountCents()));
-        event.setSettlementDueAt(event.getEndDateTime().plusHours(48));
+        event.setSettlementDueAt(event.getEndDateTime());
         event.setLateFeeCents(0L);
         event.setPayoutAmountCents(0L);
 
@@ -54,7 +59,7 @@ public class EventBillingService {
             event.setDepositDueAt(normalDeadline.isBefore(safetyDeadline) ? normalDeadline : safetyDeadline);
             if (!event.getDepositDueAt().isAfter(LocalDateTime.now())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Cet événement est trop proche pour permettre le paiement de l'acompte.");
+                        "Cet événement est trop proche pour permettre le paiement de la location.");
             }
             event.setStatus(EventStatus.AWAITING_DEPOSIT);
             event.setSettlementStatus("AWAITING_DEPOSIT");
@@ -68,16 +73,17 @@ public class EventBillingService {
     public Event payDeposit(Long eventId, String paymentIntentId, User organizer) {
         Event event = ownedEventForUpdate(eventId, organizer);
         if (event.getStatus() != EventStatus.AWAITING_DEPOSIT || event.getDepositPaidAt() != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cet acompte n'est plus en attente.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce paiement de location n'est plus en attente.");
         }
         if (event.getDepositDueAt() != null && !event.getDepositDueAt().isAfter(LocalDateTime.now())) {
             event.setStatus(EventStatus.CANCELLED);
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Le délai de paiement de l'acompte est expiré.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Le délai de paiement de la location est expiré.");
         }
         paymentLifecycleService.consume(paymentIntentId, organizer, PaymentType.EVENT_DEPOSIT,
                 event.getDepositAmountCents(), event.getId());
         event.setDepositPaymentIntentId(paymentIntentId);
         event.setDepositPaidAt(LocalDateTime.now());
+        if ("FULL".equals(event.getRoomPaymentMode())) event.setBalancePaidAt(LocalDateTime.now());
         event.setStatus(EventStatus.PUBLISHED);
         event.setSettlementStatus("HOLDING_REVENUE");
         eventPlanningService.activateParkingForPublication(event);
@@ -87,13 +93,9 @@ public class EventBillingService {
     @Transactional
     public Event payBalance(Long eventId, String paymentIntentId, User organizer) {
         Event event = ownedEventForUpdate(eventId, organizer);
-        if (event.getStatus() != EventStatus.PUBLISHED || event.getDepositPaidAt() == null
-                || event.getBalancePaidAt() != null || event.getBalanceDueCents() <= 0L) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce solde n'est pas payable.");
-        }
-        if (event.getSettlementDueAt() != null && !event.getSettlementDueAt().isAfter(LocalDateTime.now())) {
+        if (!event.canPayRoomBalanceAt(LocalDateTime.now())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Le délai de paiement du solde est expiré; il sera déduit du reversement.");
+                    "Ce solde n'est plus payable en ligne. Après la fin, il est pris en compte dans le décompte organisateur.");
         }
         paymentLifecycleService.consume(paymentIntentId, organizer, PaymentType.EVENT_BALANCE,
                 event.getBalanceDueCents(), event.getId());
@@ -119,34 +121,29 @@ public class EventBillingService {
                 });
 
         eventRepository.findAll().stream()
-                .filter(event -> event.getSettlementDueAt() != null && !event.getSettlementDueAt().isAfter(now))
-                .filter(event -> !"READY_FOR_PAYOUT".equals(event.getSettlementStatus()))
+                .filter(event -> event.getEndDateTime() != null && !event.getEndDateTime().isAfter(now))
+                .filter(event -> !"PAID".equals(event.getSettlementStatus()))
                 .filter(event -> event.getStatus() == EventStatus.PUBLISHED)
                 .forEach(this::calculateSettlement);
     }
 
     private void calculateSettlement(Event event) {
-        long grossRevenue = registrationRepository.findByEventId(event.getId()).stream()
-                .filter(registration -> registration.getStatus() == be.meetspace.entity.EventRegistrationStatus.CONFIRMED)
-                .mapToLong(registration -> Math.round((registration.getTotalPrice() == null ? 0D : registration.getTotalPrice()) * 100D))
-                .sum();
-        long commission = Math.round(grossRevenue * COMMISSION_RATE);
-        long unpaidBalance = event.getBalancePaidAt() == null ? event.getBalanceDueCents() : 0L;
-        long lateFee = unpaidBalance > 0L ? Math.round(unpaidBalance * LATE_FEE_RATE) : 0L;
-        event.setLateFeeCents(lateFee);
-        event.setPayoutAmountCents(Math.max(0L, grossRevenue - commission - unpaidBalance - lateFee));
-        event.setSettlementStatus("READY_FOR_PAYOUT");
+        event.setSettlementDueAt(event.getEndDateTime());
+        var settlement = settlementService.preview(event);
+        event.setLateFeeCents(0L);
+        event.setPayoutAmountCents(settlement.amountCents());
+        event.setSettlementStatus(settlement.status());
         eventRepository.save(event);
     }
 
     public void validatePaymentForPublication(Event event) {
-        if (event.getDepositPaidAt() != null || event.getSpace() == null
+        if ((event.getDepositPaidAt() != null && (!"FULL".equals(event.getRoomPaymentMode()) || event.getBalanceDueCents() == 0L)) || event.getSpace() == null
                 || (event.getCreatedBy() != null && event.getCreatedBy().getRole() == be.meetspace.entity.Role.ADMIN)) {
             return;
         }
         if (quoteService.calculateRoomPriceCents(event.getSpace(), event.getStartDateTime(), event.getEndDateTime()) > 0L) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "L'acompte doit être payé après approbation avant de publier cet événement.");
+                    "La location doit être entièrement payée après approbation avant publication.");
         }
     }
 

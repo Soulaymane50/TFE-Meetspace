@@ -31,6 +31,7 @@ public class EventPlanningService {
     private final PaymentLifecycleService paymentLifecycleService;
     private final NotificationService notificationService;
     private final BookingHoldService bookingHoldService;
+    private final EventRoomCancellationService roomCancellationService;
 
     public EventPlanningService(EspaceRepository espaceRepository,
                                 ReservationRepository reservationRepository,
@@ -42,7 +43,8 @@ public class EventPlanningService {
                                 ParkingAccessService parkingAccessService,
                                 PaymentLifecycleService paymentLifecycleService,
                                 NotificationService notificationService,
-                                BookingHoldService bookingHoldService) {
+                                BookingHoldService bookingHoldService,
+                                EventRoomCancellationService roomCancellationService) {
         this.espaceRepository = espaceRepository;
         this.reservationRepository = reservationRepository;
         this.eventRepository = eventRepository;
@@ -54,6 +56,7 @@ public class EventPlanningService {
         this.paymentLifecycleService = paymentLifecycleService;
         this.notificationService = notificationService;
         this.bookingHoldService = bookingHoldService;
+        this.roomCancellationService = roomCancellationService;
     }
 
     public void lockParkingInventory() { parkingCapacityService.lockInventory(); }
@@ -64,6 +67,7 @@ public class EventPlanningService {
         if (data.locationType() == EventLocationType.EXISTING_SPACE) {
             validateParkingDateWindow(data.startDateTime(), data.endDateTime());
         }
+        validateRoomContractChange(event, data);
         validateWindowChangeBeforeBookings(event, data);
         validateParkingAllocationChange(event, data);
 
@@ -164,6 +168,19 @@ public class EventPlanningService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Un autre événement occupe déjà cet espace sur ce créneau");
         }
         return espace;
+    }
+
+    private void validateRoomContractChange(Event event, EventData data) {
+        if (event.getId() == null || !event.isRoomContractLocked()) return;
+        Long oldSpace = event.getSpace() == null ? null : event.getSpace().getId();
+        Long newSpace = data.locationType() == EventLocationType.EXISTING_SPACE ? data.spaceId() : null;
+        if (!java.util.Objects.equals(event.getStartDateTime(), data.startDateTime())
+                || !java.util.Objects.equals(event.getEndDateTime(), data.endDateTime())
+                || event.getLocationType() != data.locationType()
+                || !java.util.Objects.equals(oldSpace, newSpace)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "La salle et les horaires d'une location approuvée ou payée ne peuvent plus être modifiés. Annulez la demande avant de choisir un autre créneau.");
+        }
     }
 
     private void validateWindowChangeBeforeBookings(Event event, EventData data) {
@@ -270,7 +287,9 @@ public class EventPlanningService {
         parkingAccessService.ensurePasses(saved);
     }
 
-    public void syncParkingStatus(Event event) {
+    public void syncParkingStatus(Event event) { syncParkingStatus(event, true); }
+
+    public void syncParkingStatus(Event event, boolean cancelledByProvider) {
         lockParkingInventory();
         ParkingSlot currentSlot = event.getParkingSlot();
         ParkingSlotStatus targetStatus = event.getStatus() == EventStatus.PUBLISHED ? ParkingSlotStatus.OPEN : ParkingSlotStatus.CANCELLED;
@@ -279,6 +298,7 @@ public class EventPlanningService {
             assertNoParkingHolds(currentSlot);
         }
         if (event.getStatus() == EventStatus.CANCELLED) {
+            roomCancellationService.refundRoom(event, cancelledByProvider);
             // Restituer le paiement historique, sans barème client, avant d'invalider les accès.
             // Le journal durable permet de reprendre une réponse Stripe perdue après rollback.
             for (EventRegistration candidate : eventRegistrationRepository.findByEventId(event.getId())) {

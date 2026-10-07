@@ -195,6 +195,27 @@ public class PaymentLifecycleService {
                 user, type, resourceId, bookingEntityId), requestedAmountCents, "booking-cancellation");
     }
 
+    /** Room cancellation refunds a target total, not an additional amount after earlier refunds. */
+    @Transactional
+    public RefundResult refundRoomBookingToTarget(String paymentIntentId, long targetCents, long paidAmountCents,
+            User user, PaymentType type, Long eventId) {
+        if (targetCents <= 0) return new RefundResult(0L, 0L, PaymentStatus.REFUNDED);
+        if (targetCents > paidAmountCents) throw conflict("Le remboursement dépasse la location payée.");
+        PaymentRecord record = bookingPayment(paymentIntentId, targetCents, paidAmountCents, user, type, eventId, eventId);
+        syncProviderRefunds(record);
+        String operation = "room-cancellation";
+        String key = PaymentVerifier.operationKey(paymentIntentId, operation);
+        List<PaymentRefund> journal = journal(paymentIntentId);
+        var existing = journal.stream().filter(r -> key.equals(r.getOperationKey())).findFirst();
+        if (existing.isPresent()) return requestRefund(record, existing.get().getAmountCents(), operation);
+        long covered = journal.stream().filter(r -> !isFullTarget(r)
+                && !"failed".equals(r.getStatus()) && !"canceled".equals(r.getStatus()))
+                .mapToLong(PaymentRefund::getAmountCents).sum();
+        long remaining = Math.max(0L, targetCents - covered);
+        if (remaining == 0L) return new RefundResult(0L, record.getRefundedAmountCents(), record.getStatus());
+        return requestRefund(record, remaining, operation);
+    }
+
     private PaymentRecord bookingPayment(String paymentIntentId, long requestedAmountCents,
                                          long paidAmountCents, User user, PaymentType type,
                                          Long resourceId, Long bookingEntityId) {

@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 @ActiveProfiles("test")
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 @Import({EventPlanningService.class, PaymentLifecycleService.class, NotificationService.class,
+        EventRoomCancellationService.class, CancellationPolicyService.class,
         EventProviderRefundIntegrationTest.Config.class})
 class EventProviderRefundIntegrationTest {
     @Autowired EventPlanningService planning;
@@ -37,6 +38,7 @@ class EventProviderRefundIntegrationTest {
     @Autowired UserNotificationRepository notifications;
     @Autowired PlatformTransactionManager manager;
     @Autowired ProviderStub provider;
+    @Autowired EventRoomCancellationRepository roomCancellationJournal;
     @MockBean BookingHoldService holds;
     @MockBean ParkingCapacityService capacity;
     @MockBean ParkingAccessService accesses;
@@ -116,6 +118,107 @@ class EventProviderRefundIntegrationTest {
         cancelProvider(); assertCancelledAccess();
         assertEquals(PaymentStatus.REFUNDED, record().getStatus());
         assertEquals(11200L, record().getRefundedAmountCents()); assertEquals(1, provider.creates);
+    }
+    @Test void organizerCancellationRefundsFullRoomAndTicketsAtLeast48HoursBefore() {
+        String roomIntent = paidRoom(60, 10000L, 0L);
+        cancelOrganizer();
+        assertEquals(10000L, records.findByPaymentIntentId(roomIntent).orElseThrow().getRefundedAmountCents());
+        assertEquals(100, roomCancellationJournal.findById(event.getId()).orElseThrow().getRefundPercent());
+        assertEquals(11200L, record().getRefundedAmountCents());
+        int calls = provider.creates;
+        cancelOrganizer();
+        assertEquals(calls, provider.creates);
+    }
+    @Test void organizerCancellationRefundsHalfOfRoomAndAllTicketsBetween24And48Hours() {
+        String roomIntent = paidRoom(36, 10000L, 0L);
+        cancelOrganizer();
+        assertEquals(5000L, records.findByPaymentIntentId(roomIntent).orElseThrow().getRefundedAmountCents());
+        assertEquals(PaymentStatus.PARTIALLY_REFUNDED, records.findByPaymentIntentId(roomIntent).orElseThrow().getStatus());
+        assertEquals(11200L, record().getRefundedAmountCents());
+    }
+    @Test void lateOrganizerCancellationKeepsRoomButRefundsAllParticipantPayments() {
+        String roomIntent = paidRoom(12, 10000L, 0L);
+        cancelOrganizer();
+        assertEquals(0L, records.findByPaymentIntentId(roomIntent).orElseThrow().getRefundedAmountCents());
+        assertEquals(0, roomCancellationJournal.findById(event.getId()).orElseThrow().getRefundPercent());
+        assertEquals(11200L, record().getRefundedAmountCents());
+    }
+    @Test void venueCancellationFullyRefundsRoomEvenLessThan24HoursBefore() {
+        String roomIntent = paidRoom(12, 10000L, 0L);
+        cancelProvider();
+        assertEquals(10000L, records.findByPaymentIntentId(roomIntent).orElseThrow().getRefundedAmountCents());
+        assertTrue(roomCancellationJournal.findById(event.getId()).orElseThrow().isByProvider());
+    }
+    @Test void legacyDepositAndPaidBalanceAreRefundedOnceWithTheSameRate() {
+        String roomIntent = paidRoom(36, 3000L, 7000L);
+        cancelOrganizer(); cancelOrganizer();
+        assertEquals(1500L, records.findByPaymentIntentId(roomIntent).orElseThrow().getRefundedAmountCents());
+        assertEquals(3500L, records.findByPaymentIntentId(roomIntent + "_balance").orElseThrow().getRefundedAmountCents());
+        assertEquals(16200L, provider.total());
+        assertEquals(3, provider.creates);
+    }
+    @Test void earlierRoomRefundIsDeductedFromTheCancellationTarget() {
+        String intent = paidRoom(36, 10000L, 0L);
+        payments.refund(intent, 2000L, "earlier-room-adjustment");
+        cancelOrganizer(); cancelOrganizer();
+        assertEquals(5000L, records.findByPaymentIntentId(intent).orElseThrow().getRefundedAmountCents());
+        assertEquals(16200L, provider.total());
+        assertEquals(3, provider.creates);
+    }
+
+    @Test void legacyHalfRefundRoundsTheCombinedRoomPaymentOnlyOnce() {
+        String intent = paidRoom(36, 3001L, 7001L);
+        cancelOrganizer();
+        assertEquals(5001L, records.findByPaymentIntentId(intent).orElseThrow().getRefundedAmountCents()
+                + records.findByPaymentIntentId(intent + "_balance").orElseThrow().getRefundedAmountCents());
+    }
+    @Test void lostRoomRefundResponsePreservesFirstDeadlineAndDoesNotDoubleRefund() {
+        String roomIntent = paidRoom(60, 10000L, 0L);
+        provider.loseOnce = true;
+        assertThrows(IllegalStateException.class, this::cancelOrganizer);
+        assertEquals(EventStatus.PUBLISHED, events.findById(event.getId()).orElseThrow().getStatus());
+        assertEquals(100, roomCancellationJournal.findById(event.getId()).orElseThrow().getRefundPercent());
+        // Simulate a retry in a later refund window after the outer event transaction rolled back.
+        tx.executeWithoutResult(s -> events.findByIdForUpdate(event.getId()).orElseThrow().setStartDateTime(LocalDateTime.now().plusHours(30)));
+        cancelOrganizer();
+        assertEquals(10000L, records.findByPaymentIntentId(roomIntent).orElseThrow().getRefundedAmountCents());
+        assertEquals(21200L, provider.total());
+        assertEquals(2, provider.creates);
+    }
+    @Test void pendingRoomRefundIsRecoveredAfterCancellationWithoutChangingPolicy() {
+        String roomIntent = paidRoom(36, 10000L, 0L);
+        provider.pending = true; cancelOrganizer();
+        assertEquals(PaymentStatus.REFUND_PENDING, records.findByPaymentIntentId(roomIntent).orElseThrow().getStatus());
+        provider.confirmAll(); cancelOrganizer();
+        assertEquals(PaymentStatus.PARTIALLY_REFUNDED, records.findByPaymentIntentId(roomIntent).orElseThrow().getStatus());
+        assertEquals(5000L, records.findByPaymentIntentId(roomIntent).orElseThrow().getRefundedAmountCents());
+        assertEquals(2, provider.creates);
+    }
+    String paidRoom(int hours, long deposit, long balance) {
+        String intent = "pi_room_" + UUID.randomUUID().toString().replace("-", "");
+        tx.executeWithoutResult(s -> {
+            Event current = events.findByIdForUpdate(event.getId()).orElseThrow();
+            current.setStartDateTime(LocalDateTime.now().plusHours(hours)); current.setEndDateTime(current.getStartDateTime().plusHours(2));
+            current.setRoomCostCents(deposit + balance); current.setDepositAmountCents(deposit);
+            current.setDepositPaidAt(LocalDateTime.now()); current.setDepositPaymentIntentId(intent);
+            current.setRoomPaymentMode(balance > 0 ? "LEGACY_DEPOSIT" : "FULL"); current.setBalanceDueCents(balance);
+            if (balance > 0) { current.setBalancePaidAt(LocalDateTime.now()); current.setBalancePaymentIntentId(intent + "_balance"); }
+            roomRecord(intent, deposit, PaymentType.EVENT_DEPOSIT);
+            if (balance > 0) roomRecord(intent + "_balance", balance, PaymentType.EVENT_BALANCE);
+        });
+        return intent;
+    }
+    void roomRecord(String intent, long amount, PaymentType type) {
+        PaymentRecord room = new PaymentRecord(); room.setPaymentIntentId(intent); room.setUser(user);
+        room.setType(type); room.setAmountCents(amount); room.setResourceId(event.getId()); room.setBookingEntityId(event.getId());
+        room.setConsumedAt(LocalDateTime.now()); room.setStatus(PaymentStatus.CONSUMED); records.saveAndFlush(room);
+    }
+    void cancelOrganizer() {
+        tx.executeWithoutResult(s -> {
+            planning.lockParkingInventory();
+            Event current = events.findByIdForUpdate(event.getId()).orElseThrow();
+            current.setStatus(EventStatus.CANCELLED); planning.syncParkingStatus(current, false);
+        });
     }
     void cancelProvider() {
         tx.executeWithoutResult(s -> {

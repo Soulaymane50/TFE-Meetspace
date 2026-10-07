@@ -216,7 +216,7 @@ public class AdminEventController {
                     dto.isApproved() ? "Événement validé" : "Événement refusé",
                     dto.isApproved()
                             ? (saved.getStatus() == EventStatus.AWAITING_DEPOSIT
-                                ? saved.getTitle() + " est validé. Payez l'acompte pour le publier."
+                                ? saved.getTitle() + " est validé. Payez la location pour le publier."
                                 : saved.getTitle() + " est maintenant visible dans le catalogue.")
                             : saved.getTitle() + " doit être corrigé avant publication.",
                     "/organizer/events", "Event", saved.getId());
@@ -294,6 +294,9 @@ public class AdminEventController {
 
     private void validateTransition(Event event, EventStatus next) {
         if (next == event.getStatus()) return;
+        if (next == EventStatus.CANCELLED && "PAID".equals(event.getSettlementStatus())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Un événement dont le versement est enregistré ne peut plus être annulé.");
+        }
         if (event.getStatus() == EventStatus.CANCELLED
                 || (event.getStatus() == EventStatus.REJECTED && next == EventStatus.PUBLISHED)
                 || (event.getStatus() == EventStatus.PUBLISHED && next != EventStatus.CANCELLED)) {

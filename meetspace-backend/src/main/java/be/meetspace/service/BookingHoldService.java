@@ -188,13 +188,12 @@ public class BookingHoldService {
         }
         if (deposit) {
             if (event.getStatus() != EventStatus.AWAITING_DEPOSIT || event.getDepositPaidAt() != null) {
-                throw badRequest("Cet acompte n'est pas en attente.");
+                throw badRequest("Ce paiement de location n'est pas en attente.");
             }
             if (event.getDepositDueAt() != null && !event.getDepositDueAt().isAfter(LocalDateTime.now())) {
-                throw conflict("Le délai de paiement de l'acompte est expiré.");
+                throw conflict("Le délai de paiement de la location est expiré.");
             }
-        } else if (event.getStatus() != EventStatus.PUBLISHED || event.getDepositPaidAt() == null || event.getBalancePaidAt() != null
-                || (event.getSettlementDueAt() != null && !event.getSettlementDueAt().isAfter(LocalDateTime.now()))) {
+        } else if (!event.canPayRoomBalanceAt(LocalDateTime.now())) {
             throw badRequest("Ce solde n'est plus payable en ligne.");
         }
         return baseHold(event.getId(), amountCents);

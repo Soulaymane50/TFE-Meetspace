@@ -46,7 +46,7 @@ class EventPlanningContractAuditTest {
         room.setBasePrice(100D);
         when(spaces.findByIdForUpdate(3L)).thenReturn(Optional.of(room));
         planning = new EventPlanningService(spaces, mock(ReservationRepository.class), mock(EventRepository.class),
-                registrations, parkings, mock(ParkingSlotRepository.class), capacity, accesses, payments, notifications, holds);
+                registrations, parkings, mock(ParkingSlotRepository.class), capacity, accesses, payments, notifications, holds, mock(EventRoomCancellationService.class));
         event = new Event();
         event.setId(10L);
         event.setTitle("Contrat initial");
@@ -201,6 +201,22 @@ class EventPlanningContractAuditTest {
         assertEquals(ParkingSlotStatus.OPEN, event.getParkingSlot().getStatus());
         verifyNoInteractions(payments);
     }
+    @Test void anApprovedRoomQuoteCannotMoveEvenWithoutAttendees() {
+        event.setStatus(EventStatus.AWAITING_DEPOSIT);
+        assertWindowCannotMove();
+    }
+    @Test void aPaidRoomCannotBeReplacedWithAnExternalLocation() {
+        event.setDepositPaidAt(LocalDateTime.now());
+        assertThrows(ResponseStatusException.class, () -> planning.applyAndValidate(event,
+                data(event.getStartDateTime(), event.getEndDateTime(), EventLocationType.EXTERNAL), 10L));
+        assertSame(room, event.getSpace());
+    }
+    @Test void aPaidRoomStillAllowsDescriptionEdits() {
+        event.setDepositPaidAt(LocalDateTime.now());
+        planning.applyAndValidate(event, data(event.getStartDateTime(), event.getEndDateTime(), EventLocationType.EXISTING_SPACE), 10L);
+        assertEquals("Description corrigée", event.getDescription());
+    }
+
     private void assertWindowCannotMove() {
         LocalDateTime initial = event.getStartDateTime();
         var error = assertThrows(ResponseStatusException.class, () -> planning.applyAndValidate(event,

@@ -39,6 +39,8 @@ public class EventResponseDto {
     private Integer physicalParkingCapacity;
     private Integer globalParkingRemainingSpaces;
     private boolean sharedParkingInventory;
+    private boolean roomContractLocked;
+    private String roomPaymentMode;
     private Long roomCostCents;
     private Long depositAmountCents;
     private LocalDateTime depositDueAt;
@@ -86,6 +88,8 @@ public class EventResponseDto {
             dto.approvedByName = e.getApprovedBy().getFirstName() + " " + e.getApprovedBy().getLastName();
         }
         dto.rejectionReason = e.getRejectionReason();
+        dto.roomContractLocked = e.isRoomContractLocked();
+        dto.roomPaymentMode = e.getRoomPaymentMode();
         dto.roomCostCents = e.getRoomCostCents();
         dto.depositAmountCents = e.getDepositAmountCents();
         dto.depositDueAt = e.getDepositDueAt();
@@ -149,6 +153,8 @@ public class EventResponseDto {
     public Integer getPhysicalParkingCapacity() { return physicalParkingCapacity; }
     public Integer getGlobalParkingRemainingSpaces() { return globalParkingRemainingSpaces; }
     public boolean isSharedParkingInventory() { return sharedParkingInventory; }
+    public boolean isRoomContractLocked() { return roomContractLocked; }
+    public String getRoomPaymentMode() { return roomPaymentMode; }
     public Long getRoomCostCents() { return roomCostCents; }
     public Long getDepositAmountCents() { return depositAmountCents; }
     public LocalDateTime getDepositDueAt() { return depositDueAt; }

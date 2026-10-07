@@ -50,6 +50,7 @@ public enum AuditAction {
     PAYMENT_INITIATED,
     PAYMENT_SUCCESS,
     PAYMENT_FAILURE,
+    EVENT_PAYOUT_RECORDED,
 
     // Event registration
     EVENT_REGISTRATION_CREATE,

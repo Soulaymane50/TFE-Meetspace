@@ -73,6 +73,8 @@ public class Event {
 
     @Column(name = "room_cost_cents", nullable = false)
     private Long roomCostCents = 0L;
+    @Column(name = "room_payment_mode", nullable = false, length = 24)
+    private String roomPaymentMode = "FULL";
     @Column(name = "deposit_amount_cents", nullable = false)
     private Long depositAmountCents = 0L;
     @Column(name = "deposit_payment_intent_id")
@@ -156,6 +158,8 @@ public class Event {
     public boolean isParkingRequired() { return parkingRequired; }
     public void setParkingRequired(boolean parkingRequired) { this.parkingRequired = parkingRequired; }
 
+    public String getRoomPaymentMode() { return roomPaymentMode; }
+    public void setRoomPaymentMode(String value) { roomPaymentMode = value; }
     public Long getRoomCostCents() { return roomCostCents; }
     public void setRoomCostCents(Long value) { this.roomCostCents = value; }
     public Long getDepositAmountCents() { return depositAmountCents; }
@@ -172,6 +176,19 @@ public class Event {
     public void setBalancePaymentIntentId(String value) { this.balancePaymentIntentId = value; }
     public LocalDateTime getBalancePaidAt() { return balancePaidAt; }
     public void setBalancePaidAt(LocalDateTime value) { this.balancePaidAt = value; }
+    public boolean isRoomContractLocked() {
+        return status == EventStatus.AWAITING_DEPOSIT || depositPaidAt != null || balancePaymentIntentId != null
+                || depositPaymentIntentId != null || "PAID".equals(settlementStatus)
+                || (approvedAt != null && roomCostCents != null && roomCostCents > 0L);
+    }
+
+    public boolean canPayRoomBalanceAt(LocalDateTime now) {
+        return status == EventStatus.PUBLISHED && depositPaidAt != null && balancePaidAt == null
+                && balanceDueCents != null && balanceDueCents > 0L && !"PAID".equals(settlementStatus)
+                && endDateTime != null && endDateTime.isAfter(now)
+                && (settlementDueAt == null || settlementDueAt.isAfter(now));
+    }
+
     public LocalDateTime getSettlementDueAt() { return settlementDueAt; }
     public void setSettlementDueAt(LocalDateTime value) { this.settlementDueAt = value; }
     public Long getLateFeeCents() { return lateFeeCents; }

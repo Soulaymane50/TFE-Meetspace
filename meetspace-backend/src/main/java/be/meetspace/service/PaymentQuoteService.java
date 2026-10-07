@@ -131,11 +131,14 @@ public class PaymentQuoteService {
         }
         if (deposit) {
             if (event.getStatus() != EventStatus.AWAITING_DEPOSIT || event.getDepositPaidAt() != null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cet acompte n'est pas en attente.");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce paiement de location n'est pas en attente.");
+            }
+            if (event.getDepositDueAt() != null && !event.getDepositDueAt().isAfter(java.time.LocalDateTime.now())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Le délai de paiement de la location est expiré.");
             }
             return event.getDepositAmountCents();
         }
-        if (event.getStatus() != EventStatus.PUBLISHED || event.getDepositPaidAt() == null || event.getBalancePaidAt() != null) {
+        if (!event.canPayRoomBalanceAt(java.time.LocalDateTime.now())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce solde n'est pas payable.");
         }
         return event.getBalanceDueCents();
