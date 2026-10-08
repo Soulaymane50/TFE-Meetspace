@@ -1,4 +1,10 @@
 export const isBlockingEvent = (event) => !["CANCELLED", "REJECTED"].includes(event.status);
+export const isEventOwner = (event, user) => {
+  const ownerId = Number(event?.createdById);
+  const userId = Number(user?.id);
+  return ["ORGANIZER", "ADMIN"].includes(user?.role) &&
+    Number.isSafeInteger(ownerId) && ownerId > 0 && ownerId === userId;
+};
 export const canEditOrganizerEvent = (event) => ["PENDING_APPROVAL", "REJECTED"].includes(event?.status);
 export const getResourceKey = (event) => String(event.spaceId || event.espaceId || event.location || event.externalAddress || "unknown").toLowerCase();
 

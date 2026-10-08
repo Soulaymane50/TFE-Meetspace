@@ -9,6 +9,7 @@ import { getEventImage, getSpaceImage, PARKING_IMAGE } from "../utils/mediaAsset
 import { downloadCalendarEvent, parseVenueDate } from "../utils/calendar";
 import { getSpaceProfileKey } from "../utils/spaceProfiles";
 import { formatMoney, formatNumber, normalizeLocale } from "../utils/formatters";
+import { isEventOwner } from "../utils/eventPlanning";
 import styles from "./CatalogDetailPage.module.css";
 
 const CONFIG = {
@@ -98,6 +99,7 @@ function CatalogDetail({ type, id }) {
     }
 
     if (type === "event") {
+      const isOwner = isEventOwner(item, user);
       const available = item.availablePlaces == null ? Number(item.capacity) : Math.max(0, Number(item.availablePlaces));
       const start = parseVenueDate(item.startDateTime);
       const end = parseVenueDate(item.endDateTime);
@@ -111,9 +113,10 @@ function CatalogDetail({ type, id }) {
           ? t("detail.placesAvailable", { count: available, defaultValue: `${available} places disponibles` })
           : t("events.full"),
         available: available > 0,
-        canJoinWaitlist: available <= 0,
-        cta: `/events/register/${item.id}`,
-        ctaLabel: available <= 0 ? t("events.ctaWaitlist") : user ? t("events.register") : t("events.loginToRegister"),
+        isOwner,
+        canJoinWaitlist: !isOwner && available <= 0,
+        cta: isOwner ? `/organizer/events/${item.id}/check-in` : `/events/register/${item.id}`,
+        ctaLabel: isOwner ? t("detail.manageEvent") : available <= 0 ? t("events.ctaWaitlist") : user ? t("events.register") : t("events.loginToRegister"),
         start,
         end,
         location: item.location || t("common.toBeAnnounced"),
@@ -224,7 +227,7 @@ function CatalogDetail({ type, id }) {
   return (
     <div className={styles.page}>
       <nav className={styles.breadcrumb} aria-label={t("detail.breadcrumb", { defaultValue: "Fil d’Ariane" })}>
-        <Link to={config.back}>← {t(config.collectionKey)}</Link>
+        <Link to={model.isOwner ? "/organizer/events" : config.back}>← {model.isOwner ? t("checkIn.back") : t(config.collectionKey)}</Link>
         <span aria-hidden="true">/</span>
         <span>{model.title}</span>
       </nav>
@@ -247,13 +250,13 @@ function CatalogDetail({ type, id }) {
 
         <aside className={styles.actionRail}>
           <p className={styles.actionLabel}>{t("detail.nextStep", { defaultValue: "Prochaine étape" })}</p>
-          <h2>{model.available
+          <h2>{model.isOwner ? t("detail.ownerTitle") : model.available
             ? t("detail.bookTitle", { defaultValue: "Planifiez votre venue" })
             : t("detail.fullTitle", { defaultValue: "Cette session est complète" })}</h2>
-          <p>{model.canJoinWaitlist ? t("events.ctaWaitlist") : model.available
+          <p>{model.isOwner ? t("detail.ownerHint") : model.canJoinWaitlist ? t("events.ctaWaitlist") : model.available
             ? t("detail.bookHint", { defaultValue: "Les disponibilités et le montant final seront confirmés avant le paiement." })
             : t("detail.fullHint", { defaultValue: "Revenez au catalogue pour choisir une autre disponibilité." })}</p>
-          {(model.available || model.canJoinWaitlist) ? (
+          {(model.isOwner || model.available || model.canJoinWaitlist) ? (
             <Link to={model.cta} state={{ from: location.pathname }} className={styles.primaryAction}>{model.ctaLabel}</Link>
           ) : (
             <Link to={config.back} className={styles.primaryAction}>{t("detail.seeAlternatives", { defaultValue: "Voir les alternatives" })}</Link>
@@ -272,8 +275,8 @@ function CatalogDetail({ type, id }) {
       <section className={styles.details} aria-labelledby="detail-facts-title">
         <div className={styles.detailIntro}>
           <p className={styles.eyebrow}>{t("detail.essential", { defaultValue: "L’essentiel" })}</p>
-          <h2 id="detail-facts-title">{t("detail.beforeBooking", { defaultValue: "Avant de réserver" })}</h2>
-          <p>{t("detail.transparentHint", { defaultValue: "Les informations utiles sont regroupées ici, sans frais cachés ni étape surprise." })}</p>
+          <h2 id="detail-facts-title">{model.isOwner ? t("detail.eventInformation") : t("detail.beforeBooking", { defaultValue: "Avant de réserver" })}</h2>
+          {!model.isOwner && <p>{t("detail.transparentHint", { defaultValue: "Les informations utiles sont regroupées ici, sans frais cachés ni étape surprise." })}</p>}
         </div>
         <dl className={styles.factList}>
           {model.facts.map(([label, value]) => (
@@ -285,7 +288,7 @@ function CatalogDetail({ type, id }) {
         </dl>
       </section>
 
-      <section className={styles.process} aria-label={t("detail.processTitle", { defaultValue: "Parcours de réservation" })}>
+      {!model.isOwner && <section className={styles.process} aria-label={t("detail.processTitle", { defaultValue: "Parcours de réservation" })}>
         {[
           [t("detail.stepOne", { defaultValue: "Choisir" }), t("detail.stepOneHint", { defaultValue: "Vérifiez la date, la capacité et le tarif." })],
           [t("detail.stepTwo", { defaultValue: "Confirmer" }), t("detail.stepTwoHint", { defaultValue: "Renseignez uniquement les informations nécessaires." })],
@@ -297,7 +300,7 @@ function CatalogDetail({ type, id }) {
             <p>{hint}</p>
           </div>
         ))}
-      </section>
+      </section>}
     </div>
   );
 }

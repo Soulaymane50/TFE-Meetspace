@@ -7,6 +7,7 @@ import SelectDropdown from "../components/SelectDropdown";
 import PageState from "../components/PageState";
 import { getEventImage } from "../utils/mediaAssets";
 import { formatMoney, formatNumber } from "../utils/formatters";
+import { isEventOwner } from "../utils/eventPlanning";
 import styles from "./EventsPage.module.css";
 
 
@@ -206,14 +207,15 @@ export default function EventsPage() {
   }, []);
 
   const renderEventCta = (event) => {
+    const isOwner = isEventOwner(event, user);
     const isFull = event.availablePlaces !== null && event.availablePlaces !== undefined && event.availablePlaces <= 0;
     return (
       <div className={styles.ctaStack}>
         <Link to={`/events/${event.id}`} className={styles.detailButton}>
-          {t("detail.viewDetails", { defaultValue: "Voir la fiche" })}
+          {isOwner ? t("detail.viewPublicEvent") : t("detail.viewDetails", { defaultValue: "Voir la fiche" })}
         </Link>
-        <Link to={`/events/register/${event.id}`} className={user ? styles.button : styles.buttonSecondary}>
-          {isFull ? t("events.ctaWaitlist") : user ? t("events.register") : t("events.loginToRegister")}
+        <Link to={isOwner ? `/organizer/events/${event.id}/check-in` : `/events/register/${event.id}`} className={user ? styles.button : styles.buttonSecondary}>
+          {isOwner ? t("detail.manageEvent") : isFull ? t("events.ctaWaitlist") : user ? t("events.register") : t("events.loginToRegister")}
         </Link>
       </div>
     );

@@ -387,7 +387,7 @@ export default function OrganizerEventsPage() {
             events={planningEvents}
             title={t("planning.organizerTitle")}
             subtitle={t("planning.organizerSubtitle")}
-            getEventHref={(event) => canEditOrganizerEvent(event) ? `/organizer/events/edit/${event.id}` : event.status === "PUBLISHED" ? `/events/${event.id}` : null}
+            getEventHref={(event) => canEditOrganizerEvent(event) ? `/organizer/events/edit/${event.id}` : event.status === "PUBLISHED" ? `/organizer/events/${event.id}/check-in` : null}
             maxDays={4}
           />
         )}
@@ -509,7 +509,7 @@ export default function OrganizerEventsPage() {
                   ) : null}
                   {e.status === "PUBLISHED" ? (
                     <Link to={`/events/${e.id}`} className={styles.viewButton}>
-                      {t("detail.viewDetails", { defaultValue: "Voir la fiche" })}
+                      {t("detail.viewPublicEvent")}
                     </Link>
                   ) : e.status === "PENDING_APPROVAL" ? (
                     <span className={styles.pendingNote}>{t("organizer.awaitingApproval")}</span>
