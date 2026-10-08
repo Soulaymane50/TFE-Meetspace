@@ -217,3 +217,15 @@
     flex-direction: column;
   }
 }
+
+.legalInfo {
+  margin: 1rem 0;
+  padding: 0.9rem 1rem;
+  border-left: 3px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.legalInfo p { margin: 0 0 0.4rem; }
+.legalInfo a { color: var(--text-primary); font-weight: 700; text-decoration: underline; text-underline-offset: 0.2em; }
+.legalInfo a:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; }

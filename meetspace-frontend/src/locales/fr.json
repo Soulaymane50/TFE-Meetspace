@@ -338,95 +338,154 @@
         }
     },
     "legal": {
-        "kicker": "Informations légales",
-        "legalNotice": {
-            "title": "Mentions légales",
-            "intro": "MeetSpace est une plateforme de réservation de salles, événements et parking à Bruxelles, présentée dans le cadre d'une démonstration/TFE.",
-            "sections": [
-{
-            "title": "Présentation",
-                    "text": "MeetSpace permet de consulter des salles, des événements professionnels et des options de parking depuis une interface unique."
-        },
-{
-                    "title": "Contact",
-                    "text": "Les demandes relatives au service peuvent être envoyées via la page Contact / Support."
-    },
-{
-                    "title": "Responsabilité",
-                    "text": "Les informations sont fournies pour une démonstration académique et peuvent être ajustées avant un usage réel."
-},
-{
-                    "title": "Contenu",
-                    "text": "Les textes, données et disponibilités affichés servent à illustrer les parcours de réservation MeetSpace."
-}
-]
-},
-        "privacy": {
-            "title": "Politique de confidentialité",
-            "intro": "Cette page explique simplement quelles données sont utilisées par MeetSpace pour faire fonctionner la démonstration.",
-            "sections": [
-{
-                    "title": "Données de compte",
-                    "text": "MeetSpace utilise le nom, le prénom, l'email et le rôle pour authentifier l'utilisateur et personnaliser son espace."
-                },
-{
-                    "title": "Réservations",
-                    "text": "Les données de salles, événements, parking et paiement servent à afficher les confirmations et l'historique utilisateur."
-},
-{
-                    "title": "Support",
-                    "text": "Les messages envoyés via le formulaire de contact sont utilisés uniquement pour traiter la demande."
-},
-{
-                    "title": "Sécurité",
-                    "text": "Les mots de passe sont stockés sous forme hashée et les informations sensibles ne doivent jamais être placées dans le code."
-}
-]
-},
-        "terms": {
-            "title": "Conditions d'utilisation",
-            "intro": "Ces conditions résument les règles de base pour utiliser MeetSpace dans le cadre de la démonstration.",
-            "sections": [
-{
-                    "title": "Rôle de MeetSpace",
-                    "text": "MeetSpace centralise les parcours de réservation de salles, d'inscription à des événements et de parking."
-                },
-{
-                    "title": "Utilisateur",
-                    "text": "L'utilisateur s'engage à fournir des informations exactes et à respecter les règles de réservation affichées."
-},
-{
-                    "title": "Organisateur",
-                    "text": "Un organisateur peut proposer des événements professionnels soumis à validation avant publication."
-},
-{
-                    "title": "Disponibilité",
-                    "text": "Les disponibilités, prix et capacités affichés peuvent varier selon les données de démonstration."
-}
-]
-},
-        "cancellation": {
-            "title": "Annulation / remboursement",
-            "intro": "Une politique unique et prévisible s'applique aux salles, événements et réservations parking payés sur MeetSpace.",
-            "sections": [
-{
-                    "title": "Au moins 48 heures avant",
-                    "text": "Le montant payé est remboursé à 100 %, options parking comprises lorsqu'elles sont liées à l'inscription."
-                },
-{
-                    "title": "Entre 24 et 48 heures avant",
-                    "text": "50 % du montant payé est remboursé sur le moyen de paiement d'origine."
-},
-{
-                    "title": "Moins de 24 heures avant",
-                    "text": "Aucun remboursement automatique n'est accordé, car la capacité a été immobilisée."
-},
-{
-                    "title": "Traitement",
-                    "text": "Le montant exact est présenté avant confirmation. Le remboursement Stripe est déclenché immédiatement, puis apparaît selon les délais bancaires."
-}
-]
-}
+  "kicker": "Informations légales",
+  "navigationLabel": "Documents juridiques",
+  "contents": "Sur cette page",
+  "helpTitle": "Une question sur vos données ou votre réservation ?",
+  "helpText": "Utilisez le formulaire Contact en indiquant votre demande et, si nécessaire, la référence de réservation. Ne transmettez jamais votre mot de passe ni votre numéro de carte.",
+  "contactAction": "Contacter MeetSpace",
+  "profileAction": "Accéder à mon profil",
+  "termsLink": "Conditions de réservation",
+  "privacyLink": "Confidentialité",
+  "cancellationLink": "Annulation et remboursement",
+  "registerInfo": "Avant de créer votre compte, consultez les conditions de réservation et les informations sur vos données personnelles.",
+  "paymentInfo": "Avant de payer, consultez les conditions de réservation et le barème d’annulation. Le montant affiché correspond à cette commande.",
+  "legalNotice": {
+    "title": "Mentions légales",
+    "intro": "Les informations ci-dessous présentent le service MeetSpace et les moyens de contact disponibles.",
+    "sections": [
+      {
+        "title": "Éditeur et coordonnées illustratives",
+        "text": "MeetSpace — réservation de salles, événements et parking à Bruxelles. Exemple d’éditeur : Alexandre Laurent. Adresse illustrative : Rue des Ateliers 24, 1000 Bruxelles, Belgique. Contact illustratif : contact@meetspace.example. Ces coordonnées sont fictives et ne désignent pas une entreprise immatriculée ; aucun numéro BCE ou TVA n’est déclaré. Pour une demande effective, utilisez le formulaire Contact du site."
+      },
+      {
+        "title": "Objet du service",
+        "text": "MeetSpace réunit la location de salles, les inscriptions à des événements professionnels et les réservations de parking. Les fiches précisent les horaires, capacités, tarifs et options. Une fiche au catalogue ne garantit pas la disponibilité d’un créneau : celle-ci est contrôlée lors de la réservation."
+      },
+      {
+        "title": "Hébergement et prestataires",
+        "text": "L’interface est hébergée sur Vercel ; l’API et la base de données sur Railway. Stripe intervient pour les paiements par carte. Les messages transactionnels passent par le prestataire d’envoi configuré, notamment Brevo. Le recours à ces services ne signifie pas que l’ensemble des données est hébergé en Belgique."
+      },
+      {
+        "title": "Contenus et propriété intellectuelle",
+        "text": "Les textes, images, logos et logiciels peuvent être protégés par le droit d’auteur. Leur présence sur le site n’autorise pas leur réutilisation libre. Les organisateurs doivent disposer des droits nécessaires sur les contenus qu’ils publient et respecter le droit à l’image des personnes représentées. Les bibliothèques restent soumises à leurs licences respectives."
+      },
+      {
+        "title": "Signalement et réclamations",
+        "text": "Pour signaler un contenu, une erreur de disponibilité, un incident de paiement ou une atteinte à vos droits, utilisez Contact et décrivez précisément la situation. Les informations utiles sont la référence de réservation, la page concernée et la date de l’incident."
+      },
+      {
+        "title": "Portée de cette version",
+        "text": "Cet environnement sert à présenter le fonctionnement du projet. Les coordonnées illustratives ne valent pas identification d’un exploitant commercial. Une ouverture à la vente réelle exige l’identité et les coordonnées réelles de l’exploitant, les informations fiscales applicables et des conditions contractuelles adaptées."
+      }
+    ]
+  },
+  "privacy": {
+    "title": "Politique de confidentialité",
+    "intro": "Voici les données utilisées par MeetSpace, leurs finalités et les démarches possibles pour exercer vos droits.",
+    "sections": [
+      {
+        "title": "Responsable et contact",
+        "text": "Les demandes relatives aux données sont adressées au responsable du projet via Contact. Les coordonnées fictives des mentions légales ne sont pas un canal de traitement des demandes. L’identité réelle du responsable et ses coordonnées doivent être renseignées avant une exploitation commerciale."
+      },
+      {
+        "title": "Données utilisées",
+        "text": "Le compte contient vos nom, prénom, e-mail, rôle et mot de passe sous forme hashée. Les réservations ajoutent les dates, le nombre de participants ou de places, les options, les montants et les statuts. Les billets et accès parking possèdent des identifiants de contrôle. Le support reçoit les informations saisies dans le formulaire. Des journaux de sécurité peuvent contenir une adresse IP, une date, un identifiant et l’action effectuée."
+      },
+      {
+        "title": "Finalités et bases juridiques",
+        "text": "Les données nécessaires à l’ouverture du compte, à une réservation et à son suivi servent à fournir le service demandé : exécution du contrat ou démarches précontractuelles. La prévention des fraudes et la sécurité relèvent d’un intérêt légitime, à apprécier au regard de vos droits. Les obligations légales peuvent justifier la conservation de certaines pièces. Un usage facultatif fondé sur votre consentement exige un choix distinct et révocable ; créer un compte ne vaut pas consentement publicitaire."
+      },
+      {
+        "title": "Destinataires et paiements",
+        "text": "L’administration accède aux informations nécessaires à la gestion. L’organisateur consulte les inscriptions et billets de ses événements pour accueillir les participants. Vercel, Railway, Stripe et le service d’envoi d’e-mails interviennent selon leur fonction. Dans le paiement Stripe, les données de carte sont saisies dans le composant du prestataire ; MeetSpace conserve les références et résultats de paiement, pas le numéro complet de carte ni le CVC. Les régions d’hébergement, contrats et garanties de transfert hors Espace économique européen doivent être vérifiés pour toute exploitation réelle."
+      },
+      {
+        "title": "Conservation et fermeture du compte",
+        "text": "Les données restent nécessaires pendant la gestion du compte et des réservations. Fermer le compte bloque son accès mais conserve actuellement l’identité et l’historique : il s’agit d’une suppression logique, pas d’une anonymisation. Il n’existe pas de purge automatique générale dans cette version. Une demande d’effacement doit donc être examinée séparément ; seules les données encore nécessaires pour une obligation légale ou un litige peuvent être conservées sur ce fondement. Les durées par catégorie doivent être définies avant une exploitation commerciale."
+      },
+      {
+        "title": "Vos droits",
+        "text": "Selon les conditions du RGPD, vous pouvez demander l’accès, la rectification, l’effacement, la limitation, la portabilité ou vous opposer à certains traitements. Vous pouvez retirer un consentement pour les traitements qui en dépendent. Le profil permet certaines corrections et la fermeture du compte ; les autres demandes passent par Contact. Le délai de réponse prévu par le RGPD est en principe d’un mois, avec des prolongations encadrées. Vous pouvez déposer une réclamation auprès de l’Autorité de protection des données belge : autoriteprotectiondonnees.be."
+      },
+      {
+        "title": "Stockage dans le navigateur et services tiers",
+        "text": "Le navigateur mémorise la langue, le thème, la session et certaines préférences de notifications ou d’installation. La connexion persistante est activée à votre demande. Ces mécanismes sont distincts d’un suivi publicitaire. Les services tiers, notamment le paiement, peuvent recourir à leurs propres traceurs. Seuls les stockages strictement nécessaires sont exemptés de consentement ; tout ajout de mesure d’audience non nécessaire ou de publicité doit prévoir un consentement préalable et un refus accessible."
+      },
+      {
+        "title": "Sécurité et confidentialité",
+        "text": "Les accès sont limités par rôle et par propriété des réservations. Les changements sensibles invalident les sessions concernées. Les mots de passe ne sont pas conservés en clair. Évitez les données sensibles dans les descriptions publiques et messages ; signalez tout accès suspect via Contact."
+      }
+    ]
+  },
+  "terms": {
+    "title": "Conditions d’utilisation et de réservation",
+    "intro": "Ces conditions expliquent les engagements liés au compte, aux réservations et à la gestion des événements.",
+    "sections": [
+      {
+        "title": "Compte et rôles",
+        "text": "Le membre peut réserver une salle, participer à un événement et réserver du parking. L’organisateur dispose en plus de la création et de la gestion de ses événements. L’administrateur gère le catalogue, les demandes et le suivi des opérations. Chaque personne protège ses identifiants et fournit des informations exactes ; un compte ne donne pas accès aux données des autres membres."
+      },
+      {
+        "title": "Disponibilité et validation",
+        "text": "Une demande n’est pas une réservation confirmée. Les créneaux et capacités sont vérifiés avant validation. Les demandes de salles premium nécessitent une approbation administrative, puis leur paiement. Une demande approuvée doit être payée avant son échéance affichée et avant le début du créneau. L’expiration libère la disponibilité et conserve une trace dans l’historique."
+      },
+      {
+        "title": "Tarifs et paiement",
+        "text": "Les prix sont exprimés en euros. Le récapitulatif distingue les places, la location et les options ; le montant total est présenté avant paiement. Le serveur recalcule le tarif et confirme le résultat auprès de Stripe. Le bouton « Payer » indique une obligation de paiement. Une saisie de carte ou un paiement en cours ne suffit pas à confirmer une réservation. Les opérations effectuées avec Stripe en mode test ne produisent aucun débit bancaire réel."
+      },
+      {
+        "title": "Événements et rémunération",
+        "text": "Un nouvel événement organisé dans une salle MeetSpace nécessite l’approbation, puis le paiement intégral de la location avant publication. Les anciens dossiers avec acompte conservent leur décompte propre. MeetSpace applique une commission de 10 % à la billetterie conservée après remboursements ; le parking est exclu du versement organisateur. La location déjà payée n’est pas déduite une seconde fois. Après l’événement et les contrôles nécessaires, l’administration effectue le virement à l’extérieur du site, puis l’enregistre avec sa référence."
+      },
+      {
+        "title": "Billets et parking",
+        "text": "Les confirmations et billets sont accessibles dans les réservations. Un billet événement peut correspondre à plusieurs participants ; le contrôle valide l’inscription concernée. Chaque accès parking dépend de sa réservation et de son créneau. Le parking possède 150 places physiques partagées entre les activités simultanées. Le tarif indiqué pour le créneau ou l’option s’applique au nombre de places demandé."
+      },
+      {
+        "title": "Liste d’attente",
+        "text": "Rejoindre une liste d’attente est gratuit et ne confirme ni billet ni place de parking. Si des places se libèrent, une notification peut vous proposer de reprendre l’inscription. La disponibilité et le prix sont vérifiés à nouveau ; le paiement n’intervient qu’au moment de la réservation effective."
+      },
+      {
+        "title": "Annulation et droits légaux",
+        "text": "Les modalités et montants d’annulation sont détaillés dans la page Annulation et remboursement et avant confirmation. Le barème commercial ne supprime pas un droit légal applicable. L’existence d’un droit de rétractation dépend du service, de la qualité du client et des exceptions prévues par la loi ; une date fixée ne suffit pas à exclure ce droit pour tout service professionnel."
+      },
+      {
+        "title": "Utilisation et réclamations",
+        "text": "Respectez les horaires, capacités, règles du lieu et droits sur les contenus publiés. Une désinscription du site ne constitue pas à elle seule une annulation ou un remboursement des transactions. Pour une contestation, contactez MeetSpace avec la référence concernée. Les droits impératifs du consommateur restent applicables ; aucune clause de cette page ne les écarte."
+      }
+    ]
+  },
+  "cancellation": {
+    "title": "Annulation et remboursement",
+    "intro": "Le montant dépend de l’auteur de l’annulation, du paiement effectué et du temps restant avant le début de l’activité.",
+    "sections": [
+      {
+        "title": "Annulation à votre initiative",
+        "text": "Pour une salle, une inscription à un événement ou un parking payé, le barème commercial est de 100 % au moins 48 heures avant le début ; 50 % de 24 heures incluses à moins de 48 heures ; 0 % à moins de 24 heures. À exactement 48 heures, le taux est de 100 % ; à exactement 24 heures, de 50 %. Le calcul utilise l’heure de début de la réservation et le moment où la demande est traitée."
+      },
+      {
+        "title": "Options liées et montant présenté",
+        "text": "Lorsqu’un parking est payé avec une inscription, il suit le barème de cette inscription. Une réservation de parking indépendante suit son propre créneau. Le montant estimé est présenté avant votre confirmation ; les sommes déjà remboursées ne sont pas remboursées une seconde fois. Une demande non payée ne donne lieu à aucune restitution monétaire."
+      },
+      {
+        "title": "Annulation par l’organisateur ou le service",
+        "text": "Si un événement est annulé, les billets des participants et leurs options liées sont intégralement remboursés. Pour la location déjà payée par l’organisateur, son annulation suit le barème 48 h / 24 h. Une annulation administrative de la location ou pour indisponibilité du lieu prévoit une restitution intégrale de cette location."
+      },
+      {
+        "title": "Remboursement par Stripe",
+        "text": "Le remboursement passe par le moyen de paiement d’origine, dans la limite du montant payé restant. Son lancement ne signifie pas que la banque l’a déjà crédité : les délais dépendent du prestataire et de la banque. Une opération en cours ou échouée doit être vérifiée auprès du support. En mode Stripe test, les remboursements sont simulés, sans mouvement bancaire réel."
+      },
+      {
+        "title": "Droit de rétractation",
+        "text": "Ce barème est une politique d’annulation commerciale. Il est distinct du droit légal de rétractation, en principe de 14 jours pour certains contrats à distance avec un consommateur. Des exceptions existent notamment pour certaines activités de loisirs à date déterminée, sans s’étendre automatiquement à toutes les salles ou formations professionnelles. Un droit légal applicable reste prioritaire ; Contact permet de demander l’examen de votre situation."
+      },
+      {
+        "title": "Comment faire votre demande",
+        "text": "Ouvrez Mes réservations, choisissez l’opération puis Annuler, et lisez le montant avant confirmation. Pour une transaction non accessible ou un problème de remboursement, utilisez Contact avec sa référence. Fermer votre compte ne remplace pas cette démarche et ne déclenche pas automatiquement un remboursement."
+      }
+    ]
+  }
 },
     "command": {
         "open": "Commander",

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { privateRead } from "../services/privateRead";
 import { apiErrorMessage } from "../utils/apiErrors";
 import { useEffect, useMemo, useState } from "react";
@@ -144,6 +145,12 @@ function CheckoutForm({ amount, description, reservationType, metadata, onSucces
 
       {error && <div className={styles.error} role="alert">{error}</div>}
 
+      <aside className={styles.legalInfo}>
+        <p>{t("legal.paymentInfo")}</p>
+        <Link to="/conditions-utilisation" target="_blank" rel="noopener noreferrer">{t("legal.termsLink")}</Link>
+        {" · "}
+        <Link to="/annulation-remboursement" target="_blank" rel="noopener noreferrer">{t("legal.cancellationLink")}</Link>
+      </aside>
       <div className={styles.buttonGroup}>
         <button type="button" onClick={onCancel} className={styles.cancelButton}>
           {t("common.cancel")}
@@ -295,6 +302,12 @@ function LocalCheckoutForm({ amount, description, reservationType, metadata, onS
 
       {error && <div className={styles.error} id="local-payment-error" role="alert">{error}</div>}
 
+      <aside className={styles.legalInfo}>
+        <p>{t("legal.paymentInfo")}</p>
+        <Link to="/conditions-utilisation" target="_blank" rel="noopener noreferrer">{t("legal.termsLink")}</Link>
+        {" · "}
+        <Link to="/annulation-remboursement" target="_blank" rel="noopener noreferrer">{t("legal.cancellationLink")}</Link>
+      </aside>
       <div className={styles.buttonGroup}>
         <button type="button" onClick={onCancel} className={styles.cancelButton}>
           {t("common.cancel")}

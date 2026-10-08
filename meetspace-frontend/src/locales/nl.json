@@ -338,95 +338,154 @@
         }
     },
     "legal": {
-        "kicker": "Juridische informatie",
-        "legalNotice": {
-            "title": "Juridische vermeldingen",
-            "intro": "MeetSpace is een platform voor het reserveren van zalen, evenementen en parking in Brussel, voorgesteld als demonstratie/TFE-project.",
-            "sections": [
-{
-            "title": "Voorstelling",
-                    "text": "MeetSpace laat gebruikers zalen, professionele evenementen en parkingopties bekijken vanuit een enkele interface."
-        },
-{
-                    "title": "Contact",
-                    "text": "Aanvragen over de dienst kunnen via de pagina Contact / Support worden verzonden."
-    },
-{
-                    "title": "Aansprakelijkheid",
-                    "text": "De informatie wordt verstrekt voor een academische demonstratie en kan worden aangepast voor echt gebruik."
-},
-{
-                    "title": "Inhoud",
-                    "text": "Teksten, gegevens en beschikbaarheden illustreren de reservatieflows van MeetSpace."
-}
-]
-},
-        "privacy": {
-            "title": "Privacybeleid",
-            "intro": "Deze pagina legt kort uit welke gegevens MeetSpace gebruikt om de demo te laten werken.",
-            "sections": [
-{
-                    "title": "Accountgegevens",
-                    "text": "MeetSpace gebruikt naam, e-mail en rol om gebruikers te authenticeren en hun omgeving te personaliseren."
-                },
-{
-                    "title": "Reservaties",
-                    "text": "Gegevens over zalen, evenementen, parking en betaling tonen bevestigingen en gebruikershistoriek."
-},
-{
-                    "title": "Support",
-                    "text": "Berichten via het contactformulier worden alleen gebruikt om de aanvraag te behandelen."
-},
-{
-                    "title": "Beveiliging",
-                    "text": "Wachtwoorden worden gehasht opgeslagen en gevoelige informatie hoort nooit in de code."
-}
-]
-},
-        "terms": {
-            "title": "Gebruiksvoorwaarden",
-            "intro": "Deze voorwaarden vatten de basisregels samen voor het gebruik van MeetSpace in de democontext.",
-            "sections": [
-{
-                    "title": "Rol van MeetSpace",
-                    "text": "MeetSpace centraliseert zaalreservaties, evenementinschrijvingen en parkingreservaties."
-                },
-{
-                    "title": "Gebruiker",
-                    "text": "De gebruiker geeft correcte informatie en respecteert de reservatieregels op het platform."
-},
-{
-                    "title": "Organisator",
-                    "text": "Een organisator kan professionele evenementen indienen die voor publicatie worden gevalideerd."
-},
-{
-                    "title": "Beschikbaarheid",
-                    "text": "Beschikbaarheid, prijzen en capaciteiten kunnen variëren volgens de demogegevens."
-}
-]
-},
-        "cancellation": {
-            "title": "Annulering / terugbetaling",
-            "intro": "Eén voorspelbaar beleid geldt voor betaalde zalen, evenementen en parkingreservaties op MeetSpace.",
-            "sections": [
-{
-                    "title": "Minstens 48 uur vooraf",
-                    "text": "100% van het betaalde bedrag wordt terugbetaald, inclusief gekoppelde parkingopties."
-                },
-{
-                    "title": "Tussen 24 en 48 uur vooraf",
-                    "text": "50% van het betaalde bedrag wordt teruggestort via de oorspronkelijke betaalmethode."
-},
-{
-                    "title": "Minder dan 24 uur vooraf",
-                    "text": "Er is geen automatische terugbetaling omdat de capaciteit voor de reservatie werd vastgehouden."
-},
-{
-                    "title": "Verwerking",
-                    "text": "Het exacte bedrag wordt voor bevestiging getoond. De Stripe-terugbetaling start onmiddellijk en volgt daarna de banktermijnen."
-}
-]
-}
+  "kicker": "Juridische informatie",
+  "navigationLabel": "Juridische documenten",
+  "contents": "Op deze pagina",
+  "helpTitle": "Een vraag over uw gegevens of reservering?",
+  "helpText": "Gebruik het contactformulier met uw verzoek en, indien nodig, de reserveringsreferentie. Verstuur nooit uw wachtwoord of kaartnummer.",
+  "contactAction": "Contact met MeetSpace",
+  "profileAction": "Mijn profiel openen",
+  "termsLink": "Reserveringsvoorwaarden",
+  "privacyLink": "Privacy",
+  "cancellationLink": "Annulering en terugbetaling",
+  "registerInfo": "Lees vóór het aanmaken van uw account de reserveringsvoorwaarden en de informatie over uw persoonsgegevens.",
+  "paymentInfo": "Lees vóór de betaling de reserveringsvoorwaarden en het annuleringsbeleid. Het getoonde bedrag is het totaal voor deze bestelling.",
+  "legalNotice": {
+    "title": "Juridische kennisgeving",
+    "intro": "Deze informatie beschrijft MeetSpace en de beschikbare contactmogelijkheden.",
+    "sections": [
+      {
+        "title": "Illustratieve uitgever en contactgegevens",
+        "text": "MeetSpace — zalen, evenementen en parking in Brussel. Voorbeelduitgever: Alexandre Laurent. Illustratief adres: Rue des Ateliers 24, 1000 Brussel, België. Illustratief contact: contact@meetspace.example. Deze fictieve gegevens identificeren geen geregistreerde onderneming; er wordt geen ondernemings- of btw-nummer vermeld. Gebruik het contactformulier voor echte verzoeken."
+      },
+      {
+        "title": "De dienstverlening",
+        "text": "MeetSpace combineert zaalverhuur, inschrijvingen voor professionele evenementen en parkeerreserveringen. De fiches vermelden tijden, capaciteit, prijzen en opties. Een vermelding in de catalogus garandeert geen beschikbaar tijdslot: dit wordt tijdens de reservering gecontroleerd."
+      },
+      {
+        "title": "Hosting en dienstverleners",
+        "text": "Vercel host de interface; Railway host de API en database. Stripe verwerkt kaartbetalingen. Transactionele e-mails worden verstuurd via de ingestelde aanbieder, waaronder Brevo. Het gebruik van deze diensten betekent niet dat alle gegevens in België worden gehost."
+      },
+      {
+        "title": "Inhoud en intellectuele eigendom",
+        "text": "Teksten, beelden, logo’s en software kunnen auteursrechtelijk beschermd zijn. Publicatie op de website geeft geen recht op vrij hergebruik. Organisatoren moeten de nodige rechten hebben op hun inhoud en het recht op afbeelding van afgebeelde personen respecteren. Bibliotheken vallen onder hun eigen licenties."
+      },
+      {
+        "title": "Meldingen en klachten",
+        "text": "Gebruik Contact om inhoud, een beschikbaarheidsfout, een betalingsincident of een inbreuk op uw rechten te melden. Beschrijf de situatie en vermeld waar nuttig de reserveringsreferentie, de betrokken pagina en de datum."
+      },
+      {
+        "title": "Reikwijdte van deze versie",
+        "text": "Deze omgeving toont de werking van het project. Illustratieve gegevens identificeren geen commerciële exploitant. Echte verkoop vereist de werkelijke identiteit en contactgegevens, toepasselijke fiscale informatie en aangepaste contractvoorwaarden."
+      }
+    ]
+  },
+  "privacy": {
+    "title": "Privacybeleid",
+    "intro": "Lees welke gegevens MeetSpace gebruikt, waarom en hoe u uw rechten kunt uitoefenen.",
+    "sections": [
+      {
+        "title": "Verantwoordelijkheid en contact",
+        "text": "Richt verzoeken over gegevens via Contact aan de projectverantwoordelijke. De fictieve gegevens in de juridische kennisgeving zijn geen kanaal voor de behandeling van verzoeken. Vóór commerciële exploitatie moeten de werkelijke identiteit en contactgegevens van de verwerkingsverantwoordelijke worden vermeld."
+      },
+      {
+        "title": "Gebruikte gegevens",
+        "text": "Uw account bevat voornaam, achternaam, e-mail, rol en een gehasht wachtwoord. Reserveringen bevatten datums, aantallen deelnemers of parkeerplaatsen, opties, bedragen en statussen. Tickets en parkeerbewijzen hebben toegangsidentificatoren. Support ontvangt de informatie uit het formulier. Veiligheidslogboeken kunnen een IP-adres, tijdstip, identificator en handeling bevatten."
+      },
+      {
+        "title": "Doeleinden en rechtsgronden",
+        "text": "Gegevens voor het account, reserveringen en opvolging dienen om de gevraagde dienst te leveren: uitvoering van de overeenkomst of precontractuele stappen. Fraudepreventie en veiligheid steunen op een gerechtvaardigd belang, af te wegen tegen uw rechten. Wettelijke verplichtingen kunnen bewaring van bepaalde stukken rechtvaardigen. Optioneel gebruik op basis van toestemming vereist een aparte, intrekbare keuze; een account aanmaken is geen toestemming voor reclame."
+      },
+      {
+        "title": "Ontvangers en betalingen",
+        "text": "Beheerders krijgen de informatie die nodig is voor het beheer. Organisatoren zien inschrijvingen en tickets van hun eigen evenementen voor de ontvangst. Vercel, Railway, Stripe en de e-mailaanbieder werken elk binnen hun functie. Kaartgegevens worden in de Stripe-betaalcomponent ingevuld; MeetSpace bewaart betalingsreferenties en resultaten, geen volledig kaartnummer of CVC. Hostingregio’s, contracten en waarborgen voor doorgiften buiten de Europese Economische Ruimte moeten vóór echte exploitatie worden gecontroleerd."
+      },
+      {
+        "title": "Bewaring en accountsluiting",
+        "text": "Gegevens zijn nodig tijdens het beheer van accounts en reserveringen. Accountsluiting blokkeert toegang maar bewaart momenteel identiteit en geschiedenis: dit is logische verwijdering, geen anonimisering. Deze versie heeft geen algemene automatische opschoning. Een verzoek om gegevenswissing moet apart worden beoordeeld; bewaring wegens een wettelijke verplichting of geschil blijft beperkt tot wat daarvoor nodig is. Bewaartermijnen per categorie moeten vóór commerciële exploitatie worden vastgesteld."
+      },
+      {
+        "title": "Uw rechten",
+        "text": "Onder de voorwaarden van de AVG kunt u inzage, rectificatie, wissing, beperking of overdraagbaarheid vragen, of bezwaar maken tegen bepaalde verwerkingen. Toestemming kan worden ingetrokken voor verwerkingen die erop steunen. Het profiel ondersteunt sommige correcties en accountsluiting; andere verzoeken verlopen via Contact. De AVG voorziet normaal een antwoord binnen één maand, met gereglementeerde verlengingen. U kunt een klacht indienen bij de Belgische Gegevensbeschermingsautoriteit: autoriteprotectiondonnees.be."
+      },
+      {
+        "title": "Browseropslag en diensten van derden",
+        "text": "De browser onthoudt taal, thema, sessie en sommige voorkeuren voor meldingen of installatie. Blijvend aanmelden gebeurt op uw verzoek. Deze opslag staat los van reclametracking. Diensten van derden, waaronder betaling, kunnen eigen trackers gebruiken. Alleen strikt noodzakelijke opslag is vrijgesteld van toestemming; niet-noodzakelijke publieksmeting of reclame vereist voorafgaande toestemming en een toegankelijke weigering."
+      },
+      {
+        "title": "Veiligheid en vertrouwelijkheid",
+        "text": "Toegang wordt beperkt op basis van rol en eigendom van reserveringen. Gevoelige wijzigingen maken de betrokken sessies ongeldig. Wachtwoorden worden niet in leesbare vorm opgeslagen. Vermijd gevoelige gegevens in openbare beschrijvingen en berichten; meld verdachte toegang via Contact."
+      }
+    ]
+  },
+  "terms": {
+    "title": "Gebruiks- en reserveringsvoorwaarden",
+    "intro": "Deze voorwaarden leggen accounts, reserveringen en evenementenbeheer uit.",
+    "sections": [
+      {
+        "title": "Accounts en rollen",
+        "text": "Leden kunnen zalen boeken, aan evenementen deelnemen en parking reserveren. Organisatoren kunnen ook eigen evenementen aanmaken en beheren. Beheerders beheren de catalogus, aanvragen en verrichtingen. Bescherm uw inloggegevens en geef correcte informatie; een account geeft geen toegang tot gegevens van andere leden."
+      },
+      {
+        "title": "Beschikbaarheid en goedkeuring",
+        "text": "Een aanvraag is geen bevestigde reservering. Tijdsloten en capaciteit worden gecontroleerd. Premiumzaalaanvragen vereisen goedkeuring door het beheer en daarna betaling. Een goedgekeurde aanvraag moet vóór de getoonde deadline en vóór de start worden betaald. Bij verval komt de beschikbaarheid vrij en blijft een historische registratie behouden."
+      },
+      {
+        "title": "Prijzen en betaling",
+        "text": "Prijzen zijn in euro. Het overzicht onderscheidt tickets, zaalhuur en opties en toont het totaal vóór betaling. De server herberekent het tarief en controleert het resultaat bij Stripe. De knop Betalen duidt op een betalingsverplichting. Kaartgegevens invullen of een betaling starten bevestigt nog geen reservering. Betalingen in Stripe-testmodus veroorzaken geen echte bankafschrijving."
+      },
+      {
+        "title": "Evenementen en organisatorenvergoedingen",
+        "text": "Een nieuw evenement in een MeetSpace-zaal vereist goedkeuring en volledige betaling van de zaalhuur vóór publicatie. Oudere dossiers met voorschot behouden hun eigen afrekening. MeetSpace houdt 10% commissie in op behouden ticketinkomsten na terugbetalingen; parking valt buiten de organisatorenvergoeding. Reeds betaalde zaalhuur wordt niet opnieuw afgetrokken. Na afloop en de nodige controles voert het beheer een bankoverschrijving buiten de website uit en registreert daarna de referentie."
+      },
+      {
+        "title": "Tickets en parking",
+        "text": "Bevestigingen en tickets staan bij Mijn reserveringen. Een evenementticket kan meerdere deelnemers omvatten; toegangscontrole valideert de betrokken inschrijving. Elk parkeerbewijs hoort bij een reservering en tijdslot. De parking heeft 150 fysieke plaatsen die gelijktijdige activiteiten delen. Het getoonde tarief voor tijdslot of optie geldt voor het gevraagde aantal plaatsen."
+      },
+      {
+        "title": "Wachtlijst",
+        "text": "De wachtlijst is gratis en bevestigt geen ticket of parkeerplaats. Bij vrijgekomen plaatsen kan een melding uitnodigen om de inschrijving te hervatten. Beschikbaarheid en prijs worden opnieuw gecontroleerd; betaling gebeurt pas bij de daadwerkelijke reservering."
+      },
+      {
+        "title": "Annulering en wettelijke rechten",
+        "text": "Voorwaarden en bedragen staan op de pagina Annulering en terugbetaling en vóór bevestiging. Het commerciële beleid heft toepasselijke wettelijke rechten niet op. Het herroepingsrecht hangt af van de dienst, de klant en wettelijke uitzonderingen; een vaste datum sluit dit recht niet voor elke professionele dienst uit."
+      },
+      {
+        "title": "Gebruik en klachten",
+        "text": "Respecteer tijden, capaciteit, huisregels en rechten op gepubliceerde inhoud. Accountsluiting annuleert of vergoedt transacties niet automatisch. Neem bij een geschil contact op met de betrokken referentie. Dwingende consumentenrechten blijven gelden en worden niet door deze voorwaarden uitgesloten."
+      }
+    ]
+  },
+  "cancellation": {
+    "title": "Annulering en terugbetaling",
+    "intro": "Het bedrag hangt af van wie annuleert, de betaling en de resterende tijd vóór de activiteit.",
+    "sections": [
+      {
+        "title": "Annulering op uw verzoek",
+        "text": "Voor betaalde zalen, evenementinschrijvingen en parking vergoedt het commerciële beleid 100% vanaf 48 uur vóór de start; 50% vanaf 24 uur tot minder dan 48 uur; en 0% bij minder dan 24 uur. Precies 48 uur geeft 100%; precies 24 uur geeft 50%. De berekening gebruikt de begintijd en het moment waarop het verzoek wordt verwerkt."
+      },
+      {
+        "title": "Gekoppelde opties en getoond bedrag",
+        "text": "Parking betaald bij een evenementinschrijving volgt het beleid van die inschrijving. Een aparte parkeerreservering volgt het eigen tijdslot. Het geschatte bedrag wordt vóór bevestiging getoond; reeds terugbetaalde bedragen worden niet dubbel vergoed. Een onbetaalde aanvraag leidt niet tot een geldelijke terugbetaling."
+      },
+      {
+        "title": "Annulering door organisator of dienstverlening",
+        "text": "Bij annulering van een evenement worden deelnemerstickets en gekoppelde opties volledig terugbetaald. Een organisator die betaalde zaalhuur annuleert, volgt het beleid van 48 / 24 uur. Administratieve annulering van de zaalhuur of annulering wegens onbeschikbaarheid van de locatie voorziet in volledige terugbetaling van die zaalhuur."
+      },
+      {
+        "title": "Stripe-terugbetalingen",
+        "text": "Terugbetaling gebeurt via de oorspronkelijke betaalmethode, tot het resterende betaalde bedrag. De start betekent niet dat de bank al heeft bijgeschreven: de verwerkingstijd hangt af van aanbieder en bank. Lopende of mislukte verrichtingen vereisen controle door support. Stripe-testterugbetalingen zijn simulaties zonder echte geldbeweging."
+      },
+      {
+        "title": "Herroepingsrecht",
+        "text": "Dit is een commercieel annuleringsbeleid, los van het wettelijke herroepingsrecht van normaal 14 dagen voor bepaalde overeenkomsten op afstand met consumenten. Uitzonderingen bestaan onder meer voor sommige vrijetijdsactiviteiten op een vaste datum, maar gelden niet automatisch voor alle zaalverhuur of professionele opleidingen. Toepasselijke wettelijke rechten hebben voorrang; vraag via Contact een beoordeling van uw situatie."
+      },
+      {
+        "title": "Een aanvraag indienen",
+        "text": "Open Mijn reserveringen, kies de verrichting en Annuleren en lees het bedrag vóór bevestiging. Gebruik bij een ontoegankelijke transactie of terugbetalingsprobleem Contact met de referentie. Accountsluiting vervangt deze procedure niet en veroorzaakt geen automatische terugbetaling."
+      }
+    ]
+  }
 },
     "command":  {
                     "open":  "Commando",

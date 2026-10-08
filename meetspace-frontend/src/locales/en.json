@@ -338,95 +338,154 @@
     }
   },
   "legal": {
-    "kicker": "Legal information",
-    "legalNotice": {
-          "title": "Legal notice",
-      "intro": "MeetSpace is a platform for booking rooms, events and parking in Brussels, presented as a demonstration/TFE project.",
-      "sections": [
-{
-          "title": "Presentation",
-          "text": "MeetSpace lets users browse rooms, professional events and parking options from one interface."
-        },
-{
-          "title": "Contact",
-          "text": "Service-related requests can be sent through the Contact / Support page."
-        },
-{
-          "title": "Liability",
-          "text": "The information is provided for an academic demonstration and may be adjusted before real-world use."
-},
-{
-          "title": "Content",
-          "text": "Texts, data and availability are used to illustrate MeetSpace booking flows."
-}
-]
-},
-    "privacy": {
-          "title": "Privacy policy",
-      "intro": "This page briefly explains which data MeetSpace uses to run the demo.",
-      "sections": [
-{
-          "title": "Account data",
-          "text": "MeetSpace uses name, email and role information to authenticate users and personalize their workspace."
-        },
-{
-          "title": "Bookings",
-          "text": "Room, event, parking and payment data are used to show confirmations and user history."
-},
-{
-          "title": "Support",
-          "text": "Messages sent through the contact form are used only to process the request."
-},
-{
-          "title": "Security",
-          "text": "Passwords are stored as hashes and sensitive information must never be placed in the code."
-}
-]
-},
-    "terms": {
-          "title": "Terms of use",
-      "intro": "These terms summarize the basic rules for using MeetSpace in the demo context.",
-      "sections": [
-{
-          "title": "MeetSpace role",
-          "text": "MeetSpace centralizes room bookings, event registrations and parking reservations."
-        },
-{
-          "title": "User",
-          "text": "Users must provide accurate information and respect the booking rules shown on the platform."
-},
-{
-          "title": "Organizer",
-          "text": "An organizer can submit professional events for validation before publication."
-},
-{
-          "title": "Availability",
-          "text": "Availability, prices and capacities may vary according to demonstration data."
-}
-]
-},
-    "cancellation": {
-          "title": "Cancellation / refund",
-      "intro": "One predictable policy applies to paid rooms, events and parking bookings on MeetSpace.",
-      "sections": [
-{
-          "title": "At least 48 hours before",
-          "text": "100% of the paid amount is refunded, including parking options linked to an event registration."
-        },
-{
-          "title": "Between 24 and 48 hours before",
-          "text": "50% of the paid amount is refunded to the original payment method."
-},
-{
-          "title": "Less than 24 hours before",
-          "text": "No automatic refund is granted because capacity was held for the booking."
-},
-{
-          "title": "Processing",
-          "text": "The exact amount is shown before confirmation. The Stripe refund starts immediately and then follows bank processing times."
-}
-]
-}
+  "kicker": "Legal information",
+  "navigationLabel": "Legal documents",
+  "contents": "On this page",
+  "helpTitle": "A question about your data or booking?",
+  "helpText": "Use the Contact form and include your request and, where relevant, the booking reference. Never send your password or card number.",
+  "contactAction": "Contact MeetSpace",
+  "profileAction": "Open my profile",
+  "termsLink": "Booking terms",
+  "privacyLink": "Privacy",
+  "cancellationLink": "Cancellation and refunds",
+  "registerInfo": "Before creating your account, read the booking terms and the information about your personal data.",
+  "paymentInfo": "Before paying, read the booking terms and cancellation policy. The displayed amount is the total for this order.",
+  "legalNotice": {
+    "title": "Legal notice",
+    "intro": "These details describe MeetSpace and the available contact channels.",
+    "sections": [
+      {
+        "title": "Illustrative publisher and contact details",
+        "text": "MeetSpace — rooms, events and parking in Brussels. Example publisher: Alexandre Laurent. Illustrative address: Rue des Ateliers 24, 1000 Brussels, Belgium. Illustrative contact: contact@meetspace.example. These fictional details do not identify a registered business; no business or VAT number is declared. For actual requests, use the website Contact form."
+      },
+      {
+        "title": "The service",
+        "text": "MeetSpace brings together room hire, professional event registrations and parking bookings. Listings describe times, capacities, prices and options. A catalogue listing does not guarantee that a time slot is available: availability is checked during booking."
+      },
+      {
+        "title": "Hosting and service providers",
+        "text": "Vercel hosts the interface; Railway hosts the API and database. Stripe handles card payments. Transactional emails use the configured delivery provider, including Brevo. Using these services does not mean that all data is hosted in Belgium."
+      },
+      {
+        "title": "Content and intellectual property",
+        "text": "Texts, images, logos and software may be protected by copyright. Being displayed on the website does not grant permission to reuse them freely. Organisers must hold the necessary rights to their published content and respect the image rights of people shown. Libraries remain subject to their respective licences."
+      },
+      {
+        "title": "Reports and complaints",
+        "text": "To report content, an availability error, a payment incident or a rights issue, use Contact and describe the situation. Include the booking reference, relevant page and incident date where useful."
+      },
+      {
+        "title": "Scope of this version",
+        "text": "This environment presents the project’s functionality. Illustrative details do not identify a commercial operator. Real sales require the operator’s actual identity and contact details, applicable tax information and appropriate contractual terms."
+      }
+    ]
+  },
+  "privacy": {
+    "title": "Privacy policy",
+    "intro": "Learn what data MeetSpace uses, why it is used and how to exercise your rights.",
+    "sections": [
+      {
+        "title": "Responsibility and contact",
+        "text": "Address data requests to the project owner through Contact. The fictional details in the legal notice are not a channel for handling requests. The controller’s actual identity and contact details must be specified before commercial operation."
+      },
+      {
+        "title": "Data used",
+        "text": "Your account contains your first and last names, email, role and hashed password. Bookings include dates, participant or parking space counts, options, amounts and statuses. Tickets and parking passes have access identifiers. Support receives the information you enter in its form. Security logs may contain an IP address, timestamp, identifier and action."
+      },
+      {
+        "title": "Purposes and legal bases",
+        "text": "Data needed for accounts, bookings and follow-up is used to provide the requested service: performance of a contract or pre-contractual steps. Fraud prevention and security rely on legitimate interests, which must be assessed against your rights. Legal obligations may justify retaining certain records. Optional processing based on consent requires a separate, withdrawable choice; creating an account is not advertising consent."
+      },
+      {
+        "title": "Recipients and payments",
+        "text": "Administrators access information necessary to manage the service. Organisers view registrations and tickets for their own events to welcome attendees. Vercel, Railway, Stripe and the email provider participate according to their function. Stripe’s payment component collects card details; MeetSpace stores payment references and outcomes, not full card numbers or CVCs. Hosting regions, contracts and safeguards for transfers outside the European Economic Area must be checked before real operation."
+      },
+      {
+        "title": "Retention and account closure",
+        "text": "Data remains necessary while managing the account and bookings. Closing an account blocks access but currently preserves identity and history: this is soft deletion, not anonymisation. This version has no general automatic purge. Erasure requests must therefore be reviewed separately; retention justified by legal obligations or disputes is limited to data still needed for those purposes. Retention periods for each category must be established before commercial operation."
+      },
+      {
+        "title": "Your rights",
+        "text": "Subject to GDPR conditions, you may request access, rectification, erasure, restriction or portability, or object to certain processing. You may withdraw consent for processing based on it. The profile supports some changes and account closure; other requests go through Contact. The GDPR response deadline is normally one month, with regulated extensions. You may complain to the Belgian Data Protection Authority: autoriteprotectiondonnees.be."
+      },
+      {
+        "title": "Browser storage and third-party services",
+        "text": "The browser remembers language, theme, session and some notification or installation preferences. Persistent login is enabled at your request. These mechanisms are separate from advertising tracking. Third-party services, including payments, may use their own trackers. Only strictly necessary storage is exempt from consent; any non-essential audience measurement or advertising must provide prior consent and an accessible refusal."
+      },
+      {
+        "title": "Security and confidentiality",
+        "text": "Access is restricted by role and booking ownership. Sensitive changes invalidate affected sessions. Passwords are not stored in plain text. Avoid sensitive data in public descriptions and messages, and report suspected unauthorised access through Contact."
+      }
+    ]
+  },
+  "terms": {
+    "title": "Terms of use and booking",
+    "intro": "These terms explain accounts, bookings and event management.",
+    "sections": [
+      {
+        "title": "Accounts and roles",
+        "text": "Members can book rooms, attend events and reserve parking. Organisers can also create and manage their events. Administrators manage the catalogue, requests and operations. Protect your credentials and provide accurate information; an account does not grant access to other members’ data."
+      },
+      {
+        "title": "Availability and approval",
+        "text": "A request is not a confirmed booking. Slots and capacities are checked before confirmation. Premium room requests require administrative approval followed by payment. An approved request must be paid before its displayed deadline and before the slot starts. Expiry releases availability and keeps a historical record."
+      },
+      {
+        "title": "Prices and payment",
+        "text": "Prices are in euros. The summary separates tickets, room hire and options, showing the total before payment. The server recalculates the price and checks the result with Stripe. The Pay button indicates an obligation to pay. Entering card details or starting payment does not confirm a booking. Stripe test-mode operations do not debit real bank accounts."
+      },
+      {
+        "title": "Events and organiser payments",
+        "text": "A new event in a MeetSpace room requires approval and full room payment before publication. Older deposit-based records keep their own settlement rules. MeetSpace takes 10% of ticket revenue retained after refunds; parking is excluded from the organiser payment. Room hire already paid is not deducted again. After the event and necessary checks, administrators make an external bank transfer and record its reference in the application."
+      },
+      {
+        "title": "Tickets and parking",
+        "text": "Confirmations and tickets are available in My bookings. An event ticket may cover several participants; check-in validates the relevant registration. Each parking pass depends on its booking and time slot. The car park has 150 physical spaces shared by simultaneous activities. The displayed slot or option price applies to the requested number of spaces."
+      },
+      {
+        "title": "Waiting list",
+        "text": "Joining a waiting list is free and confirms neither a ticket nor parking. If spaces become available, a notification may invite you to resume registration. Availability and price are checked again; payment occurs only when making the actual booking."
+      },
+      {
+        "title": "Cancellation and statutory rights",
+        "text": "Cancellation amounts and conditions are shown on the Cancellation and refunds page and before confirmation. The commercial policy does not remove applicable statutory rights. Withdrawal rights depend on the service, customer status and legal exceptions; a fixed date alone does not exclude withdrawal for every professional service."
+      },
+      {
+        "title": "Use and complaints",
+        "text": "Respect times, capacities, venue rules and rights to published content. Closing an account does not itself cancel or refund transactions. For a dispute, contact MeetSpace with the relevant reference. Mandatory consumer rights continue to apply and are not excluded by these terms."
+      }
+    ]
+  },
+  "cancellation": {
+    "title": "Cancellation and refunds",
+    "intro": "The amount depends on who cancels, the payment made and the time remaining before the activity starts.",
+    "sections": [
+      {
+        "title": "Cancellation at your request",
+        "text": "For paid rooms, event registrations and parking, the commercial policy refunds 100% at least 48 hours before the start; 50% from 24 hours inclusive to less than 48 hours; and 0% below 24 hours. Exactly 48 hours qualifies for 100%; exactly 24 hours for 50%. The calculation uses the booking start time and the time the request is processed."
+      },
+      {
+        "title": "Linked options and displayed amount",
+        "text": "Parking paid with an event registration follows that registration’s policy. Independent parking follows its own slot. The estimated amount is displayed before confirmation; amounts already refunded are not refunded twice. An unpaid request does not produce a monetary refund."
+      },
+      {
+        "title": "Cancellation by an organiser or the service",
+        "text": "When an event is cancelled, attendees’ tickets and linked options are fully refunded. An organiser cancelling their paid room hire is subject to the 48-hour / 24-hour policy. Administrative cancellation of room hire or cancellation for venue unavailability provides a full room-hire refund."
+      },
+      {
+        "title": "Stripe refunds",
+        "text": "Refunds go to the original payment method, up to the remaining paid amount. Starting a refund does not mean the bank has credited it: processing times depend on the provider and bank. Pending or failed operations require a support check. Stripe test-mode refunds are simulated and do not move real money."
+      },
+      {
+        "title": "Right of withdrawal",
+        "text": "This is a commercial cancellation policy, separate from the statutory right of withdrawal, generally 14 days for certain distance contracts with consumers. Exceptions include some leisure activities on a specific date, without automatically covering every room hire or professional course. Applicable statutory rights take priority; use Contact to request a review of your situation."
+      },
+      {
+        "title": "How to request cancellation",
+        "text": "Open My bookings, select the transaction and Cancel, then review the amount before confirming. If a transaction is inaccessible or a refund has a problem, use Contact with its reference. Closing your account does not replace this process or automatically trigger a refund."
+      }
+    ]
+  }
 },
   "command": {
     "open": "Command",

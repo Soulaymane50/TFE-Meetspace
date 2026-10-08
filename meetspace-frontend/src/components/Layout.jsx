@@ -8,7 +8,14 @@ import Footer from "./Footer";
 import PwaInstallPrompt from "./PwaInstallPrompt";
 import styles from "./Layout.module.css";
 
+const legalPages = {
+  "/mentions-legales": "legalNotice",
+  "/confidentialite": "privacy",
+  "/conditions-utilisation": "terms",
+  "/annulation-remboursement": "cancellation",
+};
 function getPageTitle(pathname, t) {
+  if (legalPages[pathname]) return `${t(`legal.${legalPages[pathname]}.title`)} — MeetSpace`;
   if (pathname === "/") return "MeetSpace";
   if (pathname === "/events") return `${t("nav.events")} — MeetSpace`;
   if (pathname === "/espace") return `${t("nav.spaces")} — MeetSpace`;
@@ -25,6 +32,7 @@ function getPageTitle(pathname, t) {
 }
 
 function getPageDescription(pathname, t) {
+  if (legalPages[pathname]) return t(`legal.${legalPages[pathname]}.intro`);
   if (pathname === "/events") return t("meta.events", { defaultValue: "Découvrez et rejoignez les événements professionnels proposés à Bruxelles." });
   if (pathname === "/espace") return t("meta.spaces", { defaultValue: "Comparez les salles MeetSpace et réservez le créneau adapté à votre activité." });
   if (pathname === "/parking") return t("meta.parking", { defaultValue: "Réservez une place de parking liée à votre venue MeetSpace." });

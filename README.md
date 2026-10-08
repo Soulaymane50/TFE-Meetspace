@@ -344,3 +344,10 @@ Le versement devient disponible dès la fin de l’événement, après vérifica
 Les horaires et la salle d’une location approuvée ou payée restent fixes afin de préserver son prix. Une annulation par l’organisateur rembourse la location payée selon le barème 48 h / 24 h ; une annulation administrative restitue intégralement la location. Les billets des participants sont restitués intégralement lorsque leur événement est annulé. Le journal conserve le barème de la première demande pour reprendre un remboursement interrompu sans changer son montant.
 
 Dans Administration → Finances, l’administrateur peut enregistrer un virement bancaire effectué hors application avec une référence et une confirmation explicite. Le serveur recalcule le montant, refuse un événement non éligible ou un doublon et conserve le bénéficiaire, le montant, la date et l’administrateur. L’organisateur retrouve ce suivi dans Mes événements. Cette action ne déclenche pas de transfert Stripe Connect ni de virement bancaire.
+
+
+### Informations juridiques
+
+Les quatre pages publiques présentent les mentions légales, la confidentialité, les conditions d’utilisation et de réservation, et les annulations/remboursements en FR/EN/NL. Elles disposent de liens entre documents, d’un sommaire et d’un accès au support. Les informations sont aussi accessibles à l’inscription et avant le paiement, dans un nouvel onglet pour préserver la saisie.
+
+Les coordonnées d’éditeur sont explicitement illustratives et n’identifient pas une entreprise immatriculée. Les textes distinguent le barème commercial du droit légal de rétractation, la suppression logique de l’effacement des données, et l’enregistrement d’un versement du virement externe. Ils ne déclarent ni anonymisation automatique, ni purge automatique générale, ni conformité juridique certifiée. Une exploitation commerciale nécessite l’identité réelle, les durées de conservation, les garanties des prestataires et des conditions contractuelles adaptées.

@@ -190,6 +190,12 @@ export default function RegisterPage() {
                 required
               />
             </div>
+            <aside className={styles.legalInfo}>
+              <p>{t("legal.registerInfo")}</p>
+              <Link to="/conditions-utilisation" target="_blank" rel="noopener noreferrer">{t("legal.termsLink")}</Link>
+              {" · "}
+              <Link to="/confidentialite" target="_blank" rel="noopener noreferrer">{t("legal.privacyLink")}</Link>
+            </aside>
             <button type="submit" className={styles.button} disabled={isSubmitting}>
               {isSubmitting ? t("auth.registeringButton") : t("auth.registerButton")}
             </button>
